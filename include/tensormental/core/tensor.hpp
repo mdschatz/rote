@@ -11,6 +11,7 @@
 #define TMEN_CORE_TENSOR_HPP
 
 #include <iostream>
+#include "tensormental/core/view_decl.hpp"
 
 namespace elem {
 
@@ -160,11 +161,11 @@ private:
     
     template <typename F> 
     friend class Tensor;
-    template <typename F,Distribution U,Distribution V> 
-    friend class DistTensor;
+//    template <typename F,Distribution U,Distribution V> 
+//    friend class DistTensor;
 //    friend class AbstractDistTensor<T>;
 
-//    friend void View<T>( Tensor<T>& A, Tensor<T>& B );
+    friend void View<T>( Tensor<T>& A, Tensor<T>& B );
 //    friend void View<T>
 //    ( Tensor<T>& A, Tensor<T>& B, Int i, Int j, Int height, Int width );
 //    friend void View1x2<T>( Tensor<T>& A, Tensor<T>& BL, Tensor<T>& BR );
