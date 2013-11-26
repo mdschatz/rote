@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_HPP
-#define ELEM_CORE_HPP
+#ifndef TMEN_CORE_HPP
+#define TMEN_CORE_HPP
 
 #include "mpi.h"
 #include <algorithm>
@@ -67,49 +67,51 @@
 #endif
 
 // Declare the intertwined core parts of our library
-#include "elemental/core/timer_decl.hpp"
-#include "elemental/core/memory_decl.hpp"
-#include "elemental/core/complex_decl.hpp"
-#include "elemental/core/types_decl.hpp"
-#include "elemental/core/matrix_forward_decl.hpp"
-#include "elemental/core/dist_matrix_forward_decl.hpp"
-#include "elemental/core/view_decl.hpp"
-#include "elemental/core/matrix.hpp"
-#include "elemental/core/imports/mpi.hpp"
-#include "elemental/core/grid_decl.hpp"
-#include "elemental/core/dist_matrix.hpp"
-#include "elemental/core/imports/choice.hpp"
-#include "elemental/core/imports/mpi_choice.hpp"
-#include "elemental/core/environment_decl.hpp"
-#include "elemental/core/indexing_decl.hpp"
-#include "elemental/core/imports/blas.hpp"
-#include "elemental/core/imports/lapack.hpp"
-#include "elemental/core/imports/flame.hpp"
-#include "elemental/core/imports/pmrrr.hpp"
+//#include "tensormental/core/timer_decl.hpp"
+#include "tensormental/core/memory_decl.hpp"
+#include "tensormental/core/error_decl.hpp"
+#include "tensormental/core/complex_decl.hpp"
+#include "tensormental/core/types_decl.hpp"
+#include "tensormental/core/tensor_forward_decl.hpp"
+//#include "tensormental/core/dist_tensor_forward_decl.hpp"
+//#include "tensormental/core/view_decl.hpp"
+#include "tensormental/core/tensor.hpp"
+#include "tensormental/core/imports/mpi.hpp"
+#include "tensormental/util/vec_util.hpp"
+#include "tensormental/core/grid_decl.hpp"
+//#include "tensormental/core/dist_tensor.hpp"
+#include "tensormental/core/imports/choice.hpp"
+#include "tensormental/core/imports/mpi_choice.hpp"
+#include "tensormental/core/environment_decl.hpp"
+//#include "tensormental/core/indexing_decl.hpp"
+//#include "tensormental/core/imports/blas.hpp"
+//#include "tensormental/core/imports/lapack.hpp"
+#include "tensormental/core/imports/flame.hpp"
+//#include "tensormental/core/imports/pmrrr.hpp"
 
 // Implement the intertwined parts of the library
-#include "elemental/core/timer_impl.hpp"
-#include "elemental/core/memory_impl.hpp"
-#include "elemental/core/complex_impl.hpp"
-#include "elemental/core/types_impl.hpp"
-#include "elemental/core/grid_impl.hpp"
-#include "elemental/core/environment_impl.hpp"
-#include "elemental/core/indexing_impl.hpp"
+//#include "tensormental/core/timer_impl.hpp"
+#include "tensormental/core/memory_impl.hpp"
+#include "tensormental/core/complex_impl.hpp"
+#include "tensormental/core/types_impl.hpp"
+#include "tensormental/core/grid_impl.hpp"
+#include "tensormental/core/environment_impl.hpp"
+//#include "tensormental/core/indexing_impl.hpp"
 
 // Declare and implement the decoupled parts of the core of the library
 // (perhaps these should be moved into their own directory?)
-#include "elemental/core/view_impl.hpp"
-#include "elemental/core/partition_decl.hpp"
-#include "elemental/core/partition_impl.hpp"
-#include "elemental/core/repartition_decl.hpp"
-#include "elemental/core/repartition_impl.hpp"
-#include "elemental/core/slide_partition_decl.hpp"
-#include "elemental/core/slide_partition_impl.hpp"
-#include "elemental/core/random_decl.hpp"
-#include "elemental/core/random_impl.hpp"
-#include "elemental/core/axpy_interface_decl.hpp"
-#include "elemental/core/axpy_interface_impl.hpp"
+//#include "tensormental/core/view_impl.hpp"
+//#include "tensormental/core/partition_decl.hpp"
+//#include "tensormental/core/partition_impl.hpp"
+//#include "tensormental/core/repartition_decl.hpp"
+//#include "tensormental/core/repartition_impl.hpp"
+//#include "tensormental/core/slide_partition_decl.hpp"
+//#include "tensormental/core/slide_partition_impl.hpp"
+//#include "tensormental/core/random_decl.hpp"
+//#include "tensormental/core/random_impl.hpp"
+//#include "tensormental/core/axpy_interface_decl.hpp"
+//#include "tensormental/core/axpy_interface_impl.hpp"
 
-#include "elemental/core/ReduceComm.hpp"
+//#include "tensormental/core/ReduceComm.hpp"
 
-#endif // ifndef ELEM_CORE_HPP
+#endif // ifndef TMEN_CORE_HPP

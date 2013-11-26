@@ -6,9 +6,11 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#pragma once
-#ifndef ELEM_CORE_TYPES_IMPL_HPP
-#define ELEM_CORE_TYPES_IMPL_HPP
+#ifndef TMEN_CORE_TYPES_IMPL_HPP
+#define TMEN_CORE_TYPES_IMPL_HPP
+
+#include "tensormental/core/types_decl.hpp"
+#include "tensormental/core/error_decl.hpp"
 
 namespace elem {
 
@@ -187,5 +189,4 @@ CharToUpperOrLower( char c )
 } // namespace upper_or_lower_wrapper
 
 } // namespace elem
-
-#endif // ifndef ELEM_CORE_TYPES_IMPL_HPP
+#endif

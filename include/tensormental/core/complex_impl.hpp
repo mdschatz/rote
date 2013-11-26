@@ -6,9 +6,10 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#pragma once
-#ifndef CORE_COMPLEX_IMPL_HPP
-#define CORE_COMPLEX_IMPL_HPP
+#ifndef TMEN_CORE_COMPLEX_IMPL_HPP
+#define TMEN_CORE_COMPLEX_IMPL_HPP
+
+#include "tensormental/core/complex_decl.hpp"
 
 namespace elem {
 
@@ -205,5 +206,4 @@ Log( const F& alpha )
 { return std::log(alpha); }
 
 } // namespace elem
-
-#endif // ifndef CORE_COMPLEX_IMPL_HPP
+#endif

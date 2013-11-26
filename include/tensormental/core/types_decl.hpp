@@ -6,9 +6,10 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#pragma once
-#ifndef ELEM_CORE_TYPES_DECL_HPP
-#define ELEM_CORE_TYPES_DECL_HPP
+#ifndef TMEN_CORE_TYPES_DECL_HPP
+#define TMEN_CORE_TYPES_DECL_HPP
+
+#include <complex>
 
 namespace elem {
 
@@ -19,8 +20,20 @@ typedef unsigned char byte;
 typedef int Int;
 typedef unsigned Unsigned;
  
+template<typename Real>
+using Complex = std::complex<Real>;
+
 typedef Complex<float>  scomplex; 
 typedef Complex<double> dcomplex;
+
+// For extracting the underlying real datatype, 
+// e.g., typename Base<Scalar>::type a = 3.0;
+template<typename Real>
+struct Base { typedef Real type; };
+template<typename Real>
+struct Base<Complex<Real> > { typedef Real type; };
+#define BASE(F) typename Base<F>::type 
+#define COMPLEX(F) Complex<BASE(F)>
 
 template<typename Real>
 struct ValueInt
@@ -235,4 +248,4 @@ using namespace vertical_or_horizontal_wrapper;
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_TYPES_DECL_HPP
+#endif // ifndef TMEN_CORE_TYPES_DECL_HPP

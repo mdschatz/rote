@@ -7,21 +7,15 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEMENTAL_HPP
-#define ELEMENTAL_HPP
+#ifndef TENSORMENTAL_HPP
+#define TENSORMENTAL_HPP
 
-#include "elemental/config.h"
+#include "tensormental/config.h"
 #ifdef HAVE_F90_INTERFACE
-# include "elemental/FCMangle.h"
+# include "tensormental/FCMangle.h"
 #endif
 
-#include "elemental/core.hpp"
-#include "elemental/blas-like.hpp"
-#include "elemental/lapack-like.hpp"
-#include "elemental/convex.hpp"
-#include "elemental/control.hpp"
-#include "elemental/matrices.hpp"
-
-#include "elemental/io.hpp"
-
-#endif // ifndef ELEMENTAL_HPP
+#include "tensormental/core.hpp"
+//#include "tensormental/tensors.hpp"
+//#include "tensormental/btas.hpp"
+#endif // ifndef TENSORMENTAL_HPP

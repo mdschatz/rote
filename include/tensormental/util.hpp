@@ -7,7 +7,15 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_CORE_COMPLEX_HPP
-#define TMEN_CORE_COMPLEX_HPP
+#ifndef TMEN_UTIL_HPP
+#define TMEN_UTIL_HPP
 
-#endif // ifndef TMEN_CORE_COMPLEX_HPP
+#include <vector>
+#include <accumulate>
+#include <functional>
+
+
+// Declare the intertwined core parts of our library
+#include "tensormental/util/vec_util.hpp"
+
+#endif // ifndef TMEN_CORE_HPP

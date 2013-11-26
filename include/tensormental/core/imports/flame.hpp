@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_FLAME_HPP
-#define ELEM_CORE_FLAME_HPP
+#ifndef TMEN_CORE_FLAME_HPP
+#define TMEN_CORE_FLAME_HPP
 
 extern "C" {
 
@@ -71,4 +71,4 @@ inline void FlaSVD
 } // namespace elem
 #endif // ifdef HAVE_FLA_BSVD
 
-#endif // ifndef ELEM_CORE_FLAME_HPP
+#endif // ifndef TMEN_CORE_FLAME_HPP

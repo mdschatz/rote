@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 2.8.8)
 project(Tensormental)
 set(Tensormental_VERSION_MAJOR 0)
 set(Tensormental_VERSION_MINOR 0-dev)
-
 ################################################################################
 # Common build options                                                         #
 ################################################################################
@@ -16,7 +15,7 @@ option(SHARED_LIBRARIES "Switch to shared libraries" OFF)
 option(TMEN_EXAMPLES "A collection of simple examples" OFF)
 
 # Whether or not to build a collection of performance and correctness tests
-option(TMEN_TESTS "A collection of performance and correctness tests" OFF)
+option(TMEN_TESTS "A collection of performance and correctness tests" ON)
 
 # Whether or not to build current 'experimental' code, such as:
 # 1) prototype C and F90 interfaces
@@ -43,7 +42,7 @@ mark_as_advanced(AVOID_OMP_FMA)
 # floating-point data as a collection of byte-sized objects results in a 
 # better algorithm being chosen for MPI_Allgather. This should not effect
 # performance on most machines.
-option(USE_BYTE_ALLGATHERS "Avoid BG/P allgather performance bug." ON)
+option(USE_BYTE_ALLGATHERS "Avoid BG/P allgather performance bug." OFF)
 mark_as_advanced(USE_BYTE_ALLGATHERS)
 
 # If MPI_Reduce_scatter_block doesn't exist, perform it by composing 
@@ -140,14 +139,16 @@ string(TOUPPER ${CMAKE_BUILD_TYPE} UPPER_BUILD_TYPE)
 
 # Set the basic compile flags from the build type
 if(NOT WIN32) # I forget why we need this guard
-  set(LANGUAGES CXX C Fortran)
+  set(LANGUAGES CXX C)
   foreach(LANG ${LANGUAGES})
+    message("flags" ${${LANG}_FLAGS_${UPPER_BUILD_TYPE}})
     if(NOT ${LANG}_FLAGS_${UPPER_BUILD_TYPE})
       if(DEBUG)
-        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O2 -g" CACHE STRING
+	  message("debug flags set")
+          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -ggdb3 -std=c++0x" CACHE STRING
           "${LANG} optimization/debug flags for ${UPPER_BUILD_TYPE} mode")
       else()
-        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O3" CACHE STRING
+        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -ggdb3" CACHE STRING
           "${LANG} optimization flags for ${UPPER_BUILD_TYPE} mode")
       endif()
     endif()
@@ -156,24 +157,24 @@ endif()
 
 # Go ahead and check for Fortran, but keep in mind that CMake's 'OPTIONAL' 
 # argument for enable_language is still completely broken as of 2.8.8
-include(./cmake/language_support_v2.cmake)
-workaround_9220(Fortran FORTRAN_WORKS)
-if(FORTRAN_WORKS)
-  enable_language(Fortran)  
-  set(HAVE_F90_INTERFACE FALSE)
-  if(CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    include(FortranCInterface)
-    FortranCInterface_VERIFY(CXX)
-    if(FortranCInterface_VERIFIED_CXX)
-      set(HAVE_F90_INTERFACE TRUE)
-      FortranCInterface_HEADER(
-        ${CMAKE_CURRENT_BINARY_DIR}/include/elemental/FCMangle.h 
-        MACRO_NAMESPACE "FC_")
-      install(FILES ${PROJECT_BINARY_DIR}/include/elemental/FCMangle.h
-              DESTINATION include/elemental/)
-    endif()
-  endif()
-endif()
+#include(./cmake/language_support_v2.cmake)
+#workaround_9220(Fortran FORTRAN_WORKS)
+#if(FORTRAN_WORKS)
+#  enable_language(Fortran)  
+#  set(HAVE_F90_INTERFACE FALSE)
+#  if(CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+#    include(FortranCInterface)
+#    FortranCInterface_VERIFY(CXX)
+#    if(FortranCInterface_VERIFIED_CXX)
+#      set(HAVE_F90_INTERFACE TRUE)
+#      FortranCInterface_HEADER(
+#        ${CMAKE_CURRENT_BINARY_DIR}/include/elemental/FCMangle.h 
+#        MACRO_NAMESPACE "FC_")
+#      install(FILES ${PROJECT_BINARY_DIR}/include/elemental/FCMangle.h
+#              DESTINATION include/elemental/)
+#    endif()
+#  endif()
+#endif()
 
 # Make sure that MPI is available
 find_package(MPI)
@@ -203,7 +204,7 @@ if(HYBRID)
 endif()
 
 # Now append the extra flags
-set(CMAKE_CXX_FLAGS_${UPPER_BUILD_TYPE} "${CXX_FLAGS} ${EXTRA_FLAGS}")
+set(CMAKE_CXX_FLAGS_${UPPER_BUILD_TYPE} "${CXX_FLAGS} ${CXX_FLAGS_${UPPER_BUILD_TYPE}} ${EXTRA_FLAGS}")
 
 # Set the library type from the 'SHARED_LIBRARIES' option
 if(SHARED_LIBRARIES OR HAVE_SWIG)
@@ -389,13 +390,13 @@ set(LAPACK_ADDONS_STRING)
 foreach(LIB ${LAPACK_ADDONS_LIBS})
   set(LAPACK_ADDONS_STRING "${LAPACK_ADDONS_STRING} ${LIB}")
 endforeach()
-configure_file(${PROJECT_SOURCE_DIR}/cmake/elemvariables.cmake
-               ${PROJECT_BINARY_DIR}/conf/elemvariables @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/conf/elemvariables DESTINATION conf)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/tmenvariables.cmake
+               ${PROJECT_BINARY_DIR}/conf/tmenvariables @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/conf/tmenvariables DESTINATION conf)
 
 # Grab all of the .c, .cpp, .h, and .hpp Tensormental files
-file(GLOB_RECURSE ELEM_CPP RELATIVE ${PROJECT_SOURCE_DIR} "src/*.c" "src/*.cpp")
-file(GLOB_RECURSE ELEM_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} 
+file(GLOB_RECURSE TMEN_CPP RELATIVE ${PROJECT_SOURCE_DIR} "src/*.c" "src/*.cpp")
+file(GLOB_RECURSE TMEN_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} 
   "include/*.h" "include/*.hpp")
 if(TMEN_EXPERIMENTAL)
   if(NOT MPI_C_FOUND)
@@ -403,40 +404,40 @@ if(TMEN_EXPERIMENTAL)
   endif()
   include_directories(${MPI_C_INCLUDE_PATH})
   set(CMAKE_C_FLAGS_${UPPER_BUILD_TYPE} "${MPI_C_COMPILE_FLAGS}")
-  set(TMEN_CPP "${ELEM_CPP};experimental/c/interface.cpp")
-  set(TMEN_HEADERS "${ELEM_HEADERS};experimental/c/elemental.h")
+  set(TMEN_CPP "${TMEN_CPP};experimental/c/interface.cpp")
+  set(TMEN_HEADERS "${TMEN_HEADERS};experimental/c/elemental.h")
 
-  if(HAVE_F90_INTERFACE)
-    if(NOT MPI_Fortran_FOUND)
-      message(FATAL_ERROR "Could not build F90 interface without Fortran MPI")
-    endif()
+#  if(HAVE_F90_INTERFACE)
+#    if(NOT MPI_Fortran_FOUND)
+#      message(FATAL_ERROR "Could not build F90 interface without Fortran MPI")
+#    endif()
     # We cannot simply use check_function_exists, since MPI_Comm_f2c is 
     # a macro in some MPI implementations
-    set(MPI_COMM_F2C_CODE
-    "#include \"mpi.h\"
-     int main( int argc, char* argv[] )
-     {
-         MPI_Init( &argc, &argv );
-         MPI_Fint fint;
-         MPI_Comm comm = MPI_Comm_f2c( fint );
-         MPI_Finalize();
-         return 0;
-     }")
-    check_c_source_compiles("${MPI_COMM_F2C_CODE}" HAVE_MPI_COMM_F2C)
-    if(NOT HAVE_MPI_COMM_F2C)
-      message(FATAL_ERROR
-        "Could not find MPI_Comm_f2c, but it is needed for the F90 interface")
-    endif()
-    include_directories(${MPI_Fortran_INCLUDE_PATH})
-    set(CMAKE_Fortran_FLAGS_${UPPER_BUILD_TYPE} "${MPI_Fortran_COMPILE_FLAGS}")
-    set(ELEM_CPP "${ELEM_CPP};experimental/f90/interface.cpp")
-  endif()
+#    set(MPI_COMM_F2C_CODE
+#    "#include \"mpi.h\"
+#     int main( int argc, char* argv[] )
+#     {
+#         MPI_Init( &argc, &argv );
+#         MPI_Fint fint;
+#         MPI_Comm comm = MPI_Comm_f2c( fint );
+#         MPI_Finalize();
+#         return 0;
+#     }")
+#    check_c_source_compiles("${MPI_COMM_F2C_CODE}" HAVE_MPI_COMM_F2C)
+#    if(NOT HAVE_MPI_COMM_F2C)
+#      message(FATAL_ERROR
+#        "Could not find MPI_Comm_f2c, but it is needed for the F90 interface")
+#    endif()
+#    include_directories(${MPI_Fortran_INCLUDE_PATH})
+#    set(CMAKE_Fortran_FLAGS_${UPPER_BUILD_TYPE} "${MPI_Fortran_COMPILE_FLAGS}")
+#    set(TMEN_CPP "${TMEN_CPP};experimental/f90/interface.cpp")
+#  endif()
 endif()
-set(ELEM_SRC "${ELEM_CPP};${ELEM_HEADERS};${ELEM_MOC_SRC}")
+set(TMEN_SRC "${TMEN_CPP};${TMEN_HEADERS};${TMEN_MOC_SRC}")
 
 # The main library
 set(LINK_LIBS ${MATH_LIBS} ${MPI_CXX_LIBRARIES})
-add_library(tensormental ${LIBRARY_TYPE} ${ELEM_SRC})
+add_library(tensormental ${LIBRARY_TYPE} ${TMEN_SRC})
 target_link_libraries(tensormental ${LINK_LIBS})
 if(MPI_CXX_LINK_FLAGS)
   set(MPI_LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
@@ -456,7 +457,7 @@ foreach(HEADER ${TMEN_HEADERS})
   install(FILES ${PROJECT_BINARY_DIR}/${HEADER} DESTINATION ${HEADER_PATH})
 endforeach()
 add_custom_target(prepare_tensormental_headers DEPENDS ${PREPARED_HEADERS})
-add_dependencies(elemental prepare_tensormental_headers)
+add_dependencies(tensormental prepare_tensormental_headers)
 
 # Make sure the Tensormental headers can be found
 include_directories("${PROJECT_BINARY_DIR}/include")
@@ -464,10 +465,10 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 # Build the test drivers if necessary
 if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
-  set(TEST_TYPES core blas-like lapack-like)
+  set(TEST_TYPES core)
 
-  set(core_TESTS AxpyInterface Complex DifferentGrids DistMatrix Matrix Version)
-  set(compute_TESTS Contract)
+  set(core_TESTS Grids)
+  #set(compute_TESTS Contract)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")

@@ -7,8 +7,11 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_MEMORY_DECL_HPP
-#define ELEM_CORE_MEMORY_DECL_HPP
+#ifndef TMEN_CORE_MEMORY_DECL_HPP
+#define TMEN_CORE_MEMORY_DECL_HPP
+
+#include <iostream>
+#include "tensormental/core/imports/mpi.hpp"
 
 namespace elem {
 
@@ -38,4 +41,4 @@ public:
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_MEMORY_DECL_HPP
+#endif // ifndef TMEN_CORE_MEMORY_DECL_HPP

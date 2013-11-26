@@ -6,40 +6,20 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#pragma once
-#ifndef ELEM_CORE_COMPLEX_DECL_HPP
-#define ELEM_CORE_COMPLEX_DECL_HPP
+#ifndef TMEN_CORE_COMPLEX_DECL_HPP
+#define TMEN_CORE_COMPLEX_DECL_HPP
+
+//#include "tensormental/core/environment_decl.hpp"
+#include <iostream>
+#include <complex>
+#include "tensormental/core/types_decl.hpp"
+#include "tensormental/core/error_decl.hpp"
+#include "tensormental/core/environment_decl.hpp"
 
 namespace elem {
 
 template<typename Real>
-using Complex = std::complex<Real>;
-
-template<typename Real>
 std::ostream& operator<<( std::ostream& os, Complex<Real> alpha );
-
-// For extracting the underlying real datatype, 
-// e.g., typename Base<Scalar>::type a = 3.0;
-#ifndef SWIG
-template<typename Real>
-struct Base { typedef Real type; };
-template<typename Real>
-struct Base<Complex<Real>> { typedef Real type; };
-#else
-template<typename Real> struct Base { };
-%template(Base_i) Base<Int>;
-%extend Base<Int> { typedef Int type; }
-%template(Base_s) Base<float>;
-%extend Base<float> { typedef float type; }
-%template(Base_d) Base<double>;
-%extend Base<double> { typedef double type; }
-%template(Base_c) Base<Complex<float> >;
-%extend Base<Complex<float> > { typedef float type; }
-%template(Base_z) Base<Complex<double> >;
-%extend Base<Complex<double> > { typedef double type; }
-#endif
-#define BASE(F) typename Base<F>::type 
-#define COMPLEX(F) Complex<BASE(F)>
 
 // For querying whether or not a scalar is complex,
 // e.g., IsComplex<Scalar>::val
@@ -169,4 +149,4 @@ F Log( const F& alpha );
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_COMPLEX_DECL_HPP
+#endif // ifndef TMEN_CORE_COMPLEX_DECL_HPP

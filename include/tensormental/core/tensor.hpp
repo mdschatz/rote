@@ -7,14 +7,16 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_MATRIX_HPP
-#define ELEM_CORE_MATRIX_HPP
+#ifndef TMEN_CORE_TENSOR_HPP
+#define TMEN_CORE_TENSOR_HPP
+
+#include <iostream>
 
 namespace elem {
 
-// Matrix base for arbitrary rings
+// Tensor base for arbitrary rings
 template<typename T>
-class Matrix
+class Tensor
 {
 public:    
     //
@@ -29,30 +31,28 @@ public:
     // Constructors
     // 
 
-    Matrix( bool fixed=false );
-    Matrix( Int height, Int width, bool fixed=false );
-    Matrix( Int height, Int width, Int ldim, bool fixed=false );
-    Matrix
+    Tensor( bool fixed=false );
+    Tensor( Int height, Int width, bool fixed=false );
+    Tensor( Int height, Int width, Int ldim, bool fixed=false );
+    Tensor
     ( Int height, Int width, const T* buffer, Int ldim, bool fixed=false );
-    Matrix( Int height, Int width, T* buffer, Int ldim, bool fixed=false );
-    Matrix( const Matrix<T>& A );
+    Tensor( Int height, Int width, T* buffer, Int ldim, bool fixed=false );
+    Tensor( const Tensor<T>& A );
 
-#ifndef SWIG
     // Move constructor
-    Matrix( Matrix<T>&& A );
+    Tensor( Tensor<T>&& A );
 
     // Move assignment
-    Matrix<T>& operator=( Matrix<T>&& A );
-#endif
+    Tensor<T>& operator=( Tensor<T>&& A );
 
     // Swap
-    void Swap( Matrix<T>& A );
+    void Swap( Tensor<T>& A );
 
     //
     // Destructor
     //
 
-    virtual ~Matrix();
+    virtual ~Tensor();
 
     //
     // Basic information
@@ -78,11 +78,11 @@ public:
     void Set( Int i, Int j, T alpha );
     void Update( Int i, Int j, T alpha );
 
-    void GetDiagonal( Matrix<T>& d, Int offset=0 ) const;
-    Matrix<T> GetDiagonal( Int offset=0 ) const;
+    void GetDiagonal( Tensor<T>& d, Int offset=0 ) const;
+    Tensor<T> GetDiagonal( Int offset=0 ) const;
 
-    void SetDiagonal( const Matrix<T>& d, Int offset=0 );
-    void UpdateDiagonal( const Matrix<T>& d, Int offset=0 );
+    void SetDiagonal( const Tensor<T>& d, Int offset=0 );
+    void UpdateDiagonal( const Tensor<T>& d, Int offset=0 );
 
     //
     // Though the following routines are meant for complex data, all but four
@@ -98,17 +98,17 @@ public:
     // Only valid for complex data
     void UpdateImagPart( Int i, Int j, BASE(T) alpha );
 
-    void GetRealPartOfDiagonal( Matrix<BASE(T)>& d, Int offset=0 ) const;
-    void GetImagPartOfDiagonal( Matrix<BASE(T)>& d, Int offset=0 ) const;
-    Matrix<BASE(T)> GetRealPartOfDiagonal( Int offset=0 ) const;
-    Matrix<BASE(T)> GetImagPartOfDiagonal( Int offset=0 ) const;
+    void GetRealPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
+    void GetImagPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
+    Tensor<BASE(T)> GetRealPartOfDiagonal( Int offset=0 ) const;
+    Tensor<BASE(T)> GetImagPartOfDiagonal( Int offset=0 ) const;
 
-    void SetRealPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset=0 );
+    void SetRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
     // Only valid for complex data
-    void SetImagPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset=0 );
-    void UpdateRealPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset=0 );
+    void SetImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
+    void UpdateRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
     // Only valid for complex data
-    void UpdateImagPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset=0 );
+    void UpdateImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
 
     //
     // Viewing other matrix instances (or buffers)
@@ -133,7 +133,7 @@ public:
     // Utilities
     //
 
-    const Matrix<T>& operator=( const Matrix<T>& A );
+    const Tensor<T>& operator=( const Tensor<T>& A );
 
     void Empty();
     void ResizeTo( Int height, Int width );
@@ -150,7 +150,7 @@ private:
     const T& Get_( Int i, Int j ) const;
     T& Set_( Int i, Int j );
 
-    // These bypass fixed-size checking and are used by DistMatrix
+    // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
     void ResizeTo_( Int height, Int width );
     void ResizeTo_( Int height, Int width, Int ldim );
@@ -158,35 +158,33 @@ private:
     void Attach_( Int height, Int width, T* buffer, Int ldim );
     void LockedAttach_( Int height, Int width, const T* buffer, Int ldim );
     
-#ifndef SWIG
     template <typename F> 
-    friend class Matrix;
+    friend class Tensor;
     template <typename F,Distribution U,Distribution V> 
-    friend class DistMatrix;
-    friend class AbstractDistMatrix<T>;
+    friend class DistTensor;
+//    friend class AbstractDistTensor<T>;
 
-    friend void View<T>( Matrix<T>& A, Matrix<T>& B );
-    friend void View<T>
-    ( Matrix<T>& A, Matrix<T>& B, Int i, Int j, Int height, Int width );
-    friend void View1x2<T>( Matrix<T>& A, Matrix<T>& BL, Matrix<T>& BR );
-    friend void View2x1<T>( Matrix<T>& A, Matrix<T>& BT, Matrix<T>& BB );
-    friend void View2x2<T>
-    ( Matrix<T>& A, Matrix<T>& BTL, Matrix<T>& BTR,
-                    Matrix<T>& BBL, Matrix<T>& BBR );
+//    friend void View<T>( Tensor<T>& A, Tensor<T>& B );
+//    friend void View<T>
+//    ( Tensor<T>& A, Tensor<T>& B, Int i, Int j, Int height, Int width );
+//    friend void View1x2<T>( Tensor<T>& A, Tensor<T>& BL, Tensor<T>& BR );
+//    friend void View2x1<T>( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB );
+//    friend void View2x2<T>
+//    ( Tensor<T>& A, Tensor<T>& BTL, Tensor<T>& BTR,
+//                    Tensor<T>& BBL, Tensor<T>& BBR );
 
-    friend void LockedView<T>( Matrix<T>& A, const Matrix<T>& B );
-    friend void LockedView<T>
-    ( Matrix<T>& A, const Matrix<T>& B, Int i, Int j, Int height, Int width );
-    friend void LockedView1x2<T>
-    ( Matrix<T>& A, const Matrix<T>& BL, const Matrix<T>& BR );
-    friend void LockedView2x1<T>
-    ( Matrix<T>& A, const Matrix<T>& BT, const Matrix<T>& BB );
-    friend void LockedView2x2<T>
-    ( Matrix<T>& A, const Matrix<T>& BTL, const Matrix<T>& BTR,
-                    const Matrix<T>& BBL, const Matrix<T>& BBR );
-#endif // ifndef SWIG
+//    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B );
+//    friend void LockedView<T>
+//    ( Tensor<T>& A, const Tensor<T>& B, Int i, Int j, Int height, Int width );
+//    friend void LockedView1x2<T>
+//    ( Tensor<T>& A, const Tensor<T>& BL, const Tensor<T>& BR );
+//    friend void LockedView2x1<T>
+//    ( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB );
+//    friend void LockedView2x2<T>
+//    ( Tensor<T>& A, const Tensor<T>& BTL, const Tensor<T>& BTR,
+//                    const Tensor<T>& BBL, const Tensor<T>& BBR );
 };
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_MATRIX_HPP
+#endif // ifndef TMEN_CORE_TENSOR_HPP

@@ -7,8 +7,13 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_ENVIRONMENT_DECL_HPP
-#define ELEM_CORE_ENVIRONMENT_DECL_HPP
+#ifndef TMEN_CORE_ENVIRONMENT_DECL_HPP
+#define TMEN_CORE_ENVIRONMENT_DECL_HPP
+
+#include <vector>
+#include "tensormental/core/imports/mpi.hpp"
+#include "tensormental/core/imports/mpi_choice.hpp"
+#include <random>
 
 namespace elem {
 
@@ -81,12 +86,6 @@ void StridedMemCopy
 template<typename T>
 void MemZero( T* buffer, std::size_t numEntries );
 
-inline void LogicError( std::string msg="LogicError" )
-{ throw std::logic_error( msg.c_str() ); }
-
-inline void RuntimeError( std::string msg="RuntimeError" )
-{ throw std::runtime_error( msg.c_str() ); }
-
 // An exception which signifies that a matrix was unexpectedly singular.
 class SingularMatrixException : public std::runtime_error 
 {
@@ -139,4 +138,4 @@ void ComplainIfDebug();
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_ENVIRONMENT_DECL_HPP
+#endif // ifndef TMEN_CORE_ENVIRONMENT_DECL_HPP

@@ -7,8 +7,10 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_ENVIRONMENT_IMPL_HPP
-#define ELEM_CORE_ENVIRONMENT_IMPL_HPP
+#ifndef TMEN_CORE_ENVIRONMENT_IMPL_HPP
+#define TMEN_CORE_ENVIRONMENT_IMPL_HPP
+
+#include "tensormental/core/environment_decl.hpp"
 
 namespace elem {
 
@@ -35,7 +37,7 @@ inline void Args::HandleBuild( std::ostream& os ) const
         if( mpi::WorldRank() == 0 )
         {
             PrintVersion();
-            PrintConfig();
+            //PrintConfig();
             PrintCCompilerInfo();
             PrintCxxCompilerInfo();
         }
@@ -112,7 +114,7 @@ StridedMemCopy
   const T* source, std::size_t sourceStride, std::size_t numEntries )
 {
     // For now, use the BLAS wrappers/generalization
-    blas::Copy( numEntries, source, sourceStride, dest, destStride );
+    //blas::Copy( numEntries, source, sourceStride, dest, destStride );
 }
 
 template<typename T>
@@ -125,4 +127,4 @@ MemZero( T* buffer, std::size_t numEntries )
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_ENVIRONMENT_IMPL_HPP
+#endif

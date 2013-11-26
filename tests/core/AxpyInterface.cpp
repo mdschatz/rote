@@ -7,9 +7,9 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "elemental.hpp" instead
-#include "elemental-lite.hpp"
-#include "elemental/matrices/Zeros.hpp"
+// NOTE: It is possible to simply include "tensormental.hpp" instead
+#include "tensormental.hpp"
+#include "tensormental/matrices/Zeros.hpp"
 using namespace elem;
 
 int

@@ -6,7 +6,7 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "elemental-lite.hpp"
+#include "tensormental.hpp"
 
 namespace elem {
 
@@ -16,24 +16,21 @@ namespace elem {
 
 template<typename T>
 void
-Matrix<T>::AssertValidDimensions( const Int order, const Int[TMEN_MAX_ORDER] dim ) const
+Tensor<T>::AssertValidDimensions( Int height, Int width ) const
 {
-    Int i;
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::AssertValidDimensions");
+    CallStackEntry cse("Tensor::AssertValidDimensions");
 #endif
-    for(i = 0; i < order; i++){
-        if( dim[i] < 0 )
-            LogicError("Height and width must be non-negative");
-    }
+    if( height < 0 || width < 0 )
+        LogicError("Height and width must be non-negative");
 }
 
 template<typename T>
 void
-Matrix<T>::AssertValidDimensions( Int height, Int width, Int ldim ) const
+Tensor<T>::AssertValidDimensions( Int height, Int width, Int ldim ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::AssertValidDimensions");
+    CallStackEntry cse("Tensor::AssertValidDimensions");
 #endif
     AssertValidDimensions( height, width );
     if( ldim < height )
@@ -44,10 +41,10 @@ Matrix<T>::AssertValidDimensions( Int height, Int width, Int ldim ) const
 
 template<typename T>
 void
-Matrix<T>::AssertValidEntry( Int i, Int j ) const
+Tensor<T>::AssertValidEntry( Int i, Int j ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::AssertValidEntry");
+    CallStackEntry cse("Tensor::AssertValidEntry");
 #endif
     if( i < 0 || j < 0 )
         LogicError("Indices must be non-negative");
@@ -56,7 +53,7 @@ Matrix<T>::AssertValidEntry( Int i, Int j ) const
         std::ostringstream msg;
         msg << "Out of bounds: "
             << "(" << i << "," << j << ") of " << this->Height()
-            << " x " << this->Width() << " Matrix.";
+            << " x " << this->Width() << " Tensor.";
         LogicError( msg.str() );
     }
 }
@@ -66,19 +63,19 @@ Matrix<T>::AssertValidEntry( Int i, Int j ) const
 //
 
 template<typename T>
-Matrix<T>::Matrix( bool fixed )
+Tensor<T>::Tensor( bool fixed )
 : viewType_( fixed ? OWNER_FIXED : OWNER ),
   height_(0), width_(0), ldim_(1), 
   data_(nullptr)
 { }
 
 template<typename T>
-Matrix<T>::Matrix( Int height, Int width, bool fixed )
+Tensor<T>::Tensor( Int height, Int width, bool fixed )
 : viewType_( fixed ? OWNER_FIXED : OWNER ),
   height_(height), width_(width), ldim_(Max(height,1))
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Matrix");
+    CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( height, width );
 #endif
     memory_.Require( ldim_ * width );
@@ -87,13 +84,13 @@ Matrix<T>::Matrix( Int height, Int width, bool fixed )
 }
 
 template<typename T>
-Matrix<T>::Matrix
+Tensor<T>::Tensor
 ( Int height, Int width, Int ldim, bool fixed )
 : viewType_( fixed ? OWNER_FIXED : OWNER ),
   height_(height), width_(width), ldim_(ldim)
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Matrix");
+    CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( height, width, ldim );
 #endif
     memory_.Require( ldim*width );
@@ -101,59 +98,59 @@ Matrix<T>::Matrix
 }
 
 template<typename T>
-Matrix<T>::Matrix
+Tensor<T>::Tensor
 ( Int height, Int width, const T* buffer, Int ldim, bool fixed )
 : viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   height_(height), width_(width), ldim_(ldim), 
   data_(buffer)
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Matrix");
+    CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( height, width, ldim );
 #endif
 }
 
 template<typename T>
-Matrix<T>::Matrix
+Tensor<T>::Tensor
 ( Int height, Int width, T* buffer, Int ldim, bool fixed )
 : viewType_( fixed ? VIEW_FIXED: VIEW ),
   height_(height), width_(width), ldim_(ldim), 
   data_(buffer)
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Matrix");
+    CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( height, width, ldim );
 #endif
 }
 
 template<typename T>
-Matrix<T>::Matrix( const Matrix<T>& A )
+Tensor<T>::Tensor( const Tensor<T>& A )
 : viewType_( OWNER ),
   height_(0), width_(0), ldim_(1), 
   data_(nullptr)
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Matrix( const Matrix& )");
+    CallStackEntry cse("Tensor::Tensor( const Tensor& )");
 #endif
     if( &A != this )
         *this = A;
     else
-        LogicError("You just tried to construct a Matrix with itself!");
+        LogicError("You just tried to construct a Tensor with itself!");
 }
 
 template<typename T>
-Matrix<T>::Matrix( Matrix<T>&& A )
+Tensor<T>::Tensor( Tensor<T>&& A )
 : viewType_(A.viewType_),
   height_(A.height_), width_(A.width_), ldim_(A.ldim_),
   data_(nullptr), memory_(std::move(A.memory_))
 { std::swap( data_, A.data_ ); }
 
 template<typename T>
-Matrix<T>&
-Matrix<T>::operator=( Matrix<T>&& A )
+Tensor<T>&
+Tensor<T>::operator=( Tensor<T>&& A )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::operator=( Matrix&& )");
+    CallStackEntry cse("Tensor::operator=( Tensor&& )");
 #endif
     if( this == &A )
         LogicError("Tried to move to self");
@@ -169,7 +166,7 @@ Matrix<T>::operator=( Matrix<T>&& A )
 
 template<typename T>
 void
-Matrix<T>::Swap( Matrix<T>& A )
+Tensor<T>::Swap( Tensor<T>& A )
 {
     memory_.Swap( A.memory_ );
     std::swap( data_, A.data_ );
@@ -184,7 +181,7 @@ Matrix<T>::Swap( Matrix<T>& A )
 //
 
 template<typename T>
-Matrix<T>::~Matrix()
+Tensor<T>::~Tensor()
 { }
 
 //
@@ -193,62 +190,62 @@ Matrix<T>::~Matrix()
 
 template<typename T>
 Int 
-Matrix<T>::Height() const
+Tensor<T>::Height() const
 { return height_; }
 
 template<typename T>
 Int
-Matrix<T>::Width() const
+Tensor<T>::Width() const
 { return width_; }
 
 template<typename T>
 Int
-Matrix<T>::DiagonalLength( Int offset ) const
-{ return elem::DiagonalLength(height_,width_,offset); }
+Tensor<T>::DiagonalLength( Int offset ) const
+{ return 0;/*return elem::DiagonalLength(height_,width_,offset);*/ }
 
 template<typename T>
 Int
-Matrix<T>::LDim() const
+Tensor<T>::LDim() const
 { return ldim_; }
 
 template<typename T>
 Int
-Matrix<T>::MemorySize() const
+Tensor<T>::MemorySize() const
 { return memory_.Size(); }
 
 template<typename T>
 bool
-Matrix<T>::Owner() const
+Tensor<T>::Owner() const
 { return IsOwner( viewType_ ); }
 
 template<typename T>
 bool
-Matrix<T>::Viewing() const
+Tensor<T>::Viewing() const
 { return !IsOwner( viewType_ ); }
 
 template<typename T>
 bool
-Matrix<T>::Shrinkable() const
+Tensor<T>::Shrinkable() const
 { return IsShrinkable( viewType_ ); }
 
 template<typename T>
 bool
-Matrix<T>::FixedSize() const
+Tensor<T>::FixedSize() const
 { return !IsShrinkable( viewType_ ); }
 
 template<typename T>
 bool
-Matrix<T>::Locked() const
+Tensor<T>::Locked() const
 { return IsLocked( viewType_ ); }
 
 template<typename T>
 T*
-Matrix<T>::Buffer()
+Tensor<T>::Buffer()
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Buffer");
+    CallStackEntry cse("Tensor::Buffer");
     if( Locked() )
-        LogicError("Cannot return non-const buffer of locked Matrix");
+        LogicError("Cannot return non-const buffer of locked Tensor");
 #endif
     // NOTE: This const_cast has been carefully considered and should be safe
     //       since the underlying data should be non-const if this is called.
@@ -257,17 +254,17 @@ Matrix<T>::Buffer()
 
 template<typename T>
 const T*
-Matrix<T>::LockedBuffer() const
+Tensor<T>::LockedBuffer() const
 { return data_; }
 
 template<typename T>
 T*
-Matrix<T>::Buffer( Int i, Int j )
+Tensor<T>::Buffer( Int i, Int j )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Buffer");
+    CallStackEntry cse("Tensor::Buffer");
     if( Locked() )
-        LogicError("Cannot return non-const buffer of locked Matrix");
+        LogicError("Cannot return non-const buffer of locked Tensor");
 #endif
     // NOTE: This const_cast has been carefully considered and should be safe
     //       since the underlying data should be non-const if this is called.
@@ -276,10 +273,10 @@ Matrix<T>::Buffer( Int i, Int j )
 
 template<typename T>
 const T*
-Matrix<T>::LockedBuffer( Int i, Int j ) const
+Tensor<T>::LockedBuffer( Int i, Int j ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::LockedBuffer");
+    CallStackEntry cse("Tensor::LockedBuffer");
 #endif
     return &data_[i+j*ldim_];
 }
@@ -290,12 +287,12 @@ Matrix<T>::LockedBuffer( Int i, Int j ) const
 
 template<typename T>
 const T&
-Matrix<T>::Get_( Int i, Int j ) const
+Tensor<T>::Get_( Int i, Int j ) const
 { return data_[i+j*ldim_]; }
 
 template<typename T>
 T&
-Matrix<T>::Set_( Int i, Int j ) 
+Tensor<T>::Set_( Int i, Int j ) 
 {
     // NOTE: This const_cast has been carefully considered and should be safe
     //       since the underlying data should be non-const if this is called.
@@ -304,10 +301,10 @@ Matrix<T>::Set_( Int i, Int j )
 
 template<typename T>
 T
-Matrix<T>::Get( Int i, Int j ) const
+Tensor<T>::Get( Int i, Int j ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Get");
+    CallStackEntry cse("Tensor::Get");
     AssertValidEntry( i, j );
 #endif
     return Get_( i, j );
@@ -315,10 +312,10 @@ Matrix<T>::Get( Int i, Int j ) const
 
 template<typename T>
 void
-Matrix<T>::Set( Int i, Int j, T alpha ) 
+Tensor<T>::Set( Int i, Int j, T alpha ) 
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Set");
+    CallStackEntry cse("Tensor::Set");
     AssertValidEntry( i, j );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -328,10 +325,10 @@ Matrix<T>::Set( Int i, Int j, T alpha )
 
 template<typename T>
 void
-Matrix<T>::Update( Int i, Int j, T alpha ) 
+Tensor<T>::Update( Int i, Int j, T alpha ) 
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Update");
+    CallStackEntry cse("Tensor::Update");
     AssertValidEntry( i, j );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -341,10 +338,10 @@ Matrix<T>::Update( Int i, Int j, T alpha )
 
 template<typename T>
 void
-Matrix<T>::GetDiagonal( Matrix<T>& d, Int offset ) const
+Tensor<T>::GetDiagonal( Tensor<T>& d, Int offset ) const
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::GetDiagonal");
+    CallStackEntry cse("Tensor::GetDiagonal");
     if( d.Locked() )
         LogicError("d must not be a locked view");
 #endif
@@ -359,20 +356,20 @@ Matrix<T>::GetDiagonal( Matrix<T>& d, Int offset ) const
 }
 
 template<typename T>
-Matrix<T>
-Matrix<T>::GetDiagonal( Int offset ) const
+Tensor<T>
+Tensor<T>::GetDiagonal( Int offset ) const
 { 
-    Matrix<T> d;
+    Tensor<T> d;
     GetDiagonal( d, offset );
     return d;
 }
 
 template<typename T>
 void
-Matrix<T>::SetDiagonal( const Matrix<T>& d, Int offset )
+Tensor<T>::SetDiagonal( const Tensor<T>& d, Int offset )
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::SetDiagonal");
+    CallStackEntry cse("Tensor::SetDiagonal");
     if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
         LogicError("d is not a column-vector of the right length");
 #endif
@@ -387,10 +384,10 @@ Matrix<T>::SetDiagonal( const Matrix<T>& d, Int offset )
 
 template<typename T>
 void
-Matrix<T>::UpdateDiagonal( const Matrix<T>& d, Int offset )
+Tensor<T>::UpdateDiagonal( const Tensor<T>& d, Int offset )
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::UpdateDiagonal");
+    CallStackEntry cse("Tensor::UpdateDiagonal");
     if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
         LogicError("d is not a column-vector of the right length");
 #endif
@@ -405,7 +402,7 @@ Matrix<T>::UpdateDiagonal( const Matrix<T>& d, Int offset )
 
 template<typename T>
 void
-Matrix<T>::ComplainIfReal() const
+Tensor<T>::ComplainIfReal() const
 { 
     if( !IsComplex<T>::val )
         LogicError("Called complex-only routine with real data");
@@ -413,10 +410,10 @@ Matrix<T>::ComplainIfReal() const
 
 template<typename T>
 BASE(T)
-Matrix<T>::GetRealPart( Int i, Int j ) const
+Tensor<T>::GetRealPart( Int i, Int j ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::GetRealPart");
+    CallStackEntry cse("Tensor::GetRealPart");
     AssertValidEntry( i, j );
 #endif
     return elem::RealPart( Get_( i, j ) );
@@ -424,10 +421,10 @@ Matrix<T>::GetRealPart( Int i, Int j ) const
 
 template<typename T>
 BASE(T)
-Matrix<T>::GetImagPart( Int i, Int j ) const
+Tensor<T>::GetImagPart( Int i, Int j ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::GetImagPart");
+    CallStackEntry cse("Tensor::GetImagPart");
     AssertValidEntry( i, j );
 #endif
     return elem::ImagPart( Get_( i, j ) );
@@ -435,10 +432,10 @@ Matrix<T>::GetImagPart( Int i, Int j ) const
 
 template<typename T>
 void 
-Matrix<T>::SetRealPart( Int i, Int j, BASE(T) alpha )
+Tensor<T>::SetRealPart( Int i, Int j, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::SetRealPart");
+    CallStackEntry cse("Tensor::SetRealPart");
     AssertValidEntry( i, j );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -448,10 +445,10 @@ Matrix<T>::SetRealPart( Int i, Int j, BASE(T) alpha )
 
 template<typename T>
 void 
-Matrix<T>::SetImagPart( Int i, Int j, BASE(T) alpha )
+Tensor<T>::SetImagPart( Int i, Int j, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::SetImagPart");
+    CallStackEntry cse("Tensor::SetImagPart");
     AssertValidEntry( i, j );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -462,10 +459,10 @@ Matrix<T>::SetImagPart( Int i, Int j, BASE(T) alpha )
 
 template<typename T>
 void 
-Matrix<T>::UpdateRealPart( Int i, Int j, BASE(T) alpha )
+Tensor<T>::UpdateRealPart( Int i, Int j, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::UpdateRealPart");
+    CallStackEntry cse("Tensor::UpdateRealPart");
     AssertValidEntry( i, j );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -475,10 +472,10 @@ Matrix<T>::UpdateRealPart( Int i, Int j, BASE(T) alpha )
 
 template<typename T>
 void 
-Matrix<T>::UpdateImagPart( Int i, Int j, BASE(T) alpha )
+Tensor<T>::UpdateImagPart( Int i, Int j, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::UpdateImagPart");
+    CallStackEntry cse("Tensor::UpdateImagPart");
     AssertValidEntry( i, j );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -489,10 +486,10 @@ Matrix<T>::UpdateImagPart( Int i, Int j, BASE(T) alpha )
    
 template<typename T>
 void
-Matrix<T>::GetRealPartOfDiagonal( Matrix<BASE(T)>& d, Int offset ) const
+Tensor<T>::GetRealPartOfDiagonal( Tensor<BASE(T)>& d, Int offset ) const
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::GetRealPartOfDiagonal");
+    CallStackEntry cse("Tensor::GetRealPartOfDiagonal");
     if( d.Locked() )
         LogicError("d must not be a locked view");
 #endif
@@ -508,10 +505,10 @@ Matrix<T>::GetRealPartOfDiagonal( Matrix<BASE(T)>& d, Int offset ) const
 
 template<typename T>
 void
-Matrix<T>::GetImagPartOfDiagonal( Matrix<BASE(T)>& d, Int offset ) const
+Tensor<T>::GetImagPartOfDiagonal( Tensor<BASE(T)>& d, Int offset ) const
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::GetImagPartOfDiagonal");
+    CallStackEntry cse("Tensor::GetImagPartOfDiagonal");
     if( d.Locked() )
         LogicError("d must not be a locked view");
 #endif
@@ -526,29 +523,29 @@ Matrix<T>::GetImagPartOfDiagonal( Matrix<BASE(T)>& d, Int offset ) const
 }
 
 template<typename T>
-Matrix<BASE(T)>
-Matrix<T>::GetRealPartOfDiagonal( Int offset ) const
+Tensor<BASE(T)>
+Tensor<T>::GetRealPartOfDiagonal( Int offset ) const
 { 
-    Matrix<BASE(T)> d;
+    Tensor<BASE(T)> d;
     GetRealPartOfDiagonal( d, offset );
     return d;
 }
 
 template<typename T>
-Matrix<BASE(T)>
-Matrix<T>::GetImagPartOfDiagonal( Int offset ) const
+Tensor<BASE(T)>
+Tensor<T>::GetImagPartOfDiagonal( Int offset ) const
 { 
-    Matrix<BASE(T)> d;
+    Tensor<BASE(T)> d;
     GetImagPartOfDiagonal( d, offset );
     return d;
 }
 
 template<typename T>
 void
-Matrix<T>::SetRealPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
+Tensor<T>::SetRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset )
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::SetRealPartOfDiagonal");
+    CallStackEntry cse("Tensor::SetRealPartOfDiagonal");
     if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
         LogicError("d is not a column-vector of the right length");
 #endif
@@ -563,10 +560,10 @@ Matrix<T>::SetRealPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
 
 template<typename T>
 void
-Matrix<T>::SetImagPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
+Tensor<T>::SetImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset )
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::SetImagPartOfDiagonal");
+    CallStackEntry cse("Tensor::SetImagPartOfDiagonal");
     if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
         LogicError("d is not a column-vector of the right length");
 #endif
@@ -582,10 +579,10 @@ Matrix<T>::SetImagPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
 
 template<typename T>
 void
-Matrix<T>::UpdateRealPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
+Tensor<T>::UpdateRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset )
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::UpdateRealPartOfDiagonal");
+    CallStackEntry cse("Tensor::UpdateRealPartOfDiagonal");
     if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
         LogicError("d is not a column-vector of the right length");
 #endif
@@ -600,10 +597,10 @@ Matrix<T>::UpdateRealPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
 
 template<typename T>
 void
-Matrix<T>::UpdateImagPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
+Tensor<T>::UpdateImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset )
 { 
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::UpdateImagPartOfDiagonal");
+    CallStackEntry cse("Tensor::UpdateImagPartOfDiagonal");
     if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
         LogicError("d is not a column-vector of the right length");
 #endif
@@ -619,7 +616,7 @@ Matrix<T>::UpdateImagPartOfDiagonal( const Matrix<BASE(T)>& d, Int offset )
 
 template<typename T>
 void
-Matrix<T>::Control_( Int height, Int width, T* buffer, Int ldim )
+Tensor<T>::Control_( Int height, Int width, T* buffer, Int ldim )
 {
     memory_.Empty();
     height_ = height;
@@ -631,10 +628,10 @@ Matrix<T>::Control_( Int height, Int width, T* buffer, Int ldim )
 
 template<typename T>
 void
-Matrix<T>::Control( Int height, Int width, T* buffer, Int ldim )
+Tensor<T>::Control( Int height, Int width, T* buffer, Int ldim )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Control");
+    CallStackEntry cse("Tensor::Control");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
@@ -643,7 +640,7 @@ Matrix<T>::Control( Int height, Int width, T* buffer, Int ldim )
 
 template<typename T>
 void
-Matrix<T>::Attach_( Int height, Int width, T* buffer, Int ldim )
+Tensor<T>::Attach_( Int height, Int width, T* buffer, Int ldim )
 {
     memory_.Empty();
     height_ = height;
@@ -655,10 +652,10 @@ Matrix<T>::Attach_( Int height, Int width, T* buffer, Int ldim )
 
 template<typename T>
 void
-Matrix<T>::Attach( Int height, Int width, T* buffer, Int ldim )
+Tensor<T>::Attach( Int height, Int width, T* buffer, Int ldim )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Attach");
+    CallStackEntry cse("Tensor::Attach");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
@@ -667,7 +664,7 @@ Matrix<T>::Attach( Int height, Int width, T* buffer, Int ldim )
 
 template<typename T>
 void
-Matrix<T>::LockedAttach_( Int height, Int width, const T* buffer, Int ldim )
+Tensor<T>::LockedAttach_( Int height, Int width, const T* buffer, Int ldim )
 {
     memory_.Empty();
     height_ = height;
@@ -679,11 +676,11 @@ Matrix<T>::LockedAttach_( Int height, Int width, const T* buffer, Int ldim )
 
 template<typename T>
 void
-Matrix<T>::LockedAttach
+Tensor<T>::LockedAttach
 ( Int height, Int width, const T* buffer, Int ldim )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::LockedAttach");
+    CallStackEntry cse("Tensor::LockedAttach");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
@@ -695,11 +692,11 @@ Matrix<T>::LockedAttach
 //
 
 template<typename T>
-const Matrix<T>&
-Matrix<T>::operator=( const Matrix<T>& A )
+const Tensor<T>&
+Tensor<T>::operator=( const Tensor<T>& A )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::operator=");
+    CallStackEntry cse("Tensor::operator=");
     if( Locked() )
         LogicError("Cannot assign to a locked view");
     if( viewType_ != OWNER && (A.Height() != Height() || A.Width() != Width()) )
@@ -722,7 +719,7 @@ Matrix<T>::operator=( const Matrix<T>& A )
 
 template<typename T>
 void
-Matrix<T>::Empty_()
+Tensor<T>::Empty_()
 {
     memory_.Empty();
     height_ = 0;
@@ -734,10 +731,10 @@ Matrix<T>::Empty_()
 
 template<typename T>
 void
-Matrix<T>::Empty()
+Tensor<T>::Empty()
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::Empty()");
+    CallStackEntry cse("Tensor::Empty()");
     if ( FixedSize() )
         LogicError("Cannot empty a fixed-size matrix" );
 #endif
@@ -746,7 +743,7 @@ Matrix<T>::Empty()
 
 template<typename T>
 void
-Matrix<T>::ResizeTo_( Int height, Int width )
+Tensor<T>::ResizeTo_( Int height, Int width )
 {
     bool reallocate = height > ldim_ || width > width_;
     height_ = height;
@@ -763,10 +760,10 @@ Matrix<T>::ResizeTo_( Int height, Int width )
 
 template<typename T>
 void
-Matrix<T>::ResizeTo( Int height, Int width )
+Tensor<T>::ResizeTo( Int height, Int width )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::ResizeTo(height,width)");
+    CallStackEntry cse("Tensor::ResizeTo(height,width)");
     AssertValidDimensions( height, width );
     if ( FixedSize() && ( height != height_ || width != width_ ) )
         LogicError("Cannot change the size of this matrix");
@@ -778,7 +775,7 @@ Matrix<T>::ResizeTo( Int height, Int width )
 
 template<typename T>
 void
-Matrix<T>::ResizeTo_( Int height, Int width, Int ldim )
+Tensor<T>::ResizeTo_( Int height, Int width, Int ldim )
 {
     bool reallocate = height > ldim_ || width > width_ || ldim != ldim_;
     height_ = height;
@@ -793,10 +790,10 @@ Matrix<T>::ResizeTo_( Int height, Int width, Int ldim )
 
 template<typename T>
 void
-Matrix<T>::ResizeTo( Int height, Int width, Int ldim )
+Tensor<T>::ResizeTo( Int height, Int width, Int ldim )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Matrix::ResizeTo(height,width,ldim)");
+    CallStackEntry cse("Tensor::ResizeTo(height,width,ldim)");
     AssertValidDimensions( height, width, ldim );
     if( FixedSize() && 
         ( height != height_ || width != width_ || ldim != ldim_ ) )
@@ -807,16 +804,16 @@ Matrix<T>::ResizeTo( Int height, Int width, Int ldim )
     ResizeTo_( height, width, ldim );
 }
 
-template class Matrix<Int>;
+template class Tensor<Int>;
 #ifndef DISABLE_FLOAT
-template class Matrix<float>;
+template class Tensor<float>;
 #endif // ifndef DISABLE_FLOAT
-template class Matrix<double>;
+template class Tensor<double>;
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-template class Matrix<Complex<float>>;
+template class Tensor<Complex<float> >;
 #endif // ifndef DISABLE_FLOAT
-template class Matrix<Complex<double>>;
+template class Tensor<Complex<double> >;
 #endif // ifndef DISABLE_COMPLEX
 
 } // namespace elem

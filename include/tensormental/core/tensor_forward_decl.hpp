@@ -7,7 +7,14 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_CORE_COMPLEX_HPP
-#define TMEN_CORE_COMPLEX_HPP
+#ifndef TMEN_CORE_TENSOR_FORWARD_DECL_HPP
+#define TMEN_CORE_TENSOR_FORWARD_DECL_HPP
 
-#endif // ifndef TMEN_CORE_COMPLEX_HPP
+namespace elem {
+
+template<typename T>
+class Tensor;
+
+} // namespace elem
+
+#endif // ifndef TMEN_CORE_TENSOR_FORWARD_DECL_HPP

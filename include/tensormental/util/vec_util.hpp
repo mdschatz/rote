@@ -7,7 +7,16 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_CORE_COMPLEX_HPP
-#define TMEN_CORE_COMPLEX_HPP
+#ifndef TMEN_UTIL_VECUTIL_HPP
+#define TMEN_UTIL_VECUTIL_HPP
 
-#endif // ifndef TMEN_CORE_COMPLEX_HPP
+#include <vector>
+#include <iostream>
+
+namespace elem {
+
+template<typename T>
+T prod(std::vector<T>& a);
+
+} // namespace elem
+#endif // ifndef TMEN_UTIL_VECUTIL_HPP

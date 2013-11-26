@@ -8,78 +8,52 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_GRID_DECL_HPP
-#define ELEM_CORE_GRID_DECL_HPP
+#ifndef TMEN_CORE_GRID_DECL_HPP
+#define TMEN_CORE_GRID_DECL_HPP
+
+#include <iostream>
+#include <vector>
+#include "tensormental/core/imports/mpi.hpp"
+#include "tensormental/core/environment_decl.hpp"
 
 namespace elem {
 
 class Grid
 {
 public:
-    explicit Grid( mpi::Comm comm=mpi::COMM_WORLD );
-    explicit Grid( mpi::Comm comm, int height );
+    explicit Grid( mpi::Comm comm, int order, std::vector<int> dimension );
     ~Grid();
 
     // Simple interface (simpler version of distributed-based interface)
+    int Size() const;
     int Dimension(int mode) const;
     int Loc(int mode) const;
-    int LocUnderView(GridView view) const;
-    int Row() const;           // same as MCRank()
-    int Col() const;           // same as MRRank()
-    int Rank() const;          // same as VCRank()
-    int Height() const;        // same as MCSize()
-    int Width() const;         // same as MRSize()
-    int Size() const;          // same as VCSize() and VRSize()
-    mpi::Comm ColComm() const; // same as MCComm()
-    mpi::Comm RowComm() const; // same as MRComm()
-    mpi::Comm Comm() const;    // same as VCComm()
 
-    // Distribution-based interface
-    int MCRank() const;
-    int MRRank() const;
-    int VCRank() const;
-    int VRRank() const;
-    int MCSize() const;
-    int MRSize() const;
-    int VCSize() const;
-    int VRSize() const;
-    mpi::Comm MCComm() const;
-    mpi::Comm MRComm() const;
-    mpi::Comm VCComm() const;
-    mpi::Comm VRComm() const;
+    void SetMyGridLoc();
+
+//These should be pushed to a separate GridView class
+//Grid is meant for the bottom-most layer
+//    int LocUnderView(GridView view) const;
+//    int DimensionUnderView(GridView view) const;
+//    mpi::Comm CommUnderView(GridView view) const;
 
     // Advanced routines
     explicit Grid( mpi::Comm viewers, mpi::Group owners, int height );
-    int GCD() const; // greatest common denominator of grid height and width
-    int LCM() const; // lowest common multiple of grid height and width
     bool InGrid() const;
-    int OwningRank() const;
-    int ViewingRank() const;
-    int VCToViewingMap( int VCRank ) const;
-    mpi::Group OwningGroup() const;
     mpi::Comm OwningComm() const;
-    mpi::Comm ViewingComm() const;
-    int DiagPath() const;
-    int DiagPath( int vectorColRank ) const;
-    int DiagPathRank() const;
-    int DiagPathRank( int vectorColRank ) const;
-    int FirstVCRank( int diagPath ) const;
 
     static int FindFactor( int p );
 
 private:
-    int height_, width_, size_, gcd_;
-    int matrixColRank_, matrixRowRank_;
-    int vectorColRank_, vectorRowRank_;
-    std::vector<int> diagPathsAndRanks_;
+    int order_;
+    std::vector<int> dimension_;
+    int size_;
+    int linearRank_;
+    std::vector<int> gridLoc_;
 
-    mpi::Comm viewingComm_; // all processes that create the grid
-    mpi::Group viewingGroup_;
-    int viewingRank_; // our rank in the viewing communicator
-    std::vector<int> vectorColToViewingMap_;
-
+    //TODO: Look at how these are used
     // The processes that do and do not own data
-    mpi::Group owningGroup_, notOwningGroup_;
+    //mpi::Group owningGroup_, notOwningGroup_;
 
     // Keep track of whether or not our process is in the grid. This is 
     // necessary to avoid calls like MPI_Comm_size when we're not in the
@@ -87,14 +61,9 @@ private:
     // in the group and that the result is MPI_UNDEFINED.
     bool inGrid_;
 
-    // Create a communicator for our (not-)owning team
-    mpi::Comm owningComm_;
-    int owningRank_;
-
     // These will only be valid if we are in the grid
     mpi::Comm cartComm_;  // the processes that are in the grid
-    mpi::Comm matrixColComm_, matrixRowComm_;
-    mpi::Comm vectorColComm_, vectorRowComm_;
+    mpi::Comm owningComm_;
 
     void SetUpGrid();
 
@@ -113,4 +82,4 @@ const Grid& DefaultGrid();
 
 } // namespace elem
 
-#endif // ifndef ELEM_CORE_GRID_DECL_HPP
+#endif // ifndef TMEN_CORE_GRID_DECL_HPP

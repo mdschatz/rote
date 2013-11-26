@@ -8,8 +8,12 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ELEM_CORE_MPI_HPP
-#define ELEM_CORE_MPI_HPP
+#ifndef TMEN_CORE_MPI_HPP
+#define TMEN_CORE_MPI_HPP
+
+#include "mpi.h"
+#include "tensormental/core/types_decl.hpp"
+#include "tensormental/core/error_decl.hpp"
 
 namespace elem {
 namespace mpi {
@@ -570,4 +574,4 @@ template<> inline Datatype TypeMap<ValueIntPair<double> >()
 } // mpi
 } // elem
 
-#endif // ifndef ELEM_CORE_MPI_HPP
+#endif // ifndef TMEN_CORE_MPI_HPP
