@@ -24,27 +24,27 @@ public:
     // Assertions
     //
     
-    void AssertValidDimensions( Int height, Int width ) const;
-    void AssertValidDimensions( Int height, Int width, Int ldim ) const;
-    void AssertValidEntry( Int i, Int j ) const;
+    void AssertValidDimensions( const std::vector<Int>& dims ) const;
+    void AssertValidDimensions( const std::vector<Int>& dims, const std::vector<Int>& ldims ) const;
+    void AssertValidEntry( const std::vector<Int>& indices ) const;
     
     //
     // Constructors
     // 
 
     Tensor( bool fixed=false );
-    Tensor( Int height, Int width, bool fixed=false );
-    Tensor( Int height, Int width, Int ldim, bool fixed=false );
+    Tensor( const std::vector<Int>& dims, bool fixed=false );
+    Tensor( const std::vector<Int>& dims, const std::vector<Int>& ldims, bool fixed=false );
     Tensor
-    ( Int height, Int width, const T* buffer, Int ldim, bool fixed=false );
-    Tensor( Int height, Int width, T* buffer, Int ldim, bool fixed=false );
+    ( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims, bool fixed=false );
+    Tensor( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims, bool fixed=false );
     Tensor( const Tensor<T>& A );
 
     // Move constructor
-    Tensor( Tensor<T>&& A );
+    //Tensor( Tensor<T>&& A );
 
     // Move assignment
-    Tensor<T>& operator=( Tensor<T>&& A );
+    //Tensor<T>& operator=( Tensor<T>&& A );
 
     // Swap
     void Swap( Tensor<T>& A );
@@ -59,57 +59,59 @@ public:
     // Basic information
     //
 
-    Int Height() const;
-    Int Width() const;
-    Int DiagonalLength( Int offset=0 ) const;
-    Int LDim() const;
+    Int Dimension(Int mode) const;
+    //Int Height() const;
+    //Int Width() const;
+    //Int DiagonalLength( Int offset=0 ) const;
+    Int LDim(Int mode) const;
     Int MemorySize() const;
 
+    Int LinearOffset(const std::vector<int>& index) const;
     T* Buffer();
-    T* Buffer( Int i, Int j );
+    T* Buffer( const std::vector<Int>& index );
 
     const T* LockedBuffer() const;
-    const T* LockedBuffer( Int i, Int j ) const;
+    const T* LockedBuffer( const std::vector<Int>& index ) const;
 
     //
     // Entry manipulation
     //
 
-    T Get( Int i, Int j ) const;
-    void Set( Int i, Int j, T alpha );
-    void Update( Int i, Int j, T alpha );
+    T Get( const std::vector<Int>& index ) const;
+    void Set( const std::vector<Int>& index, T alpha );
+    void Update( const std::vector<Int>& index, T alpha );
 
-    void GetDiagonal( Tensor<T>& d, Int offset=0 ) const;
-    Tensor<T> GetDiagonal( Int offset=0 ) const;
+    //void GetDiagonal( Tensor<T>& d, Int offset=0 ) const;
+    //Tensor<T> GetDiagonal( Int offset=0 ) const;
 
-    void SetDiagonal( const Tensor<T>& d, Int offset=0 );
-    void UpdateDiagonal( const Tensor<T>& d, Int offset=0 );
+    //void SetDiagonal( const Tensor<T>& d, Int offset=0 );
+    //void UpdateDiagonal( const Tensor<T>& d, Int offset=0 );
 
     //
     // Though the following routines are meant for complex data, all but four
     // logically apply to real data.
     //
 
-    BASE(T) GetRealPart( Int i, Int j ) const;
-    BASE(T) GetImagPart( Int i, Int j ) const;
-    void SetRealPart( Int i, Int j, BASE(T) alpha );
+    BASE(T) GetRealPart( const std::vector<Int>& index ) const;
+    BASE(T) GetImagPart( const std::vector<Int>& index ) const;
+    void SetRealPart( const std::vector<Int>& index, BASE(T) alpha );
     // Only valid for complex data
-    void SetImagPart( Int i, Int j, BASE(T) alpha );
-    void UpdateRealPart( Int i, Int j, BASE(T) alpha );
+    void SetImagPart( const std::vector<Int>& index, BASE(T) alpha );
+    void UpdateRealPart( const std::vector<Int>& index, BASE(T) alpha );
     // Only valid for complex data
-    void UpdateImagPart( Int i, Int j, BASE(T) alpha );
+    void UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha );
 
-    void GetRealPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
-    void GetImagPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
-    Tensor<BASE(T)> GetRealPartOfDiagonal( Int offset=0 ) const;
-    Tensor<BASE(T)> GetImagPartOfDiagonal( Int offset=0 ) const;
+    //void GetRealPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
+    //void GetImagPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
+    //Tensor<BASE(T)> GetRealPartOfDiagonal( Int offset=0 ) const;
+    //Tensor<BASE(T)> GetImagPartOfDiagonal( Int offset=0 ) const;
 
-    void SetRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
+    //void SetRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
     // Only valid for complex data
-    void SetImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
-    void UpdateRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
+    //void SetImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
+    //void UpdateRealPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
     // Only valid for complex data
-    void UpdateImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
+    //void UpdateImagPartOfDiagonal( const Tensor<BASE(T)>& d, Int offset=0 );
 
     //
     // Viewing other matrix instances (or buffers)
@@ -121,14 +123,14 @@ public:
     bool Viewing()     const;
     bool Locked()      const;
 
-    void Attach( Int height, Int width, T* buffer, Int ldim );
+    void Attach( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims );
     void LockedAttach
-    ( Int height, Int width, const T* buffer, Int ldim );
+    ( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims );
 
     // Use this memory *as if it were not a view*, but do not take control of 
     // its deallocation. If Resize() forces reallocation, this buffer is 
     // released from control but not deleted.
-    void Control( Int height, Int width, T* buffer, Int ldim );
+    //void Control( Int height, Int width, T* buffer, Int ldim );
 
     //
     // Utilities
@@ -137,27 +139,32 @@ public:
     const Tensor<T>& operator=( const Tensor<T>& A );
 
     void Empty();
-    void ResizeTo( Int height, Int width );
-    void ResizeTo( Int height, Int width, Int ldim );
+    void ResizeTo( const std::vector<Int>& dims );
+    void ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims );
 
 private:
     ViewType viewType_;
-    Int height_, width_, ldim_;
+    std::vector<Int> dims_;
+    std::vector<Int> ldims_;
+
+    //Int height_, width_, ldim_;
     const T* data_;
     Memory<T> memory_;
 
     void ComplainIfReal() const;
 
-    const T& Get_( Int i, Int j ) const;
-    T& Set_( Int i, Int j );
+    const T& Get_( const std::vector<Int>& index ) const;
+    T& Set_( const std::vector<Int>& index );
+
+    void SetLDims(const std::vector<Int>& dims);
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
-    void ResizeTo_( Int height, Int width );
-    void ResizeTo_( Int height, Int width, Int ldim );
-    void Control_( Int height, Int width, T* buffer, Int ldim );
-    void Attach_( Int height, Int width, T* buffer, Int ldim );
-    void LockedAttach_( Int height, Int width, const T* buffer, Int ldim );
+    void ResizeTo_( const std::vector<Int>& dims );
+    void ResizeTo_( const std::vector<Int>& dims, const std::vector<Int>& ldims );
+    void Control_( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims );
+    void Attach_( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims );
+    void LockedAttach_( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims );
     
     template <typename F> 
     friend class Tensor;

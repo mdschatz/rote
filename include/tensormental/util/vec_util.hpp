@@ -12,11 +12,23 @@
 
 #include <vector>
 #include <iostream>
-
+#include "tensormental/core/error_decl.hpp"
 namespace elem {
 
 template<typename T>
-T prod(std::vector<T>& a);
+T prod(const std::vector<T>& a);
+
+template<typename T>
+bool AnyNonNegativeElem(const std::vector<T>& vec);
+
+template<typename T>
+bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
+bool AnyZeroElem(const std::vector<T>& vec);
+
+template<typename T>
+bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 } // namespace elem
 #endif // ifndef TMEN_UTIL_VECUTIL_HPP
