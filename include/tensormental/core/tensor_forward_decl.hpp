@@ -10,11 +10,11 @@
 #ifndef TMEN_CORE_TENSOR_FORWARD_DECL_HPP
 #define TMEN_CORE_TENSOR_FORWARD_DECL_HPP
 
-namespace elem {
+namespace tmen {
 
 template<typename T>
 class Tensor;
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_TENSOR_FORWARD_DECL_HPP

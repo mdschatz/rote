@@ -532,11 +532,12 @@ DistTensor<T>::SetDiagonal
 //
 // Utility functions, e.g., TransposeFrom
 //
-/*
+
 template<typename T>
 const DistTensor<T>&
 DistTensor<T>::operator=( const DistTensor<T>& A )
 {
+/*
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR] = [MC,MR]");
     this->AssertNotLocked();
@@ -615,9 +616,11 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
     {
         CopyFromDifferentGrid( A );
     }
-    return *this;
-}
 */
+    return *this;
+
+}
+
 
 /*
 template<typename T>

@@ -9,7 +9,7 @@
 #include "tensormental.hpp"
 #include "tensormental/util/vec_util.hpp"
 
-namespace elem {
+namespace tmen {
 
 //
 // Assertions
@@ -181,17 +181,16 @@ Tensor<T>::Tensor( const Tensor<T>& A )
 //    return *this;
 //}
 
-//template<typename T>
-//void
-//Tensor<T>::Swap( Tensor<T>& A )
-//{
-//    memory_.Swap( A.memory_ );
-//    std::swap( data_, A.data_ );
-//    std::swap( viewType_, A.viewType_ );
-//    std::swap( height_, A.height_ );
-//    std::swap( width_, A.width_ );
-//    std::swap( ldims_, A.ldims_ );
-//}
+template<typename T>
+void
+Tensor<T>::Swap( Tensor<T>& A )
+{
+    memory_.Swap( A.memory_ );
+    std::swap( data_, A.data_ );
+    std::swap( viewType_, A.viewType_ );
+    std::swap( dims_, A.dims_ );
+    std::swap( ldims_, A.ldims_ );
+}
 
 //
 // Destructor
@@ -463,7 +462,7 @@ Tensor<T>::GetRealPart( const std::vector<Int>& index ) const
     CallStackEntry cse("Tensor::GetRealPart");
     AssertValidEntry( index );
 #endif
-    return elem::RealPart( Get_( index ) );
+    return tmen::RealPart( Get_( index ) );
 }
 
 template<typename T>
@@ -474,7 +473,7 @@ Tensor<T>::GetImagPart( const std::vector<Int>& index ) const
     CallStackEntry cse("Tensor::GetImagPart");
     AssertValidEntry( index );
 #endif
-    return elem::ImagPart( Get_( index ) );
+    return tmen::ImagPart( Get_( index ) );
 }
 
 template<typename T>
@@ -487,7 +486,7 @@ Tensor<T>::SetRealPart( const std::vector<Int>& index, BASE(T) alpha )
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
 #endif
-    elem::SetRealPart( Set_( index ), alpha );
+    tmen::SetRealPart( Set_( index ), alpha );
 }
 
 template<typename T>
@@ -501,7 +500,7 @@ Tensor<T>::SetImagPart( const std::vector<Int>& index, BASE(T) alpha )
         LogicError("Cannot modify data of locked matrices");
 #endif
     ComplainIfReal();
-    elem::SetImagPart( Set_( index ), alpha );
+    tmen::SetImagPart( Set_( index ), alpha );
 }
 
 template<typename T>
@@ -514,7 +513,7 @@ Tensor<T>::UpdateRealPart( const std::vector<Int>& index, BASE(T) alpha )
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
 #endif
-    elem::UpdateRealPart( Set_( index ), alpha );
+    tmen::UpdateRealPart( Set_( index ), alpha );
 }
 
 template<typename T>
@@ -528,7 +527,7 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
         LogicError("Cannot modify data of locked matrices");
 #endif
     ComplainIfReal();
-    elem::UpdateImagPart( Set_( index ), alpha );
+    tmen::UpdateImagPart( Set_( index ), alpha );
 }
    
 //template<typename T>
@@ -544,10 +543,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 //    d.ResizeTo( diagLength, 1 );
 //    if( offset >= 0 )
 //        for( Int j=0; j<diagLength; ++j )
-//            d.Set_( j, 0 ) = elem::RealPart( Get_(j,j+offset) );
+//            d.Set_( j, 0 ) = tmen::RealPart( Get_(j,j+offset) );
 //    else
 //        for( Int j=0; j<diagLength; ++j )
-//            d.Set_( j, 0 ) = elem::RealPart( Get_(j-offset,j) );
+//            d.Set_( j, 0 ) = tmen::RealPart( Get_(j-offset,j) );
 //}
 //
 //template<typename T>
@@ -563,10 +562,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 //    d.ResizeTo( diagLength, 1 );
 //    if( offset >= 0 )
 //        for( Int j=0; j<diagLength; ++j )
-//            d.Set_( j, 0 ) = elem::ImagPart( Get_(j,j+offset) );
+//            d.Set_( j, 0 ) = tmen::ImagPart( Get_(j,j+offset) );
 //    else
 //        for( Int j=0; j<diagLength; ++j )
-//            d.Set_( j, 0 ) = elem::ImagPart( Get_(j-offset,j) );
+//            d.Set_( j, 0 ) = tmen::ImagPart( Get_(j-offset,j) );
 //}
 //
 //template<typename T>
@@ -599,10 +598,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 //    const Int diagLength = DiagonalLength(offset);
 //    if( offset >= 0 )
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::SetRealPart( Set_(j,j+offset), d.Get_(j,0) );
+//            tmen::SetRealPart( Set_(j,j+offset), d.Get_(j,0) );
 //    else
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::SetRealPart( Set_(j-offset,j), d.Get_(j,0) );
+//            tmen::SetRealPart( Set_(j-offset,j), d.Get_(j,0) );
 //}
 //
 //template<typename T>
@@ -618,10 +617,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 //    const Int diagLength = DiagonalLength(offset);
 //    if( offset >= 0 )
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::SetImagPart( Set_(j,j+offset), d.Get_(j,0) );
+//            tmen::SetImagPart( Set_(j,j+offset), d.Get_(j,0) );
 //    else
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::SetImagPart( Set_(j-offset,j), d.Get_(j,0) );
+//            tmen::SetImagPart( Set_(j-offset,j), d.Get_(j,0) );
 //}
 //
 //template<typename T>
@@ -636,10 +635,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 //    const Int diagLength = DiagonalLength(offset);
 //    if( offset >= 0 )
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::UpdateRealPart( Set_(j,j+offset), d.Get_(j,0) );
+//            tmen::UpdateRealPart( Set_(j,j+offset), d.Get_(j,0) );
 //    else
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::UpdateRealPart( Set_(j-offset,j), d.Get_(j,0) );
+//            tmen::UpdateRealPart( Set_(j-offset,j), d.Get_(j,0) );
 //}
 //
 //template<typename T>
@@ -655,10 +654,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 //    const Int diagLength = DiagonalLength(offset);
 //    if( offset >= 0 )
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::UpdateImagPart( Set_(j,j+offset), d.Get_(j,0) );
+//            tmen::UpdateImagPart( Set_(j,j+offset), d.Get_(j,0) );
 //    else
 //        for( Int j=0; j<diagLength; ++j )
-//            elem::UpdateImagPart( Set_(j-offset,j), d.Get_(j,0) );
+//            tmen::UpdateImagPart( Set_(j-offset,j), d.Get_(j,0) );
 //}
 //
 //template<typename T>
@@ -866,4 +865,4 @@ template class Tensor<Complex<float> >;
 template class Tensor<Complex<double> >;
 #endif // ifndef DISABLE_COMPLEX
 
-} // namespace elem
+} // namespace tmen

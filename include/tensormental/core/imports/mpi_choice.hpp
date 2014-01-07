@@ -14,7 +14,7 @@
 
 #include "tensormental/core/imports/choice.hpp"
 
-namespace elem {
+namespace tmen {
 namespace choice {
 
 class MpiArgs
@@ -252,6 +252,6 @@ MpiArgs::PrintReport( std::ostream& os ) const
 }
 
 } // namespace choice
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_MPI_CHOICE_HPP

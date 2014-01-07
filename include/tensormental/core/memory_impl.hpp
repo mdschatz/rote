@@ -12,7 +12,7 @@
 
 #include "tensormental/core/memory_decl.hpp"
 
-namespace elem {
+namespace tmen {
 
 template<typename G>
 inline 
@@ -105,5 +105,5 @@ Memory<G>::Empty()
     buffer_ = nullptr;
 }
 
-} // namespace elem
+} // namespace tmen
 #endif

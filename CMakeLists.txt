@@ -145,7 +145,7 @@ if(NOT WIN32) # I forget why we need this guard
     if(NOT ${LANG}_FLAGS_${UPPER_BUILD_TYPE})
       if(DEBUG)
 	  message("debug flags set")
-          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -ggdb3 -std=c++0x" CACHE STRING
+          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -g" CACHE STRING
           "${LANG} optimization/debug flags for ${UPPER_BUILD_TYPE} mode")
       else()
         set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -ggdb3" CACHE STRING
@@ -467,7 +467,7 @@ if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
   set(TEST_TYPES core)
 
-  set(core_TESTS Grids)
+  set(core_TESTS DistTensor Grids)
   #set(compute_TESTS Contract)
 
   foreach(TYPE ${TEST_TYPES})

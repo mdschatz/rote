@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_VIEW_IMPL_HPP
 #define TMEN_CORE_VIEW_IMPL_HPP
 
-namespace elem {
+namespace tmen {
 
 //template<typename T,Distribution U,Distribution V>
 //inline void HandleDiagPath
@@ -189,7 +189,7 @@ inline Tensor<T> View( Tensor<T>& B, Int i, Int j, Int height, Int width )
 //#endif
 //    A.Empty();
 //
-//    const elem::Grid& g = B.Grid();
+//    const tmen::Grid& g = B.Grid();
 //    const Int colStride = B.ColStride();
 //    const Int rowStride = B.RowStride();
 //
@@ -284,7 +284,7 @@ inline Tensor<T> LockedView
 //#endif
 //    A.Empty();
 //
-//    const elem::Grid& g = B.Grid();
+//    const tmen::Grid& g = B.Grid();
 //    const Int colStride = B.ColStride();
 //    const Int rowStride = B.RowStride();
 //    const Int colRank = B.ColRank();
@@ -779,6 +779,6 @@ inline Tensor<T> LockedView2x2
 //    return A;
 //}
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_VIEW_IMPL_HPP

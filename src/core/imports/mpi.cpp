@@ -21,14 +21,14 @@ SafeMpi( int mpiError )
         char errorString[200];
         int lengthOfErrorString;
         MPI_Error_string( mpiError, errorString, &lengthOfErrorString );
-        elem::RuntimeError( std::string(errorString) );
+        tmen::RuntimeError( std::string(errorString) );
     }
 #endif
 }
 
 } // anonymous namespace
 
-namespace elem {
+namespace tmen {
 namespace mpi {
 
 //----------------------------//
@@ -2855,4 +2855,4 @@ template void ReduceScatter( const Complex<float>* sbuf, Complex<float>* rbuf, c
 template void ReduceScatter( const Complex<double>* sbuf, Complex<double>* rbuf, const int* rcs, Comm comm );
 
 } // namespace mpi
-} // namespace elem
+} // namespace tmen

@@ -24,6 +24,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 
 }
 
+/*
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( AbstractDistTensor<T>&& A )
 : viewType_(A.viewType_),
@@ -51,6 +52,7 @@ AbstractDistTensor<T>::operator=( AbstractDistTensor<T>&& A )
     grid_ = A.grid_;
     return *this;
 }
+*/
 
 template<typename T>
 AbstractDistTensor<T>::~AbstractDistTensor() 

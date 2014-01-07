@@ -21,8 +21,8 @@ FLA_Error FLA_Bsvd_v_opd_var1
   int       nIterMax,
   double*   d, int dInc,
   double*   e, int eInc,
-  elem::dcomplex* G, int rsG, int csG,
-  elem::dcomplex* H, int rsH, int csH,
+  tmen::dcomplex* G, int rsG, int csG,
+  tmen::dcomplex* H, int rsH, int csH,
   double*   U, int rsU, int csU,
   double*   V, int rsV, int csV,
   int       nb );
@@ -35,16 +35,16 @@ FLA_Error FLA_Bsvd_v_opz_var1
   int       nIterMax,
   double*   d, int dInc,
   double*   e, int eInc,
-  elem::dcomplex* G, int rsG, int csG,
-  elem::dcomplex* H, int rsH, int csH,
-  elem::dcomplex* U, int rsU, int csU,
-  elem::dcomplex* V, int rsV, int csV,
+  tmen::dcomplex* G, int rsG, int csG,
+  tmen::dcomplex* H, int rsH, int csH,
+  tmen::dcomplex* U, int rsU, int csU,
+  tmen::dcomplex* V, int rsV, int csV,
   int       nb );
 
 } // extern "C"
 
 #ifdef HAVE_FLA_BSVD
-namespace elem {
+namespace tmen {
 
 inline void FlaSVD
 ( int k, int mU, int mV, double* d, double* e, 
@@ -68,7 +68,7 @@ inline void FlaSVD
       G.data(), 1, k-1, H.data(), 1, k-1, U, 1, ldu, V, 1, ldv, bAlg );
 }
 
-} // namespace elem
+} // namespace tmen
 #endif // ifdef HAVE_FLA_BSVD
 
 #endif // ifndef TMEN_CORE_FLAME_HPP

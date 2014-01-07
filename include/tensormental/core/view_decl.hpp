@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_VIEW_DECL_HPP
 #define TMEN_CORE_VIEW_DECL_HPP
 
-namespace elem {
+namespace tmen {
 
 //
 // Viewing a full matrix
@@ -185,6 +185,6 @@ Tensor<T> LockedView2x2
 //void HandleDiagPath
 //( DistTensor<T,STAR,MD>& A, const DistTensor<T,STAR,MD>& B );
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_VIEW_DECL_HPP

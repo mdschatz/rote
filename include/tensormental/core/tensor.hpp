@@ -13,7 +13,7 @@
 #include <iostream>
 #include "tensormental/core/view_decl.hpp"
 
-namespace elem {
+namespace tmen {
 
 // Tensor base for arbitrary rings
 template<typename T>
@@ -146,6 +146,7 @@ private:
     ViewType viewType_;
     std::vector<Int> dims_;
     std::vector<Int> ldims_;
+    std::vector<std::string> modes_;
 
     //Int height_, width_, ldim_;
     const T* data_;
@@ -168,9 +169,9 @@ private:
     
     template <typename F> 
     friend class Tensor;
-//    template <typename F,Distribution U,Distribution V> 
-//    friend class DistTensor;
-//    friend class AbstractDistTensor<T>;
+    template <typename F> 
+    friend class DistTensor;
+    friend class AbstractDistTensor<T>;
 
     friend void View<T>( Tensor<T>& A, Tensor<T>& B );
 //    friend void View<T>
@@ -193,6 +194,6 @@ private:
 //                    const Tensor<T>& BBL, const Tensor<T>& BBR );
 };
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_TENSOR_HPP

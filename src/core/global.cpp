@@ -11,20 +11,20 @@
 
 namespace {
 
-elem::Int numElemInits = 0;
-bool elemInitializedMpi = false;
+tmen::Int numElemInits = 0;
+bool tmenInitializedMpi = false;
 #ifdef HAVE_QT5
-bool elemInitializedQt = false;
-bool elemOpenedWindow = false;
+bool tmenInitializedQt = false;
+bool tmenOpenedWindow = false;
 QCoreApplication* coreApp;
 bool haveMinRealWindowVal=false, haveMaxRealWindowVal=false,
      haveMinImagWindowVal=false, haveMaxImagWindowVal=false;
 double minRealWindowVal, maxRealWindowVal,
        minImagWindowVal, maxImagWindowVal;
 #endif
-std::stack<elem::Int> blocksizeStack;
-elem::Grid* defaultGrid = 0;
-elem::Args* args = 0;
+std::stack<tmen::Int> blocksizeStack;
+tmen::Grid* defaultGrid = 0;
+tmen::Args* args = 0;
 
 // A common Mersenne twister configuration
 std::mt19937 generator;
@@ -35,28 +35,28 @@ std::stack<std::string> callStack;
 #endif
 
 // Tuning parameters for basic routines
-elem::Int localSymvFloatBlocksize = 64;
-elem::Int localSymvDoubleBlocksize = 64;
-elem::Int localSymvComplexFloatBlocksize = 64;
-elem::Int localSymvComplexDoubleBlocksize = 64;
+tmen::Int localSymvFloatBlocksize = 64;
+tmen::Int localSymvDoubleBlocksize = 64;
+tmen::Int localSymvComplexFloatBlocksize = 64;
+tmen::Int localSymvComplexDoubleBlocksize = 64;
 
-elem::Int localTrr2kFloatBlocksize = 64;
-elem::Int localTrr2kDoubleBlocksize = 64;
-elem::Int localTrr2kComplexFloatBlocksize = 64;
-elem::Int localTrr2kComplexDoubleBlocksize = 64;
+tmen::Int localTrr2kFloatBlocksize = 64;
+tmen::Int localTrr2kDoubleBlocksize = 64;
+tmen::Int localTrr2kComplexFloatBlocksize = 64;
+tmen::Int localTrr2kComplexDoubleBlocksize = 64;
 
-elem::Int localTrrkFloatBlocksize = 64;
-elem::Int localTrrkDoubleBlocksize = 64;
-elem::Int localTrrkComplexFloatBlocksize = 64;
-elem::Int localTrrkComplexDoubleBlocksize = 64;
+tmen::Int localTrrkFloatBlocksize = 64;
+tmen::Int localTrrkDoubleBlocksize = 64;
+tmen::Int localTrrkComplexFloatBlocksize = 64;
+tmen::Int localTrrkComplexDoubleBlocksize = 64;
 
 // Tuning parameters for advanced routines
-using namespace elem;
+using namespace tmen;
 //HermitianTridiagApproach tridiagApproach = HERMITIAN_TRIDIAG_DEFAULT;
 //GridOrder gridOrder = ROW_MAJOR;
 }
 
-namespace elem {
+namespace tmen {
 
 void PrintVersion( std::ostream& os )
 {
@@ -99,7 +99,7 @@ void Initialize( int& argc, char**& argv )
         if( mpi::Finalized() )
         {
             LogicError
-            ("Cannot initialize elemental after finalizing MPI");
+            ("Cannot initialize tensormental after finalizing MPI");
         }
 #ifdef HAVE_OPENMP
         const Int provided = 
@@ -114,7 +114,7 @@ void Initialize( int& argc, char**& argv )
 #else
         mpi::Initialize( argc, argv );
 #endif
-        ::elemInitializedMpi = true;
+        ::tmenInitializedMpi = true;
     }
     else
     {
@@ -181,7 +181,7 @@ void Finalize()
         delete ::args;
         ::args = 0;
 
-        if( ::elemInitializedMpi )
+        if( ::tmenInitializedMpi )
         {
             // Destroy the types and ops needed for ValueInt
             mpi::DestroyValueIntType<Int>();
@@ -279,4 +279,4 @@ void DumpCallStack( std::ostream& os )
 }
 #endif // RELEASE
 
-} // namespace elem
+} // namespace tmen

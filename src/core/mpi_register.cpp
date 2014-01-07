@@ -9,24 +9,24 @@
 #include "tensormental.hpp"
 
 namespace {
-elem::mpi::Datatype typeIntInt;
-elem::mpi::Datatype typeFloatInt;
-elem::mpi::Datatype typeDoubleInt;
+tmen::mpi::Datatype typeIntInt;
+tmen::mpi::Datatype typeFloatInt;
+tmen::mpi::Datatype typeDoubleInt;
 
-elem::mpi::Op maxLocIntOp;
-elem::mpi::Op maxLocFloatOp;
-elem::mpi::Op maxLocDoubleOp;
+tmen::mpi::Op maxLocIntOp;
+tmen::mpi::Op maxLocFloatOp;
+tmen::mpi::Op maxLocDoubleOp;
 
-elem::mpi::Datatype typeIntIntPair;
-elem::mpi::Datatype typeFloatIntPair;
-elem::mpi::Datatype typeDoubleIntPair;
+tmen::mpi::Datatype typeIntIntPair;
+tmen::mpi::Datatype typeFloatIntPair;
+tmen::mpi::Datatype typeDoubleIntPair;
 
-elem::mpi::Op maxLocPairIntOp;
-elem::mpi::Op maxLocPairFloatOp;
-elem::mpi::Op maxLocPairDoubleOp;
+tmen::mpi::Op maxLocPairIntOp;
+tmen::mpi::Op maxLocPairFloatOp;
+tmen::mpi::Op maxLocPairDoubleOp;
 } // anonymouse namespace   
 
-namespace elem {
+namespace tmen {
 namespace mpi {
 
 template<typename T>
@@ -359,4 +359,4 @@ template void
 MaxLocPairFunc<double>( void* in, void* out, int* length, Datatype* datatype );
 
 } // namespace mpi
-} // namespace elem
+} // namespace tmen

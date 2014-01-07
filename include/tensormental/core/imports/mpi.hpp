@@ -15,7 +15,7 @@
 #include "tensormental/core/types_decl.hpp"
 #include "tensormental/core/error_decl.hpp"
 
-namespace elem {
+namespace tmen {
 namespace mpi {
 
 #if defined(HAVE_MPI3_NONBLOCKING_COLLECTIVES) || \
@@ -572,6 +572,6 @@ template<> inline Datatype TypeMap<ValueIntPair<double> >()
 { return ValueIntPairType<double>(); }
 
 } // mpi
-} // elem
+} // tmen
 
 #endif // ifndef TMEN_CORE_MPI_HPP

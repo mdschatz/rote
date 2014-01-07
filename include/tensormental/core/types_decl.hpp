@@ -11,7 +11,7 @@
 
 #include <complex>
 
-namespace elem {
+namespace tmen {
 
 typedef unsigned char byte;
 
@@ -107,7 +107,10 @@ enum Conjugation
 }
 using namespace conjugation_wrapper;
 
+typedef std::vector<Int> Distribution;
+
 namespace distribution_wrapper {
+/*
 enum Distribution
 {
     MC,   // Col of a matrix distribution
@@ -118,9 +121,11 @@ enum Distribution
     STAR, // Give to every process
     CIRC  // Give to a single process
 };
+*/
 std::string DistToString( Distribution distribution );
 Distribution StringToDist( std::string s );
 }
+
 using namespace distribution_wrapper;
 
 namespace viewtype_wrapper {
@@ -246,6 +251,6 @@ enum VerticalOrHorizontal
 }
 using namespace vertical_or_horizontal_wrapper;
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_TYPES_DECL_HPP

@@ -15,7 +15,7 @@
 #include "tensormental/core/imports/mpi_choice.hpp"
 #include <random>
 
-namespace elem {
+namespace tmen {
 
 void PrintVersion( std::ostream& os=std::cout );
 void PrintConfig( std::ostream& os=std::cout );
@@ -136,6 +136,6 @@ class ArgException;
 
 void ComplainIfDebug();
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_ENVIRONMENT_DECL_HPP

@@ -15,7 +15,7 @@
 #include <typeinfo>
 #include <iostream>
 
-namespace elem {
+namespace tmen {
 
 class ArgException : public std::logic_error
 {
@@ -276,6 +276,6 @@ Args::PrintReport( std::ostream& os ) const
 }
 
 } // namespace choice
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_CHOICE_HPP

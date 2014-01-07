@@ -38,9 +38,9 @@ public:
 
 #ifndef SWIG
     // Move constructor
-    AbstractDistTensor( AbstractDistTensor<T>&& A );
+//    AbstractDistTensor( AbstractDistTensor<T>&& A );
     // Move assignment
-    AbstractDistTensor<T>& operator=( AbstractDistTensor<T>&& A );
+//    AbstractDistTensor<T>& operator=( AbstractDistTensor<T>&& A );
 #endif
 
 #ifndef RELEASE

@@ -11,8 +11,9 @@
 
 #include "tensormental/core/types_decl.hpp"
 #include "tensormental/core/error_decl.hpp"
+#include <stdlib.h>
 
-namespace elem {
+namespace tmen {
 
 template<typename F>
 inline
@@ -25,41 +26,28 @@ namespace distribution_wrapper {
 inline std::string 
 DistToString( Distribution distribution )
 {
-    std::string distString;
-    switch( distribution )
-    {
-        case MC: distString = "MC"; break;
-        case MD: distString = "MD"; break;
-        case MR: distString = "MR"; break;
-        case VC: distString = "VC"; break;
-        case VR: distString = "VR"; break;
-        default: distString = "* "; break;
-    }
-    return distString;
+    std::stringstream ss;
+    ss << "[" << distribution[0];
+    for(int i = 1; i < distribution.size(); i++)
+      ss << ", " << distribution[i];
+    ss <<  "]";
+    return ss.str();
 }
 
 inline Distribution 
 StringToDist( std::string s )
 {
     Distribution distribution;
-    if( s == "MC" )
-        distribution = MC;
-    else if( s == "MD" )
-        distribution = MD;
-    else if( s == "MR" )
-        distribution = MR;
-    else if( s == "VC" )
-        distribution = VC;
-    else if( s == "VR" )
-        distribution = VR;
-    else if( s == "* " || s == " *" || s == "*" )
-        distribution = STAR;
-    else
+    std::string delims = "[], ";
+    size_t cur;
+    size_t next = -1;
+    do
     {
-        LogicError
-        ("StringToDist expects string in "
-         "{\"MC\",\"MD\",\"MR\",\"VC\",\"VR\",\"* \",\" *\",\"*\"}");
-    }
+      cur = next + 1;
+      next = s.find_first_of(delims, cur );
+      if(cur != next)
+        distribution.push_back(atoi(s.substr(cur, next - cur).c_str()));
+    }while(next != std::string::npos);
     return distribution;
 }
 
@@ -188,5 +176,5 @@ CharToUpperOrLower( char c )
 
 } // namespace upper_or_lower_wrapper
 
-} // namespace elem
+} // namespace tmen
 #endif

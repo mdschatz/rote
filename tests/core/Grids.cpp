@@ -9,7 +9,7 @@
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
 #include "unistd.h"
-using namespace elem;
+using namespace tmen;
 
 void Usage(){
 	std::cout << "./Grids <order> <gridDim0> <gridDim1> ...\n";

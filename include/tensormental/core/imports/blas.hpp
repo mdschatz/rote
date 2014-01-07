@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_BLAS_HPP
 #define TMEN_CORE_BLAS_HPP
 
-namespace elem {
+namespace tmen {
 namespace blas {
 
 //
@@ -512,13 +512,13 @@ void Trsm
   T alpha, const T* A, int lda, T* B, int ldb );
 
 } // namespace blas
-} // namespace elem
+} // namespace tmen
 
 //
 // Templated wrappers
 //
 
-namespace elem {
+namespace tmen {
 namespace blas {
 
 //
@@ -752,6 +752,6 @@ inline void Gemm
 // TODO: templated Trsm
 
 } // namespace blas
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_BLAS_DECL_HPP

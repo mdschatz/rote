@@ -11,7 +11,7 @@
 
 #include "tensormental/core/complex_decl.hpp"
 
-namespace elem {
+namespace tmen {
 
 template<typename Real>
 std::ostream& operator<<( std::ostream& os, Complex<Real> alpha )
@@ -205,5 +205,5 @@ inline F
 Log( const F& alpha )
 { return std::log(alpha); }
 
-} // namespace elem
+} // namespace tmen
 #endif

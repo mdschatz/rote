@@ -16,7 +16,7 @@
 #include "tensormental/core/imports/mpi.hpp"
 #include "tensormental/core/environment_decl.hpp"
 
-namespace elem {
+namespace tmen {
 
 class Grid
 {
@@ -80,6 +80,6 @@ bool operator!= ( const Grid& A, const Grid& B );
 // Return a grid constructed using mpi::COMM_WORLD.
 const Grid& DefaultGrid();
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_GRID_DECL_HPP

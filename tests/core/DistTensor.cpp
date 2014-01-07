@@ -8,15 +8,79 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-#include "tensormental/matrices/Uniform.hpp"
-using namespace elem;
+using namespace tmen;
 
-template<typename T, Distribution AColDist, Distribution ARowDist,
-                     Distribution BColDist, Distribution BRowDist>
+void Usage(){
+	std::cout << "./DistTensor <order> <gridDim0> <gridDim1> ... <tenDim0> <tenDim1> ...\n";
+	std::cout << "<order>     : order of the grid ( >0 )\n";
+	std::cout << "<gridDimK>  : dimension of mode-K of grid\n";
+	std::cout << "<tenDimK>   : dimension of mode-K of tensor\n";
+}
+
+typedef struct Arguments{
+  int order;
+  int size;
+  std::vector<int> gridDims;
+  std::vector<int> tensorDims;
+} Params;
+
+void ProcessInput(const int argc,  char** const argv, Params& args){
+	if(argc < 2){
+		std::cerr << "Missing required order argument\n";
+		Usage();
+		throw ArgException();
+	}
+
+	int order = atoi(argv[1]);
+	args.order = order;
+	if(order <= 0){
+		std::cerr << "grid order must be greater than 0\n";
+		Usage();
+		throw ArgException();
+	}
+
+	if(argc < order + 2){
+		std::cerr << "Missing required grid dimensions\n";
+		Usage();
+		throw ArgException();
+	}
+
+	args.size = 1;
+	args.gridDims.resize(order);
+	for(int i = 0; i < order; i++){
+		int gridDim = atoi(argv[i+2]);
+		if(gridDim <= 0){
+			std::cerr << "grid dim must be greater than 0\n";
+			Usage();
+			throw ArgException();
+		}
+		args.size *= gridDim;
+		args.gridDims[i] = gridDim;
+	}
+
+	if(argc != order + order + 2){
+		std::cerr << "Missing required tensor dimensions\n";
+		Usage();
+		throw ArgException();
+	}
+
+	args.tensorDims.resize(order);
+	for(int i = 0; i < order; i++){
+		int tensorDim = atoi(argv[i + order + 2]);
+		if(tensorDim <= 0){
+			std::cerr << "tensor dim must be greater than 0\n";
+			Usage();
+			throw ArgException();
+		}
+		args.tensorDims[i] = tensorDim;
+	}
+}
+
+template<typename T>
 void
-Check( DistMatrix<T,AColDist,ARowDist>& A, 
-       DistMatrix<T,BColDist,BRowDist>& B )
+Check( DistTensor<T>& A )
 {
+/*
 #ifndef RELEASE
     CallStackEntry entry("Check");
 #endif
@@ -25,15 +89,15 @@ Check( DistMatrix<T,AColDist,ARowDist>& A,
     const Int commRank = g.Rank();
     const Int height = B.Height();
     const Int width = B.Width();
-    DistMatrix<T,STAR,STAR> A_STAR_STAR(g);
-    DistMatrix<T,STAR,STAR> B_STAR_STAR(g);
+    DistTensor<T> A_STAR_STAR(g);
+    DistTensor<T> B_STAR_STAR(g);
 
     if( commRank == 0 )
     {
-        std::cout << "Testing [" << DistToString(AColDist) << ","
-                                 << DistToString(ARowDist) << "]"
-                  << " <- ["     << DistToString(BColDist) << ","
-                                 << DistToString(BRowDist) << "]...";
+        std::cout << "Testing [" << (AColDist) << ","
+                                 << (ARowDist) << "]"
+                  << " <- ["     << (BColDist) << ","
+                                 << (BRowDist) << "]...";
         std::cout.flush();
     }
     A = B;
@@ -66,169 +130,30 @@ Check( DistMatrix<T,AColDist,ARowDist>& A,
     }
     else
         LogicError("Redistribution failed");
+*/
 }
 
 template<typename T>
 void
-DistMatrixTest( Int m, Int n, const Grid& g )
+DistTensorTest( const std::vector<Int>& dims, const Grid& g )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistMatrixTest");
+    CallStackEntry entry("DistTensorTest");
 #endif
-    DistMatrix<T,MC,  MR  > A_MC_MR(g);
-    DistMatrix<T,MC,  STAR> A_MC_STAR(g);
-    DistMatrix<T,STAR,MR  > A_STAR_MR(g);
-    DistMatrix<T,MR,  MC  > A_MR_MC(g);
-    DistMatrix<T,MR,  STAR> A_MR_STAR(g);
-    DistMatrix<T,STAR,MC  > A_STAR_MC(g);
-    DistMatrix<T,VC,  STAR> A_VC_STAR(g);
-    DistMatrix<T,STAR,VC  > A_STAR_VC(g);
-    DistMatrix<T,VR,  STAR> A_VR_STAR(g);
-    DistMatrix<T,STAR,VR  > A_STAR_VR(g);
-    DistMatrix<T,STAR,STAR> A_STAR_STAR(g);
+    DistTensor<T> A(dims, g);
 
     // Communicate from A[MC,MR] 
-    Uniform( A_MC_MR, m, n );
-    Check( A_MC_STAR,   A_MC_MR );
-    Check( A_STAR_MR,   A_MC_MR );
-    Check( A_MR_MC,     A_MC_MR );
-    Check( A_MR_STAR,   A_MC_MR );
-    Check( A_STAR_MC,   A_MC_MR );
-    Check( A_VC_STAR,   A_MC_MR );
-    Check( A_STAR_VC,   A_MC_MR );
-    Check( A_VR_STAR,   A_MC_MR );
-    Check( A_STAR_VR,   A_MC_MR );
-    Check( A_STAR_STAR, A_MC_MR );
-
-    // Communicate from A[MC,*]
-    Uniform( A_MC_STAR, m, n );
-    Check( A_MC_MR,     A_MC_STAR );
-    Check( A_STAR_MR,   A_MC_STAR );
-    Check( A_MR_MC,     A_MC_STAR );
-    Check( A_MR_STAR,   A_MC_STAR );
-    Check( A_STAR_MC,   A_MC_STAR );
-    Check( A_VC_STAR,   A_MC_STAR );
-    Check( A_STAR_VC,   A_MC_STAR );
-    Check( A_VR_STAR,   A_MC_STAR );
-    Check( A_STAR_VR,   A_MC_STAR );
-    Check( A_STAR_STAR, A_MC_STAR );
-
-    // Communicate from A[*,MR]
-    Uniform( A_STAR_MR, m, n );
-    Check( A_MC_MR,     A_STAR_MR );
-    Check( A_MC_STAR,   A_STAR_MR );
-    Check( A_MR_MC,     A_STAR_MR );
-    Check( A_MR_STAR,   A_STAR_MR );
-    Check( A_STAR_MC,   A_STAR_MR );
-    Check( A_VC_STAR,   A_STAR_MR );
-    Check( A_STAR_VC,   A_STAR_MR );
-    Check( A_VR_STAR,   A_STAR_MR );
-    Check( A_STAR_VR,   A_STAR_MR );
-    Check( A_STAR_STAR, A_STAR_MR );
-    
-    // Communicate from A[MR,MC]
-    Uniform( A_MR_MC, m, n );
-    Check( A_MC_MR,     A_MR_MC );
-    Check( A_MC_STAR,   A_MR_MC );
-    Check( A_STAR_MR,   A_MR_MC );
-    Check( A_MR_STAR,   A_MR_MC );
-    Check( A_STAR_MC,   A_MR_MC );
-    Check( A_VC_STAR,   A_MR_MC );
-    Check( A_STAR_VC,   A_MR_MC );
-    Check( A_VR_STAR,   A_MR_MC );
-    Check( A_STAR_VR,   A_MR_MC );
-    Check( A_STAR_STAR, A_MR_MC );
-
-    // Communicate from A[MR,*]
-    Uniform( A_MR_STAR, m, n );
-    Check( A_MC_MR,     A_MR_STAR );
-    Check( A_MC_STAR,   A_MR_STAR );
-    Check( A_STAR_MR,   A_MR_STAR );
-    Check( A_MR_MC,     A_MR_STAR );
-    Check( A_STAR_MC,   A_MR_STAR );
-    Check( A_VC_STAR,   A_MR_STAR );
-    Check( A_STAR_VC,   A_MR_STAR );
-    Check( A_VR_STAR,   A_MR_STAR );
-    Check( A_STAR_VR,   A_MR_STAR );
-    Check( A_STAR_STAR, A_MR_STAR );
-
-    // Communicate from A[*,MC]
-    Uniform( A_STAR_MC, m, n );
-    Check( A_MC_MR,     A_STAR_MC );
-    Check( A_MC_STAR,   A_STAR_MC );
-    Check( A_STAR_MR,   A_STAR_MC );
-    Check( A_MR_MC,     A_STAR_MC );
-    Check( A_MR_STAR,   A_STAR_MC );
-    Check( A_VC_STAR,   A_STAR_MC );
-    Check( A_STAR_VC,   A_STAR_MC );
-    Check( A_VR_STAR,   A_STAR_MC );
-    Check( A_STAR_VR,   A_STAR_MC );
-    Check( A_STAR_STAR, A_STAR_MC );
- 
-    // Communicate from A[VC,*]
-    Uniform( A_VC_STAR, m, n );
-    Check( A_MC_MR,     A_VC_STAR );
-    Check( A_MC_STAR,   A_VC_STAR );
-    Check( A_STAR_MR,   A_VC_STAR );
-    Check( A_MR_MC,     A_VC_STAR );
-    Check( A_MR_STAR,   A_VC_STAR );
-    Check( A_STAR_MC,   A_VC_STAR );
-    Check( A_STAR_VC,   A_VC_STAR );
-    Check( A_VR_STAR,   A_VC_STAR );
-    Check( A_STAR_VR,   A_VC_STAR );
-    Check( A_STAR_STAR, A_VC_STAR );
-
-    // Communicate from A[*,VC]
-    Uniform( A_STAR_VC, m, n );
-    Check( A_MC_MR,     A_STAR_VC );
-    Check( A_MC_STAR,   A_STAR_VC );
-    Check( A_STAR_MR,   A_STAR_VC );
-    Check( A_MR_MC,     A_STAR_VC );
-    Check( A_MR_STAR,   A_STAR_VC );
-    Check( A_STAR_MC,   A_STAR_VC );
-    Check( A_VC_STAR,   A_STAR_VC );
-    Check( A_VR_STAR,   A_STAR_VC );
-    Check( A_STAR_VR,   A_STAR_VC );
-    Check( A_STAR_STAR, A_STAR_VC );
-
-    // Communicate from A[VR,*]
-    Uniform( A_VR_STAR, m, n );
-    Check( A_MC_MR,     A_VR_STAR );
-    Check( A_MC_STAR,   A_VR_STAR );
-    Check( A_STAR_MR,   A_VR_STAR );
-    Check( A_MR_MC,     A_VR_STAR );
-    Check( A_MR_STAR,   A_VR_STAR );
-    Check( A_STAR_MC,   A_VR_STAR );
-    Check( A_VC_STAR,   A_VR_STAR );
-    Check( A_STAR_VC,   A_VR_STAR );
-    Check( A_STAR_VR,   A_VR_STAR );
-    Check( A_STAR_STAR, A_VR_STAR );
-
-    // Communicate from A[*,VR]
-    Uniform( A_STAR_VR, m, n );
-    Check( A_MC_MR,     A_STAR_VR );
-    Check( A_MC_STAR,   A_STAR_VR );
-    Check( A_STAR_MR,   A_STAR_VR );
-    Check( A_MR_MC,     A_STAR_VR );
-    Check( A_MR_STAR,   A_STAR_VR );
-    Check( A_STAR_MC,   A_STAR_VR );
-    Check( A_VC_STAR,   A_STAR_VR );
-    Check( A_STAR_VC,   A_STAR_VR );
-    Check( A_VR_STAR,   A_STAR_VR );
-    Check( A_STAR_STAR, A_STAR_VR );
-
-    // Communicate from A[*,*]
-    Uniform( A_STAR_STAR, m, n );
-    Check( A_MC_MR,   A_STAR_STAR );
-    Check( A_MC_STAR, A_STAR_STAR );
-    Check( A_STAR_MR, A_STAR_STAR );
-    Check( A_MR_MC,   A_STAR_STAR );
-    Check( A_MR_STAR, A_STAR_STAR );
-    Check( A_STAR_MC, A_STAR_STAR );
-    Check( A_VC_STAR, A_STAR_STAR );
-    Check( A_STAR_VC, A_STAR_STAR );
-    Check( A_VR_STAR, A_STAR_STAR );
-    Check( A_STAR_VR, A_STAR_STAR );
+    //Uniform( A_MC_MR, m, n );
+    //Check( A_MC_STAR,   A_MC_MR );
+    //Check( A_STAR_MR,   A_MC_MR );
+    //Check( A_MR_MC,     A_MC_MR );
+    //Check( A_MR_STAR,   A_MC_MR );
+    //Check( A_STAR_MC,   A_MC_MR );
+    //Check( A_VC_STAR,   A_MC_MR );
+    //Check( A_STAR_VC,   A_MC_MR );
+    //Check( A_VR_STAR,   A_MC_MR );
+    //Check( A_STAR_VR,   A_MC_MR );
+    //Check( A_STAR_STAR, A_MC_MR );
 }
 
 int 
@@ -241,15 +166,24 @@ main( int argc, char* argv[] )
 
     try
     {
-        Int r = Input("--gridHeight","height of process grid",0);
-        const Int m = Input("--height","height of matrix",100);
-        const Int n = Input("--width","width of matrix",100);
-        ProcessInput();
-        PrintInputReport();
+	Params args;
 
-        if( r == 0 )
-            r = Grid::FindFactor( commSize );
-        const Grid g( comm, r );
+	ProcessInput(argc, argv, args);
+
+	if(commRank == 0 && args.size != commSize){
+		std::cerr << "program not started with correct number of processes\n";
+		Usage();
+		throw ArgException();
+	}
+
+	if(commRank == 0){
+		printf("Creating %d", args.gridDims[0]);
+		for(int i = 1; i < args.order; i++)
+			printf(" x %d", args.gridDims[i]);
+		printf(" grid\n");
+	}
+
+        const Grid g( comm, args.order, args.gridDims );
 
         if( commRank == 0 )
         {
@@ -257,7 +191,7 @@ main( int argc, char* argv[] )
                       << "Testing with floats:\n"
                       << "--------------------" << std::endl;
         }
-        DistMatrixTest<float>( m, n, g );
+        DistTensorTest<float>( args.tensorDims, g );
 
         if( commRank == 0 )
         {
@@ -265,7 +199,7 @@ main( int argc, char* argv[] )
                       << "Testing with doubles:\n"
                       << "---------------------" << std::endl;
         }
-        DistMatrixTest<double>( m, n, g );
+        DistTensorTest<double>( args.tensorDims, g );
 
         if( commRank == 0 )
         {
@@ -273,15 +207,15 @@ main( int argc, char* argv[] )
                       << "Testing with single-precision complex:\n"
                       << "--------------------------------------" << std::endl;
         }
-        DistMatrixTest<Complex<float>>( m, n, g );
-        
+        DistTensorTest<Complex<float> >( args.tensorDims, g );
+
         if( commRank == 0 )
         {
             std::cout << "--------------------------------------\n"
                       << "Testing with double-precision complex:\n"
                       << "--------------------------------------" << std::endl;
         }
-        DistMatrixTest<Complex<double>>( m, n, g );
+        DistTensorTest<Complex<double> >( args.tensorDims, g );
     }
     catch( std::exception& e ) { ReportException(e); }
 

@@ -16,7 +16,7 @@
 #include "tensormental/core/error_decl.hpp"
 #include "tensormental/core/environment_decl.hpp"
 
-namespace elem {
+namespace tmen {
 
 template<typename Real>
 std::ostream& operator<<( std::ostream& os, Complex<Real> alpha );
@@ -147,6 +147,6 @@ F Pow( const F& alpha, const T& beta );
 template<typename F>
 F Log( const F& alpha );
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_COMPLEX_DECL_HPP

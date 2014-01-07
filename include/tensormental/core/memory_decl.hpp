@@ -13,7 +13,7 @@
 #include <iostream>
 #include "tensormental/core/imports/mpi.hpp"
 
-namespace elem {
+namespace tmen {
 
 template<typename G>
 class Memory
@@ -39,6 +39,6 @@ public:
     void Empty();
 };
 
-} // namespace elem
+} // namespace tmen
 
 #endif // ifndef TMEN_CORE_MEMORY_DECL_HPP

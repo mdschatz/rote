@@ -14,7 +14,7 @@
 #include "tensormental/core/grid_decl.hpp"
 #include "tensormental/util/vec_util.hpp"
 
-namespace elem {
+namespace tmen {
 
 inline void
 Grid::SetMyGridLoc( )
@@ -152,5 +152,5 @@ inline bool
 operator!=( const Grid& A, const Grid& B )
 { return &A != &B; }
 
-} // namespace elem
+} // namespace tmen
 #endif

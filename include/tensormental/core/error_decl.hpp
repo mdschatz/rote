@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_ERROR_DECL_HPP
 #define TMEN_CORE_ERROR_DECL_HPP
 
-namespace elem{
+namespace tmen{
 
 inline void LogicError( std::string msg="LogicError" )
 { throw std::logic_error( msg.c_str() ); }
@@ -18,5 +18,5 @@ inline void LogicError( std::string msg="LogicError" )
 inline void RuntimeError( std::string msg="RuntimeError" )
 { throw std::runtime_error( msg.c_str() ); }
 
-} //end namespace elem
+} //end namespace tmen
 #endif

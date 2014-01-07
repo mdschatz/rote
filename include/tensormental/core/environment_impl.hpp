@@ -12,7 +12,7 @@
 
 #include "tensormental/core/environment_decl.hpp"
 
-namespace elem {
+namespace tmen {
 
 inline void Args::HandleVersion( std::ostream& os ) const
 {
@@ -125,6 +125,6 @@ MemZero( T* buffer, std::size_t numEntries )
     std::memset( buffer, 0, numEntries*sizeof(T) );
 }
 
-} // namespace elem
+} // namespace tmen
 
 #endif

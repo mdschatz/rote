@@ -1,8 +1,10 @@
 
 #include "tensormental/util/vec_util.hpp"
+#include "tensormental/core/error_decl.hpp"
 #include <numeric>
+#include <functional>
 
-namespace elem{
+namespace tmen{
 
 template<typename T>
 T prod(const std::vector<T>& src){
@@ -13,6 +15,17 @@ T prod(const std::vector<T>& src){
 template int prod(const std::vector<int>& src);
 template float prod(const std::vector<float>& src);
 template double prod(const std::vector<double>& src);
+
+template<typename T>
+void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
+  transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::plus<T>());
+}
+
+
+//template Int prod(const std::vector<Int>& src);
+template void ElemwiseSum(const std::vector<int>& src1, const std::vector<int>& src2, std::vector<int>& out);
+template void ElemwiseSum(const std::vector<float>& src1, const std::vector<float>& src2, std::vector<float>& out);
+template void ElemwiseSum(const std::vector<double>& src1, const std::vector<double>& src2, std::vector<double>& out);
 
 template<typename T>
 bool AnyNonNegativeElem(const std::vector<T>& vec){
@@ -28,9 +41,22 @@ template bool AnyNonNegativeElem(const std::vector<float>& vec);
 template bool AnyNonNegativeElem(const std::vector<double>& vec);
 
 template<typename T>
+bool AnyNegativeElem(const std::vector<T>& vec){
+  bool test;
+  for(int i = 0; i < vec.size(); i++)
+    if(vec[i] < 0)
+      return true;
+  return false;
+}
+
+template bool AnyNegativeElem(const std::vector<int>& vec);
+template bool AnyNegativeElem(const std::vector<float>& vec);
+template bool AnyNegativeElem(const std::vector<double>& vec);
+
+template<typename T>
 bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-    LogicError("Vector element-wise comparison must have matching sizes");
+    tmen::LogicError("Vector tmenent-wise comparison must have matching sizes");
 
   bool test;
   for(int i = 0; i < vec1.size(); i++)
