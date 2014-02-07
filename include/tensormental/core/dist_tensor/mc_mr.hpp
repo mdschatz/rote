@@ -79,6 +79,9 @@ public:
     // Collective routines
     //
 
+    //
+    // Routines needed for indexing
+    //
     virtual T Get( const std::vector<Int>& index ) const;
     virtual void Set( const std::vector<Int>& index, T alpha );
     virtual void Update( const std::vector<Int>& index, T alpha );

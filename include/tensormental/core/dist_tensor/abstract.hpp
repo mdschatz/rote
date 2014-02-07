@@ -11,7 +11,7 @@
 #define TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
 
 namespace tmen {
-#ifndef RELEASE
+//#ifndef RELEASE
 //template<typename T>
 //void AssertConforming1x2
 //( const AbstractDistTensor<T>& AL, const AbstractDistTensor<T>& AR );
@@ -24,7 +24,7 @@ namespace tmen {
 //void AssertConforming2x2
 //( const AbstractDistTensor<T>& ATL, const AbstractDistTensor<T>& ATR,
 //  const AbstractDistTensor<T>& ABL, const AbstractDistTensor<T>& ABR );
-#endif // ifndef RELEASE
+//#endif // ifndef RELEASE
 
 template<typename T> 
 class AbstractDistTensor
@@ -57,13 +57,11 @@ public:
     // Basic information
     //
 
+    Int Order() const;
     Int Dimension(Int mode) const;
     Int LocalDimension(Int mode) const;
-//    Int Height() const;
-//    Int Width() const;
-//    Int DiagonalLength( Int offset=0 ) const;
-//    Int LocalHeight() const;
-//    Int LocalWidth() const;
+    std::vector<std::vector<Int> > Distribution() const;
+    std::vector<Int> ModeDistribution(Int mode) const;
     Int LDim(Int mode) const;
     size_t AllocatedMemory() const;
 
@@ -169,7 +167,8 @@ public:
     //
     // Entry manipulation
     //
-
+    virtual Int DetermineLinearIndexOwner(const std::vector<Int>& index) const;
+    virtual std::vector<Int> Global2LocalIndex(const std::vector<Int>& index) const;
     virtual T Get( const std::vector<Int>& index ) const = 0;
     virtual void Set( const std::vector<Int>& index, T alpha ) = 0;
     virtual void Update( const std::vector<Int>& index, T alpha ) = 0;
@@ -200,6 +199,7 @@ protected:
     Memory<T> auxMemory_;
     tmen::Tensor<T> tensor_;
     
+    std::vector<std::vector<Int> > dist_;
     std::vector<bool> constrainedModeAlignments_;
     std::vector<Int> modeAlignments_;
     std::vector<Int> modeShifts_;
@@ -207,6 +207,7 @@ protected:
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
+    AbstractDistTensor( const Int order, const tmen::Grid& g );
 
     void SetShifts();
     void SetModeShift(Int Mode);

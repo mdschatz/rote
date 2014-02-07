@@ -112,6 +112,29 @@ Grid::~Grid()
     }
 }
 
+inline Int
+Grid::Loc(int mode) const
+{
+	return gridLoc_[mode];
+}
+
+inline Int
+Grid::LinearRank() const
+{
+	return linearRank_;
+}
+
+inline std::vector<Int>
+Grid::Dimensions() const
+{
+	std::vector<Int> dims = dimension_;
+	return dims;
+}
+
+inline int
+Grid::Order() const
+{ return order_; }
+
 inline int 
 Grid::Size() const
 { return size_; }
@@ -128,6 +151,7 @@ Grid::Dimension(int mode) const
   }
   return dimension_[mode];
 }
+
 //
 // Advanced routines
 //
@@ -154,3 +178,4 @@ operator!=( const Grid& A, const Grid& B )
 
 } // namespace tmen
 #endif
+

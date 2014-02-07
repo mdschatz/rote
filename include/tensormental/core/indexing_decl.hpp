@@ -29,6 +29,15 @@ Int MaxLength_( Int n, Int numProcs );
 Int Shift( Int rank, Int firstRank, Int numProcs );
 Int Shift_( Int rank, Int firstRank, Int numProcs );
 
+std::vector<Int> Lengths(const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& numProcs);
+std::vector<Int> Lengths_(const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& numProcs);
+
+std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions);
+std::vector<Int> Dimensions2Strides_(const std::vector<Int>& dimensions);
+
+Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& strides);
+Int LinearIndex_(const std::vector<Int>& index, const std::vector<Int>& strides);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_DECL_HPP

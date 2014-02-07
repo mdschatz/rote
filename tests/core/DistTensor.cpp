@@ -140,7 +140,26 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
 #endif
+    const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     DistTensor<T> A(dims, g);
+    if(commRank == 0){
+      printf("Created order-%d Distributed tensor of size ", A.Order());
+    
+      if(A.Order() > 0){
+        printf("%d", A.Dimension(0));
+      
+        for( int i = 1; i < A.Order(); i++){
+          printf(" x %d", A.Dimension(i));
+        }
+        printf(" and local size %d", A.LocalDimension(0));
+        for( int i = 1; i < A.Order(); i++){
+          printf(" x %d", A.LocalDimension(i));
+        }
+      }
+      printf("\n");
+    }
+
+    Print(A,"testA values");
 
     // Communicate from A[MC,MR] 
     //Uniform( A_MC_MR, m, n );

@@ -8,10 +8,10 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-using namespace elem;
+using namespace tmen;
 
 template<typename T> 
-void TestMatrix( Int m, Int n, Int ldim )
+void TestTensor( Int m, Int n, Int ldim )
 {
     if( m > ldim || ldim == 0 )
         LogicError("Leading dimension must be >= m and nonzero");
@@ -20,19 +20,19 @@ void TestMatrix( Int m, Int n, Int ldim )
         for( Int i=0; i<m; ++i )
             buffer[i+j*ldim] = i+j*m;
 
-    Matrix<T> A( m, n, buffer.data(), ldim );
+    Tensor<T> A( m, n, buffer.data(), ldim );
     for( Int j=0; j<n; ++j )
         for( Int i=0; i<m; ++i )
             if( A.Get(i,j) != buffer[i+j*ldim] )
                 LogicError
-                ("Matrix class was not properly filled with buffer");
+                ("Tensor class was not properly filled with buffer");
 
-    const Matrix<T> B( m, n, (const T*)buffer.data(), ldim );
+    const Tensor<T> B( m, n, (const T*)buffer.data(), ldim );
     for( Int j=0; j<n; ++j )
         for( Int i=0; i<m; ++i )
             if( B.Get(i,j) != buffer[i+j*ldim] )
                 LogicError
-                ("Matrix class was not properly filled with const buffer");
+                ("Tensor class was not properly filled with const buffer");
 
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     if( commRank == 0 )
@@ -56,14 +56,14 @@ main( int argc, char* argv[] )
             std::cout << "Testing with doubles...";
             std::cout.flush();
         }
-        TestMatrix<double>( m, n, ldim );
+        TestTensor<double>( m, n, ldim );
 
         if( mpi::WorldRank() == 0 )
         {
             std::cout << "Testing with double-precision complex...";
             std::cout.flush();
         }
-        TestMatrix<Complex<double>>( m, n, ldim );
+        TestTensor<Complex<double>>( m, n, ldim );
     }
     catch( std::exception& e ) { ReportException(e); }
 

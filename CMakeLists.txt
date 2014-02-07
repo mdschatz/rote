@@ -145,10 +145,10 @@ if(NOT WIN32) # I forget why we need this guard
     if(NOT ${LANG}_FLAGS_${UPPER_BUILD_TYPE})
       if(DEBUG)
 	  message("debug flags set")
-          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -g" CACHE STRING
+          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -gdwarf-2 -gstrict-dwarf -std=c++11" CACHE STRING
           "${LANG} optimization/debug flags for ${UPPER_BUILD_TYPE} mode")
       else()
-        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -ggdb3" CACHE STRING
+        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -g" CACHE STRING
           "${LANG} optimization flags for ${UPPER_BUILD_TYPE} mode")
       endif()
     endif()
@@ -226,8 +226,8 @@ endif()
 if(MATH_LIBS)
   message(STATUS "Using user-defined MATH_LIBS=${MATH_LIBS}")
 elseif(APPLE)
-  set(MATH_LIBS "-framework vecLib" CACHE STRING ${MATH_DESC})
- message(STATUS "Using Apple vecLib framework.")
+  set(MATH_LIBS "-framework accelerate" CACHE STRING ${MATH_DESC})
+ message(STATUS "Using Apple accelerate framework.")
 else()
   # Look for default BLAS and LAPACK
   if(REFERENCE_ROOT)

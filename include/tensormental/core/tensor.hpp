@@ -33,6 +33,7 @@ public:
     // 
 
     Tensor( bool fixed=false );
+    Tensor( const Int order, bool fixed=false);
     Tensor( const std::vector<Int>& dims, bool fixed=false );
     Tensor( const std::vector<Int>& dims, const std::vector<Int>& ldims, bool fixed=false );
     Tensor
@@ -59,6 +60,7 @@ public:
     // Basic information
     //
 
+    Int Order() const;
     Int Dimension(Int mode) const;
     //Int Height() const;
     //Int Width() const;
@@ -144,6 +146,7 @@ public:
 
 private:
     ViewType viewType_;
+    Int order_;
     std::vector<Int> dims_;
     std::vector<Int> ldims_;
     std::vector<std::string> modes_;

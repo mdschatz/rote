@@ -10,7 +10,7 @@
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
 #include "tensormental/matrices/Zeros.hpp"
-using namespace elem;
+using namespace tmen;
 
 int
 main( int argc, char* argv[] )
@@ -32,12 +32,12 @@ main( int argc, char* argv[] )
             if( commRank == 0 )
                 std::cout << "Iteration " << k << std::endl;
 
-            DistMatrix<double> A(g);
+            DistTensor<double> A(g);
             Zeros( A, m, n );
 
             AxpyInterface<double> interface;
             interface.Attach( LOCAL_TO_GLOBAL, A );
-            Matrix<double> X( commSize, 1 );
+            Tensor<double> X( commSize, 1 );
             for( Int j=0; j<X.Width(); ++j )
                 for( Int i=0; i<commSize; ++i )
                     X.Set(i,j,commRank+1);
@@ -51,7 +51,7 @@ main( int argc, char* argv[] )
             Print( A, "A" );
 
             interface.Attach( GLOBAL_TO_LOCAL, A );
-            Matrix<double> Y;
+            Tensor<double> Y;
             if( commRank == 0 )
             {
                 Zeros( Y, m, n );

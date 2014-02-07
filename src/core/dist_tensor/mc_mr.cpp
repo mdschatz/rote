@@ -18,47 +18,59 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 template<typename T>
 DistTensor<T>::DistTensor
 ( const std::vector<Int>& dims, const tmen::Grid& grid )
-: AbstractDistTensor<T>(grid)
-{ this->SetShifts(); this->ResizeTo( dims ); }
+: AbstractDistTensor<T>(dims.size(), grid)
+{
+	this->order_ = dims.size();
+	this->modeAlignments_.resize(this->order_);
+	std::fill(this->modeAlignments_.begin(), this->modeAlignments_.end(), 0);
+	this->constrainedModeAlignments_.resize(this->order_);
+	std::fill(this->constrainedModeAlignments_.begin(), this->constrainedModeAlignments_.end(), 0);
+	this->modeShifts_.resize(this->order_);
+	std::fill(this->modeShifts_.begin(), this->modeShifts_.end(), 0);
+	this->SetShifts();
+	this->ResizeTo( dims );
+}
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
+( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
   const tmen::Grid& g )
-: AbstractDistTensor<T>(g)
-{ 
-    this->Align( modeAligns );
+: AbstractDistTensor<T>(dims.size(), g)
+{
+    this->order_ = dims.size(); 
+    this->Align( modeAlignments );
     this->ResizeTo( dims );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
+( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
   const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(g)
+: AbstractDistTensor<T>(dims.size(), g)
 { 
-    this->Align( modeAligns );
+    this->order_ = dims.size();
+    this->Align( modeAlignments );
     this->ResizeTo( dims, ldims );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
+( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
   const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(g)
 { 
     this->LockedAttach
-    ( dims, modeAligns, buffer, ldims, g ); 
+    ( dims, modeAlignments, buffer, ldims, g ); 
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
+( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
   T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(g)
 { 
     this->Attach
-    ( dims, modeAligns, buffer, ldims, g );
+    ( dims, modeAlignments, buffer, ldims, g );
 }
 
 template<typename T>
@@ -109,12 +121,12 @@ DistTensor<T>::DistData() const
 template<typename T>
 Int
 DistTensor<T>::ModeStride(Int mode) const
-{ return -1;/*return this->grid_->Height();*/ }
+{ return this->grid_->Dimension(mode);/*return this->grid_->Height();*/ }
 
 template<typename T>
 Int
 DistTensor<T>::ModeRank(Int mode) const
-{ return -1;/*return this->grid_->Col();*/ }
+{ return this->grid_->Loc(mode);/*return this->grid_->Col();*/ }
 
 template<typename T>
 void
@@ -226,7 +238,7 @@ DistTensor<T>::AlignModeWith( Int mode, const AbstractDistTensor<T>& A )
 template<typename T>
 void
 DistTensor<T>::Attach
-( const std::vector<Int>& dims, const std::vector<Int>& modeAligns, 
+( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments, 
   T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
 {
 /*
@@ -237,7 +249,7 @@ DistTensor<T>::Attach
 
     this->grid_ = &g;
     this->dims_ = dims;
-    this->modeAligns_ = modeAligns;
+    this->modeAlignments_ = modeAligns;
     this->viewType_ = VIEW;
     this->SetShifts();
     if( this->Participating() )
@@ -252,12 +264,17 @@ DistTensor<T>::Attach
 template<typename T>
 void
 DistTensor<T>::LockedAttach
-( const std::vector<Int>& dims, const std::vector<Int>& modeAligns, 
+( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments, 
   const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::LockedAttach");
 #endif
+    this->grid_ = &g;
+    this->order_ = dims.size(); 
+    this->dims_ = dims;
+    this->modeAlignments_ = modeAlignments;
+    this->SetShifts();
 /*
     this->Empty();
 
@@ -277,6 +294,7 @@ DistTensor<T>::LockedAttach
 */
 }
 
+//TODO: FIX Participating
 template<typename T>
 void
 DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
@@ -285,6 +303,8 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
     CallStackEntry entry("[MC,MR]::ResizeTo");
     this->AssertNotLocked();
 #endif
+    this->dims_ = dims;
+    this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->grid_->Dimensions()));
 /*
     this->height_ = height;
     this->width_ = width;
@@ -303,6 +323,7 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& l
     CallStackEntry entry("[MC,MR]::ResizeTo");
     this->AssertNotLocked();
 #endif
+    this->dims_ = dims;
 /*
     this->height_ = height;
     this->width_ = width;
@@ -313,6 +334,8 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& l
 */
 }
 
+
+
 template<typename T>
 T
 DistTensor<T>::Get( const std::vector<Int>& index ) const
@@ -321,25 +344,15 @@ DistTensor<T>::Get( const std::vector<Int>& index ) const
     CallStackEntry entry("[MC,MR]::Get");
     this->AssertValidEntry( index );
 #endif
-    return T(-1);
-    // We will determine the owner of the (i,j) entry and have him Broadcast
-    // throughout the entire process grid
-/*
-    const Int ownerRow = (i + this->ColAlignment()) % this->ColStride();
-    const Int ownerCol = (j + this->RowAlignment()) % this->RowStride();
-    const Int ownerRank = ownerRow + ownerCol*this->ColStride();
-
+    const Int owningProc = this->DetermineLinearIndexOwner(index);
     T u;
     const tmen::Grid& g = this->Grid();
-    if( g.VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-this->ColShift()) / this->ColStride();
-        const Int jLoc = (j-this->RowShift()) / this->RowStride();
-        u = this->GetLocal(iLoc,jLoc);
+    if(g.LinearRank() == owningProc){
+    	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+    	u = this->GetLocal(localLoc);
     }
-    mpi::Broadcast( u, g.VCToViewingMap(ownerRank), g.ViewingComm() );
+    mpi::Broadcast( u, owningProc, g.OwningComm());
     return u;
-*/
 }
 
 template<typename T>
@@ -350,17 +363,11 @@ DistTensor<T>::Set( const std::vector<Int>& index, T u )
     CallStackEntry entry("[MC,MR]::Set");
     this->AssertValidEntry( index );
 #endif
-/*
-    const Int ownerRow = (i + this->ColAlignment()) % this->ColStride();
-    const Int ownerCol = (j + this->RowAlignment()) % this->RowStride();
-    const Int ownerRank = ownerRow + ownerCol*this->ColStride();
-    if( this->Grid().VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-this->ColShift()) / this->ColStride();
-        const Int jLoc = (j-this->RowShift()) / this->RowStride();
-        this->SetLocal(iLoc,jLoc,u);
+    const Int owningProc = this->DetermineLinearIndexOwner(index);
+    if(this->Grid().LinearRank() == owningProc){
+    	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+    	this->SetLocal(localLoc, u);
     }
-*/
 }
 
 template<typename T>
@@ -371,17 +378,11 @@ DistTensor<T>::Update( const std::vector<Int>& index, T u )
     CallStackEntry entry("[MC,MR]::Update");
     this->AssertValidEntry( index );
 #endif
-/*
-    const Int ownerRow = (i + this->ColAlignment()) % this->ColStride();
-    const Int ownerCol = (j + this->RowAlignment()) % this->RowStride();
-    const Int ownerRank = ownerRow + ownerCol*this->ColStride();
-    if( this->Grid().VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-this->ColShift()) / this->ColStride();
-        const Int jLoc = (j-this->RowShift()) / this->RowStride();
-        this->UpdateLocal(iLoc,jLoc,u);
+    const Int owningProc = this->DetermineLinearIndexOwner(index);
+    if(this->Grid().LinearRank() == owningProc){
+    	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+    	this->UpdateLocal(localLoc, u);
     }
-*/
 }
 
 template<typename T>

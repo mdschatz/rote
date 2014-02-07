@@ -23,7 +23,7 @@ Tensor<T>::AssertValidDimensions( const std::vector<Int>& dims ) const
     CallStackEntry cse("Tensor::AssertValidDimensions");
 #endif
         
-    if( AnyNonNegativeElem(dims) )
+    if( AnyNegativeElem(dims) )
         LogicError("Dimensions must be non-negative");
 }
 
@@ -48,7 +48,7 @@ Tensor<T>::AssertValidEntry( const std::vector<Int>& index ) const
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertValidEntry");
 #endif
-    if( AnyNonNegativeElem(index) )
+    if( AnyNegativeElem(index) )
         LogicError("Indices must be non-negative");
     if( !ElemwiseLessThan(index, dims_) )
     {
@@ -77,19 +77,26 @@ Tensor<T>::AssertValidEntry( const std::vector<Int>& index ) const
 template<typename T>
 Tensor<T>::Tensor( bool fixed )
 : viewType_( fixed ? OWNER_FIXED : OWNER ),
-  dims_(), ldims_(), 
+  order_(), dims_(), ldims_(),
+  data_(nullptr)
+{ }
+
+template<typename T>
+Tensor<T>::Tensor( const Int order, bool fixed )
+: viewType_( fixed ? OWNER_FIXED : OWNER ),
+  order_(order), dims_(order_), ldims_(order_),
   data_(nullptr)
 { }
 
 template<typename T>
 Tensor<T>::Tensor( const std::vector<Int>& dims, bool fixed )
 : viewType_( fixed ? OWNER_FIXED : OWNER )
-//  height_(height), width_(width), ldims_(Max(height,1))
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( dims );
 #endif
+    order_ = dims.size();
     dims_ = dims;
     SetLDims(dims);
     memory_.Require( prod(ldims_) * dims[dims_.size()-1] );
@@ -107,10 +114,16 @@ Tensor<T>::Tensor
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( dims, ldims );
 #endif
+    order_ = dims.size();
     dims_ = dims;
     SetLDims(dims);
     Int ldimProd = prod(ldims);
-    memory_.Require( ldimProd*dims[dims.size()-1] );
+    if(ldimProd > 0){
+      memory_.Require( ldimProd*dims[dims.size()-1] );
+    }
+    else{
+      memory_.Require( 0 );
+    }
     data_ = memory_.Buffer();
 }
 
@@ -118,32 +131,36 @@ template<typename T>
 Tensor<T>::Tensor
 ( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims, bool fixed )
 : viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
-//  height_(height), width_(width), ldims_(ldim), 
   data_(buffer)
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( dims, ldims );
 #endif
+    order_ = dims.size();
+    dims_ = dims;
+    ldims_ = ldims;
 }
 
 template<typename T>
 Tensor<T>::Tensor
 ( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims, bool fixed )
 : viewType_( fixed ? VIEW_FIXED: VIEW ),
-//  height_(height), width_(width), ldims_(ldim), 
   data_(buffer)
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( dims, ldims );
 #endif
+    order_ = dims.size();
+    dims_ = dims;
+    ldims_ = ldims;
 }
 
 template<typename T>
 Tensor<T>::Tensor( const Tensor<T>& A )
 : viewType_( OWNER ),
-  dims_(), ldims_(), 
+  order_(), dims_(), ldims_(),
   data_(nullptr)
 {
 #ifndef RELEASE
@@ -210,16 +227,25 @@ Tensor<T>::SetLDims(const std::vector<Int>& dims)
 {
   ldims_.resize(dims.size());
   int stride = 1;
-  ldims_[0] = 1;
-  for(int i = 1; i < dims.size(); i++)
-    ldims_[i] = ldims_[i-1]*dims[i-1];
+  if(ldims_.size() > 0){
+    ldims_[0] = 1;
+    for(int i = 1; i < dims.size(); i++)
+      ldims_[i] = ldims_[i-1]*dims[i-1];
+  }
+}
+
+template<typename T>
+Int
+Tensor<T>::Order() const
+{
+	return order_;
 }
 
 template<typename T>
 Int 
 Tensor<T>::Dimension(Int mode) const
 { 
-  if( dims_.size() < mode){
+  if( dims_.size() <= mode){
     LogicError("Requested mode dimension out of range.");
     return 0;
   }else
@@ -790,6 +816,14 @@ template<typename T>
 void
 Tensor<T>::ResizeTo_( const std::vector<Int>& dimensions )
 {
+	//TODO: Implement general stride
+	bool reallocate = AnyElemwiseGreaterThan(dimensions, dims_);
+	dims_ = dimensions;
+	if(reallocate){
+		ldims_ = Dimensions2Strides(dimensions);
+		memory_.Require(prod(dimensions));
+		data_ = memory_.Buffer();
+	}
     //TODO: IMPLEMENT CORRECTLY
 //    bool reallocate = height > ldims_ || width > width_;
 //    height_ = height;
@@ -808,22 +842,29 @@ template<typename T>
 void
 Tensor<T>::ResizeTo( const std::vector<Int>& dimensions )
 {
-    //TODO: IMPLEMENT CORRECTLY
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::ResizeTo(height,width)");
-//    AssertValidDimensions( height, width );
-//    if ( FixedSize() && ( height != height_ || width != width_ ) )
-//        LogicError("Cannot change the size of this matrix");
-//    if ( Viewing() && ( height > height_ || width > width_ ) )
-//        LogicError("Cannot increase the size of this matrix");
-//#endif
-//    ResizeTo_( height, width );
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::ResizeTo(dimensions)");
+    AssertValidDimensions( dimensions );
+    if ( FixedSize() && ( AnyElemwiseNotEqual(dimensions, dims_) ) )
+        LogicError("Cannot change the size of this tensor");
+    if ( Viewing() && ( AnyElemwiseNotEqual(dimensions, dims_ ) ) )
+        LogicError("Cannot increase the size of this tensor");
+#endif
+    ResizeTo_( dimensions );
 }
 
 template<typename T>
 void
 Tensor<T>::ResizeTo_( const std::vector<Int>& dimensions, const std::vector<Int>& ldims )
 {
+	//TODO: Implement general stride
+	bool reallocate = AnyElemwiseGreaterThan(dimensions, dims_) || AnyElemwiseGreaterThan(ldims, ldims_);
+	dims_ = dimensions;
+	if(reallocate){
+		ldims_ = ldims;
+		memory_.Require(prod(dimensions));
+		data_ = memory_.Buffer();
+	}
     //TODO: IMPLEMENT CORRECTLY
 //    bool reallocate = height > ldims_ || width > width_ || ldim != ldims_;
 //    height_ = height;
@@ -841,16 +882,16 @@ void
 Tensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims )
 {
     //TODO: IMPLEMENT CORRECTLY
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::ResizeTo(height,width,ldim)");
-//    AssertValidDimensions( height, width, ldim );
-//    if( FixedSize() && 
-//        ( height != height_ || width != width_ || ldim != ldims_ ) )
-//        LogicError("Cannot change the size of this matrix");
-//    if( Viewing() && ( height > height_ || width > width_ || ldim != ldims_ ) )
-//        LogicError("Cannot increase the size of this matrix");
-//#endif
-//    ResizeTo_( height, width, ldim );
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::ResizeTo(dims,ldims)");
+    AssertValidDimensions( dims, ldims );
+    if( FixedSize() &&
+        ( AnyElemwiseNotEqual(dims, dims_) || AnyElemwiseNotEqual(ldims, ldims_) ) )
+        LogicError("Cannot change the size of this tensor");
+    if( Viewing() && ( AnyElemwiseNotEqual(dims, dims_) || AnyElemwiseNotEqual(ldims, ldims_) ) )
+        LogicError("Cannot increase the size of this matrix");
+#endif
+    ResizeTo_( dims, ldims );
 }
 
 template class Tensor<Int>;

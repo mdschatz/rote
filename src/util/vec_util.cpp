@@ -1,6 +1,7 @@
 
 #include "tensormental/util/vec_util.hpp"
 #include "tensormental/core/error_decl.hpp"
+#include <algorithm>
 #include <numeric>
 #include <functional>
 
@@ -8,6 +9,8 @@ namespace tmen{
 
 template<typename T>
 T prod(const std::vector<T>& src){
+  if (src.size() == 0)
+    return 0;
   return std::accumulate(src.begin(), src.end(), T(1), std::multiplies<T>());
 }
 
@@ -18,7 +21,7 @@ template double prod(const std::vector<double>& src);
 
 template<typename T>
 void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
-  transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::plus<T>());
+  std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::plus<T>());
 }
 
 
@@ -56,7 +59,7 @@ template bool AnyNegativeElem(const std::vector<double>& vec);
 template<typename T>
 bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-    tmen::LogicError("Vector tmenent-wise comparison must have matching sizes");
+    tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
   bool test;
   for(int i = 0; i < vec1.size(); i++)
@@ -68,6 +71,22 @@ bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
 template bool ElemwiseLessThan(const std::vector<int>& vec1, const std::vector<int>& vec2);
 template bool ElemwiseLessThan(const std::vector<float>& vec1, const std::vector<float>& vec2);
 template bool ElemwiseLessThan(const std::vector<double>& vec1, const std::vector<double>& vec2);
+
+template<typename T>
+bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
+	if(vec1.size() != vec2.size())
+		tmen::LogicError("Vector element-wise comparison must have matching sizes");
+
+	bool test;
+	for(int i = 0; i < vec1.size(); i++)
+		if(vec1[i] > vec2[i])
+			return true;
+	return false;
+}
+
+template bool AnyElemwiseGreaterThan(const std::vector<int>& vec1, const std::vector<int>& vec2);
+template bool AnyElemwiseGreaterThan(const std::vector<float>& vec1, const std::vector<float>& vec2);
+template bool AnyElemwiseGreaterThan(const std::vector<double>& vec1, const std::vector<double>& vec2);
 
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec){
@@ -84,7 +103,8 @@ template bool AnyZeroElem(const std::vector<double>& vec);
 
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2){
-  //TODO: Error checking
+  if(vec1.size() != vec2.size())
+	tmen::LogicError("Vector element-wise comparison must have matching sizes");
   bool test;
   for(int i = 0; i < vec1.size(); i++)
     if(vec1[i] != vec2[i])

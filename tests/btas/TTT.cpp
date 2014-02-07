@@ -8,10 +8,10 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-#include "tensormental/blas-like/level3/Gemm.hpp"
-#include "tensormental/matrices/Uniform.hpp"
+//#include "tensormental/blas-like/level3/Gemm.hpp"
+//#include "tensormental/matrices/Uniform.hpp"
 using namespace std;
-using namespace elem;
+using namespace tmen;
 
 template<typename T> 
 void TestGemm
@@ -19,7 +19,7 @@ void TestGemm
   Int m, Int n, Int k, T alpha, T beta, const Grid& g )
 {
     double startTime, runTime, realGFlops, gFlops;
-    DistMatrix<T> A(g), B(g), C(g);
+    DistTensor<T> A(g), B(g), C(g);
 
     if( orientA == NORMAL )
         A.ResizeTo( m, k );
@@ -250,7 +250,7 @@ main( int argc, char* argv[] )
                  << "Testing with double-precision complex:\n"
                  << "--------------------------------------" << endl;
         }
-        TestGemm<Complex<double>>
+        TestGemm<Complex<double> >
         ( print, orientA, orientB, m, n, k, 
           Complex<double>(3), Complex<double>(4), g );
     }

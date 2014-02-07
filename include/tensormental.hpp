@@ -18,4 +18,6 @@
 #include "tensormental/core.hpp"
 //#include "tensormental/tensors.hpp"
 //#include "tensormental/btas.hpp"
+
+#include "tensormental/io.hpp"
 #endif // ifndef TENSORMENTAL_HPP

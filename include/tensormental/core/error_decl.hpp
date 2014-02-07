@@ -9,6 +9,7 @@
 #pragma once
 #ifndef TMEN_CORE_ERROR_DECL_HPP
 #define TMEN_CORE_ERROR_DECL_HPP
+#include <stdexcept>
 
 namespace tmen{
 

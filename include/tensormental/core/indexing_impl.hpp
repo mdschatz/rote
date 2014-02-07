@@ -85,6 +85,43 @@ inline Int Length_
     return Length_( n, shift, stride );
 }
 
+inline std::vector<Int>
+Lengths( const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& strides )
+{
+#ifndef RELEASE
+	int i;
+	int order;
+    CallStackEntry entry("Length");
+    if(!(dimensions.size() == shifts.size() && dimensions.size() == strides.size())){
+    	LogicError("dimensions, shifts, strides must contain same number of elements.");
+    }
+    order = dimensions.size();
+    for(i = 0; i < order; i++){
+		if( dimensions[i] < 0 )
+			LogicError("dimensions must be non-negative");
+		if( shifts[i] < 0 || shifts[i] >= strides[i] )
+		{
+			std::ostringstream msg;
+			msg << "Invalid shift: "
+				<< "shift[" << i << "]=" << shifts[i] << ", stride[" << i << "]=" << strides[i];
+			LogicError( msg.str() );
+		}
+		if( strides[i] <= 0 )
+			LogicError("Modulus must be positive");
+    }
+#endif
+    return Lengths_( dimensions, shifts, strides );
+}
+
+inline std::vector<Int> Lengths_
+(const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& strides){
+	int i;
+	std::vector<Int> lengths(dimensions.size());
+	for(i = 0; i < dimensions.size(); i++)
+		lengths[i] = Length(dimensions[i], shifts[i], strides[i]);
+	return lengths;
+}
+
 inline Int MaxLength( Int n, Int stride )
 {
 #ifndef RELEASE
@@ -129,6 +166,34 @@ inline Int Shift( Int rank, Int alignment, Int stride )
 
 inline Int Shift_( Int rank, Int alignment, Int stride )
 { return (rank + stride - alignment) % stride; }
+
+inline std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions)
+{
+  std::vector<Int> strides(dimensions.size());
+  strides[0] = 1;
+  for(int i = 1; i < strides.size(); i++){
+	  strides[i] = strides[i-1]*dimensions[i-1];
+  }
+  return strides;
+}
+
+inline Int LinearIndex_(const std::vector<Int>& index, const std::vector<Int>& strides)
+{
+	Int linearInd = 0;
+	for(Int i = 0; i < index.size(); i++)
+		linearInd += index[i] * strides[i];
+	return linearInd;
+}
+
+inline Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& strides)
+{
+	if(index.size() !=strides.size())
+		LogicError( "Invalid index+stride combination");
+	if(AnyNegativeElem(index) || AnyNegativeElem(strides)){
+		LogicError( "Supplied index and strides must be non-negative");
+	}
+	return LinearIndex(index, strides);
+}
 
 } // namespace tmen
 

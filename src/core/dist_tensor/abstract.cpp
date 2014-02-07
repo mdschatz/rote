@@ -13,6 +13,7 @@ namespace tmen {
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 : viewType_(OWNER),
+  order_(),
   dims_(), 
   auxMemory_(), 
   tensor_(dims_,dims_,true), 
@@ -24,6 +25,20 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 
 }
 
+template<typename T>
+AbstractDistTensor<T>::AbstractDistTensor( Int order, const tmen::Grid& grid )
+: viewType_(OWNER),
+  order_(order),
+  dims_(order),
+  auxMemory_(),
+  tensor_(order),
+  constrainedModeAlignments_(order),
+  modeAlignments_(order),
+  modeShifts_(order),
+  grid_(&grid)
+{
+
+}
 /*
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( AbstractDistTensor<T>&& A )
@@ -348,6 +363,28 @@ Int
 AbstractDistTensor<T>::Dimension(Int mode) const
 { return dims_[mode]; }
 
+template<typename T>
+Int
+AbstractDistTensor<T>::Order() const
+{ return order_; }
+
+template<typename T>
+std::vector<Int>
+AbstractDistTensor<T>::ModeDistribution(Int mode) const
+{
+	if(mode < 0 || mode >= tensor_.Order())
+		LogicError("Requesting distributino of invalid mode");
+	return dist_[mode];
+}
+
+template<typename T>
+std::vector<std::vector<Int> >
+AbstractDistTensor<T>::Distribution() const
+{
+	std::vector<std::vector<Int> > dist = dist_;
+	return dist;
+}
+
 /*
 template<typename T>
 Int
@@ -504,6 +541,9 @@ template<typename T>
 void
 AbstractDistTensor<T>::SetShifts()
 {
+	//TODO: Figure out participating
+    for(int i = 0; i < order_; i++)
+          modeShifts_[i] = Shift(ModeRank(i), modeAlignments_[i], ModeStride(i));
 /*
     if( Participating() )
     {
@@ -543,6 +583,40 @@ AbstractDistTensor<T>::ComplainIfReal() const
 { 
     if( !IsComplex<T>::val )
         LogicError("Called complex-only routine with real data");
+}
+
+template<typename T>
+Int
+AbstractDistTensor<T>::DetermineLinearIndexOwner(const std::vector<Int>& index) const
+{
+#ifndef RELEASE
+    CallStackEntry entry("AbstractDistTensor::DetermineLinearIndexOwner");
+    this->AssertValidEntry( index );
+#endif
+    const tmen::Grid& g = this->Grid();
+    std::vector<Int> ownerLoc(g.Order());
+
+    for(Int i = 0; i < g.Order(); i++){
+    	ownerLoc[i] = (index[i] + this->ModeAlignment(i)) % this->ModeStride(i);
+    }
+
+    return LinearIndex(ownerLoc, Dimensions2Strides(g.Dimensions()));
+}
+
+template<typename T>
+std::vector<Int>
+AbstractDistTensor<T>::Global2LocalIndex(const std::vector<Int>& index) const
+{
+#ifndef RELEASE
+    CallStackEntry entry("AbstractDistTensor::Global2LocalIndex");
+    this->AssertValidEntry( index );
+#endif
+    const tmen::Grid& g = this->Grid();
+    std::vector<Int> loc(index.size());
+    for(int i = 0; i < index.size(); i++){
+    	loc[i] = (index[i]-this->ModeShift(i)) / this->ModeStride(i);
+    }
+    return loc;
 }
 
 template<typename T>

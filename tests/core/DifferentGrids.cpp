@@ -9,7 +9,7 @@
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
 #include "tensormental/tensors/Identity.hpp"
-using namespace elem;
+using namespace tmen;
 
 int 
 main( int argc, char* argv[] )
@@ -41,7 +41,7 @@ main( int argc, char* argv[] )
         const Grid grid( comm );
         const Grid sqrtGrid( comm, sqrtGroup, grid.Height() );
 
-        DistMatrix<double> A(grid), ASqrt(sqrtGrid);
+        DistTensor<double> A(grid), ASqrt(sqrtGrid);
 
         Identity( A, m, n );
         if( print )

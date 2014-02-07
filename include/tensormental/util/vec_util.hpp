@@ -13,6 +13,7 @@
 #include <vector>
 #include <iostream>
 #include "tensormental/core/error_decl.hpp"
+
 namespace tmen {
 
 template<typename T>
@@ -29,6 +30,9 @@ bool AnyNegativeElem(const std::vector<T>& vec);
 
 template<typename T>
 bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
+bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec);

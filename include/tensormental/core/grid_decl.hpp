@@ -25,10 +25,13 @@ public:
     ~Grid();
 
     // Simple interface (simpler version of distributed-based interface)
+    std::vector<Int> Dimensions() const;
+    int Order() const;
     int Size() const;
     int Dimension(int mode) const;
     int Loc(int mode) const;
 
+    int LinearRank() const;
     void SetMyGridLoc();
 
 //These should be pushed to a separate GridView class
