@@ -135,6 +135,36 @@ Check( DistTensor<T>& A )
 
 template<typename T>
 void
+TestSet(DistTensor<T>& A)
+{
+	Int order = A.Order();
+	std::vector<Int> index(order);
+	Int ptr = 0;
+	Int counter = 0;
+	bool stop = false;
+
+	while(!stop){
+		A.Set(index, counter);
+
+		//Update
+		counter++;
+		index[ptr]++;
+		while(index[ptr] == A.Dimension(ptr)){
+			index[ptr] = 0;
+			ptr++;
+			if(ptr == order){
+				stop = true;
+				break;
+			}else{
+				index[ptr]++;
+			}
+		}
+		ptr = 0;
+	}
+}
+
+template<typename T>
+void
 DistTensorTest( const std::vector<Int>& dims, const Grid& g )
 {
 #ifndef RELEASE
@@ -142,6 +172,11 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     DistTensor<T> A(dims, g);
+    std::vector<Int> index(dims.size());
+    std::fill(index.begin(), index.end(), 0);
+
+    TestSet(A);
+
     if(commRank == 0){
       printf("Created order-%d Distributed tensor of size ", A.Order());
     

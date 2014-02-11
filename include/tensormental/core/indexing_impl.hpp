@@ -192,7 +192,7 @@ inline Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& st
 	if(AnyNegativeElem(index) || AnyNegativeElem(strides)){
 		LogicError( "Supplied index and strides must be non-negative");
 	}
-	return LinearIndex(index, strides);
+	return LinearIndex_(index, strides);
 }
 
 } // namespace tmen

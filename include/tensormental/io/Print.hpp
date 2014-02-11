@@ -63,10 +63,42 @@ Print
   std::ostream& os=std::cout )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Print"); 
+    CallStackEntry entry("Print");
 #endif
-    if( A.Grid().LinearRank() == 0 )
-        Print( A.LockedTensor(), title, os );
+    if( A.Grid().LinearRank() == 0 && title != "" )
+        os << title << std::endl;
+
+    const Int order = A.Order();
+    std::vector<Int> curIndex(order);
+    std::fill(curIndex.begin(), curIndex.end(), 0);
+    int ptr = 0;
+    bool done = false;
+    T u;
+    while(true){
+    	u = A.Get(curIndex);
+    	if(A.Grid().LinearRank() == 0){
+    		os << u << " ";
+    	}
+
+    	//Update
+    	curIndex[ptr]++;
+    	while(ptr < order && curIndex[ptr] == A.Dimension(ptr)){
+    		curIndex[ptr] = 0;
+    		ptr++;
+    		if(ptr >= order){
+    			done = true;
+    			break;
+    		}else{
+    			curIndex[ptr]++;
+    		}
+    	}
+    	if(done)
+    		break;
+    	ptr = 0;
+    }
+    if(A.Grid().LinearRank() == 0){
+    	os << std::endl;
+    }
 }
 
 } // namespace tmen
