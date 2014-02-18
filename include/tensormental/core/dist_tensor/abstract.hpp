@@ -11,20 +11,6 @@
 #define TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
 
 namespace tmen {
-//#ifndef RELEASE
-//template<typename T>
-//void AssertConforming1x2
-//( const AbstractDistTensor<T>& AL, const AbstractDistTensor<T>& AR );
-//
-//template<typename T>
-//void AssertConforming2x1
-//( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB );
-//
-//template<typename T>
-//void AssertConforming2x2
-//( const AbstractDistTensor<T>& ATL, const AbstractDistTensor<T>& ATR,
-//  const AbstractDistTensor<T>& ABL, const AbstractDistTensor<T>& ABR );
-//#endif // ifndef RELEASE
 
 template<typename T> 
 class AbstractDistTensor
@@ -59,9 +45,11 @@ public:
 
     Int Order() const;
     Int Dimension(Int mode) const;
+    std::vector<Int> LocalShape() const;
     Int LocalDimension(Int mode) const;
-    std::vector<std::vector<Int> > Distribution() const;
-    std::vector<Int> ModeDistribution(Int mode) const;
+    std::vector<Int> Indices() const;
+    TensorDistribution TensorDist() const;
+    ModeDistribution ModeDist(Int mode) const;
     Int LDim(Int mode) const;
     size_t AllocatedMemory() const;
 
@@ -79,11 +67,8 @@ public:
 
     void FreeAlignments();
     bool ConstrainedModeAlignment(Int mode) const;
-    //bool ConstrainedRowAlignment() const;
     Int ModeAlignment(Int mode) const;
-    //Int RowAlignment() const;
     Int ModeShift(Int mode) const;
-    //Int RowShift() const;
 
     void Align( const std::vector<Int>& modeAlign );
     void AlignMode( Int mode, Int align );
@@ -122,7 +107,9 @@ public:
     //
     // Utilities
     //
-
+    std::vector<Int> LGridLoc() const;
+    std::vector<Int> LGridSize() const;
+    mpi::Comm GetCommunicator(int index) const;
     void Empty();
     void EmptyData();
     void SetGrid( const tmen::Grid& grid );
@@ -154,15 +141,8 @@ public:
 
     virtual tmen::DistData DistData() const = 0;
 
-    // So that the local row indices are given by
-    //   A.ColShift():A.ColStride():A.Height()
-//    virtual Int ColStride() const = 0; 
     virtual Int ModeStride(Int mode) const = 0; 
-    // So that the local column indices are given by
-    //   A.RowShift():A.RowStride():A.Width()
-//    virtual Int RowStride() const = 0;
     virtual Int ModeRank(Int mode) const = 0;
-//    virtual Int RowRank() const = 0;
 
     //
     // Entry manipulation
@@ -199,11 +179,17 @@ protected:
     Memory<T> auxMemory_;
     tmen::Tensor<T> tensor_;
     
-    std::vector<std::vector<Int> > dist_;
+    TensorDistribution dist_;
+    std::vector<Int> indices_;
     std::vector<bool> constrainedModeAlignments_;
     std::vector<Int> modeAlignments_;
     std::vector<Int> modeShifts_;
     const tmen::Grid* grid_;
+
+    //Logical grid information
+    GridView lGrid;
+    std::vector<Int> lGridShape_;
+    std::vector<Int> lGridLoc_;
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );

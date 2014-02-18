@@ -25,11 +25,12 @@ public:
     ~Grid();
 
     // Simple interface (simpler version of distributed-based interface)
-    std::vector<Int> Dimensions() const;
     int Order() const;
     int Size() const;
+    std::vector<Int> Shape() const;
     int Dimension(int mode) const;
-    int Loc(int mode) const;
+    std::vector<Int> Loc() const;
+    int ModeLoc(int mode) const;
 
     int LinearRank() const;
     void SetMyGridLoc();

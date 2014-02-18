@@ -20,13 +20,12 @@ DistTensor<T>::DistTensor
 ( const std::vector<Int>& dims, const tmen::Grid& grid )
 : AbstractDistTensor<T>(dims.size(), grid)
 {
-	this->order_ = dims.size();
-	this->modeAlignments_.resize(this->order_);
 	std::fill(this->modeAlignments_.begin(), this->modeAlignments_.end(), 0);
-	this->constrainedModeAlignments_.resize(this->order_);
 	std::fill(this->constrainedModeAlignments_.begin(), this->constrainedModeAlignments_.end(), 0);
-	this->modeShifts_.resize(this->order_);
+
+	std::fill(this->indices_.begin(), this->indices_.end(), -1);
 	std::fill(this->modeShifts_.begin(), this->modeShifts_.end(), 0);
+
 	this->SetShifts();
 	this->ResizeTo( dims );
 }
@@ -114,6 +113,8 @@ DistTensor<T>::DistData() const
     //data.colDist = MC;
     //data.rowDist = MR;
     data.modeAlignments = this->modeAlignments_;
+    data.distribution = this->dist_;
+    data.indices = this->indices_;
     data.grid = this->grid_;
     return data;
 }
@@ -121,12 +122,16 @@ DistTensor<T>::DistData() const
 template<typename T>
 Int
 DistTensor<T>::ModeStride(Int mode) const
-{ return this->grid_->Dimension(mode);/*return this->grid_->Height();*/ }
+{
+	std::vector<Int> gridShape = this->grid_->Shape();
+	std::vector<Int> gridSlice(gridShape.begin(), gridShape.begin() + mode);
+	return prod(gridSlice);
+}
 
 template<typename T>
 Int
 DistTensor<T>::ModeRank(Int mode) const
-{ return this->grid_->Loc(mode);/*return this->grid_->Col();*/ }
+{ return this->grid_->ModeLoc(mode); }
 
 template<typename T>
 void
@@ -304,7 +309,7 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
     this->AssertNotLocked();
 #endif
     this->dims_ = dims;
-    this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->grid_->Dimensions()));
+    this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->grid_->Shape()));
 /*
     this->height_ = height;
     this->width_ = width;

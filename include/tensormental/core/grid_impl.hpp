@@ -112,8 +112,15 @@ Grid::~Grid()
     }
 }
 
+inline std::vector<Int>
+Grid::Loc() const
+{
+	std::vector<Int> loc = gridLoc_;
+	return loc;
+}
+
 inline Int
-Grid::Loc(int mode) const
+Grid::ModeLoc(int mode) const
 {
 	return gridLoc_[mode];
 }
@@ -124,12 +131,7 @@ Grid::LinearRank() const
 	return linearRank_;
 }
 
-inline std::vector<Int>
-Grid::Dimensions() const
-{
-	std::vector<Int> dims = dimension_;
-	return dims;
-}
+
 
 inline int
 Grid::Order() const
@@ -138,6 +140,13 @@ Grid::Order() const
 inline int 
 Grid::Size() const
 { return size_; }
+
+inline std::vector<Int>
+Grid::Shape() const
+{
+	std::vector<Int> dims = dimension_;
+	return dims;
+}
 
 inline
 int

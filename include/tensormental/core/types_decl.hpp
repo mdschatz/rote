@@ -107,7 +107,8 @@ enum Conjugation
 }
 using namespace conjugation_wrapper;
 
-typedef std::vector<Int> Distribution;
+typedef std::vector<Int> ModeDistribution;
+typedef std::vector<ModeDistribution> TensorDistribution;
 
 namespace distribution_wrapper {
 /*
@@ -122,8 +123,8 @@ enum Distribution
     CIRC  // Give to a single process
 };
 */
-std::string DistToString( Distribution distribution );
-Distribution StringToDist( std::string s );
+std::string TensorDistToString( TensorDistribution distribution );
+TensorDistribution StringToTensorDist( std::string s );
 }
 
 using namespace distribution_wrapper;

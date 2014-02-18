@@ -15,7 +15,9 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 : viewType_(OWNER),
   order_(),
   dims_(), 
-  auxMemory_(), 
+  auxMemory_(),
+  dist_(),
+  indices_(),
   tensor_(dims_,dims_,true), 
   constrainedModeAlignments_(), 
   modeAlignments_(),
@@ -31,6 +33,8 @@ AbstractDistTensor<T>::AbstractDistTensor( Int order, const tmen::Grid& grid )
   order_(order),
   dims_(order),
   auxMemory_(),
+  dist_(order),
+  indices_(order),
   tensor_(order),
   constrainedModeAlignments_(order),
   modeAlignments_(order),
@@ -81,6 +85,8 @@ AbstractDistTensor<T>::Swap( AbstractDistTensor<T>& A )
     auxMemory_.Swap( A.auxMemory_ );
     std::swap( viewType_, A.viewType_ );
     std::swap( dims_ , A.dims_ );
+    std::swap( dist_, A.dist_ );
+    std::swap( indices_, A.indices_ );
     std::swap( constrainedModeAlignments_, A.constrainedModeAlignments_ );
     std::swap( modeAlignments_, A.modeAlignments_ );
     std::swap( modeShifts_, A.modeShifts_ );
@@ -370,19 +376,24 @@ AbstractDistTensor<T>::Order() const
 
 template<typename T>
 std::vector<Int>
-AbstractDistTensor<T>::ModeDistribution(Int mode) const
+AbstractDistTensor<T>::Indices() const
+{ std::vector<Int> indices = this->indices_; return indices; }
+
+template<typename T>
+TensorDistribution
+AbstractDistTensor<T>::TensorDist() const
 {
-	if(mode < 0 || mode >= tensor_.Order())
-		LogicError("Requesting distributino of invalid mode");
-	return dist_[mode];
+	TensorDistribution dist = dist_;
+	return dist;
 }
 
 template<typename T>
-std::vector<std::vector<Int> >
-AbstractDistTensor<T>::Distribution() const
+ModeDistribution
+AbstractDistTensor<T>::ModeDist(Int mode) const
 {
-	std::vector<std::vector<Int> > dist = dist_;
-	return dist;
+	if(mode < 0 || mode >= tensor_.Order())
+		LogicError("Requesting distribution of invalid mode");
+	return dist_[mode];
 }
 
 /*
@@ -425,6 +436,12 @@ size_t
 AbstractDistTensor<T>::AllocatedMemory() const
 { return tensor_.MemorySize(); }
 
+template<typename T>
+std::vector<Int>
+AbstractDistTensor<T>::LocalShape() const
+{
+	return tensor_.Shape();
+}
 template<typename T>
 Int
 AbstractDistTensor<T>::LocalDimension(Int mode) const
@@ -469,6 +486,37 @@ template<typename T>
 const tmen::Tensor<T>&
 AbstractDistTensor<T>::LockedTensor() const
 { return tensor_; }
+
+template<typename T>
+std::vector<Int> LGridLoc() const
+{
+	return lGridLoc_;
+}
+
+template<typename T>
+std::vector<Int> LGridShape() const
+{
+	return lGridShape_;
+}
+
+template<typename T>
+mpi::Comm
+AbstractDistTensor<T>::GetCommunicator(int index) const
+{
+	const int rank = mpi::CommRank( mpi::COMM_WORLD);
+	mpi::Comm comm;
+	std::vector<Int> logicalGridShape = this->LogicalGridShape();
+	std::vector<Int> logicalGridLoc = this->LogicalGridLoc();
+	const int commKey = logicalGridLoc[index];
+
+	//Color is defined by the linear index into the logical grid EXCLUDING the index being distributed
+	std::vector<Int> lGridSlice = logicalGridShape;
+	lGridSlice.erase(lGridSlice.begin() + index);
+	const int commColor = Dimensions2Strides(lGridSlice);
+
+	mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+	return comm;
+}
 
 template<typename T>
 void
@@ -600,7 +648,7 @@ AbstractDistTensor<T>::DetermineLinearIndexOwner(const std::vector<Int>& index) 
     	ownerLoc[i] = (index[i] + this->ModeAlignment(i)) % this->ModeStride(i);
     }
 
-    return LinearIndex(ownerLoc, Dimensions2Strides(g.Dimensions()));
+    return LinearIndex(ownerLoc, Dimensions2Strides(g.Shape()));
 }
 
 template<typename T>

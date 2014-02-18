@@ -11,11 +11,12 @@
 #define TMEN_UTIL_HPP
 
 #include <vector>
-#include <accumulate>
+#include <numeric>
 #include <functional>
 
 
 // Declare the intertwined core parts of our library
 #include "tensormental/util/vec_util.hpp"
+#include "tensormental/util/redistribute_util.hpp"
 
 #endif // ifndef TMEN_CORE_HPP

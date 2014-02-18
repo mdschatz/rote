@@ -24,30 +24,30 @@ SafeProduct<F>::SafeProduct( Int numEntries )
 namespace distribution_wrapper {
 
 inline std::string 
-DistToString( Distribution distribution )
+TensorDistToString( TensorDistribution distribution )
 {
     std::stringstream ss;
-    ss << "[" << distribution[0];
-    for(int i = 1; i < distribution.size(); i++)
-      ss << ", " << distribution[i];
+    ss << "[";// << distribution[0];
+    //for(int i = 1; i < distribution.size(); i++)
+    //  ss << ", " << distribution[i];
     ss <<  "]";
     return ss.str();
 }
 
-inline Distribution 
-StringToDist( std::string s )
+inline TensorDistribution
+StringToTensorDist( std::string s )
 {
-    Distribution distribution;
-    std::string delims = "[], ";
-    size_t cur;
-    size_t next = -1;
-    do
-    {
-      cur = next + 1;
-      next = s.find_first_of(delims, cur );
-      if(cur != next)
-        distribution.push_back(atoi(s.substr(cur, next - cur).c_str()));
-    }while(next != std::string::npos);
+    TensorDistribution distribution;
+//    std::string delims = "[], ";
+//    size_t cur;
+//    size_t next = -1;
+//    do
+//    {
+//      cur = next + 1;
+//      next = s.find_first_of(delims, cur );
+//      if(cur != next)
+//        distribution.push_back(atoi(s.substr(cur, next - cur).c_str()));
+//    }while(next != std::string::npos);
     return distribution;
 }
 

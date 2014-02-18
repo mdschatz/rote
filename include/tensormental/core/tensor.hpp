@@ -61,6 +61,7 @@ public:
     //
 
     Int Order() const;
+    std::vector<Int> Shape() const;
     Int Dimension(Int mode) const;
     //Int Height() const;
     //Int Width() const;

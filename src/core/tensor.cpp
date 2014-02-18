@@ -242,6 +242,14 @@ Tensor<T>::Order() const
 }
 
 template<typename T>
+std::vector<Int>
+Tensor<T>::Shape() const
+{
+	std::vector<Int> shape = dims_;
+	return shape;
+}
+
+template<typename T>
 Int 
 Tensor<T>::Dimension(Int mode) const
 { 

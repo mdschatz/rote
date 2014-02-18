@@ -10,10 +10,13 @@
 #ifndef TMEN_CORE_DISTTENSOR_HPP
 #define TMEN_CORE_DISTTENSOR_HPP
 
+#include "tensormental/core/types_decl.hpp"
+
 namespace tmen {
 struct DistData
 {
-    Distribution modeDistributions;
+    TensorDistribution distribution;
+    std::vector<Int> indices;
     std::vector<Int> modeAlignments; 
 //    Int root;     // only relevant for [o ,o ]
 //    Int diagPath; // only relevant for [MD,* ]/[* ,MD] distributions
@@ -22,19 +25,7 @@ struct DistData
 } // namespace tmen
 
 #include "tensormental/core/dist_tensor/abstract.hpp"
-//#include "tensormental/core/dist_tensor/circ_circ.hpp"
 #include "tensormental/core/dist_tensor/mc_mr.hpp"
-//#include "tensormental/core/dist_tensor/mc_star.hpp"
-//#include "tensormental/core/dist_tensor/md_star.hpp"
-//#include "tensormental/core/dist_tensor/mr_mc.hpp"
-//#include "tensormental/core/dist_tensor/mr_star.hpp"
-//#include "tensormental/core/dist_tensor/star_mc.hpp"
-//#include "tensormental/core/dist_tensor/star_md.hpp"
-//#include "tensormental/core/dist_tensor/star_mr.hpp"
-//#include "tensormental/core/dist_tensor/star_star.hpp"
-//#include "tensormental/core/dist_tensor/star_vc.hpp"
-//#include "tensormental/core/dist_tensor/star_vr.hpp"
-//#include "tensormental/core/dist_tensor/vc_star.hpp"
-//#include "tensormental/core/dist_tensor/vr_star.hpp"
+#include "tensormental/core/dist_tensor/redistribute.hpp"
 
 #endif // ifndef TMEN_CORE_DISTTENSOR_HPP

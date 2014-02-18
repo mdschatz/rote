@@ -84,6 +84,7 @@
 #include "tensormental/core/imports/mpi_choice.hpp"
 #include "tensormental/core/environment_decl.hpp"
 #include "tensormental/core/indexing_decl.hpp"
+#include "tensormental/util/redistribute_util.hpp"
 //#include "tensormental/core/imports/blas.hpp"
 //#include "tensormental/core/imports/lapack.hpp"
 #include "tensormental/core/imports/flame.hpp"
