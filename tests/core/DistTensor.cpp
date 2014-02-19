@@ -11,126 +11,96 @@
 using namespace tmen;
 
 void Usage(){
-	std::cout << "./DistTensor <order> <gridDim0> <gridDim1> ... <tenDim0> <tenDim1> ...\n";
-	std::cout << "<order>     : order of the grid ( >0 )\n";
+	std::cout << "./DistTensor <gridOrder> <gridDim0> <gridDim1> ... <tenOrder> <tenDim0> <tenDim1> ...\n";
+	std::cout << "<gridOrder>     : order of the grid ( >0 )\n";
 	std::cout << "<gridDimK>  : dimension of mode-K of grid\n";
+	std::cout << "<tenOrder>     : order of the tensor ( >0 )\n";
 	std::cout << "<tenDimK>   : dimension of mode-K of tensor\n";
 }
 
 typedef struct Arguments{
-  int order;
-  int size;
-  std::vector<int> gridDims;
-  std::vector<int> tensorDims;
+  int gridOrder;
+  int tenOrder;
+  int nProcs;
+  std::vector<int> gridShape;
+  std::vector<int> tensorShape;
 } Params;
 
 void ProcessInput(const int argc,  char** const argv, Params& args){
-	if(argc < 2){
-		std::cerr << "Missing required order argument\n";
+	int argCount = 0;
+	if(argCount + 1 >= argc){
+		std::cerr << "Missing required gridOrder argument\n";
 		Usage();
 		throw ArgException();
 	}
 
-	int order = atoi(argv[1]);
-	args.order = order;
-	if(order <= 0){
+	int gridOrder = atoi(argv[++argCount]);
+	args.gridOrder = gridOrder;
+	if(gridOrder <= 0){
 		std::cerr << "grid order must be greater than 0\n";
 		Usage();
 		throw ArgException();
 	}
 
-	if(argc < order + 2){
+	if(argCount + gridOrder >= argc){
 		std::cerr << "Missing required grid dimensions\n";
 		Usage();
 		throw ArgException();
 	}
 
-	args.size = 1;
-	args.gridDims.resize(order);
-	for(int i = 0; i < order; i++){
-		int gridDim = atoi(argv[i+2]);
+	args.gridShape.resize(gridOrder);
+	for(int i = 0; i < gridOrder; i++){
+		int gridDim = atoi(argv[++argCount]);
 		if(gridDim <= 0){
 			std::cerr << "grid dim must be greater than 0\n";
 			Usage();
 			throw ArgException();
 		}
-		args.size *= gridDim;
-		args.gridDims[i] = gridDim;
+		args.gridShape[i] = gridDim;
 	}
+	args.nProcs = tmen::prod(args.gridShape);
 
-	if(argc != order + order + 2){
+	if(argCount + 1 >= argc){
+		std::cerr << "Missing required tenOrder argument\n";
+		Usage();
+		throw ArgException();
+	}
+	int tenOrder = atoi(argv[++argCount]);
+	args.tenOrder = tenOrder;
+
+	if(argCount + tenOrder >= argc){
 		std::cerr << "Missing required tensor dimensions\n";
 		Usage();
 		throw ArgException();
 	}
 
-	args.tensorDims.resize(order);
-	for(int i = 0; i < order; i++){
-		int tensorDim = atoi(argv[i + order + 2]);
+	args.tensorShape.resize(tenOrder);
+	for(int i = 0; i < tenOrder; i++){
+		int tensorDim = atoi(argv[++argCount]);
 		if(tensorDim <= 0){
 			std::cerr << "tensor dim must be greater than 0\n";
 			Usage();
 			throw ArgException();
 		}
-		args.tensorDims[i] = tensorDim;
+		args.tensorShape[i] = tensorDim;
 	}
 }
 
 template<typename T>
 void
-Check( DistTensor<T>& A )
+TestRedist( DistTensor<T>& A )
 {
-/*
 #ifndef RELEASE
-    CallStackEntry entry("Check");
+    CallStackEntry entry("TestRedist");
 #endif
+    const int order = A.Order();
+    const TensorDistribution tDist = A.TensorDist();
     const Grid& g = A.Grid();
 
-    const Int commRank = g.Rank();
-    const Int height = B.Height();
-    const Int width = B.Width();
-    DistTensor<T> A_STAR_STAR(g);
-    DistTensor<T> B_STAR_STAR(g);
-
-    if( commRank == 0 )
-    {
-        std::cout << "Testing [" << (AColDist) << ","
-                                 << (ARowDist) << "]"
-                  << " <- ["     << (BColDist) << ","
-                                 << (BRowDist) << "]...";
-        std::cout.flush();
-    }
-    A = B;
-
-    A_STAR_STAR = A;
-    B_STAR_STAR = B;
-
-    Int myErrorFlag = 0;
-    for( Int j=0; j<width; ++j )
-    {
-        for( Int i=0; i<height; ++i )
-        {
-            if( A_STAR_STAR.GetLocal(i,j) != B_STAR_STAR.GetLocal(i,j) )
-            {
-                myErrorFlag = 1;
-                break;
-            }
-        }
-        if( myErrorFlag != 0 )
-            break;
-    }
-
-    Int summedErrorFlag;
-    mpi::AllReduce( &myErrorFlag, &summedErrorFlag, 1, mpi::SUM, g.Comm() );
-
-    if( summedErrorFlag == 0 )
-    {
-        if( commRank == 0 )
-            std::cout << "PASSED" << std::endl;
-    }
-    else
-        LogicError("Redistribution failed");
-*/
+    TensorDistribution tdist = A.TensorDist();
+    tdist[order - 1].empty();
+    DistTensor<T> B(A.Shape(), tdist, g);
+    AllGatherRedist(B, A, order - 1);
 }
 
 template<typename T>
@@ -209,20 +179,21 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
       printf("\n");
     }
 
-    Print(A,"testA values");
+    Print(A,"testA");
+    TestRedist(A);
 
     // Communicate from A[MC,MR] 
     //Uniform( A_MC_MR, m, n );
     //Check( A_MC_STAR,   A_MC_MR );
-    //Check( A_STAR_MR,   A_MC_MR );
-    //Check( A_MR_MC,     A_MC_MR );
-    //Check( A_MR_STAR,   A_MC_MR );
-    //Check( A_STAR_MC,   A_MC_MR );
-    //Check( A_VC_STAR,   A_MC_MR );
-    //Check( A_STAR_VC,   A_MC_MR );
-    //Check( A_VR_STAR,   A_MC_MR );
-    //Check( A_STAR_VR,   A_MC_MR );
-    //Check( A_STAR_STAR, A_MC_MR );
+    //TestRedist( A_STAR_MR,   A_MC_MR );
+    //TestRedist( A_MR_MC,     A_MC_MR );
+    //TestRedist( A_MR_STAR,   A_MC_MR );
+    //TestRedist( A_STAR_MC,   A_MC_MR );
+    //TestRedist( A_VC_STAR,   A_MC_MR );
+    //TestRedist( A_STAR_VC,   A_MC_MR );
+    //TestRedist( A_VR_STAR,   A_MC_MR );
+    //TestRedist( A_STAR_VR,   A_MC_MR );
+    //TestRedist( A_STAR_STAR, A_MC_MR );
 }
 
 int 
@@ -235,56 +206,56 @@ main( int argc, char* argv[] )
 
     try
     {
-	Params args;
+		Params args;
 
-	ProcessInput(argc, argv, args);
+		ProcessInput(argc, argv, args);
 
-	if(commRank == 0 && args.size != commSize){
-		std::cerr << "program not started with correct number of processes\n";
-		Usage();
-		throw ArgException();
-	}
+		if(commRank == 0 && args.nProcs != commSize){
+			std::cerr << "program not started with correct number of processes\n";
+			Usage();
+			throw ArgException();
+		}
 
-	if(commRank == 0){
-		printf("Creating %d", args.gridDims[0]);
-		for(int i = 1; i < args.order; i++)
-			printf(" x %d", args.gridDims[i]);
-		printf(" grid\n");
-	}
+		if(commRank == 0){
+			printf("Creating %d", args.gridShape[0]);
+			for(int i = 1; i < args.gridOrder; i++)
+				printf(" x %d", args.gridShape[i]);
+			printf(" grid\n");
+		}
 
-        const Grid g( comm, args.order, args.gridDims );
+        const Grid g( comm, args.gridOrder, args.gridShape );
 
         if( commRank == 0 )
         {
-            std::cout << "--------------------\n"
-                      << "Testing with floats:\n"
+            std::cout << "--------------------" << std::endl
+                      << "Testing with floats:" << std::endl
                       << "--------------------" << std::endl;
         }
-        DistTensorTest<float>( args.tensorDims, g );
+        DistTensorTest<float>( args.tensorShape, g );
 
         if( commRank == 0 )
         {
-            std::cout << "---------------------\n"
-                      << "Testing with doubles:\n"
+            std::cout << "---------------------" << std::endl
+                      << "Testing with doubles:" << std::endl
                       << "---------------------" << std::endl;
         }
-        DistTensorTest<double>( args.tensorDims, g );
+        DistTensorTest<double>( args.tensorShape, g );
 
         if( commRank == 0 )
         {
-            std::cout << "--------------------------------------\n"
-                      << "Testing with single-precision complex:\n"
+            std::cout << "--------------------------------------" << std::endl
+                      << "Testing with single-precision complex:" << std::endl
                       << "--------------------------------------" << std::endl;
         }
-        DistTensorTest<Complex<float> >( args.tensorDims, g );
+        DistTensorTest<Complex<float> >( args.tensorShape, g );
 
         if( commRank == 0 )
         {
-            std::cout << "--------------------------------------\n"
-                      << "Testing with double-precision complex:\n"
+            std::cout << "--------------------------------------" << std::endl
+                      << "Testing with double-precision complex:" << std::endl
                       << "--------------------------------------" << std::endl;
         }
-        DistTensorTest<Complex<double> >( args.tensorDims, g );
+        DistTensorTest<Complex<double> >( args.tensorShape, g );
     }
     catch( std::exception& e ) { ReportException(e); }
 

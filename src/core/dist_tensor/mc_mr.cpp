@@ -80,14 +80,14 @@ template<typename T>
 DistTensor<T>::DistTensor
 ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
   T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(dims, dist, g)
+: AbstractDistTensor<T>(shape, dist, g)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
 	this->order_ = shape.size();
 	this->dist_ = dist;
     this->Attach
-    ( dims, modeAlignments, buffer, ldims, g );
+    ( shape, modeAlignments, buffer, ldims, g );
 }
 
 template<typename T>
@@ -327,7 +327,7 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
     this->AssertNotLocked();
 #endif
     this->dims_ = dims;
-    this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->grid_->Shape()));
+    this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->gridView_.Shape()));
 /*
     this->height_ = height;
     this->width_ = width;
