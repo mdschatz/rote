@@ -17,9 +17,13 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const tmen::Grid& grid )
-: AbstractDistTensor<T>(dims.size(), grid)
+( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& grid )
+: AbstractDistTensor<T>(shape, dist, grid)
 {
+	if(shape.size() != dist.size())
+		LogicError("Error: Distribution must be of same order as object");
+	this->order_ = shape.size();
+	this->dist_ = dist;
 	std::fill(this->modeAlignments_.begin(), this->modeAlignments_.end(), 0);
 	std::fill(this->constrainedModeAlignments_.begin(), this->constrainedModeAlignments_.end(), 0);
 
@@ -27,47 +31,61 @@ DistTensor<T>::DistTensor
 	std::fill(this->modeShifts_.begin(), this->modeShifts_.end(), 0);
 
 	this->SetShifts();
-	this->ResizeTo( dims );
+	this->ResizeTo( shape );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
   const tmen::Grid& g )
-: AbstractDistTensor<T>(dims.size(), g)
+: AbstractDistTensor<T>(shape, dist, g)
 {
-    this->order_ = dims.size(); 
+	if(shape.size() != dist.size())
+		LogicError("Error: Distribution must be of same order as object");
+	this->order_ = shape.size();
+	this->dist_ = dist;
     this->Align( modeAlignments );
-    this->ResizeTo( dims );
+    this->ResizeTo( shape );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
   const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(dims.size(), g)
+: AbstractDistTensor<T>(shape, dist, g)
 { 
-    this->order_ = dims.size();
+	if(shape.size() != dist.size())
+		LogicError("Error: Distribution must be of same order as object");
+	this->order_ = shape.size();
+	this->dist_ = dist;
     this->Align( modeAlignments );
-    this->ResizeTo( dims, ldims );
+    this->ResizeTo( shape, ldims );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
   const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(g)
-{ 
+: AbstractDistTensor<T>(shape, dist, g)
+{
+	if(shape.size() != dist.size())
+		LogicError("Error: Distribution must be of same order as object");
+	this->order_ = shape.size();
+	this->dist_ = dist;
     this->LockedAttach
-    ( dims, modeAlignments, buffer, ldims, g ); 
+    ( shape, modeAlignments, buffer, ldims, g );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
   T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(g)
-{ 
+: AbstractDistTensor<T>(dims, dist, g)
+{
+	if(shape.size() != dist.size())
+		LogicError("Error: Distribution must be of same order as object");
+	this->order_ = shape.size();
+	this->dist_ = dist;
     this->Attach
     ( dims, modeAlignments, buffer, ldims, g );
 }
@@ -119,13 +137,13 @@ DistTensor<T>::DistData() const
     return data;
 }
 
+
+//NOTE: This refers to the stride within grid mode.  NOT the stride through index of elements of tensor
 template<typename T>
 Int
 DistTensor<T>::ModeStride(Int mode) const
 {
-	std::vector<Int> gridShape = this->grid_->Shape();
-	std::vector<Int> gridSlice(gridShape.begin(), gridShape.begin() + mode);
-	return prod(gridSlice);
+	return this->grid_->Dimension(mode);
 }
 
 template<typename T>

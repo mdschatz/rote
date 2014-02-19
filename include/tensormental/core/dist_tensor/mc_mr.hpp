@@ -27,26 +27,26 @@ public:
 
     // Create a height x width distributed matrix
     DistTensor
-    ( const std::vector<Int>& dims, const tmen::Grid& g=DefaultGrid() );
+    ( const std::vector<Int>& dims, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
 
     // Create a height x width distributed matrix with specified alignments
     DistTensor
-    ( const std::vector<Int>& dims, const std::vector<Int>& modeAligns, 
+    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns,
       const tmen::Grid& g );
 
     // Create a height x width distributed matrix with specified alignments
     // and leading dimension
     DistTensor
-    ( const std::vector<Int>& dims, const std::vector<Int>& modeAligns, const std::vector<Int>& ldims, const tmen::Grid& g );
+    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns, const std::vector<Int>& ldims, const tmen::Grid& g );
 
     // View a constant distributed matrix's buffer
     DistTensor
-    ( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
+    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns,
       const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g );
 
     // View a mutable distributed matrix's buffer
     DistTensor
-    ( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
+    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns,
       T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g );
 
     // Create a copy of distributed matrix A

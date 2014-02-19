@@ -10,6 +10,7 @@
 #define TMEN_CORE_TYPES_DECL_HPP
 
 #include <complex>
+#include <vector>
 
 namespace tmen {
 

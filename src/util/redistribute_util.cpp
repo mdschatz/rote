@@ -1,11 +1,11 @@
-#include "tensormental/util/redistribute/redistribute_util.hpp"
+#include "tensormental/util/redistribute_util.hpp"
 
 
 namespace tmen{
 
 template <typename T>
 void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize){
-	const tmen::Grid& grid = A->Grid();
+	const tmen::Grid& grid = A.Grid();
 	if(!A.Participating())
 		return;
 

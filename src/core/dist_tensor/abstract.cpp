@@ -22,7 +22,8 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
   constrainedModeAlignments_(), 
   modeAlignments_(),
   modeShifts_(),
-  grid_(&grid)
+  grid_(&grid),
+  gridView_(grid_, dist_)
 { 
 
 }
@@ -39,10 +40,30 @@ AbstractDistTensor<T>::AbstractDistTensor( Int order, const tmen::Grid& grid )
   constrainedModeAlignments_(order),
   modeAlignments_(order),
   modeShifts_(order),
-  grid_(&grid)
+  grid_(&grid),
+  gridView_(grid_, dist_)
 {
 
 }
+
+template<typename T>
+AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& grid )
+: viewType_(OWNER),
+  order_(shape.size()),
+  dims_(shape),
+  auxMemory_(),
+  dist_(dist),
+  indices_(order_),
+  tensor_(order_),
+  constrainedModeAlignments_(order_),
+  modeAlignments_(order_),
+  modeShifts_(order_),
+  grid_(&grid),
+  gridView_(grid_, dist_)
+{
+
+}
+
 /*
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( AbstractDistTensor<T>&& A )
@@ -91,6 +112,7 @@ AbstractDistTensor<T>::Swap( AbstractDistTensor<T>& A )
     std::swap( modeAlignments_, A.modeAlignments_ );
     std::swap( modeShifts_, A.modeShifts_ );
     std::swap( grid_, A.grid_ );
+    std::swap( gridView_, A.gridView_ );
 }
 
 #ifndef RELEASE
@@ -488,15 +510,15 @@ AbstractDistTensor<T>::LockedTensor() const
 { return tensor_; }
 
 template<typename T>
-std::vector<Int> LGridLoc() const
+std::vector<Int> AbstractDistTensor<T>::GridViewLoc() const
 {
-	return lGridLoc_;
+	return gridView_.Loc();
 }
 
 template<typename T>
-std::vector<Int> LGridShape() const
+std::vector<Int> AbstractDistTensor<T>::GridViewShape() const
 {
-	return lGridShape_;
+	return gridView_.Shape();
 }
 
 template<typename T>
@@ -505,14 +527,14 @@ AbstractDistTensor<T>::GetCommunicator(int index) const
 {
 	const int rank = mpi::CommRank( mpi::COMM_WORLD);
 	mpi::Comm comm;
-	std::vector<Int> logicalGridShape = this->LogicalGridShape();
-	std::vector<Int> logicalGridLoc = this->LogicalGridLoc();
-	const int commKey = logicalGridLoc[index];
+	std::vector<Int> gridViewShapeSlice = this->GridViewShape();
+	std::vector<Int> gridViewLocSlice = this->GridViewLoc();
+	const int commKey = gridViewLocSlice[index];
 
 	//Color is defined by the linear index into the logical grid EXCLUDING the index being distributed
-	std::vector<Int> lGridSlice = logicalGridShape;
-	lGridSlice.erase(lGridSlice.begin() + index);
-	const int commColor = Dimensions2Strides(lGridSlice);
+	gridViewShapeSlice.erase(gridViewShapeSlice.begin() + index);
+	gridViewLocSlice.erase(gridViewLocSlice.begin() + index);
+	const int commColor = LinearIndex(gridViewLocSlice, Dimensions2Strides(gridViewShapeSlice));
 
 	mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
 	return comm;

@@ -107,8 +107,8 @@ public:
     //
     // Utilities
     //
-    std::vector<Int> LGridLoc() const;
-    std::vector<Int> LGridSize() const;
+    std::vector<Int> GridViewLoc() const;
+    std::vector<Int> GridViewShape() const;
     mpi::Comm GetCommunicator(int index) const;
     void Empty();
     void EmptyData();
@@ -187,13 +187,12 @@ protected:
     const tmen::Grid* grid_;
 
     //Logical grid information
-    GridView lGrid;
-    std::vector<Int> lGridShape_;
-    std::vector<Int> lGridLoc_;
+    GridView gridView_;
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
     AbstractDistTensor( const Int order, const tmen::Grid& g );
+    AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& g );
 
     void SetShifts();
     void SetModeShift(Int Mode);

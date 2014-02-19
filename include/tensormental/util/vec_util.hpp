@@ -40,6 +40,9 @@ bool AnyZeroElem(const std::vector<T>& vec);
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
+template<typename T>
+std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_UTIL_VECUTIL_HPP

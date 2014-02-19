@@ -21,7 +21,7 @@ void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceInd
 
 	int sendSize, recvSize;
 	DetermineRSCommunicateDataSize(B, reduceIndex, recvSize, sendSize);
-	const mpi::Comm comm = CreateCommunicator(B, reduceIndex, scatterIndex);
+	const mpi::Comm comm = B.GetCommunicator(reduceIndex);
 
 	Memory<T> auxMemory;
 	T* auxBuf = auxMemory.Require(sendSize);

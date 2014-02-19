@@ -14,6 +14,7 @@
 
 #include <typeinfo>
 #include <iostream>
+#include <algorithm>
 
 namespace tmen {
 

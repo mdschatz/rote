@@ -79,12 +79,13 @@
 #include "tensormental/core/imports/mpi.hpp"
 #include "tensormental/util/vec_util.hpp"
 #include "tensormental/core/grid_decl.hpp"
+#include "tensormental/core/grid_view_decl.hpp"
 #include "tensormental/core/dist_tensor.hpp"
 #include "tensormental/core/imports/choice.hpp"
 #include "tensormental/core/imports/mpi_choice.hpp"
 #include "tensormental/core/environment_decl.hpp"
 #include "tensormental/core/indexing_decl.hpp"
-#include "tensormental/util/redistribute_util.hpp"
+
 //#include "tensormental/core/imports/blas.hpp"
 //#include "tensormental/core/imports/lapack.hpp"
 #include "tensormental/core/imports/flame.hpp"
@@ -92,10 +93,12 @@
 
 // Implement the intertwined parts of the library
 //#include "tensormental/core/timer_impl.hpp"
+#include "tensormental/util/redistribute_util.hpp"
 #include "tensormental/core/memory_impl.hpp"
 #include "tensormental/core/complex_impl.hpp"
 #include "tensormental/core/types_impl.hpp"
 #include "tensormental/core/grid_impl.hpp"
+#include "tensormental/core/grid_view_impl.hpp"
 #include "tensormental/core/environment_impl.hpp"
 #include "tensormental/core/indexing_impl.hpp"
 

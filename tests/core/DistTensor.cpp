@@ -171,7 +171,22 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
     CallStackEntry entry("DistTensorTest");
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    DistTensor<T> A(dims, g);
+    int order = dims.size();
+    TensorDistribution tdist(order);
+    for(int i = 0; i < order; i++){
+    	ModeDistribution mdist;
+    	if(i < order - 1){
+    		mdist.resize(1);
+    		mdist[0] = i;
+    	}else{
+    		mdist.resize(2);
+    		mdist[0] = i;
+    		mdist[1] = i+1;
+    	}
+    	tdist[i] = mdist;
+    }
+
+    DistTensor<T> A(dims, tdist, g);
     std::vector<Int> index(dims.size());
     std::fill(index.begin(), index.end(), 0);
 
