@@ -9,15 +9,17 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "tensormental.hpp"
+#include "tensormental/core/dist_tensor/redistribute.hpp"
 #include "tensormental/core/dist_tensor/pack.hpp"
+#include "tensormental/util/vec_util.hpp"
 #include <algorithm>
 
 namespace tmen{
 
 template <typename T>
 void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceIndex, int scatterIndex){
-	if(CheckReduceScatterRedist(A, B, reduceIndex, scatterIndex))
-		LogicError("ReduceScatterRedist: Invalid Redistribution request");
+	//if(CheckReduceScatterRedist(A, B, reduceIndex, scatterIndex))
+	//	LogicError("ReduceScatterRedist: Invalid redistribution request");
 
 	int sendSize, recvSize;
 	DetermineRSCommunicateDataSize(B, reduceIndex, recvSize, sendSize);
@@ -35,8 +37,31 @@ void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceInd
 	UnpackRSRecvBuf(recvBuf, reduceIndex, scatterIndex, A);
 }
 
+template <typename T>
+void AllGatherRedist(DistTensor<T>& A, const DistTensor<T>& B, int allGatherIndex){
+	if(!CheckAllGatherRedist(A, B, allGatherIndex))
+		LogicError("AllGatherRedist: Invalid redistribution request");
+
+	int sendSize, recvSize;
+	DetermineAGCommunicateDataSize(B, allGatherIndex, recvSize, sendSize);
+	const mpi::Comm comm = B.GetCommunicator(allGatherIndex);
+
+	Memory<T> auxMemory;
+	T* auxBuf = auxMemory.Require(sendSize);
+	T* sendBuf = &(auxBuf[0]);
+	T* recvBuf = &(auxBuf[sendSize]);
+
+	PackAGSendBuf(B, allGatherIndex, sendBuf);
+
+	mpi::AllGather(sendBuf, sendSize, recvBuf, recvSize, comm);
+
+	UnpackAGRecvBuf(recvBuf, allGatherIndex, A);
+}
+
+
 #define PROTO(T) \
-	template void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceIndex, int scatterIndex);
+	template void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceIndex, int scatterIndex); \
+	template void AllGatherRedist(DistTensor<T>& A, const DistTensor<T>& B, int allGatherIndex);
 
 PROTO(int)
 PROTO(float)

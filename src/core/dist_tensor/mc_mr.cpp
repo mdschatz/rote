@@ -271,7 +271,7 @@ DistTensor<T>::Attach
     this->Empty();
 
     this->grid_ = &g;
-    this->dims_ = dims;
+    this->shape_ = dims;
     this->modeAlignments_ = modeAligns;
     this->viewType_ = VIEW;
     this->SetShifts();
@@ -295,7 +295,7 @@ DistTensor<T>::LockedAttach
 #endif
     this->grid_ = &g;
     this->order_ = dims.size(); 
-    this->dims_ = dims;
+    this->shape_ = dims;
     this->modeAlignments_ = modeAlignments;
     this->SetShifts();
 /*
@@ -326,7 +326,7 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
     CallStackEntry entry("[MC,MR]::ResizeTo");
     this->AssertNotLocked();
 #endif
-    this->dims_ = dims;
+    this->shape_ = dims;
     this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->gridView_.Shape()));
 /*
     this->height_ = height;
@@ -346,7 +346,7 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& l
     CallStackEntry entry("[MC,MR]::ResizeTo");
     this->AssertNotLocked();
 #endif
-    this->dims_ = dims;
+    this->shape_ = dims;
 /*
     this->height_ = height;
     this->width_ = width;

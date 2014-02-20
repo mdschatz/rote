@@ -22,11 +22,16 @@
 namespace tmen{
 
 template <typename T>
-void PackRSSendBuf(const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf);
+void PackRSSendBuf(const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf);
 
 template <typename T>
 void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A);
 
+template <typename T>
+void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf);
+
+template <typename T>
+void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, DistTensor<T>& A);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_UTIL_DECL_HPP

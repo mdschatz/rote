@@ -45,6 +45,7 @@ public:
 
     Int Order() const;
     Int Dimension(Int mode) const;
+    std::vector<Int> Shape() const;
     std::vector<Int> LocalShape() const;
     Int LocalDimension(Int mode) const;
     std::vector<Int> Indices() const;
@@ -175,7 +176,7 @@ public:
 protected:
     Int order_;
     ViewType viewType_;
-    std::vector<Int> dims_;
+    std::vector<Int> shape_;
     Memory<T> auxMemory_;
     tmen::Tensor<T> tensor_;
     

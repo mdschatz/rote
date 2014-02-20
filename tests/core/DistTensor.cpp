@@ -241,6 +241,7 @@ main( int argc, char* argv[] )
         }
         DistTensorTest<double>( args.tensorShape, g );
 
+        /*
         if( commRank == 0 )
         {
             std::cout << "--------------------------------------" << std::endl
@@ -256,6 +257,7 @@ main( int argc, char* argv[] )
                       << "--------------------------------------" << std::endl;
         }
         DistTensorTest<Complex<double> >( args.tensorShape, g );
+        */
     }
     catch( std::exception& e ) { ReportException(e); }
 

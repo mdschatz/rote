@@ -11,6 +11,7 @@
 
 #include "tensormental.hpp"
 #include <algorithm>
+#include "tensormental/util/vec_util.hpp"
 
 namespace tmen{
 
@@ -24,10 +25,10 @@ int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, con
 	std::vector<Int> AIndices = A.Indices();
 	std::vector<Int> BIndices = B.Indices();
 
-	std::vector<bool> foundIndices(AOrder);
+	std::vector<Int> foundIndices(AOrder,0);
 	for(int i = 0; i < AOrder; i++){
 		if(std::find(BIndices.begin(), BIndices.end(), AIndices[i]) != BIndices.end())
-			foundIndices[i] = true;
+			foundIndices[i] = 1;
 	}
 
 	if(AnyZeroElem(foundIndices)){
@@ -56,6 +57,13 @@ int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, con
 	return 1;
 }
 
+/*
+template<typename T>
+int CheckAllGatherRedist(const DistTensor<T>& A, const int hi){
+	return true;
+}
+*/
+
 template<typename T>
 int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex){
 	if(A.Order() != B.Order() - 1){
@@ -66,10 +74,10 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const i
 	std::vector<Int> AIndices = A.Indices();
 	std::vector<Int> BIndices = B.Indices();
 
-	std::vector<bool> foundIndices(AOrder);
+	std::vector<int> foundIndices(AOrder, 0);
 	for(int i = 0; i < AOrder; i++){
 		if(std::find(BIndices.begin(), BIndices.end(), AIndices[i]) != BIndices.end())
-			foundIndices[i] = true;
+			foundIndices[i] = 1;
 	}
 
 	if(AnyZeroElem(foundIndices)){
@@ -83,7 +91,7 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const i
 	if(AAllGatherIndexDist.size() != 0)
 		LogicError("CheckAllGatherRedist: Invalid redistribution request");
 
-	return 1;
+	return true;
 }
 
 template <typename T>
@@ -93,6 +101,7 @@ int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>&
 	//	LogicError("CheckPartialReduceScatterRedist: Invalid redistribution request");
 	return 1;
 }
+
 
 #define PROTO(T) \
 		template int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int reduceIndex, const int scatterIndex); \

@@ -14,11 +14,11 @@ template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 : viewType_(OWNER),
   order_(),
-  dims_(), 
+  shape_(),
   auxMemory_(),
   dist_(),
   indices_(),
-  tensor_(dims_,dims_,true), 
+  tensor_(shape_,shape_,true),
   constrainedModeAlignments_(), 
   modeAlignments_(),
   modeShifts_(),
@@ -32,7 +32,7 @@ template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( Int order, const tmen::Grid& grid )
 : viewType_(OWNER),
   order_(order),
-  dims_(order),
+  shape_(order),
   auxMemory_(),
   dist_(order),
   indices_(order),
@@ -50,7 +50,7 @@ template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : viewType_(OWNER),
   order_(shape.size()),
-  dims_(shape),
+  shape_(shape),
   auxMemory_(),
   dist_(dist),
   indices_(order_),
@@ -68,7 +68,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const 
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( AbstractDistTensor<T>&& A )
 : viewType_(A.viewType_),
-  dims_(A.dims_), 
+  shape_(A.shape_),
   constrainedModeAlignments_(A.constrainedModeAlignments_), 
   modeAlignments_(A.modeAlignments_),
   modeShifts_(A.modeShifts_),
@@ -85,7 +85,7 @@ AbstractDistTensor<T>::operator=( AbstractDistTensor<T>&& A )
     auxMemory_.Swap( A.auxMemory_ );
     tensor_.Swap( A.tensor_ );
     viewType_ = A.viewType_;
-    dims_ = A.dims_;
+    shape_ = A.shape_;
     constrainedModeAlignments_ = A.constrainedModeAlignments_;
     modeAlignments_ = A.modeAlignments_;
     modeShifts_ = A.modeShifts_;
@@ -105,7 +105,7 @@ AbstractDistTensor<T>::Swap( AbstractDistTensor<T>& A )
     tensor_.Swap( A.tensor_ );
     auxMemory_.Swap( A.auxMemory_ );
     std::swap( viewType_, A.viewType_ );
-    std::swap( dims_ , A.dims_ );
+    std::swap( shape_ , A.shape_ );
     std::swap( dist_, A.dist_ );
     std::swap( indices_, A.indices_ );
     std::swap( constrainedModeAlignments_, A.constrainedModeAlignments_ );
@@ -136,13 +136,13 @@ template<typename T>
 void
 AbstractDistTensor<T>::AssertValidEntry( const std::vector<Int>& loc ) const
 {
-    if(loc.size() != dims_.size() )
+    if(loc.size() != shape_.size() )
     {
       std::ostringstream msg;
       msg << "Entry is of incorrect order.\n";
       LogicError( msg.str() );
     }
-    if(!ElemwiseLessThan(loc, dims_))
+    if(!ElemwiseLessThan(loc, shape_))
     {
         std::ostringstream msg;
         msg << "Entry (";
@@ -150,9 +150,9 @@ AbstractDistTensor<T>::AssertValidEntry( const std::vector<Int>& loc ) const
           msg << loc[i] << ", ";
         msg << loc[loc.size()-1] << ") is out of bounds of ";
         
-	for(int i = 0; i < dims_.size() - 1; i++)
-          msg << dims_[i] << " x ";
-	msg << dims_[dims_.size()-1] << " tensor.";
+	for(int i = 0; i < shape_.size() - 1; i++)
+          msg << shape_[i] << " x ";
+	msg << shape_[shape_.size()-1] << " tensor.";
         LogicError( msg.str() );
     }
 }
@@ -170,7 +170,7 @@ AbstractDistTensor<T>::AssertValidSubtensor
     std::vector<Int> maxIndex(index.size());
     ElemwiseSum(index, dims, maxIndex);
 
-    if( !ElemwiseLessThan(maxIndex, dims_) )
+    if( !ElemwiseLessThan(maxIndex, shape_) )
     {
         std::ostringstream msg;
         msg << "Subtensor is out of bounds: accessing up to (";
@@ -199,7 +199,7 @@ AbstractDistTensor<T>::AssertSameSize( const std::vector<Int>& dims ) const
 {
     if( dims.size() != order_)
       LogicError("Assertion that tensors be the same order failed");
-    if( AnyElemwiseNotEqual(dims, dims_) )
+    if( AnyElemwiseNotEqual(dims, shape_) )
         LogicError("Assertion that tensors be the same size failed");
 }
 
@@ -389,7 +389,12 @@ AbstractDistTensor<T>::Locked() const
 template<typename T>
 Int
 AbstractDistTensor<T>::Dimension(Int mode) const
-{ return dims_[mode]; }
+{ return shape_[mode]; }
+
+template<typename T>
+std::vector<Int>
+AbstractDistTensor<T>::Shape() const
+{ return shape_; }
 
 template<typename T>
 Int
@@ -546,7 +551,7 @@ AbstractDistTensor<T>::Empty()
 {
     tensor_.Empty_();
     viewType_ = OWNER;
-    dims_.clear();
+    shape_.clear();
     modeAlignments_.clear();
     for(int i = 0; i < order_; i++)
       constrainedModeAlignments_[i] = false;
@@ -559,7 +564,7 @@ AbstractDistTensor<T>::EmptyData()
 {
     tensor_.Empty_();
     viewType_ = OWNER;
-    dims_.clear();
+    shape_.clear();
 }
 
 template<typename T>

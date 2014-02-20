@@ -14,7 +14,7 @@
 namespace tmen{
 
 template <typename T>
-void PackRSSendBuf(const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf)
+void PackRSSendBuf(const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf)
 {
 
 }
@@ -25,9 +25,23 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
 
 }
 
+template <typename T>
+void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf)
+{
+
+}
+
+template <typename T>
+void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, DistTensor<T>& A)
+{
+
+}
+
 #define PROTO(T) \
 		template void PackRSSendBuf(const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
-		template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A);
+		template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A); \
+        template void PackAGSendBuf(const DistTensor<T>& A, const int allGatherIndex, T * const sendBuf); \
+		template void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)

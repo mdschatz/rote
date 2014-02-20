@@ -24,5 +24,8 @@ namespace tmen{
 template <typename T>
 void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const int reduceIndex, int& recvSize, int& sendSize);
 
+template <typename T>
+void DetermineAGCommunicateDataSize(const DistTensor<T>& B, const int reduceIndex, int& recvSize, int& sendSize);
+
 }
 #endif // ifndef TMEN_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP

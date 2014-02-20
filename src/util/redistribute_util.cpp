@@ -18,8 +18,24 @@ void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const int reduceInde
 	sendSize = nLocalElems * nRedistProcs;
 }
 
+template <typename T>
+void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize){
+	const tmen::Grid& grid = A.Grid();
+	if(!A.Participating())
+		return;
+
+	std::vector<Int> myGridLoc = grid.Loc();
+	ModeDistribution indexDist = A.ModeDist(allGatherIndex);
+	const int nRedistProcs = prod(indexDist);
+	std::vector<Int> localShape = A.LocalShape();
+	const int nLocalElems = prod(localShape);
+	recvSize = nLocalElems * nRedistProcs;
+	sendSize = nLocalElems;
+}
+
 #define PROTO(T) \
-	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const int reduceIndex, int& recvSize, int& sendSize);
+	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const int reduceIndex, int& recvSize, int& sendSize); \
+	template void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize);
 
 PROTO(int)
 PROTO(float)
