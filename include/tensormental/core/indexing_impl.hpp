@@ -170,9 +170,11 @@ inline Int Shift_( Int rank, Int alignment, Int stride )
 inline std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions)
 {
   std::vector<Int> strides(dimensions.size());
-  strides[0] = 1;
-  for(int i = 1; i < strides.size(); i++){
-	  strides[i] = strides[i-1]*dimensions[i-1];
+  if(strides.size() > 0){
+	  strides[0] = 1;
+	  for(int i = 1; i < strides.size(); i++){
+		  strides[i] = strides[i-1]*dimensions[i-1];
+	  }
   }
   return strides;
 }

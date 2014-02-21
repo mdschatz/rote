@@ -32,6 +32,8 @@ public:
     int Dimension(int mode) const;
     std::vector<Int> Loc() const;
     int ModeLoc(int mode) const;
+    int ModeWrapStride(int mode) const;
+    std::vector<Int> ModeWrapStrides() const;
 
     int LinearRank() const;
     void SetMyGridViewLoc();
@@ -42,6 +44,7 @@ private:
     std::vector<int> loc_;
     const tmen::Grid* grid_;
     TensorDistribution dist_;
+
     void SetupGridView();
 };
 

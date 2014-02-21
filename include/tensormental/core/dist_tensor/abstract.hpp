@@ -48,6 +48,7 @@ public:
     std::vector<Int> Shape() const;
     std::vector<Int> LocalShape() const;
     Int LocalDimension(Int mode) const;
+    Int LocalModeStride(Int mode) const;
     std::vector<Int> Indices() const;
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Int mode) const;
@@ -55,6 +56,7 @@ public:
     size_t AllocatedMemory() const;
 
     const tmen::Grid& Grid() const;
+    const tmen::GridView GridView() const;
 
           T* Buffer( const std::vector<Int>& loc );
     const T* LockedBuffer( const std::vector<Int>& loc ) const;
@@ -181,19 +183,18 @@ protected:
     tmen::Tensor<T> tensor_;
     
     TensorDistribution dist_;
-    std::vector<Int> indices_;
     std::vector<bool> constrainedModeAlignments_;
     std::vector<Int> modeAlignments_;
     std::vector<Int> modeShifts_;
     const tmen::Grid* grid_;
 
     //Logical grid information
-    GridView gridView_;
+    tmen::GridView gridView_;
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
-    AbstractDistTensor( const Int order, const tmen::Grid& g );
     AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& g );
+    AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& g );
 
     void SetShifts();
     void SetModeShift(Int Mode);

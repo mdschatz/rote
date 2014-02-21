@@ -33,12 +33,12 @@ public:
     // 
 
     Tensor( bool fixed=false );
-    Tensor( const Int order, bool fixed=false);
-    Tensor( const std::vector<Int>& dims, bool fixed=false );
-    Tensor( const std::vector<Int>& dims, const std::vector<Int>& ldims, bool fixed=false );
+    Tensor( const std::vector<Int>& indices, bool fixed=false );
+    Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, bool fixed=false );
+    Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, const std::vector<Int>& ldims, bool fixed=false );
     Tensor
-    ( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims, bool fixed=false );
-    Tensor( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims, bool fixed=false );
+    ( const std::vector<Int>& indices, const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims, bool fixed=false );
+    Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims, bool fixed=false );
     Tensor( const Tensor<T>& A );
 
     // Move constructor
@@ -63,6 +63,8 @@ public:
     Int Order() const;
     std::vector<Int> Shape() const;
     Int Dimension(Int mode) const;
+    std::vector<Int> Indices() const;
+    Int ModeStride(Int mode) const;
     //Int Height() const;
     //Int Width() const;
     //Int DiagonalLength( Int offset=0 ) const;
@@ -148,9 +150,10 @@ public:
 private:
     ViewType viewType_;
     Int order_;
-    std::vector<Int> dims_;
+    std::vector<Int> shape_;
+    std::vector<Int> strides_;
     std::vector<Int> ldims_;
-    std::vector<std::string> modes_;
+    std::vector<Int> indices_;
 
     //Int height_, width_, ldim_;
     const T* data_;

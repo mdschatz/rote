@@ -38,18 +38,16 @@ GridView::SetMyGridViewLoc( )
 inline
 GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution )
 : order_(distribution.size()),
-  loc_(order_),
-  shape_(order_)
+  loc_(distribution.size()),
+  shape_(distribution.size()),
+  dist_(distribution),
+  grid_(grid)
 {
 #ifndef RELEASE
     CallStackEntry entry("GridView::GridView");
 #endif
-    order_ = distribution.size();
-    grid_ = grid;
-    dist_ = distribution;
 
     SetupGridView();
-
 }
 
 inline void
@@ -108,6 +106,26 @@ inline std::vector<Int>
 GridView::Shape() const
 {
 	return shape_;
+}
+
+inline
+std::vector<int>
+GridView::ModeWrapStrides() const
+{
+    return shape_;
+}
+
+inline
+int
+GridView::ModeWrapStride(int mode) const
+{
+    if (mode > order_ || mode < 0){
+        std::ostringstream msg;
+        msg << "Requested stride must be of valid mode:\n"
+            << "  order=" << order_ << ", requested mode=" << mode;
+        LogicError( msg.str() );
+    }
+    return shape_[mode];
 }
 
 inline

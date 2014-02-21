@@ -22,13 +22,6 @@ DistTensor<T>::DistTensor
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
-	this->order_ = shape.size();
-	this->dist_ = dist;
-	std::fill(this->modeAlignments_.begin(), this->modeAlignments_.end(), 0);
-	std::fill(this->constrainedModeAlignments_.begin(), this->constrainedModeAlignments_.end(), 0);
-
-	std::fill(this->indices_.begin(), this->indices_.end(), -1);
-	std::fill(this->modeShifts_.begin(), this->modeShifts_.end(), 0);
 
 	this->SetShifts();
 	this->ResizeTo( shape );
@@ -36,56 +29,62 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
-  const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, g)
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& grid )
+: AbstractDistTensor<T>(shape, dist, indices, grid)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
-	this->order_ = shape.size();
-	this->dist_ = dist;
+
+	this->SetShifts();
+	this->ResizeTo( shape );
+}
+
+template<typename T>
+DistTensor<T>::DistTensor
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
+  const tmen::Grid& g )
+: AbstractDistTensor<T>(shape, dist, indices, g)
+{
+	if(shape.size() != dist.size())
+		LogicError("Error: Distribution must be of same order as object");
     this->Align( modeAlignments );
     this->ResizeTo( shape );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
   const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, g)
+: AbstractDistTensor<T>(shape, dist, indices, g)
 { 
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
-	this->order_ = shape.size();
-	this->dist_ = dist;
     this->Align( modeAlignments );
     this->ResizeTo( shape, ldims );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
   const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, g)
+: AbstractDistTensor<T>(shape, dist, indices, g)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
-	this->order_ = shape.size();
-	this->dist_ = dist;
+
     this->LockedAttach
     ( shape, modeAlignments, buffer, ldims, g );
 }
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& modeAlignments,
+( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
   T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, g)
+: AbstractDistTensor<T>(shape, dist, indices, g)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
-	this->order_ = shape.size();
-	this->dist_ = dist;
+
     this->Attach
     ( shape, modeAlignments, buffer, ldims, g );
 }
@@ -132,7 +131,6 @@ DistTensor<T>::DistData() const
     //data.rowDist = MR;
     data.modeAlignments = this->modeAlignments_;
     data.distribution = this->dist_;
-    data.indices = this->indices_;
     data.grid = this->grid_;
     return data;
 }
@@ -143,7 +141,7 @@ template<typename T>
 Int
 DistTensor<T>::ModeStride(Int mode) const
 {
-	return this->grid_->Dimension(mode);
+	return this->gridView_.ModeWrapStride(mode);
 }
 
 template<typename T>
@@ -387,10 +385,23 @@ DistTensor<T>::Set( const std::vector<Int>& index, T u )
     this->AssertValidEntry( index );
 #endif
     const Int owningProc = this->DetermineLinearIndexOwner(index);
+
+
     if(this->Grid().LinearRank() == owningProc){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+        std::ostringstream msg;
+        msg << "GlobalIndex: [" << index[0];
+        for(int i = 1; i < index.size(); i++)
+            msg << ", " << index[i];
+        msg << "] is owned by proc" << owningProc;
+    	msg << " at local index [" << localLoc[0];
+    	for(int i = 1; i < localLoc.size(); i++)
+    	    msg << ", " << localLoc[i];
+    	msg << "]\n";
+    	printf("%s", msg.str().c_str());
     	this->SetLocal(localLoc, u);
     }
+
 }
 
 template<typename T>
@@ -1047,6 +1058,7 @@ DistTensor<T>::GetImagPartOfDiagonal
 */
 }
 
+/*
 template<typename T>
 DistTensor<BASE(T)>
 DistTensor<T>::GetRealPartOfDiagonal( Int offset ) const
@@ -1064,6 +1076,7 @@ DistTensor<T>::GetImagPartOfDiagonal( Int offset ) const
     GetImagPartOfDiagonal( d, offset );
     return d;
 }
+*/
 
 template<typename T>
 void

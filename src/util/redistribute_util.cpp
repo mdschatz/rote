@@ -26,7 +26,9 @@ void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherI
 
 	std::vector<Int> myGridLoc = grid.Loc();
 	ModeDistribution indexDist = A.ModeDist(allGatherIndex);
-	const int nRedistProcs = prod(indexDist);
+	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
+
+	const int nRedistProcs = prod(gridViewSlice);
 	std::vector<Int> localShape = A.LocalShape();
 	const int nLocalElems = prod(localShape);
 	recvSize = nLocalElems * nRedistProcs;

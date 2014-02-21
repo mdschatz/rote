@@ -17,8 +17,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
   shape_(),
   auxMemory_(),
   dist_(),
-  indices_(),
-  tensor_(shape_,shape_,true),
+  tensor_(true),
   constrainedModeAlignments_(), 
   modeAlignments_(),
   modeShifts_(),
@@ -29,70 +28,36 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 }
 
 template<typename T>
-AbstractDistTensor<T>::AbstractDistTensor( Int order, const tmen::Grid& grid )
-: viewType_(OWNER),
-  order_(order),
-  shape_(order),
-  auxMemory_(),
-  dist_(order),
-  indices_(order),
-  tensor_(order),
-  constrainedModeAlignments_(order),
-  modeAlignments_(order),
-  modeShifts_(order),
-  grid_(&grid),
-  gridView_(grid_, dist_)
-{
-
-}
-
-template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : viewType_(OWNER),
   order_(shape.size()),
   shape_(shape),
   auxMemory_(),
   dist_(dist),
-  indices_(order_),
-  tensor_(order_),
-  constrainedModeAlignments_(order_),
-  modeAlignments_(order_),
-  modeShifts_(order_),
+  tensor_(),
+  constrainedModeAlignments_(order_, 0),
+  modeAlignments_(order_, 0),
+  modeShifts_(order_, 0),
   grid_(&grid),
   gridView_(grid_, dist_)
 {
-
-}
-
-/*
-template<typename T>
-AbstractDistTensor<T>::AbstractDistTensor( AbstractDistTensor<T>&& A )
-: viewType_(A.viewType_),
-  shape_(A.shape_),
-  constrainedModeAlignments_(A.constrainedModeAlignments_), 
-  modeAlignments_(A.modeAlignments_),
-  modeShifts_(A.modeShifts_),
-  grid_(A.grid_)
-{ 
-    tensor_.Swap( A.tensor_ );
-    auxMemory_.Swap( A.auxMemory_ );
 }
 
 template<typename T>
-AbstractDistTensor<T>& 
-AbstractDistTensor<T>::operator=( AbstractDistTensor<T>&& A )
+AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& grid )
+: viewType_(OWNER),
+  order_(shape.size()),
+  shape_(shape),
+  auxMemory_(),
+  dist_(dist),
+  constrainedModeAlignments_(order_, 0),
+  modeAlignments_(order_, 0),
+  modeShifts_(order_, 0),
+  tensor_(indices),
+  grid_(&grid),
+  gridView_(grid_, dist_)
 {
-    auxMemory_.Swap( A.auxMemory_ );
-    tensor_.Swap( A.tensor_ );
-    viewType_ = A.viewType_;
-    shape_ = A.shape_;
-    constrainedModeAlignments_ = A.constrainedModeAlignments_;
-    modeAlignments_ = A.modeAlignments_;
-    modeShifts_ = A.modeShifts_;
-    grid_ = A.grid_;
-    return *this;
 }
-*/
 
 template<typename T>
 AbstractDistTensor<T>::~AbstractDistTensor() 
@@ -107,7 +72,6 @@ AbstractDistTensor<T>::Swap( AbstractDistTensor<T>& A )
     std::swap( viewType_, A.viewType_ );
     std::swap( shape_ , A.shape_ );
     std::swap( dist_, A.dist_ );
-    std::swap( indices_, A.indices_ );
     std::swap( constrainedModeAlignments_, A.constrainedModeAlignments_ );
     std::swap( modeAlignments_, A.modeAlignments_ );
     std::swap( modeShifts_, A.modeShifts_ );
@@ -404,7 +368,7 @@ AbstractDistTensor<T>::Order() const
 template<typename T>
 std::vector<Int>
 AbstractDistTensor<T>::Indices() const
-{ std::vector<Int> indices = this->indices_; return indices; }
+{ return this->tensor_.Indices(); }
 
 template<typename T>
 TensorDistribution
@@ -459,6 +423,13 @@ AbstractDistTensor<T>::Grid() const
 { return *grid_; }
 
 template<typename T>
+const tmen::GridView
+AbstractDistTensor<T>::GridView() const
+{
+	return gridView_;
+}
+
+template<typename T>
 size_t
 AbstractDistTensor<T>::AllocatedMemory() const
 { return tensor_.MemorySize(); }
@@ -469,10 +440,16 @@ AbstractDistTensor<T>::LocalShape() const
 {
 	return tensor_.Shape();
 }
+
 template<typename T>
 Int
 AbstractDistTensor<T>::LocalDimension(Int mode) const
 { return tensor_.Dimension(mode); }
+
+template<typename T>
+Int
+AbstractDistTensor<T>::LocalModeStride(Int mode) const
+{ return tensor_.ModeStride(mode); }
 
 template<typename T>
 Int
@@ -668,14 +645,14 @@ AbstractDistTensor<T>::DetermineLinearIndexOwner(const std::vector<Int>& index) 
     CallStackEntry entry("AbstractDistTensor::DetermineLinearIndexOwner");
     this->AssertValidEntry( index );
 #endif
-    const tmen::Grid& g = this->Grid();
-    std::vector<Int> ownerLoc(g.Order());
+    const tmen::GridView gv = this->GridView();
+    std::vector<Int> ownerLoc(gv.Order());
 
-    for(Int i = 0; i < g.Order(); i++){
+    for(Int i = 0; i < gv.Order(); i++){
     	ownerLoc[i] = (index[i] + this->ModeAlignment(i)) % this->ModeStride(i);
     }
 
-    return LinearIndex(ownerLoc, Dimensions2Strides(g.Shape()));
+    return LinearIndex(ownerLoc, Dimensions2Strides(gv.Shape()));
 }
 
 template<typename T>

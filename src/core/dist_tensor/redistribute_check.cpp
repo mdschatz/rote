@@ -66,7 +66,7 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const int hi){
 
 template<typename T>
 int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex){
-	if(A.Order() != B.Order() - 1){
+	if(A.Order() != B.Order()){
 		LogicError("CheckAllGatherRedist: Invalid redistribution request");
 	}
 

@@ -61,6 +61,9 @@ void PopBlocksizeStack();
 
 std::mt19937& Generator();
 
+inline double Ceil(double m)
+{ return std::ceil(m); }
+
 inline Int Max( Int m, Int n )
 { return std::max(m,n); }
 

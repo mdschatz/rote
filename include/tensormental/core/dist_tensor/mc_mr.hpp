@@ -22,31 +22,35 @@ template<typename T>
 class DistTensor : public AbstractDistTensor<T>
 {
 public:
-    // Create a 0 x 0 distributed matrix
+    // Create a 0 distributed tensor
     DistTensor( const tmen::Grid& g=DefaultGrid() );
 
-    // Create a height x width distributed matrix
+    // Create a "shape" distributed tensor
     DistTensor
-    ( const std::vector<Int>& dims, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
+    ( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
 
-    // Create a height x width distributed matrix with specified alignments
+    // Create a "shape" distributed tensor specifying the associated indices
     DistTensor
-    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns,
+    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& g=DefaultGrid() );
+
+    // Create a "shape" distributed tensor with specified alignments
+    DistTensor
+    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns,
       const tmen::Grid& g );
 
-    // Create a height x width distributed matrix with specified alignments
+    // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns, const std::vector<Int>& ldims, const tmen::Grid& g );
+    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns, const std::vector<Int>& ldims, const tmen::Grid& g );
 
-    // View a constant distributed matrix's buffer
+    // View a constant distributed tensor's buffer
     DistTensor
-    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns,
+    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns,
       const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g );
 
-    // View a mutable distributed matrix's buffer
+    // View a mutable distributed tensor's buffer
     DistTensor
-    ( const std::vector<Int>& dims, const TensorDistribution& dist, const std::vector<Int>& modeAligns,
+    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns,
       T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g );
 
     // Create a copy of distributed matrix A

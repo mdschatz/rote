@@ -94,12 +94,12 @@ TestRedist( DistTensor<T>& A )
     CallStackEntry entry("TestRedist");
 #endif
     const int order = A.Order();
-    const TensorDistribution tDist = A.TensorDist();
     const Grid& g = A.Grid();
 
     TensorDistribution tdist = A.TensorDist();
-    tdist[order - 1].empty();
-    DistTensor<T> B(A.Shape(), tdist, g);
+    tdist[order - 1].clear();
+
+    DistTensor<T> B(A.Shape(), tdist, A.Indices(), g);
     AllGatherRedist(B, A, order - 1);
 }
 
@@ -143,6 +143,7 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     int order = dims.size();
     TensorDistribution tdist(order);
+    std::vector<Int> indices(order);
     for(int i = 0; i < order; i++){
     	ModeDistribution mdist;
     	if(i < order - 1){
@@ -154,9 +155,10 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
     		mdist[1] = i+1;
     	}
     	tdist[i] = mdist;
+    	indices[i] = i;
     }
 
-    DistTensor<T> A(dims, tdist, g);
+    DistTensor<T> A(dims, tdist, indices, g);
     std::vector<Int> index(dims.size());
     std::fill(index.begin(), index.end(), 0);
 
