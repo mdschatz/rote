@@ -135,13 +135,13 @@ TestSet(DistTensor<T>& A)
 
 template<typename T>
 void
-DistTensorTest( const std::vector<Int>& dims, const Grid& g )
+DistTensorTest( const std::vector<Int>& shape, const Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    int order = dims.size();
+    int order = shape.size();
     TensorDistribution tdist(order);
     std::vector<Int> indices(order);
     for(int i = 0; i < order; i++){
@@ -158,8 +158,8 @@ DistTensorTest( const std::vector<Int>& dims, const Grid& g )
     	indices[i] = i;
     }
 
-    DistTensor<T> A(dims, tdist, indices, g);
-    std::vector<Int> index(dims.size());
+    DistTensor<T> A(shape, tdist, indices, g);
+    std::vector<Int> index(shape.size());
     std::fill(index.begin(), index.end(), 0);
 
     TestSet(A);

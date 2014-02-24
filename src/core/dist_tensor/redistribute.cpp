@@ -53,9 +53,9 @@ void AllGatherRedist(DistTensor<T>& A, const DistTensor<T>& B, int allGatherInde
 
 	PackAGSendBuf(B, allGatherIndex, sendBuf);
 
-	mpi::AllGather(sendBuf, sendSize, recvBuf, recvSize, comm);
+	mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
-	UnpackAGRecvBuf(recvBuf, allGatherIndex, A);
+	UnpackAGRecvBuf(recvBuf, allGatherIndex, B.GridView(), A);
 }
 
 
