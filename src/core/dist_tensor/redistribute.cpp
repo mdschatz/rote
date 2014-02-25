@@ -17,56 +17,55 @@
 namespace tmen{
 
 template <typename T>
-void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceIndex, int scatterIndex){
+void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, int reduceIndex, int scatterIndex){
 	//if(CheckReduceScatterRedist(A, B, reduceIndex, scatterIndex))
 	//	LogicError("ReduceScatterRedist: Invalid redistribution request");
 
 	int sendSize, recvSize;
-	DetermineRSCommunicateDataSize(B, reduceIndex, recvSize, sendSize);
-	const mpi::Comm comm = B.GetCommunicator(reduceIndex);
+	DetermineRSCommunicateDataSize(A, reduceIndex, recvSize, sendSize);
+	const mpi::Comm comm = A.GetCommunicator(reduceIndex);
 
 	Memory<T> auxMemory;
 	T* auxBuf = auxMemory.Require(sendSize);
 	T* sendBuf = &(auxBuf[0]);
 	T* recvBuf = &(auxBuf[sendSize]);
 
-	PackRSSendBuf(B, reduceIndex, scatterIndex, sendBuf);
+	PackRSSendBuf(A, reduceIndex, scatterIndex, sendBuf);
 
 	mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
-	UnpackRSRecvBuf(recvBuf, reduceIndex, scatterIndex, A);
+	UnpackRSRecvBuf(recvBuf, reduceIndex, scatterIndex, B);
 }
 
 template <typename T>
-void AllGatherRedist(DistTensor<T>& A, const DistTensor<T>& B, int allGatherIndex){
-	if(!CheckAllGatherRedist(A, B, allGatherIndex))
+void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, int allGatherIndex){
+	if(!CheckAllGatherRedist(B, A, allGatherIndex))
 		LogicError("AllGatherRedist: Invalid redistribution request");
 
 	int sendSize, recvSize;
-	DetermineAGCommunicateDataSize(B, allGatherIndex, recvSize, sendSize);
-	const mpi::Comm comm = B.GetCommunicator(allGatherIndex);
+	DetermineAGCommunicateDataSize(A, allGatherIndex, recvSize, sendSize);
+	const mpi::Comm comm = A.GetCommunicator(allGatherIndex);
 	const int nProcsPerComm = mpi::CommSize(comm);
 
 	Memory<T> auxMemory;
-	T* auxBuf = auxMemory.Require((nProcsPerComm + 1)*sendSize);
+	T* auxBuf = auxMemory.Require(sendSize + recvSize);
 	T* sendBuf = &(auxBuf[0]);
 	T* recvBuf = &(auxBuf[sendSize]);
 
-	Print(B.LockedTensor(), "B's local tensor before allgathering");
-	Print(A.LockedTensor(), "A's local tensor before allgathering:");
-	PackAGSendBuf(B, allGatherIndex, sendBuf);
+	printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
+	PackAGSendBuf(A, allGatherIndex, sendBuf);
 
 	printf("Allgathering %d elements\n", sendSize);
 	mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
-	UnpackAGRecvBuf(recvBuf, allGatherIndex, B, A);
-	Print(A.LockedTensor(), "A's local tensor after allgathering:");
+	UnpackAGRecvBuf(recvBuf, allGatherIndex, A, B);
+	Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
 
 #define PROTO(T) \
-	template void ReduceScatterRedist(DistTensor<T>& A, const DistTensor<T>& B, int reduceIndex, int scatterIndex); \
-	template void AllGatherRedist(DistTensor<T>& A, const DistTensor<T>& B, int allGatherIndex);
+	template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, int reduceIndex, int scatterIndex); \
+	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, int allGatherIndex);
 
 PROTO(int)
 PROTO(float)

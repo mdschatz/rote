@@ -97,10 +97,10 @@ TestRedist( DistTensor<T>& A )
     const Grid& g = A.Grid();
 
     TensorDistribution tdist = A.TensorDist();
-    tdist[order - 1].clear();
+    tdist[order-1].clear();
 
     DistTensor<T> B(A.Shape(), tdist, A.Indices(), g);
-    AllGatherRedist(B, A, order - 1);
+    AllGatherRedist(B, A, order-1);
 }
 
 template<typename T>

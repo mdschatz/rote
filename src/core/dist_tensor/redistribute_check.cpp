@@ -67,7 +67,7 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const int hi){
 template<typename T>
 int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex){
 	if(A.Order() != B.Order()){
-		LogicError("CheckAllGatherRedist: Invalid redistribution request");
+		LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
 	}
 
 	int AOrder = A.Order();
@@ -81,7 +81,7 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const i
 	}
 
 	if(AnyZeroElem(foundIndices)){
-		LogicError("CheckAllGatherRedist: Invalid redistribution request");
+		LogicError("CheckAllGatherRedist: Objects being redistributed must represent same indices");
 	}
 
 	//Check that redist modes are assigned properly on input and output
@@ -89,7 +89,7 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const i
 
 	ModeDistribution AAllGatherIndexDist = A.ModeDist(*allGatherIndexLocA);
 	if(AAllGatherIndexDist.size() != 0)
-		LogicError("CheckAllGatherRedist: Invalid redistribution request");
+		LogicError("CheckAllGatherRedist: Allgather only redistributes to * (for now)");
 
 	return true;
 }
