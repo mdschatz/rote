@@ -45,17 +45,22 @@ void AllGatherRedist(DistTensor<T>& A, const DistTensor<T>& B, int allGatherInde
 	int sendSize, recvSize;
 	DetermineAGCommunicateDataSize(B, allGatherIndex, recvSize, sendSize);
 	const mpi::Comm comm = B.GetCommunicator(allGatherIndex);
+	const int nProcsPerComm = mpi::CommSize(comm);
 
 	Memory<T> auxMemory;
-	T* auxBuf = auxMemory.Require(sendSize);
+	T* auxBuf = auxMemory.Require((nProcsPerComm + 1)*sendSize);
 	T* sendBuf = &(auxBuf[0]);
 	T* recvBuf = &(auxBuf[sendSize]);
 
+	Print(B.LockedTensor(), "B's local tensor before allgathering");
+	Print(A.LockedTensor(), "A's local tensor before allgathering:");
 	PackAGSendBuf(B, allGatherIndex, sendBuf);
 
+	printf("Allgathering %d elements\n", sendSize);
 	mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
-	UnpackAGRecvBuf(recvBuf, allGatherIndex, B.GridView(), A);
+	UnpackAGRecvBuf(recvBuf, allGatherIndex, B, A);
+	Print(A.LockedTensor(), "A's local tensor after allgathering:");
 }
 
 

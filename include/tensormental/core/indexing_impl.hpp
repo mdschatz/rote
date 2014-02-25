@@ -139,6 +139,29 @@ inline Int MaxLength_( Int n, Int stride )
     return ( n > 0 ? (n - 1)/stride + 1 : 0 );
 }
 
+inline
+std::vector<Int> MaxLengths( const std::vector<Int>& shape, const std::vector<Int>& wrapShape)
+{
+#ifndef RELEASE
+    CallStackEntry entry("MaxLengths");
+    if(wrapShape.size() != shape.size())
+        LogicError("shape order and wrapShape order must be the same");
+    if( AnyNegativeElem(shape) )
+        LogicError("shape entries must be non-negative");
+    if( AnyNonPositiveElem(wrapShape) )
+        LogicError("wrapShape entries must be positive");
+#endif
+    return MaxLengths_( shape, wrapShape );
+}
+
+inline
+std::vector<Int> MaxLengths_( const std::vector<Int>& shape, const std::vector<Int>& wrapShape)
+{
+    std::vector<Int> ret(shape.size());
+    for(int i = 0; i < ret.size(); i++)
+        ret[i] = MaxLength(shape[i], wrapShape[i]);
+    return ret;
+}
 // For determining the first index assigned to a given rank
 inline Int Shift( Int rank, Int alignment, Int stride )
 {

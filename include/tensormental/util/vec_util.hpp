@@ -26,6 +26,9 @@ template<typename T>
 bool AnyNonNegativeElem(const std::vector<T>& vec);
 
 template<typename T>
+bool AnyNonPositiveElem(const std::vector<T>& vec);
+
+template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec);
 
 template<typename T>

@@ -29,6 +29,15 @@ bool AnyNonNegativeElem(const std::vector<T>& vec){
 }
 
 template<typename T>
+bool AnyNonPositiveElem(const std::vector<T>& vec){
+  bool test;
+  for(int i = 0; i < vec.size(); i++)
+    if(vec[i] <= 0)
+      return true;
+  return false;
+}
+
+template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec){
   bool test;
   for(int i = 0; i < vec.size(); i++)
@@ -99,6 +108,7 @@ std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& f
 	template T prod(const std::vector<T>& src); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template bool AnyNonNegativeElem(const std::vector<T>& vec); \
+	template bool AnyNonPositiveElem(const std::vector<T>& vec); \
 	template bool AnyNegativeElem(const std::vector<T>& vec); \
 	template bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \

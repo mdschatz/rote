@@ -35,6 +35,7 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const se
   const tmen::GridView gridView = A.GridView();
 
   int nElems = prod(A.LocalShape());
+
   std::vector<Int> start(A.Order(), 0);
   const T* dataBuf = A.LockedBuffer(start);
   MemCopy(&(sendBuf[0]), &(dataBuf[0]), nElems);
@@ -95,10 +96,12 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const se
 //      startIndex += sx*mx  <-- Put us in the next slice , i.e., (0,..., 0, proc, 1, ..., 0) to (m1, m2, ..., m(x-1), proc, 1, ..., 0)
 //		ptr += max(1, prod(s1,..., s(x-1))) <-- Increment ptr in the sendBuf
 template <typename T>
-void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const tmen::GridView& gv, DistTensor<T>& A)
+void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const DistTensor<T>& B, DistTensor<T>& A)
 {
+
     std::vector<Int> start(A.Order(), 0);
     T* dataBuf = A.Buffer(start);
+    const tmen::GridView gv = B.GridView();
 
 	int nModeProcs = gv.Dimension(allGatherMode);   //Number of procs per wrap
 	int myProcNum = gv.ModeLoc(allGatherMode);      //My index in the wrapping
@@ -108,22 +111,24 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const tme
 	int agModeLocalStride = A.LocalModeStride(allGatherMode);
 	int procRecvNum, nWraps, wrapNum, sliceNum, nSlices;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum"
 	int copySliceSize;
-	int nElemsPerProc = prod(A.LocalShape()) / nModeProcs;
+
+	std::vector<Int> maxRecvLocalShape = MaxLengths(B.Shape(), gv.Shape());
+	int nElemsPerProc = prod(maxRecvLocalShape);
 
 	int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
 	int offSliceDataBuf, offWrapDataBuf;  //Offsets used to index into dataBuf array
 	int startRecvBuf, startDataBuf;
 
-	nWraps = tmen::Ceil(agModeGlobalDim / nModeProcs);
+	nWraps = MaxLength(agModeGlobalDim, nModeProcs);
 	//Calculate number of local slices and slice size we must pack per proc per wrap
-	std::vector<Int> tmp(localShape.begin() + allGatherMode + 1, localShape.end());
+	std::vector<Int> tmp(maxRecvLocalShape.begin() + allGatherMode + 1, maxRecvLocalShape.end());
 	nSlices = Max(1, prod(tmp));    //Cover the case where allGatherMode is the last one (in which case we do need 1 slice)
 	//TODO: Make this work with blocks (more general is commented out code
 	//std::vector<Int> tmp2(localShape.begin(), localShape.begin() + allGatherMode);
 	//sliceSize = prod(tmp2);
 	copySliceSize = agModeLocalStride;
 
-
+	printf("alloced %d local elems for output\n", prod(A.LocalShape()));
 	for(sliceNum = 0; sliceNum < nSlices; sliceNum++){
 	    offSliceRecvBuf = copySliceSize * agModeLocalDim * sliceNum;
 	    offSliceDataBuf = copySliceSize * agModeGlobalDim * sliceNum;
@@ -133,6 +138,10 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const tme
             for(procRecvNum = 0; procRecvNum < nModeProcs; procRecvNum++){
                 startRecvBuf = offSliceRecvBuf + offWrapRecvBuf + (nElemsPerProc * procRecvNum);
                 startDataBuf = offSliceDataBuf + offWrapDataBuf + (copySliceSize * procRecvNum);
+                if(wrapNum * nModeProcs + procRecvNum >= agModeLocalDim){
+                    break;
+                }
+                printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
                 MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
             }
         }
@@ -161,7 +170,7 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const tme
 		template void PackRSSendBuf(const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
 		template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A); \
         template void PackAGSendBuf(const DistTensor<T>& A, const int allGatherIndex, T * const sendBuf); \
-		template void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const tmen::GridView& gv, DistTensor<T>& A);
+		template void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& B, DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)

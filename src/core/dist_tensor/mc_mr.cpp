@@ -147,7 +147,7 @@ DistTensor<T>::ModeStride(Int mode) const
 template<typename T>
 Int
 DistTensor<T>::ModeRank(Int mode) const
-{ return this->grid_->ModeLoc(mode); }
+{ return this->gridView_.ModeLoc(mode); }
 
 template<typename T>
 void

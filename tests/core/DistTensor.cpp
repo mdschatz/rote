@@ -114,7 +114,7 @@ TestSet(DistTensor<T>& A)
 	bool stop = false;
 
 	while(!stop){
-		A.Set(index, counter);
+		A.Set(index, 2*counter);
 
 		//Update
 		counter++;
@@ -181,8 +181,9 @@ DistTensorTest( const std::vector<Int>& shape, const Grid& g )
       printf("\n");
     }
 
-    Print(A,"testA");
+
     TestRedist(A);
+    Print(A,"A after redistribute");
 
     // Communicate from A[MC,MR] 
     //Uniform( A_MC_MR, m, n );
@@ -205,7 +206,7 @@ main( int argc, char* argv[] )
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
     const Int commSize = mpi::CommSize( comm );
-
+    printf("My Rank: %d\n", commRank);
     try
     {
 		Params args;
@@ -264,5 +265,6 @@ main( int argc, char* argv[] )
     catch( std::exception& e ) { ReportException(e); }
 
     Finalize();
+    printf("Completed\n");
     return 0;
 }

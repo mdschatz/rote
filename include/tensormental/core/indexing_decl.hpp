@@ -26,6 +26,9 @@ Int Length_( Int n, Int rank, Int firstRank, Int numProcs );
 Int MaxLength( Int n, Int numProcs );
 Int MaxLength_( Int n, Int numProcs );
 
+std::vector<Int> MaxLengths(const std::vector<Int>& shape, const std::vector<Int>& wrapShape);
+std::vector<Int> MaxLengths_(const std::vector<Int>& shape, const std::vector<Int>& wrapShape);
+
 Int Shift( Int rank, Int firstRank, Int numProcs );
 Int Shift_( Int rank, Int firstRank, Int numProcs );
 
