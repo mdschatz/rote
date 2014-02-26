@@ -14,7 +14,19 @@
 namespace tmen{
 
 template <typename T>
+void PackRSSendBuf(const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf)
+{
+
+}
+
+template <typename T>
 void PackRSSendBuf(const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf)
+{
+
+}
+
+template <typename T>
+void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, DistTensor<T>& A)
 {
 
 }
@@ -24,7 +36,6 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
 {
 
 }
-
 
 //TODO: Adjust this for blocks (not contiguous tensors)
 //For Allgather (without blocks) we just need to directly copy the data
@@ -39,30 +50,24 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const se
   printf("A has %d elems to pack\n", prod(A.LocalShape()));
   const tmen::GridView gridView = A.GridView();
 
-  int nElems = prod(A.LocalShape());
 
   std::vector<Int> start(A.Order(), 0);
   const T* dataBuf = A.LockedBuffer(start);
 
   const tmen::GridView gv = A.GridView();
 
-  int nModeProcs = gv.Dimension(allGatherMode);   //Number of procs per wrap
-  int agModeGlobalDim = A.Dimension(allGatherMode);           //Number of indices in the mode we are redistributing
   int agModeLocalDim = A.LocalDimension(allGatherMode); //Local version
   std::vector<Int> localShape = A.LocalShape();         //Shape of the local tensor we are packing
   int agModeLocalStride = A.LocalModeStride(allGatherMode);
-  int procRecvNum, nWraps, wrapNum, sliceNum, nMaxSlices, nLocalSlices;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum"
+  int sliceNum, nMaxSlices, nLocalSlices;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum"
   int copySliceSize;
 
   std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), gv.Shape());
   const int agModeMaxLocalDim = maxLocalShape[allGatherMode];
-  int nElemsPerProc = prod(maxLocalShape);
 
   int offSliceSendBuf;  //Offsets used to index into sendBuf array
   int offSliceDataBuf;  //Offsets used to index into dataBuf array
-  int startRecvBuf, startDataBuf;
 
-  nWraps = MaxLength(agModeGlobalDim, nModeProcs);
   //Calculate number of local slices and slice size we must pack per proc per wrap
   std::vector<Int> tmp(maxLocalShape.begin() + allGatherMode + 1, maxLocalShape.end());
   std::vector<Int> tmp2(localShape.begin() + allGatherMode + 1, localShape.end());
@@ -104,7 +109,6 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const Dis
     const tmen::GridView gv = A.GridView();
 
 	int nModeProcs = gv.Dimension(allGatherMode);   //Number of procs per wrap
-	int myProcNum = gv.ModeLoc(allGatherMode);      //My index in the wrapping
 	int agModeGlobalDim = B.Dimension(allGatherMode);           //Number of indices in the mode we are redistributing
 	int agModeLocalDim = B.LocalDimension(allGatherMode); //Local version
 	std::vector<Int> localShape = B.LocalShape();         //Shape of the local tensor we are packing
@@ -174,8 +178,10 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const Dis
 }
 
 #define PROTO(T) \
-		template void PackRSSendBuf(const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
-		template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A); \
+		template void PackRSSendBuf(const DistTensor<T>& A, const int reduceScatterIndex, T * const sendBuf); \
+        template void PackRSSendBuf(const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
+        template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, DistTensor<T>& A); \
+        template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A); \
         template void PackAGSendBuf(const DistTensor<T>& A, const int allGatherIndex, T * const sendBuf); \
 		template void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);
 

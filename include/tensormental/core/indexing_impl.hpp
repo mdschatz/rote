@@ -115,7 +115,7 @@ Lengths( const std::vector<Int>& dimensions, const std::vector<Int>& shifts, con
 
 inline std::vector<Int> Lengths_
 (const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& strides){
-	int i;
+	Unsigned i;
 	std::vector<Int> lengths(dimensions.size());
 	for(i = 0; i < dimensions.size(); i++)
 		lengths[i] = Length(dimensions[i], shifts[i], strides[i]);
@@ -158,7 +158,7 @@ inline
 std::vector<Int> MaxLengths_( const std::vector<Int>& shape, const std::vector<Int>& wrapShape)
 {
     std::vector<Int> ret(shape.size());
-    for(int i = 0; i < ret.size(); i++)
+    for(Unsigned i = 0; i < ret.size(); i++)
         ret[i] = MaxLength(shape[i], wrapShape[i]);
     return ret;
 }
@@ -195,7 +195,7 @@ inline std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions)
   std::vector<Int> strides(dimensions.size());
   if(strides.size() > 0){
 	  strides[0] = 1;
-	  for(int i = 1; i < strides.size(); i++){
+	  for(Unsigned i = 1; i < strides.size(); i++){
 		  strides[i] = strides[i-1]*dimensions[i-1];
 	  }
   }
@@ -205,7 +205,7 @@ inline std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions)
 inline Int LinearIndex_(const std::vector<Int>& index, const std::vector<Int>& strides)
 {
 	Int linearInd = 0;
-	for(Int i = 0; i < index.size(); i++)
+	for(Unsigned i = 0; i < index.size(); i++)
 		linearInd += index[i] * strides[i];
 	return linearInd;
 }

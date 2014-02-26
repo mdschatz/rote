@@ -36,8 +36,6 @@ int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, con
 	}
 
 	//Check that redist modes are assigned properly on input and output
-	bool checkPrefix = true;
-	bool checkSuffix = false;
 
 	ModeDistribution::iterator redistIndexLocA = std::find(AIndices.begin(), AIndices.end(), scatterIndex);
 	ModeDistribution::iterator indexLocB = std::find(BIndices.begin(), BIndices.end(), reduceIndex);

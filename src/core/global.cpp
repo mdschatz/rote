@@ -35,20 +35,20 @@ std::stack<std::string> callStack;
 #endif
 
 // Tuning parameters for basic routines
-tmen::Int localSymvFloatBlocksize = 64;
-tmen::Int localSymvDoubleBlocksize = 64;
-tmen::Int localSymvComplexFloatBlocksize = 64;
-tmen::Int localSymvComplexDoubleBlocksize = 64;
+//tmen::Int localSymvFloatBlocksize = 64;
+//tmen::Int localSymvDoubleBlocksize = 64;
+//tmen::Int localSymvComplexFloatBlocksize = 64;
+//tmen::Int localSymvComplexDoubleBlocksize = 64;
 
-tmen::Int localTrr2kFloatBlocksize = 64;
-tmen::Int localTrr2kDoubleBlocksize = 64;
-tmen::Int localTrr2kComplexFloatBlocksize = 64;
-tmen::Int localTrr2kComplexDoubleBlocksize = 64;
+//tmen::Int localTrr2kFloatBlocksize = 64;
+//tmen::Int localTrr2kDoubleBlocksize = 64;
+//tmen::Int localTrr2kComplexFloatBlocksize = 64;
+//tmen::Int localTrr2kComplexDoubleBlocksize = 64;
 
-tmen::Int localTrrkFloatBlocksize = 64;
-tmen::Int localTrrkDoubleBlocksize = 64;
-tmen::Int localTrrkComplexFloatBlocksize = 64;
-tmen::Int localTrrkComplexDoubleBlocksize = 64;
+//tmen::Int localTrrkFloatBlocksize = 64;
+//tmen::Int localTrrkDoubleBlocksize = 64;
+//tmen::Int localTrrkComplexFloatBlocksize = 64;
+//tmen::Int localTrrkComplexDoubleBlocksize = 64;
 
 // Tuning parameters for advanced routines
 using namespace tmen;

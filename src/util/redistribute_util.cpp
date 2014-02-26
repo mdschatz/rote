@@ -20,7 +20,6 @@ void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const int reduceInde
 
 template <typename T>
 void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize){
-	const tmen::Grid& grid = A.Grid();
 	if(!A.Participating())
 		return;
 

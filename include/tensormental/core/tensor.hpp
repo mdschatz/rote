@@ -24,8 +24,8 @@ public:
     // Assertions
     //
     
-    void AssertValidDimensions( const std::vector<Int>& dims ) const;
-    void AssertValidDimensions( const std::vector<Int>& dims, const std::vector<Int>& ldims ) const;
+    void AssertValidDimensions( const std::vector<Int>& shape ) const;
+    void AssertValidDimensions( const std::vector<Int>& shape, const std::vector<Int>& ldims ) const;
     void AssertValidEntry( const std::vector<Int>& indices ) const;
     
     //
@@ -128,9 +128,9 @@ public:
     bool Viewing()     const;
     bool Locked()      const;
 
-    void Attach( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims );
+    void Attach( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims );
     void LockedAttach
-    ( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims );
+    ( const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims );
 
     // Use this memory *as if it were not a view*, but do not take control of 
     // its deallocation. If Resize() forces reallocation, this buffer is 
@@ -144,18 +144,17 @@ public:
     const Tensor<T>& operator=( const Tensor<T>& A );
 
     void Empty();
-    void ResizeTo( const std::vector<Int>& dims );
-    void ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims );
+    void ResizeTo( const std::vector<Int>& shape );
+    void ResizeTo( const std::vector<Int>& shape, const std::vector<Int>& ldims );
 
 private:
-    ViewType viewType_;
-    Int order_;
+    std::vector<Int> indices_;
     std::vector<Int> shape_;
     std::vector<Int> strides_;
     std::vector<Int> ldims_;
-    std::vector<Int> indices_;
 
-    //Int height_, width_, ldim_;
+    ViewType viewType_;
+
     const T* data_;
     Memory<T> memory_;
 
@@ -164,15 +163,15 @@ private:
     const T& Get_( const std::vector<Int>& index ) const;
     T& Set_( const std::vector<Int>& index );
 
-    void SetLDims(const std::vector<Int>& dims);
+    void SetLDims(const std::vector<Int>& shape);
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
-    void ResizeTo_( const std::vector<Int>& dims );
-    void ResizeTo_( const std::vector<Int>& dims, const std::vector<Int>& ldims );
-    void Control_( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims );
-    void Attach_( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims );
-    void LockedAttach_( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims );
+    void ResizeTo_( const std::vector<Int>& shape );
+    void ResizeTo_( const std::vector<Int>& shape, const std::vector<Int>& ldims );
+    void Control_( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims );
+    void Attach_( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims );
+    void LockedAttach_( const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims );
     
     template <typename F> 
     friend class Tensor;

@@ -34,9 +34,9 @@ public:
     void AssertNotStoringData() const;
     void AssertValidEntry( const std::vector<Int>& index ) const;
     void AssertValidSubtensor
-    ( const std::vector<Int>& index, const std::vector<Int>& dims ) const;
+    ( const std::vector<Int>& index, const std::vector<Int>& shape ) const;
     void AssertSameGrid( const tmen::Grid& grid ) const;
-    void AssertSameSize( const std::vector<Int>& dims ) const;
+    void AssertSameSize( const std::vector<Int>& shape ) const;
 #endif // ifndef RELEASE
 
     //
@@ -172,24 +172,29 @@ public:
     // Utilities
     //
     
-    virtual void ResizeTo( const std::vector<Int>& dims ) = 0;
-    virtual void ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims ) = 0;
+    virtual void ResizeTo( const std::vector<Int>& shape ) = 0;
+    virtual void ResizeTo( const std::vector<Int>& shape, const std::vector<Int>& ldims ) = 0;
 
 protected:
-    Int order_;
-    ViewType viewType_;
+
+    //Distributed information
     std::vector<Int> shape_;
-    Memory<T> auxMemory_;
-    tmen::Tensor<T> tensor_;
-    
     TensorDistribution dist_;
+    
+    //Wrapping information
     std::vector<bool> constrainedModeAlignments_;
     std::vector<Int> modeAlignments_;
     std::vector<Int> modeShifts_;
-    const tmen::Grid* grid_;
 
-    //Logical grid information
+    //Local information
+    tmen::Tensor<T> tensor_;
+
+    //Grid information
+    const tmen::Grid* grid_;
     tmen::GridView gridView_;
+
+    ViewType viewType_;
+    Memory<T> auxMemory_;
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
@@ -203,14 +208,14 @@ protected:
     void ComplainIfReal() const;
 
     void SetAlignmentsAndResize
-    ( const std::vector<Int>& aligns, const std::vector<Int>& dims );
+    ( const std::vector<Int>& aligns, const std::vector<Int>& shape );
     void ForceAlignmentsAndResize
-    ( const std::vector<Int>& aligns, const std::vector<Int>& dims );
+    ( const std::vector<Int>& aligns, const std::vector<Int>& shape );
 
     void SetModeAlignmentAndResize
-    ( Int mode, Int align, const std::vector<Int>& dims );
+    ( Int mode, Int align, const std::vector<Int>& shape );
     void ForceModeAlignmentAndResize
-    ( Int mode, Int align, const std::vector<Int>& dims );
+    ( Int mode, Int align, const std::vector<Int>& shape );
 
 //    void SetRowAlignmentAndResize
 //    ( Int rowAlign, Int height, Int width );

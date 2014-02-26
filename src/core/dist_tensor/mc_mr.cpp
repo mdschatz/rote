@@ -292,7 +292,6 @@ DistTensor<T>::LockedAttach
     CallStackEntry entry("[MC,MR]::LockedAttach");
 #endif
     this->grid_ = &g;
-    this->order_ = dims.size(); 
     this->shape_ = dims;
     this->modeAlignments_ = modeAlignments;
     this->SetShifts();
@@ -1206,7 +1205,7 @@ DistTensor<T>::SetImagPartOfDiagonal
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )
 #define FULL(T) \
   PROTO(T);
-//  COPY(T); \
+
 
 FULL(Int);
 #ifndef DISABLE_FLOAT

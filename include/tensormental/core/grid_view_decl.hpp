@@ -39,11 +39,11 @@ public:
     void SetMyGridViewLoc();
 
 private:
-    int order_;
+    TensorDistribution dist_;
     std::vector<int> shape_;
     std::vector<int> loc_;
+
     const tmen::Grid* grid_;
-    TensorDistribution dist_;
 
     void SetupGridView();
 };

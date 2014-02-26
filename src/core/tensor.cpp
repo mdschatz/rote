@@ -17,25 +17,27 @@ namespace tmen {
 
 template<typename T>
 void
-Tensor<T>::AssertValidDimensions( const std::vector<Int>& dims ) const
+Tensor<T>::AssertValidDimensions( const std::vector<Int>& shape ) const
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertValidDimensions");
 #endif
         
-    if( AnyNegativeElem(dims) )
+    if( AnyNegativeElem(shape) )
         LogicError("Dimensions must be non-negative");
 }
 
 template<typename T>
 void
-Tensor<T>::AssertValidDimensions( const std::vector<Int>& dims, const std::vector<Int>& ldims ) const
+Tensor<T>::AssertValidDimensions( const std::vector<Int>& shape, const std::vector<Int>& ldims ) const
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertValidDimensions");
 #endif
-    AssertValidDimensions( dims );
-    if( !ElemwiseLessThan(dims, ldims) )
+    AssertValidDimensions( shape );
+    if(shape.size() != ldims.size())
+        LogicError("shape order must match ldims order");
+    if( !ElemwiseLessThan(shape, ldims) )
         LogicError("Leading dimensions must be no less than dimensions");
     if( AnyZeroElem(ldims) )
         LogicError("Leading dimensions cannot be zero (for BLAS compatibility)");
@@ -48,25 +50,30 @@ Tensor<T>::AssertValidEntry( const std::vector<Int>& index ) const
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertValidEntry");
 #endif
+    const int order = this->Order();
+    if(order != index.size())
+        LogicError("Index must be of same order as object");
+
     if( AnyNegativeElem(index) )
         LogicError("Indices must be non-negative");
+
     if( !ElemwiseLessThan(index, shape_) )
     {
-	int i;
+        int i;
         std::ostringstream msg;
         msg << "Out of bounds: "
             << "(";
-	if(index.size() > 0)
-		msg << index[0];
-	for(i = 1; i < index.size(); i++)
-		msg << ", " << index[i];
-	msg << ") of ";
-	if(index.size() > 0)
-		msg << index[0];
-	for(i = 1; i < shape_.size(); i++)
-		msg << " x " << shape_[i];
-	msg << "Tensor.";
-        LogicError( msg.str() );
+        if(order > 0)
+            msg << index[0];
+        for(i = 1; i < index.size(); i++)
+            msg << ", " << index[i];
+        msg << ") of ";
+        if(index.size() > 0)
+            msg << index[0];
+        for(i = 1; i < order; i++)
+            msg << " x " << shape_[i];
+        msg << "Tensor.";
+            LogicError( msg.str() );
     }
 }
 
@@ -76,51 +83,58 @@ Tensor<T>::AssertValidEntry( const std::vector<Int>& index ) const
 
 template<typename T>
 Tensor<T>::Tensor( bool fixed )
-: viewType_( fixed ? OWNER_FIXED : OWNER ),
-  order_(), shape_(), ldims_(), strides_(), indices_(),
-  data_(nullptr)
+: indices_(), shape_(), strides_(), ldims_(),
+  viewType_( fixed ? OWNER_FIXED : OWNER ),
+  data_(nullptr), memory_()
 { }
 
 template<typename T>
 Tensor<T>::Tensor( const std::vector<Int>& indices, bool fixed )
-: viewType_( fixed ? OWNER_FIXED : OWNER ),
-  order_(indices.size()), shape_(indices.size()), ldims_(indices.size()), strides_(indices.size()), indices_(indices),
-  data_(nullptr)
+: indices_(indices), shape_(indices.size()), strides_(indices.size()), ldims_(indices.size()),
+  viewType_( fixed ? OWNER_FIXED : OWNER ),
+  data_(nullptr), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
 #endif
 }
 
+//TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, bool fixed )
-: viewType_( fixed ? OWNER_FIXED : OWNER ),
-  order_(shape.size()), shape_(shape), strides_(Dimensions2Strides(shape)), indices_(indices)
+: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(indices.size()),
+  viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape );
+    if(indices.size() != shape.size())
+        LogicError("Indices and Shape must be of same order");
 #endif
+    const int order = this->Order();
     SetLDims(shape);
-    memory_.Require( prod(ldims_) * shape[shape_.size()-1] );
+    memory_.Require( prod(ldims_) * shape[order-1] );
     data_ = memory_.Buffer();
 }
 
+//TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
 ( const std::vector<Int>& indices, const std::vector<Int>& shape, const std::vector<Int>& ldims, bool fixed )
-: viewType_( fixed ? OWNER_FIXED : OWNER ),
-  order_(shape.size()), shape_(shape), strides_(Dimensions2Strides(shape)), indices_(indices)
+: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)),
+  viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
+    if(indices.size() != shape.size())
+        LogicError("Indices and Shape must be of same order");
 #endif
-
+    const int order = this->Order();
     SetLDims(shape);
     Int ldimProd = prod(ldims);
     if(ldimProd > 0){
-      memory_.Require( ldimProd*shape[shape.size()-1] );
+      memory_.Require( ldimProd*shape[order-1] );
     }
     else{
       memory_.Require( 0 );
@@ -128,37 +142,43 @@ Tensor<T>::Tensor
     data_ = memory_.Buffer();
 }
 
+//TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
 ( const std::vector<Int>& indices, const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims, bool fixed )
-: viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
-  order_(shape.size()), shape_(shape), ldims_(ldims), strides_(Dimensions2Strides(shape)), indices_(indices),
-  data_(buffer)
+: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
+  viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
+  data_(buffer), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
+    if(indices.size() != shape.size())
+        LogicError("Indices and Shape must be of same order");
 #endif
 }
 
+//TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
 ( const std::vector<Int>& indices, const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims, bool fixed )
-: viewType_( fixed ? VIEW_FIXED: VIEW ),
-  order_(shape.size()), shape_(shape), ldims_(ldims), strides_(Dimensions2Strides(shape)), indices_(indices),
-  data_(buffer)
+: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
+  viewType_( fixed ? VIEW_FIXED: VIEW ),
+  data_(buffer), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
+    if(indices.size() != shape.size())
+        LogicError("Indices and Shape must be of same order");
 #endif
 }
 
 template<typename T>
 Tensor<T>::Tensor( const Tensor<T>& A )
-: viewType_( OWNER ),
-  order_(), shape_(), ldims_(), strides_(),
-  data_(nullptr)
+: indices_(), shape_(), strides_(), ldims_(),
+  viewType_( OWNER ),
+  data_(nullptr), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor( const Tensor& )");
@@ -173,11 +193,13 @@ template<typename T>
 void
 Tensor<T>::Swap( Tensor<T>& A )
 {
-    memory_.Swap( A.memory_ );
-    std::swap( data_, A.data_ );
-    std::swap( viewType_, A.viewType_ );
+    std::swap( indices_, A.indices_);
     std::swap( shape_, A.shape_ );
+    std::swap( strides_, A.strides_ );
     std::swap( ldims_, A.ldims_ );
+    std::swap( viewType_, A.viewType_ );
+    std::swap( data_, A.data_ );
+    memory_.Swap( A.memory_ );
 }
 
 //
@@ -192,16 +214,20 @@ Tensor<T>::~Tensor()
 // Basic information
 //
 
+
 template<typename T>
 void
-Tensor<T>::SetLDims(const std::vector<Int>& dims)
+Tensor<T>::SetLDims(const std::vector<Int>& shape)
 {
-  ldims_.resize(dims.size());
-  int stride = 1;
-  if(ldims_.size() > 0){
+
+  const int order = this->Order();
+  if(shape.size() != order){
+      LogicError("SetLDims requires that shape order matches object order");
+  }
+  if(order > 0){
     ldims_[0] = 1;
-    for(int i = 1; i < dims.size(); i++)
-      ldims_[i] = ldims_[i-1]*dims[i-1];
+    for(int i = 1; i < order; i++)
+      ldims_[i] = ldims_[i-1]*shape[i-1];
   }
 }
 
@@ -209,22 +235,22 @@ template<typename T>
 Int
 Tensor<T>::Order() const
 {
-	return order_;
+	return shape_.size();
 }
 
 template<typename T>
 std::vector<Int>
 Tensor<T>::Shape() const
 {
-	std::vector<Int> shape = shape_;
-	return shape;
+	return shape_;
 }
 
 template<typename T>
 Int 
 Tensor<T>::Dimension(Int mode) const
 { 
-  if( shape_.size() <= mode){
+  const int order = this->Order();
+  if( mode < 0 || mode >= order){
     LogicError("Requested mode dimension out of range.");
     return 0;
   }else
@@ -242,7 +268,8 @@ template<typename T>
 Int
 Tensor<T>::ModeStride(Int mode) const
 {
-    if( strides_.size() <= mode){
+    const int order = this->Order();
+    if( mode < 0 || mode >= order){
       LogicError("Requested mode dimension out of range.");
       return 0;
     }else
@@ -254,7 +281,8 @@ template<typename T>
 Int
 Tensor<T>::LDim(Int mode) const
 { 
-  if( shape_.size() < mode){
+  const int order = this->Order();
+  if( mode < 0 || mode >= order){
     LogicError("Requested mode leading dimension out of range.");
     return 0;
   }else
@@ -309,9 +337,12 @@ template<typename T>
 Int
 Tensor<T>::LinearOffset(const std::vector<int>& index) const
 {
-  //TODO: Error checking
+  const int order = this->Order();
+  if(index.size() != order){
+      LogicError("index must be of same order as tensor");
+  }
   Int offset = 0;
-  for(int i = 0; i < index.size(); i++)
+  for(int i = 0; i < order; i++)
     offset += index[i] * strides_[i];
   return offset;
 }
@@ -710,10 +741,10 @@ Tensor<T>::UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha )
 
 template<typename T>
 void
-Tensor<T>::Attach_( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims )
+Tensor<T>::Attach_( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims )
 {
     memory_.Empty();
-    shape_ = dims;
+    shape_ = shape;
     ldims_ = ldims;
     data_ = buffer;
     viewType_ = (ViewType)( ( viewType_ & ~LOCKED_OWNER ) | VIEW );
@@ -721,22 +752,22 @@ Tensor<T>::Attach_( const std::vector<Int>& dims, T* buffer, const std::vector<I
 
 template<typename T>
 void
-Tensor<T>::Attach( const std::vector<Int>& dims, T* buffer, const std::vector<Int>& ldims )
+Tensor<T>::Attach( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Attach");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
-    Attach_( dims, buffer, ldims );
+    Attach_( shape, buffer, ldims );
 }
 
 template<typename T>
 void
-Tensor<T>::LockedAttach_( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims )
+Tensor<T>::LockedAttach_( const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims )
 {
     memory_.Empty();
-    shape_ = dims;
+    shape_ = shape;
     ldims_ = ldims;
     data_ = buffer;
     viewType_ = (ViewType)( viewType_ | VIEW );
@@ -745,14 +776,14 @@ Tensor<T>::LockedAttach_( const std::vector<Int>& dims, const T* buffer, const s
 template<typename T>
 void
 Tensor<T>::LockedAttach
-( const std::vector<Int>& dims, const T* buffer, const std::vector<Int>& ldims )
+( const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::LockedAttach");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
-    LockedAttach_( dims, buffer, ldims );
+    LockedAttach_( shape, buffer, ldims );
 }
 
 //
@@ -790,12 +821,15 @@ template<typename T>
 void
 Tensor<T>::Empty_()
 {
-    memory_.Empty();
+    std::fill(indices_.begin(), indices_.end(), 0);
     std::fill(shape_.begin(), shape_.end(), 0);
+    std::fill(strides_.begin(), strides_.end(), 0);
     std::fill(ldims_.begin(), shape_.end(), 0);
- 
-    data_ = nullptr;
+
     viewType_ = (ViewType)( viewType_ & ~LOCKED_VIEW );
+
+    data_ = nullptr;
+    memory_.Empty();
 }
 
 template<typename T>
@@ -812,15 +846,15 @@ Tensor<T>::Empty()
 
 template<typename T>
 void
-Tensor<T>::ResizeTo_( const std::vector<Int>& dimensions )
+Tensor<T>::ResizeTo_( const std::vector<Int>& shape )
 {
 	//TODO: Implement general stride
-	bool reallocate = AnyElemwiseGreaterThan(dimensions, shape_);
-	shape_ = dimensions;
+	bool reallocate = AnyElemwiseGreaterThan(shape, shape_);
+	shape_ = shape;
 	if(reallocate){
-		ldims_ = Dimensions2Strides(dimensions);
-		strides_ = Dimensions2Strides(dimensions);
-		memory_.Require(prod(dimensions));
+		ldims_ = Dimensions2Strides(shape);
+		strides_ = Dimensions2Strides(shape);
+		memory_.Require(prod(shape));
 		data_ = memory_.Buffer();
 	}
     //TODO: IMPLEMENT CORRECTLY
@@ -839,29 +873,29 @@ Tensor<T>::ResizeTo_( const std::vector<Int>& dimensions )
 
 template<typename T>
 void
-Tensor<T>::ResizeTo( const std::vector<Int>& dimensions )
+Tensor<T>::ResizeTo( const std::vector<Int>& shape )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::ResizeTo(dimensions)");
-    AssertValidDimensions( dimensions );
-    if ( FixedSize() && ( AnyElemwiseNotEqual(dimensions, shape_) ) )
+    AssertValidDimensions( shape );
+    if ( FixedSize() && ( AnyElemwiseNotEqual(shape, shape_) ) )
         LogicError("Cannot change the size of this tensor");
-    if ( Viewing() && ( AnyElemwiseNotEqual(dimensions, shape_ ) ) )
+    if ( Viewing() && ( AnyElemwiseNotEqual(shape, shape_ ) ) )
         LogicError("Cannot increase the size of this tensor");
 #endif
-    ResizeTo_( dimensions );
+    ResizeTo_( shape );
 }
 
 template<typename T>
 void
-Tensor<T>::ResizeTo_( const std::vector<Int>& dimensions, const std::vector<Int>& ldims )
+Tensor<T>::ResizeTo_( const std::vector<Int>& shape, const std::vector<Int>& ldims )
 {
 	//TODO: Implement general stride
-	bool reallocate = AnyElemwiseGreaterThan(dimensions, shape_) || AnyElemwiseGreaterThan(ldims, ldims_);
-	shape_ = dimensions;
+	bool reallocate = AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(ldims, ldims_);
+	shape_ = shape;
 	if(reallocate){
 		ldims_ = ldims;
-		memory_.Require(prod(dimensions));
+		memory_.Require(prod(shape));
 		data_ = memory_.Buffer();
 	}
     //TODO: IMPLEMENT CORRECTLY
@@ -878,19 +912,19 @@ Tensor<T>::ResizeTo_( const std::vector<Int>& dimensions, const std::vector<Int>
 
 template<typename T>
 void
-Tensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims )
+Tensor<T>::ResizeTo( const std::vector<Int>& shape, const std::vector<Int>& ldims )
 {
     //TODO: IMPLEMENT CORRECTLY
 #ifndef RELEASE
     CallStackEntry cse("Tensor::ResizeTo(dims,ldims)");
-    AssertValidDimensions( dims, ldims );
+    AssertValidDimensions( shape, ldims );
     if( FixedSize() &&
-        ( AnyElemwiseNotEqual(dims, shape_) || AnyElemwiseNotEqual(ldims, ldims_) ) )
+        ( AnyElemwiseNotEqual(shape, shape_) || AnyElemwiseNotEqual(ldims, ldims_) ) )
         LogicError("Cannot change the size of this tensor");
-    if( Viewing() && ( AnyElemwiseNotEqual(dims, shape_) || AnyElemwiseNotEqual(ldims, ldims_) ) )
+    if( Viewing() && ( AnyElemwiseNotEqual(shape, shape_) || AnyElemwiseNotEqual(ldims, ldims_) ) )
         LogicError("Cannot increase the size of this matrix");
 #endif
-    ResizeTo_( dims, ldims );
+    ResizeTo_( shape, ldims );
 }
 
 template class Tensor<Int>;

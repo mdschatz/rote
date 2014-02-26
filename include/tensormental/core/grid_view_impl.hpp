@@ -7,6 +7,8 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
+
+//TODO: Consistency among Unsigned/Signed integers (order)
 #pragma once
 #ifndef TMEN_CORE_GRID_VIEW_IMPL_HPP
 #define TMEN_CORE_GRID_VIEW_IMPL_HPP
@@ -20,10 +22,11 @@ inline void
 GridView::SetMyGridViewLoc( )
 {
 	int i;
+	const int order = this->Order();
 	const std::vector<Int> gridShape = grid_->Shape();
 	const std::vector<Int> gridLoc = grid_->Loc();
 
-	for(i = 0; i < order_; i++){
+	for(i = 0; i < order; i++){
 		ModeDistribution modeDist = dist_[i];
 		std::vector<Int> gridSliceLoc(modeDist.size());
 		std::vector<Int> gridSliceShape(modeDist.size());
@@ -37,10 +40,9 @@ GridView::SetMyGridViewLoc( )
 
 inline
 GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution )
-: order_(distribution.size()),
-  loc_(distribution.size()),
+: dist_(distribution),
   shape_(distribution.size()),
-  dist_(distribution),
+  loc_(distribution.size()),
   grid_(grid)
 {
 #ifndef RELEASE
@@ -56,9 +58,11 @@ GridView::SetupGridView()
 #ifndef RELEASE
     CallStackEntry entry("GridView::SetUpGridView");
 #endif
-    int i, j;
+    int i;
+    Unsigned j;
+    const int order = this->Order();
 
-    for(i = 0; i < dist_.size(); i++){
+    for(i = 0; i < order; i++){
     	ModeDistribution modeDist = dist_[i];
     	int gridViewDim = 1;
     	for(j = 0; j < modeDist.size(); j++){
@@ -92,7 +96,8 @@ GridView::LinearRank() const
 {
 	int i;
 	int linearRank = 0;
-	for(i = 0; i < order_; i++){
+	const int order = this->Order();
+	for(i = 0; i < order; i++){
 		linearRank += this->ModeLoc(i) * this->Dimension(i);
 	}
 	return linearRank;
@@ -100,7 +105,7 @@ GridView::LinearRank() const
 
 inline int
 GridView::Order() const
-{ return order_; }
+{ return shape_.size(); }
 
 inline std::vector<Int>
 GridView::Shape() const
@@ -119,10 +124,11 @@ inline
 int
 GridView::ModeWrapStride(int mode) const
 {
-    if (mode > order_ || mode < 0){
+    const int order = this->Order();
+    if (mode > order || mode < 0){
         std::ostringstream msg;
         msg << "Requested stride must be of valid mode:\n"
-            << "  order=" << order_ << ", requested mode=" << mode;
+            << "  order=" << order << ", requested mode=" << mode;
         LogicError( msg.str() );
     }
     return shape_[mode];
@@ -132,10 +138,11 @@ inline
 int
 GridView::Dimension(int mode) const
 {
-  if (mode > order_ || mode < 0){
+  const int order = this->Order();
+  if (mode > order || mode < 0){
     std::ostringstream msg;
     msg << "Dimension must be of valid mode:\n"
-        << "  order=" << order_ << ", requested mode=" << mode;
+        << "  order=" << order << ", requested mode=" << mode;
     LogicError( msg.str() );
   }
   return shape_[mode];

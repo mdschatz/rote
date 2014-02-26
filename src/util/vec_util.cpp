@@ -21,7 +21,6 @@ void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::ve
 
 template<typename T>
 bool AnyNonNegativeElem(const std::vector<T>& vec){
-  bool test;
   for(int i = 0; i < vec.size(); i++)
     if(vec[i] >= 0)
       return true;
@@ -30,7 +29,6 @@ bool AnyNonNegativeElem(const std::vector<T>& vec){
 
 template<typename T>
 bool AnyNonPositiveElem(const std::vector<T>& vec){
-  bool test;
   for(int i = 0; i < vec.size(); i++)
     if(vec[i] <= 0)
       return true;
@@ -39,7 +37,6 @@ bool AnyNonPositiveElem(const std::vector<T>& vec){
 
 template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec){
-  bool test;
   for(int i = 0; i < vec.size(); i++)
     if(vec[i] < 0)
       return true;
@@ -51,7 +48,6 @@ bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
     tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
-  bool test;
   for(int i = 0; i < vec1.size(); i++)
     if(vec1[i] >= vec2[i])
       return false;
@@ -63,7 +59,6 @@ bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& ve
 	if(vec1.size() != vec2.size())
 		tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
-	bool test;
 	for(int i = 0; i < vec1.size(); i++)
 		if(vec1[i] > vec2[i])
 			return true;
@@ -72,7 +67,6 @@ bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& ve
 
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec){
-  bool test;
   for(int i = 0; i < vec.size(); i++)
     if(vec[i] == 0)
       return true;
@@ -83,7 +77,7 @@ template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
 	tmen::LogicError("Vector element-wise comparison must have matching sizes");
-  bool test;
+
   for(int i = 0; i < vec1.size(); i++)
     if(vec1[i] != vec2[i])
       return true;

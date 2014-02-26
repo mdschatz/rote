@@ -12,50 +12,59 @@ namespace tmen {
 
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
-: viewType_(OWNER),
-  order_(),
-  shape_(),
-  auxMemory_(),
+: shape_(),
   dist_(),
-  tensor_(true),
+
   constrainedModeAlignments_(), 
   modeAlignments_(),
   modeShifts_(),
+
+  tensor_(true),
+
   grid_(&grid),
-  gridView_(grid_, dist_)
+  gridView_(grid_, dist_),
+
+  viewType_(OWNER),
+  auxMemory_()
 { 
 
 }
 
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& grid )
-: viewType_(OWNER),
-  order_(shape.size()),
-  shape_(shape),
-  auxMemory_(),
+: shape_(shape),
   dist_(dist),
+
+  constrainedModeAlignments_(shape.size(), 0),
+  modeAlignments_(shape.size(), 0),
+  modeShifts_(shape.size(), 0),
+
   tensor_(),
-  constrainedModeAlignments_(order_, 0),
-  modeAlignments_(order_, 0),
-  modeShifts_(order_, 0),
+
   grid_(&grid),
-  gridView_(grid_, dist_)
+  gridView_(grid_, dist_),
+
+  viewType_(OWNER),
+  auxMemory_()
 {
 }
 
 template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& grid )
-: viewType_(OWNER),
-  order_(shape.size()),
-  shape_(shape),
-  auxMemory_(),
+: shape_(shape),
   dist_(dist),
-  constrainedModeAlignments_(order_, 0),
-  modeAlignments_(order_, 0),
-  modeShifts_(order_, 0),
+
+  constrainedModeAlignments_(shape.size(), 0),
+  modeAlignments_(shape.size(), 0),
+  modeShifts_(shape.size(), 0),
+
   tensor_(indices),
+
   grid_(&grid),
-  gridView_(grid_, dist_)
+  gridView_(grid_, dist_),
+
+  viewType_(OWNER),
+  auxMemory_()
 {
 }
 
@@ -67,16 +76,20 @@ template<typename T>
 void 
 AbstractDistTensor<T>::Swap( AbstractDistTensor<T>& A )
 {
-    tensor_.Swap( A.tensor_ );
-    auxMemory_.Swap( A.auxMemory_ );
-    std::swap( viewType_, A.viewType_ );
     std::swap( shape_ , A.shape_ );
     std::swap( dist_, A.dist_ );
+
     std::swap( constrainedModeAlignments_, A.constrainedModeAlignments_ );
     std::swap( modeAlignments_, A.modeAlignments_ );
     std::swap( modeShifts_, A.modeShifts_ );
+
+    tensor_.Swap( A.tensor_ );
+
     std::swap( grid_, A.grid_ );
     std::swap( gridView_, A.gridView_ );
+
+    std::swap( viewType_, A.viewType_ );
+    auxMemory_.Swap( A.auxMemory_ );
 }
 
 #ifndef RELEASE
@@ -100,23 +113,22 @@ template<typename T>
 void
 AbstractDistTensor<T>::AssertValidEntry( const std::vector<Int>& loc ) const
 {
-    if(loc.size() != shape_.size() )
+    const int order = this->Order();
+    if(loc.size() != order )
     {
-      std::ostringstream msg;
-      msg << "Entry is of incorrect order.\n";
-      LogicError( msg.str() );
+        LogicError("Index must be of same order as object");
     }
     if(!ElemwiseLessThan(loc, shape_))
     {
         std::ostringstream msg;
         msg << "Entry (";
-        for(int i = 0; i < loc.size() - 1; i++)
+        for(int i = 0; i < order - 1; i++)
           msg << loc[i] << ", ";
-        msg << loc[loc.size()-1] << ") is out of bounds of ";
+        msg << loc[order - 1] << ") is out of bounds of ";
         
-	for(int i = 0; i < shape_.size() - 1; i++)
+	for(int i = 0; i < order - 1; i++)
           msg << shape_[i] << " x ";
-	msg << shape_[shape_.size()-1] << " tensor.";
+	msg << shape_[order - 1] << " tensor.";
         LogicError( msg.str() );
     }
 }
@@ -125,26 +137,32 @@ AbstractDistTensor<T>::AssertValidEntry( const std::vector<Int>& loc ) const
 template<typename T>
 void
 AbstractDistTensor<T>::AssertValidSubtensor
-( const std::vector<Int>& index, const std::vector<Int>& dims ) const
+( const std::vector<Int>& index, const std::vector<Int>& shape ) const
 {
+    const int order = this->Order();
+    if(shape.size() != order)
+        LogicError("Shape must be of same order as object");
+    if(index.size() != order)
+        LogicError("Indices must be of same order as object");
     if( AnyNegativeElem(index) )
-        LogicError("Indices of subtensor were negative");
-    if( AnyNegativeElem(dims) )
-        LogicError("Dimensions of subtensor were negative");
-    std::vector<Int> maxIndex(index.size());
-    ElemwiseSum(index, dims, maxIndex);
+        LogicError("Indices of subtensor must not be negative");
+    if( AnyNegativeElem(shape) )
+        LogicError("Dimensions of subtensor must not be negative");
+
+    std::vector<Int> maxIndex(order);
+    ElemwiseSum(index, shape, maxIndex);
 
     if( !ElemwiseLessThan(maxIndex, shape_) )
     {
         std::ostringstream msg;
         msg << "Subtensor is out of bounds: accessing up to (";
-        for(int i = 0; i < order_ - 1; i++)
+        for(int i = 0; i < order - 1; i++)
           msg << maxIndex[i] << ",";
-        msg << maxIndex[order_ - 1] << ") of ";
+        msg << maxIndex[order - 1] << ") of ";
 
-        for(int i = 0; i < order_ - 1; i++)
+        for(int i = 0; i < order - 1; i++)
           msg << Dimension(i) << " x ";
-        msg << Dimension(order_ - 1) << " tensor.";
+        msg << Dimension(order - 1) << " tensor.";
         LogicError( msg.str() );
     }
 }
@@ -159,12 +177,13 @@ AbstractDistTensor<T>::AssertSameGrid( const tmen::Grid& grid ) const
 
 template<typename T> 
 void
-AbstractDistTensor<T>::AssertSameSize( const std::vector<Int>& dims ) const
+AbstractDistTensor<T>::AssertSameSize( const std::vector<Int>& shape ) const
 {
-    if( dims.size() != order_)
-      LogicError("Assertion that tensors be the same order failed");
-    if( AnyElemwiseNotEqual(dims, shape_) )
-        LogicError("Assertion that tensors be the same size failed");
+    const int order = this->Order();
+    if( shape.size() != order)
+      LogicError("Argument must be of same order as object");
+    if( AnyElemwiseNotEqual(shape, shape_) )
+        LogicError("Argument must match shape of this object");
 }
 
 //template<typename T> 
@@ -226,12 +245,13 @@ AbstractDistTensor<T>::AssertSameSize( const std::vector<Int>& dims ) const
 //}
 #endif // RELEASE
 
+//TODO: Check if this should retain order of object
 template<typename T>
 void
 AbstractDistTensor<T>::Align( const std::vector<Int>& modeAlignments )
 { 
 #ifndef RELEASE
-    CallStackEntry entry("AbstractDistTensor::Align");    
+    CallStackEntry entry("AbstractDistTensor::Align");
 #endif
     Empty();
     modeAlignments_ = modeAlignments;
@@ -245,7 +265,10 @@ void
 AbstractDistTensor<T>::AlignMode( Int mode, Int modeAlignment )
 { 
 #ifndef RELEASE
-    CallStackEntry entry("AbstractDistTensor::AlignCols"); 
+    CallStackEntry entry("AbstractDistTensor::AlignMode");
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
 #endif
     EmptyData();
     modeAlignments_[mode] = modeAlignment;
@@ -267,6 +290,12 @@ template<typename T>
 void
 AbstractDistTensor<T>::AlignModeWith( Int mode, const tmen::DistData& data )
 { 
+#ifndef RELEASE
+    CallStackEntry entry("AbstractDistTensor::AlignModeWith");
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
+#endif
     EmptyData(); 
     modeAlignments_[mode] = 0; 
     constrainedModeAlignments_[mode] = false; 
@@ -281,32 +310,38 @@ AbstractDistTensor<T>::AlignModeWith( Int mode, const AbstractDistTensor<T>& A )
 template<typename T>
 void
 AbstractDistTensor<T>::SetAlignmentsAndResize
-( const std::vector<Int>& modeAligns, const std::vector<Int>& modeDims )
+( const std::vector<Int>& modeAligns, const std::vector<Int>& shape )
 {
+    const int order = this->Order();
 #ifndef RELEASE
     CallStackEntry cse("AbstractDistTensor::SetAlignmentsAndResize");
+
+    if(modeAligns.size() != order)
+        LogicError("modeAligns must be of same order as object");
+    if(shape.size() != order)
+        LogicError("shape must be of same order as object");
 #endif
     if( !Viewing() )
     {
-        for(int i = 0; i < order_; i++){
+        for(int i = 0; i < order; i++){
           if(!ConstrainedModeAlignment(i)){
-		modeAlignments_[i] = modeAligns[i];
-		SetModeShift(i);
-	  }
+              modeAlignments_[i] = modeAligns[i];
+              SetModeShift(i);
+          }
         }
     }
-    ResizeTo( modeDims );
+    ResizeTo( shape );
 }
 
 template<typename T>
 void
 AbstractDistTensor<T>::ForceAlignmentsAndResize
-( const std::vector<Int>& modeAligns, const std::vector<Int>& modeDims )
+( const std::vector<Int>& modeAligns, const std::vector<Int>& shape )
 {
 #ifndef RELEASE
     CallStackEntry cse("AbstractDistTensor::ForceAlignmentsAndResize");
 #endif
-    SetAlignmentsAndResize( modeAligns, modeDims );
+    SetAlignmentsAndResize( modeAligns, shape );
     if(AnyElemwiseNotEqual(modeAlignments_, modeAligns))
         LogicError("Could not set alignments"); 
 }
@@ -314,28 +349,34 @@ AbstractDistTensor<T>::ForceAlignmentsAndResize
 template<typename T>
 void
 AbstractDistTensor<T>::SetModeAlignmentAndResize
-( Int mode, Int modeAlign, const std::vector<Int>& modeDims )
+( Int mode, Int modeAlign, const std::vector<Int>& shape )
 {
 #ifndef RELEASE
-    CallStackEntry cse("AbstractDistTensor::SetColAlignmentAndResize");
+    CallStackEntry cse("AbstractDistTensor::SetModeAlignmentAndResize");
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
 #endif
     if( !Viewing() && !ConstrainedModeAlignment(mode) )
     {
         modeAlignments_[mode] = modeAlign;
         SetModeShift(mode); 
     }
-    ResizeTo( modeDims );
+    ResizeTo( shape );
 }
 
 template<typename T>
 void
 AbstractDistTensor<T>::ForceModeAlignmentAndResize
-(Int mode, Int modeAlign, const std::vector<Int>& modeDims  )
+(Int mode, Int modeAlign, const std::vector<Int>& shape  )
 {
 #ifndef RELEASE
     CallStackEntry cse("AbstractDistTensor::ForceColAlignmentAndResize");
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
 #endif
-    SetModeAlignmentAndResize( mode, modeAlign, modeDims );
+    SetModeAlignmentAndResize( mode, modeAlign, shape );
     if( modeAlignments_[mode] != modeAlign )
         LogicError("Could not set mode alignment");
 }
@@ -363,7 +404,7 @@ AbstractDistTensor<T>::Shape() const
 template<typename T>
 Int
 AbstractDistTensor<T>::Order() const
-{ return order_; }
+{ return shape_.size(); }
 
 template<typename T>
 std::vector<Int>
@@ -383,7 +424,7 @@ ModeDistribution
 AbstractDistTensor<T>::ModeDist(Int mode) const
 {
 	if(mode < 0 || mode >= tensor_.Order())
-		LogicError("Requesting distribution of invalid mode");
+		LogicError("0 <= mode < object order must be true");
 	return dist_[mode];
 }
 
@@ -398,24 +439,40 @@ template<typename T>
 void
 AbstractDistTensor<T>::FreeAlignments() 
 {
-    for(int i = 0; i < order_; i++)
+    const int order = this->Order();
+    for(int i = 0; i < order; i++)
       constrainedModeAlignments_[i] = false; 
 }
     
 template<typename T>
 bool
 AbstractDistTensor<T>::ConstrainedModeAlignment(Int mode) const
-{ return constrainedModeAlignments_[mode]; }
+{
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
+    return constrainedModeAlignments_[mode];
+}
 
 template<typename T>
 Int
 AbstractDistTensor<T>::ModeAlignment(Int mode) const
-{ return modeAlignments_[mode]; }
+{
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
+    return modeAlignments_[mode];
+}
 
 template<typename T>
 Int
 AbstractDistTensor<T>::ModeShift(Int mode) const
-{ return modeShifts_[mode]; }
+{
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 <= mode < object order must be true");
+    return modeShifts_[mode];
+}
 
 template<typename T>
 const tmen::Grid&
@@ -437,9 +494,7 @@ AbstractDistTensor<T>::AllocatedMemory() const
 template<typename T>
 std::vector<Int>
 AbstractDistTensor<T>::LocalShape() const
-{
-	return tensor_.Shape();
-}
+{ return tensor_.Shape(); }
 
 template<typename T>
 Int
@@ -493,21 +548,17 @@ AbstractDistTensor<T>::LockedTensor() const
 
 template<typename T>
 std::vector<Int> AbstractDistTensor<T>::GridViewLoc() const
-{
-	return gridView_.Loc();
-}
+{ return gridView_.Loc(); }
 
 template<typename T>
 std::vector<Int> AbstractDistTensor<T>::GridViewShape() const
-{
-	return gridView_.Shape();
-}
+{ return gridView_.Shape(); }
 
+//TODO: Differentiate between index and mode
 template<typename T>
 mpi::Comm
 AbstractDistTensor<T>::GetCommunicator(int index) const
 {
-	const int rank = mpi::CommRank( mpi::COMM_WORLD);
 	mpi::Comm comm;
 	std::vector<Int> gridViewShapeSlice = this->GridViewShape();
 	std::vector<Int> gridViewLocSlice = this->GridViewLoc();
@@ -522,26 +573,35 @@ AbstractDistTensor<T>::GetCommunicator(int index) const
 	return comm;
 }
 
+//TODO: Figure out how to clear grid and gridView
 template<typename T>
 void
 AbstractDistTensor<T>::Empty()
 {
-    tensor_.Empty_();
-    viewType_ = OWNER;
+    const int order = this->Order();
     shape_.clear();
-    modeAlignments_.clear();
-    for(int i = 0; i < order_; i++)
-      constrainedModeAlignments_[i] = false;
+    dist_.clear();
 
+    modeAlignments_.clear();
+    for(int i = 0; i < order; i++)
+      constrainedModeAlignments_[i] = false;
+    modeShifts_.clear();
+
+    tensor_.Empty_();
+
+    viewType_ = OWNER;
 }
 
+//TODO: Figure out if this is fully correct
 template<typename T>
 void
 AbstractDistTensor<T>::EmptyData()
 {
+    shape_.clear();
+    dist_.clear();
+
     tensor_.Empty_();
     viewType_ = OWNER;
-    shape_.clear();
 }
 
 template<typename T>
@@ -569,7 +629,6 @@ AbstractDistTensor<T>::SetLocalRealPart
 ( const std::vector<Int>& loc, BASE(T) alpha )
 { tensor_.SetRealPart(loc,alpha); }
 
-// HERE
 
 template<typename T>
 void
@@ -589,12 +648,14 @@ AbstractDistTensor<T>::UpdateLocalImagPart
 ( const std::vector<Int>& loc, BASE(T) alpha )
 { tensor_.UpdateImagPart(loc,alpha); }
 
+//TODO: Figure out participating logic
 template<typename T>
 void
 AbstractDistTensor<T>::SetShifts()
 {
-	//TODO: Figure out participating
-    for(int i = 0; i < order_; i++)
+
+    const int order = this->Order();
+    for(int i = 0; i < order; i++)
           modeShifts_[i] = Shift(ModeRank(i), modeAlignments_[i], ModeStride(i));
 /*
     if( Participating() )
@@ -614,6 +675,10 @@ template<typename T>
 void
 AbstractDistTensor<T>::SetModeShift(Int mode)
 {
+    const int order = this->Order();
+    if(mode < 0 || mode >= order)
+        LogicError("0 < mode <= object order must be true");
+
     if( Participating() )
         modeShifts_[mode] = Shift(ModeRank(mode),modeAlignments_[mode],ModeStride(mode));
     else
@@ -663,7 +728,6 @@ AbstractDistTensor<T>::Global2LocalIndex(const std::vector<Int>& index) const
     CallStackEntry entry("AbstractDistTensor::Global2LocalIndex");
     this->AssertValidEntry( index );
 #endif
-    const tmen::Grid& g = this->Grid();
     std::vector<Int> loc(index.size());
     for(int i = 0; i < index.size(); i++){
     	loc[i] = (index[i]-this->ModeShift(i)) / this->ModeStride(i);
