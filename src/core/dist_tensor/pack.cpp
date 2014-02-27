@@ -22,51 +22,120 @@ void PackRSSendBuf(const DistTensor<T>& A, const Int reduceScatterMode, T * cons
 //Only called when fully reducing an index
 //NOTE: Looks an awful lot like PackAGSendBuf...
 //TODO: Merge with PackAGSendBuf?
+//TODO: Make this work with blocks (more general is commented out code
 template <typename T>
 void PackRSSendBuf(const DistTensor<T>& A, const Int reduceMode, const Int scatterMode, T * const sendBuf)
 {
 	  printf("A has %d elems to pack\n", prod(A.LocalShape()));
-	  const tmen::GridView gridView = A.GridView();
-
-	  std::vector<Int> start(A.Order(), 0);
+	  const std::vector<Int> start(A.Order(), 0);
 	  const T* dataBuf = A.LockedBuffer(start);
 
 	  const tmen::GridView gv = A.GridView();
 
-	  int sModeLocalDim = A.LocalDimension(scatterMode); //Local version
-	  std::vector<Int> localShape = A.LocalShape();         //Shape of the local tensor we are packing
-	  int sModeLocalStride = A.LocalModeStride(scatterMode);
-	  int sliceNum, nMaxSlices, nLocalSlices;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum"
-	  int copySliceSize;
+	  const int nModeProcs = gv.Dimension(reduceMode);
+	  const int sModeGlobalDim = A.Dimension(scatterMode);
 
+	  const std::vector<Int> localShape = A.LocalShape();         //Shape of the local tensor we are packing
 	  const std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), gv.Shape());
-	  const int sModeMaxLocalDim = maxLocalShape[scatterMode];
 
-	  int offSliceSendBuf;  //Offsets used to index into sendBuf array
-	  int offSliceDataBuf;  //Offsets used to index into dataBuf array
+	  const int sModeLocalDim = A.LocalDimension(scatterMode); //Local version
+	  const int sModeMaxLocalDim = maxLocalShape[scatterMode];
+	  const int sModeLocalStride = A.LocalModeStride(scatterMode);
 
 	  //Calculate number of local slices and slice size we must pack per proc per wrap
-	  nLocalSlices = Max(1, prod(localShape, scatterMode + 1));
-	  nMaxSlices = Max(1, prod(maxLocalShape, scatterMode + 1));    //Cover the case where scatterMode is the last one (in which case we do need 1 slice)
-	  //TODO: Make this work with blocks (more general is commented out code
-	  //std::vector<Int> tmp2(localShape.begin(), localShape.begin() + reduceMode);
-	  //sliceSize = prod(tmp2);
-	  copySliceSize = sModeLocalStride * sModeLocalDim;
+	  const int nLocalSlices = Max(1, prod(localShape + 1, scatterMode));
+	  const int nMaxSlices = Max(1, prod(maxLocalShape + 1, scatterMode));    //Cover the case where scatterMode is the last one (in which case we do need 1 slice)
 
-	  for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
-		  offSliceSendBuf = sliceNum * sModeMaxLocalDim;
-		  offSliceDataBuf = sliceNum * sModeLocalDim;
-		  if(sliceNum >= nLocalSlices){
-			  break;
-		  }
-		  printf("offSliceSendBuf: %d offSliceDataBuf: %d copySliceSize: %d\n", offSliceSendBuf, offSliceDataBuf, copySliceSize);
-		  MemCopy(&(sendBuf[offSliceSendBuf]), &(dataBuf[offSliceDataBuf]), copySliceSize);
+	  const int nMaxWraps = MaxLength(sModeGlobalDim, nModeProcs);
+	  const int copySliceSize = sModeLocalStride;
+	  const int nElemsPerProc = nMaxWraps * copySliceSize * nMaxSlices;
+
+	  int procNum, wrapNum, sliceNum;  //Which slice of which wrap of which process are we packing
+	  int offProcSendBuf, offWrapSendBuf;  //Offsets used to index into send buf
+	  int offProcDataBuf, offWrapDataBuf;  //Offsets used to index into data buf
+	  int startSendBuf, startDataBuf;
+
+	  for(procNum = 0; procNum < nModeProcs; procNum++){
+	      offProcSendBuf = procNum * nElemsPerProc;
+	      offProcDataBuf = copySliceSize * procNum;
+	      for(wrapNum = 0; wrapNum < nMaxWraps; wrapNum++){
+	          offWrapSendBuf = wrapNum * copySliceSize;
+	          offWrapDataBuf = copySliceSize * nModeProcs * wrapNum;
+	          if(wrapNum * nModeProcs + nModeProcs >= sModeGlobalDim)
+	              break;
+	          for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
+	              if(sliceNum >= nLocalSlices)
+	                  break;
+	              startSendBuf = offProcSendBuf + offWrapSendBuf + (sliceNum * nMaxWraps * copySliceSize);
+	              startDataBuf = offProcDataBuf + offWrapDataBuf + (sliceNum * copySliceSize * sModeLocalDim);
+	              MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+	          }
+	      }
 	  }
 }
 
 template <typename T>
 void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceMode, const Int scatterMode, const DistTensor<T>& A, DistTensor<T>& B)
 {
+    printf("B can unpack %d elems\n", prod(B.LocalShape()));
+    const std::vector<Int> start(B.Order(), 0);
+    T* dataBuf = B.Buffer(start);
+    const tmen::GridView gv = A.GridView();
+
+    const int nModeProcs = gv.Dimension(reduceMode);   //Number of procs per wrap
+    const int sModeGlobalDim = B.Dimension(scatterMode);           //Number of indices in the mode we are redistributing
+
+    const std::vector<Int> maxRecvLocalShape = MaxLengths(A.Shape(), gv.Shape());
+    const int sModeMaxLocalDim = maxRecvLocalShape[scatterMode];
+
+    const std::vector<Int> localShape = B.LocalShape();         //Shape of the local tensor we are packing
+    const int sModeLocalDim = B.LocalDimension(scatterMode); //Local version
+    const int sModeLocalStride = B.LocalModeStride(scatterMode);
+
+    //Loop packing bounds variables
+    const int nWraps = MaxLength(sModeGlobalDim, nModeProcs);
+    //Number of local slices and slice size we must pack per proc per wrap
+    const int nLocalSlices = Max(1, prod(localShape, scatterMode + 1));
+    const int nMaxSlices = Max(1, prod(maxRecvLocalShape, scatterMode + 1));
+
+    //Variables for calculating elements to copy
+    const int nMaxElemsPerProc = prod(maxRecvLocalShape);
+    const int copySliceSize = sModeLocalStride;
+
+    //Loop iteration vars
+    int procRecvNum, wrapNum, sliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+    int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into recvBuf array
+    int offSliceDataBuf, offWrapDataBuf;  //Offsets used to index into dataBuf array
+    int startRecvBuf, startDataBuf;
+
+    printf("alloced %d local elems for output\n", prod(B.LocalShape()));
+    std::ostringstream msg;
+    msg << "recv'd data: [" << recvBuf[0];
+    for(int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
+        msg << ", " << recvBuf[i];
+    msg << "]" << std::endl;
+    std::cout << msg.str();
+
+    for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
+        offSliceRecvBuf = copySliceSize * sModeMaxLocalDim * sliceNum;
+        offSliceDataBuf = copySliceSize * sModeGlobalDim * sliceNum;
+        if(sliceNum >= nLocalSlices){
+            break;
+        }
+        for(wrapNum = 0; wrapNum < nWraps; wrapNum++){
+            offWrapRecvBuf = copySliceSize * wrapNum;
+            offWrapDataBuf = copySliceSize * nModeProcs * wrapNum;
+            for(procRecvNum = 0; procRecvNum < nModeProcs; procRecvNum++){
+                startRecvBuf = offSliceRecvBuf + offWrapRecvBuf + (nMaxElemsPerProc * procRecvNum);
+                startDataBuf = offSliceDataBuf + offWrapDataBuf + (copySliceSize * procRecvNum);
+                if(wrapNum * nModeProcs + procRecvNum >= sModeLocalDim){
+                    break;
+                }
+                printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
+                MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
+            }
+        }
+    }
 }
 
 template <typename T>
@@ -82,6 +151,7 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterMode, DistT
 //  offSliceSendBuf = sliceNum * maxLocalDim
 //  offSliceDataBuf = sliceNum * localDim
 //  memcpy(sendBuf[offSliceSendBuf], dataBuf[offSliceDataBuf], sliceSize)
+//TODO: Make this work with blocks
 template <typename T>
 void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const sendBuf)
 {
@@ -98,21 +168,16 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const se
 
   const int agModeLocalDim = A.LocalDimension(allGatherMode); //Local version
   const int agModeMaxLocalDim = maxLocalShape[allGatherMode];
-
-  int agModeLocalStride = A.LocalModeStride(allGatherMode);
-  int sliceNum, nMaxSlices, nLocalSlices;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum"
-  int copySliceSize;
-
-  int offSliceSendBuf;  //Offsets used to index into sendBuf array
-  int offSliceDataBuf;  //Offsets used to index into dataBuf array
+  const int agModeLocalStride = A.LocalModeStride(allGatherMode);
 
   //Calculate number of local slices and slice size we must pack per proc per wrap
-  nLocalSlices = Max(1, prod(localShape, allGatherMode + 1));
-  nMaxSlices = Max(1, prod(maxLocalShape, allGatherMode + 1));    //Cover the case where allGatherMode is the last one (in which case we do need 1 slice)
-  //TODO: Make this work with blocks (more general is commented out code
-  //std::vector<Int> tmp2(localShape.begin(), localShape.begin() + allGatherMode);
-  //sliceSize = prod(tmp2);
-  copySliceSize = agModeLocalStride * agModeLocalDim;
+  const int nLocalSlices = Max(1, prod(localShape, allGatherMode + 1));
+  const int nMaxSlices = Max(1, prod(maxLocalShape, allGatherMode + 1));    //Cover the case where allGatherMode is the last one (in which case we do need 1 slice)
+
+  const int copySliceSize = agModeLocalStride * agModeLocalDim;
+
+  int sliceNum;  //Which slice we are packing
+  int offSliceSendBuf, offSliceDataBuf;  //Offsets used to index into data arrays
 
   for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
 	  offSliceSendBuf = sliceNum * agModeMaxLocalDim;
@@ -136,7 +201,7 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const se
 //      memcpy(dataBuf[startIndex], sendBuf[ptr], max(1, prod(s1,..., s(x-1)))) <-- Copy the slice (0,..., 0, proc, 0, ..., 0) to (m1, m2, ..., m(x-1), proc, 0, ..., 0)
 //      startIndex += sx*mx  <-- Put us in the next slice , i.e., (0,..., 0, proc, 1, ..., 0) to (m1, m2, ..., m(x-1), proc, 1, ..., 0)
 //		ptr += max(1, prod(s1,..., s(x-1))) <-- Increment ptr in the sendBuf
-//TODO: Make this work with blocks (more general is commented out code
+//TODO: Make this work with blocks
 //TODO: Swap nWrap test to be more like sliceNum test (Refer to local information)
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const DistTensor<T>& A, DistTensor<T>& B)
@@ -172,11 +237,13 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const Dis
 	int offSliceDataBuf, offWrapDataBuf;  //Offsets used to index into dataBuf array
 	int startRecvBuf, startDataBuf;
 
-	printf("alloced %d local elems for output\n", prod(B.LocalShape()));
-	printf("data: [%.0f", (double)(recvBuf[0]));
-	for(int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
-		printf(", %.0f", (double)(recvBuf[i]));
-	printf("]\n");
+    printf("alloced %d local elems for output\n", prod(B.LocalShape()));
+    std::ostringstream msg;
+    msg << "recv'd data: [" << recvBuf[0];
+    for(int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
+        msg << ", " << recvBuf[i];
+    msg << "]" << std::endl;
+    std::cout << msg.str();
 
 	for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
 	    offSliceRecvBuf = copySliceSize * agModeMaxLocalDim * sliceNum;

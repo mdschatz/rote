@@ -93,7 +93,7 @@ TestRedist( DistTensor<T>& A )
 #ifndef RELEASE
     CallStackEntry entry("TestRedist");
 #endif
-    const int order = A.Order();
+    //const int order = A.Order();
     const Grid& g = A.Grid();
 
     TensorDistribution tdist = A.TensorDist();
@@ -114,7 +114,7 @@ TestSet(DistTensor<T>& A)
 	bool stop = false;
 
 	while(!stop){
-		A.Set(index, 2*counter);
+		A.Set(index, counter);
 
 		//Update
 		counter++;
