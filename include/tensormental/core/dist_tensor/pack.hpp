@@ -22,22 +22,22 @@
 namespace tmen{
 
 template <typename T>
-void PackRSSendBuf(const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf);
+void PackRSSendBuf(const DistTensor<T>& A, const Int reduceScatterMode, T * const sendBuf);
 
 template <typename T>
-void PackRSSendBuf(const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf);
+void PackRSSendBuf(const DistTensor<T>& A, const Int reduceMode, const Int scatterMode, T * const sendBuf);
 
 template <typename T>
-void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, DistTensor<T>& A);
+void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterMode, DistTensor<T>& A);
 
 template <typename T>
-void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, DistTensor<T>& A);
+void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceMode, const Int scatterMode, const DistTensor<T>& A, DistTensor<T>& B);
 
 template <typename T>
-void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf);
+void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherMode, T * const sendBuf);
 
 template <typename T>
-void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);
+void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherMode, const DistTensor<T>& A, DistTensor<T>& B);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_UTIL_DECL_HPP

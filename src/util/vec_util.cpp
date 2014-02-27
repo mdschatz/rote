@@ -8,10 +8,17 @@
 namespace tmen{
 
 template<typename T>
-T prod(const std::vector<T>& src){
+T prod(const std::vector<T>& src, const int startIndex){
   if (src.size() == 0)
     return 0;
-  return std::accumulate(src.begin(), src.end(), T(1), std::multiplies<T>());
+  return std::accumulate(src.begin() + startIndex, src.end(), T(1), std::multiplies<T>());
+}
+
+template<class InputIterator, typename T>
+T prod(const InputIterator& begin, const InputIterator& end){
+	if (begin == end)
+		return 0;
+	return std::accumulate(begin, end, T(1), std::multiplies<T>());
 }
 
 template<typename T>
@@ -98,8 +105,10 @@ std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& f
 	return ret;
 }
 
+
+
 #define PROTO(T) \
-	template T prod(const std::vector<T>& src); \
+	template T prod(const std::vector<T>& src, const int startIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template bool AnyNonNegativeElem(const std::vector<T>& vec); \
 	template bool AnyNonPositiveElem(const std::vector<T>& vec); \

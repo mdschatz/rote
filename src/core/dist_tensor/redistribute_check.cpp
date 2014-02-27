@@ -15,52 +15,56 @@
 
 namespace tmen{
 
+//TODO: Properly Check indices and distributions match between input and output
 template <typename T>
-int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int reduceIndex, const int scatterIndex){
-	if(A.Order() != B.Order() - 1){
-		LogicError("CheckReduceScatterRedist: Invalid redistribution request");
-	}
+int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex){
+	const tmen::GridView gvA = A.GridView();
 
-	int AOrder = A.Order();
-	std::vector<Int> AIndices = A.Indices();
+	//Test elimination of index
+	const int AOrder = A.Order();
+	const int BOrder = B.Order();
+
+	//Test indices are correct
 	std::vector<Int> BIndices = B.Indices();
+	std::vector<Int> AIndices = A.Indices();
+	std::vector<Int> foundIndices(BOrder,0);
 
-	std::vector<Int> foundIndices(AOrder,0);
-	for(int i = 0; i < AOrder; i++){
-		if(std::find(BIndices.begin(), BIndices.end(), AIndices[i]) != BIndices.end())
-			foundIndices[i] = 1;
-	}
-
-	if(AnyZeroElem(foundIndices)){
-		LogicError("CheckReduceScatterRedist: Invalid redistribution request");
-	}
 
 	//Check that redist modes are assigned properly on input and output
-
-	ModeDistribution::iterator redistIndexLocA = std::find(AIndices.begin(), AIndices.end(), scatterIndex);
-	ModeDistribution::iterator indexLocB = std::find(BIndices.begin(), BIndices.end(), reduceIndex);
 	ModeDistribution::iterator redistIndexLocB = std::find(BIndices.begin(), BIndices.end(), scatterIndex);
+	ModeDistribution::iterator indexLocA = std::find(AIndices.begin(), AIndices.end(), reduceIndex);
+	ModeDistribution::iterator redistIndexLocA = std::find(AIndices.begin(), AIndices.end(), scatterIndex);
 
-	ModeDistribution AScatterIndexDist = A.ModeDist(*redistIndexLocA);
-	ModeDistribution BReduceIndexDist = B.ModeDist(*indexLocB);
 	ModeDistribution BScatterIndexDist = B.ModeDist(*redistIndexLocB);
-	ModeDistribution checkA, checkB;
-	checkA = AScatterIndexDist;
-	checkB = BScatterIndexDist;
-	checkB.insert(checkB.end(), BReduceIndexDist.begin(), BReduceIndexDist.end());
+	ModeDistribution AReduceIndexDist = A.ModeDist(*indexLocA);
+	ModeDistribution AScatterIndexDist = A.ModeDist(*redistIndexLocA);
+	ModeDistribution checkB = BScatterIndexDist;
+	ModeDistribution checkA = AScatterIndexDist;
+	checkA.insert(checkA.end(), AReduceIndexDist.begin(), AReduceIndexDist.end());
 
-	if(AnyElemwiseNotEqual(checkA, checkB))
+	//Test elimination of index
+	if(BOrder != AOrder - 1){
+		LogicError("CheckReduceScatterRedist: Full Reduction requires elimination of index being reduced");
+	}
+
+	//Test no wrapping of index to reduce
+	if(A.Dimension(reduceIndex) > gvA.Dimension(reduceIndex))
+		LogicError("CheckReduceScatterRedist: Full Reduction requires global mode dimension <= gridView dimension");
+
+	//Ensure indices of input and output are similar
+	for(int i = 0; i < BOrder; i++){
+		if(std::find(AIndices.begin(), AIndices.end(), BIndices[i]) != AIndices.end())
+			foundIndices[i] = 1;
+	}
+	if(AnyZeroElem(foundIndices)){
+		LogicError("CheckReduceScatterRedist: Input and Output objects represent different indices");
+	}
+
+	if(AnyElemwiseNotEqual(checkB, checkA))
 		LogicError("CheckReduceScatterRedist: Invalid redistribution request");
 
 	return 1;
 }
-
-/*
-template<typename T>
-int CheckAllGatherRedist(const DistTensor<T>& A, const int hi){
-	return true;
-}
-*/
 
 template<typename T>
 int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex){
@@ -93,7 +97,7 @@ int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const i
 }
 
 template <typename T>
-int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int index, const std::vector<int> redistModes){
+int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int index, const std::vector<int>& rsGridModes){
 	LogicError("CheckPartialReduceScatterRedist: Not implemented");
 	//if(AnyElemwiseNotEqual(A.Indices(), B.Indices()))
 	//	LogicError("CheckPartialReduceScatterRedist: Invalid redistribution request");
@@ -104,7 +108,7 @@ int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>&
 #define PROTO(T) \
 		template int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int reduceIndex, const int scatterIndex); \
 		template int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex); \
-		template int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int index, const std::vector<int> redistModes);
+		template int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int index, const std::vector<int>& rsGridModes);
 
 PROTO(int)
 PROTO(float)

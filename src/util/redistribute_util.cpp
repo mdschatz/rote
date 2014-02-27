@@ -5,17 +5,20 @@ namespace tmen{
 
 template <typename T>
 void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize){
-	const tmen::Grid& grid = A.Grid();
 	if(!A.Participating())
 		return;
 
-	std::vector<Int> myGridLoc = grid.Loc();
 	ModeDistribution indexDist = A.ModeDist(reduceIndex);
+	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
+
 	const int nRedistProcs = prod(indexDist);
-	std::vector<Int> localShape = A.LocalShape();
-	const int nLocalElems = prod(localShape);
-	recvSize = nLocalElems;
-	sendSize = nLocalElems * nRedistProcs;
+	std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), A.GridViewShape());
+
+	std::vector<Int> maxLocalShapeAfterReduce = maxLocalShape;
+	maxLocalShapeAfterReduce.erase(std::find(maxLocalShapeAfterReduce.begin(), maxLocalShapeAfterReduce.end(), reduceIndex));
+
+	recvSize = prod(maxLocalShapeAfterReduce) / nRedistProcs;
+	sendSize = prod(maxLocalShape);
 }
 
 template <typename T>
