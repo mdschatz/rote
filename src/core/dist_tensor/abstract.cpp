@@ -412,6 +412,16 @@ AbstractDistTensor<T>::Indices() const
 { return this->tensor_.Indices(); }
 
 template<typename T>
+Int
+AbstractDistTensor<T>::ModeOfIndex(Int index) const
+{ return tensor_.ModeOfIndex(index); }
+
+template<typename T>
+Int
+AbstractDistTensor<T>::IndexOfMode(Int mode) const
+{ return tensor_.IndexOfMode(mode); }
+
+template<typename T>
 TensorDistribution
 AbstractDistTensor<T>::TensorDist() const
 {
@@ -426,6 +436,16 @@ AbstractDistTensor<T>::ModeDist(Int mode) const
 	if(mode < 0 || mode >= tensor_.Order())
 		LogicError("0 <= mode < object order must be true");
 	return dist_[mode];
+}
+
+template<typename T>
+ModeDistribution
+AbstractDistTensor<T>::IndexDist(Int index) const
+{
+    const int mode = this->ModeOfIndex(index);
+    if(mode < 0 || mode >= tensor_.Order())
+        LogicError("Requested distribution of invalid index");
+    return dist_[mode];
 }
 
 /*

@@ -8,17 +8,18 @@ void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const int reduceInde
 	if(!A.Participating())
 		return;
 
-	ModeDistribution indexDist = A.ModeDist(reduceIndex);
-	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
+	const int reduceIndexMode = A.ModeOfIndex(reduceIndex);
+	ModeDistribution reduceIndexDist = A.IndexDist(reduceIndex);
+	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), reduceIndexDist);
 
-	const int nRedistProcs = prod(indexDist);
+	const int nRedistProcs = prod(gridViewSlice);
 	std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), A.GridViewShape());
+	const int nElemsPerProc = prod(maxLocalShape);
 
-	std::vector<Int> maxLocalShapeAfterReduce = maxLocalShape;
-	maxLocalShapeAfterReduce.erase(std::find(maxLocalShapeAfterReduce.begin(), maxLocalShapeAfterReduce.end(), reduceIndex));
-
-	recvSize = prod(maxLocalShapeAfterReduce) / nRedistProcs;
-	sendSize = prod(maxLocalShape);
+	//NOTE: For now we are testing functionality of ReduceScatter to figure out what is appropriate size
+	//recvSize = nElemsPerProc / maxLocalShape[reduceIndexMode];
+	recvSize = nElemsPerProc;
+	sendSize = nElemsPerProc;
 }
 
 template <typename T>

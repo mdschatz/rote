@@ -20,6 +20,9 @@ template<typename T>
 T prod(const std::vector<T>& a, const int startIndex = 0);
 
 template<typename T>
+T prod(const std::vector<T>& a, const int startIndex, const int endIndex);
+
+template<typename T>
 void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>

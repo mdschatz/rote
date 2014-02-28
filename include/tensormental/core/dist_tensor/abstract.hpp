@@ -50,8 +50,14 @@ public:
     Int LocalDimension(Int mode) const;
     Int LocalModeStride(Int mode) const;
     std::vector<Int> Indices() const;
+    Int IndexOfMode(Int mode) const;
+    Int ModeOfIndex(Int index) const;
+
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Int mode) const;
+    ModeDistribution IndexDist(Int index) const;
+
+
     Int LDim(Int mode) const;
     size_t AllocatedMemory() const;
 

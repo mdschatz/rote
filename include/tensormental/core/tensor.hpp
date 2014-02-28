@@ -11,6 +11,8 @@
 #define TMEN_CORE_TENSOR_HPP
 
 #include <iostream>
+#include <map>
+#include <set>
 #include "tensormental/core/view_decl.hpp"
 
 namespace tmen {
@@ -27,6 +29,7 @@ public:
     void AssertValidDimensions( const std::vector<Int>& shape ) const;
     void AssertValidDimensions( const std::vector<Int>& shape, const std::vector<Int>& ldims ) const;
     void AssertValidEntry( const std::vector<Int>& indices ) const;
+    void AssertValidIndices() const;
     
     //
     // Constructors
@@ -65,9 +68,10 @@ public:
     Int Dimension(Int mode) const;
     std::vector<Int> Indices() const;
     Int ModeStride(Int mode) const;
-    //Int Height() const;
-    //Int Width() const;
-    //Int DiagonalLength( Int offset=0 ) const;
+
+    Int ModeOfIndex(Int index) const;
+    Int IndexOfMode(Int mode) const;
+
     Int LDim(Int mode) const;
     Int MemorySize() const;
 
@@ -153,6 +157,11 @@ private:
     std::vector<Int> strides_;
     std::vector<Int> ldims_;
 
+    //Index<->Mode maps
+    //NOTE: Move this information to separate class
+    std::map<Int, Int> index2modeMap_;
+    std::map<Int, Int> mode2indexMap_;
+
     ViewType viewType_;
 
     const T* data_;
@@ -164,6 +173,7 @@ private:
     T& Set_( const std::vector<Int>& index );
 
     void SetLDims(const std::vector<Int>& shape);
+    void SetIndexMaps();
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();

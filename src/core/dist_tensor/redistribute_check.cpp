@@ -18,7 +18,8 @@ namespace tmen{
 //TODO: Properly Check indices and distributions match between input and output
 template <typename T>
 int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex){
-	const tmen::GridView gvA = A.GridView();
+    int i;
+    const tmen::GridView gvA = A.GridView();
 
 	//Test elimination of index
 	const int AOrder = A.Order();
@@ -31,16 +32,9 @@ int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, con
 
 
 	//Check that redist modes are assigned properly on input and output
-	ModeDistribution::iterator redistIndexLocB = std::find(BIndices.begin(), BIndices.end(), scatterIndex);
-	ModeDistribution::iterator indexLocA = std::find(AIndices.begin(), AIndices.end(), reduceIndex);
-	ModeDistribution::iterator redistIndexLocA = std::find(AIndices.begin(), AIndices.end(), scatterIndex);
-
-	ModeDistribution BScatterIndexDist = B.ModeDist(*redistIndexLocB);
-	ModeDistribution AReduceIndexDist = A.ModeDist(*indexLocA);
-	ModeDistribution AScatterIndexDist = A.ModeDist(*redistIndexLocA);
-	ModeDistribution checkB = BScatterIndexDist;
-	ModeDistribution checkA = AScatterIndexDist;
-	checkA.insert(checkA.end(), AReduceIndexDist.begin(), AReduceIndexDist.end());
+	ModeDistribution BScatterIndexDist = B.IndexDist(scatterIndex);
+	ModeDistribution AReduceIndexDist = A.IndexDist(reduceIndex);
+	ModeDistribution AScatterIndexDist = A.IndexDist(scatterIndex);
 
 	//Test elimination of index
 	if(BOrder != AOrder - 1){
@@ -60,8 +54,19 @@ int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, con
 		LogicError("CheckReduceScatterRedist: Input and Output objects represent different indices");
 	}
 
-	if(AnyElemwiseNotEqual(checkB, checkA))
-		LogicError("CheckReduceScatterRedist: Invalid redistribution request");
+	//Make sure all indices are distributed similarly between input and output (excluding reduce+scatter indices)
+	for(i = 0; i < BOrder; i++){
+	    int index = B.IndexOfMode(i);
+	    if(index == scatterIndex){
+	        ModeDistribution check(BScatterIndexDist.end() - AReduceIndexDist.size(), BScatterIndexDist.end());
+            if(AnyElemwiseNotEqual(check, AReduceIndexDist))
+                LogicError("CheckReduceScatterRedist: Reduce index distribution of A must be a suffix of Scatter index distribution of B");
+	    }
+	    else{
+	        if(AnyElemwiseNotEqual(B.IndexDist(index), A.IndexDist(index)))
+	            LogicError("CheckReduceScatterRedist: All indices not involved in reduce-scatter must be distributed similarly");
+	    }
+	}
 
 	return 1;
 }

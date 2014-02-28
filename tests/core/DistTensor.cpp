@@ -88,10 +88,10 @@ void ProcessInput(const int argc,  char** const argv, Params& args){
 
 template<typename T>
 void
-TestRedist( DistTensor<T>& A )
+TestAGRedist( DistTensor<T>& A )
 {
 #ifndef RELEASE
-    CallStackEntry entry("TestRedist");
+    CallStackEntry entry("TestAGRedist");
 #endif
     //const int order = A.Order();
     const Grid& g = A.Grid();
@@ -101,6 +101,35 @@ TestRedist( DistTensor<T>& A )
 
     DistTensor<T> B(A.Shape(), tdist, A.Indices(), g);
     AllGatherRedist(B, A, 0);
+}
+
+template<typename T>
+void
+TestRSRedist(DistTensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry entry("TestRSRedist");
+#endif
+    const int redistMode = 0;
+    if(A.Dimension(redistMode) > A.GridView().Dimension(redistMode)){
+        LogicError("TestRedist only allows Dimension <= GridView Dimension");
+    }
+    const Grid& g = A.Grid();
+    const int order = A.Order();
+    TensorDistribution tdist = A.TensorDist();
+    const int reduceIndex = 0;
+    const int scatterIndex = 1;
+
+    ModeDistribution reduceModeDist = A.IndexDist(reduceIndex);
+    tdist.erase(tdist.begin());
+    tdist[0].insert(tdist[0].end(), reduceModeDist.begin(), reduceModeDist.end());
+
+    std::vector<Int> BIndices = A.Indices();
+    BIndices.erase(BIndices.begin());
+    std::vector<Int> BShape = A.Shape();
+    BShape.erase(BShape.begin());
+    DistTensor<T> B(BShape, tdist, BIndices, g);
+    ReduceScatterRedist(B, A, 0, 1);
 }
 
 template<typename T>
@@ -159,8 +188,6 @@ DistTensorTest( const std::vector<Int>& shape, const Grid& g )
     }
 
     DistTensor<T> A(shape, tdist, indices, g);
-    std::vector<Int> index(shape.size());
-    std::fill(index.begin(), index.end(), 0);
 
     TestSet(A);
 
@@ -182,8 +209,10 @@ DistTensorTest( const std::vector<Int>& shape, const Grid& g )
     }
 
 
-    TestRedist(A);
-    Print(A,"A after redistribute");
+    //TestAGRedist(A);
+    //Print(A,"A after ag redistribute");
+    TestRSRedist(A);
+    Print(A,"A after rs redistribute");
 
     // Communicate from A[MC,MR] 
     //Uniform( A_MC_MR, m, n );

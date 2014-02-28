@@ -77,6 +77,21 @@ Tensor<T>::AssertValidEntry( const std::vector<Int>& index ) const
     }
 }
 
+template<typename T>
+void
+Tensor<T>::AssertValidIndices() const
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::AssertValidIndices");
+#endif
+    std::set<Int> uniques(indices_.begin(), indices_.end());
+    const int order = this->Order();
+
+    if(uniques.size() != order){
+        LogicError("Indices of a tensor must all be unique and number of same order as tensor");
+    }
+}
+
 //
 // Constructors
 //
@@ -84,6 +99,7 @@ Tensor<T>::AssertValidEntry( const std::vector<Int>& index ) const
 template<typename T>
 Tensor<T>::Tensor( bool fixed )
 : indices_(), shape_(), strides_(), ldims_(),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
 { }
@@ -96,7 +112,9 @@ Tensor<T>::Tensor( const std::vector<Int>& indices, bool fixed )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
+    AssertValidIndices();
 #endif
+    SetIndexMaps();
 }
 
 //TODO: Check for valid set of indices
@@ -108,12 +126,12 @@ Tensor<T>::Tensor( const std::vector<Int>& indices, const std::vector<Int>& shap
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape );
-    if(indices.size() != shape.size())
-        LogicError("Indices and Shape must be of same order");
+    AssertValidIndices();
 #endif
     const int order = this->Order();
-    SetLDims(shape);
-    memory_.Require( prod(ldims_) * shape[order-1] );
+    SetLDims(shape_);
+    SetIndexMaps();
+    memory_.Require( prod(ldims_) * shape_[order-1] );
     data_ = memory_.Buffer();
 }
 
@@ -127,18 +145,13 @@ Tensor<T>::Tensor
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-    if(indices.size() != shape.size())
-        LogicError("Indices and Shape must be of same order");
+    AssertValidIndices();
 #endif
     const int order = this->Order();
+    SetIndexMaps();
     SetLDims(shape);
-    Int ldimProd = prod(ldims);
-    if(ldimProd > 0){
-      memory_.Require( ldimProd*shape[order-1] );
-    }
-    else{
-      memory_.Require( 0 );
-    }
+    memory_.Require( prod(ldims_) * shape_[order-1] );
+
     data_ = memory_.Buffer();
 }
 
@@ -153,9 +166,9 @@ Tensor<T>::Tensor
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-    if(indices.size() != shape.size())
-        LogicError("Indices and Shape must be of same order");
+    AssertValidIndices();
 #endif
+    SetIndexMaps();
 }
 
 //TODO: Check for valid set of indices
@@ -169,14 +182,15 @@ Tensor<T>::Tensor
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-    if(indices.size() != shape.size())
-        LogicError("Indices and Shape must be of same order");
+    AssertValidIndices();
 #endif
+    SetIndexMaps();
 }
 
 template<typename T>
 Tensor<T>::Tensor( const Tensor<T>& A )
 : indices_(), shape_(), strides_(), ldims_(),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( OWNER ),
   data_(nullptr), memory_()
 {
@@ -198,6 +212,8 @@ Tensor<T>::Swap( Tensor<T>& A )
     std::swap( strides_, A.strides_ );
     std::swap( ldims_, A.ldims_ );
     std::swap( viewType_, A.viewType_ );
+    std::swap( index2modeMap_, A.index2modeMap_ );
+    std::swap( mode2indexMap_, A.mode2indexMap_ );
     std::swap( data_, A.data_ );
     memory_.Swap( A.memory_ );
 }
@@ -214,6 +230,17 @@ Tensor<T>::~Tensor()
 // Basic information
 //
 
+template<typename T>
+void
+Tensor<T>::SetIndexMaps(){
+
+    const int order = this->Order();
+    int i;
+    for(i = 0; i < order; i++){
+        index2modeMap_[indices_[i]] = i;
+        mode2indexMap_[i] = indices_[i];
+    }
+}
 
 template<typename T>
 void
@@ -276,6 +303,21 @@ Tensor<T>::ModeStride(Int mode) const
       return strides_[mode];
 }
 
+template<typename T>
+Int
+Tensor<T>::ModeOfIndex(Int index) const
+{
+    Int mode = index2modeMap_.at(index);
+    return mode;
+}
+
+template<typename T>
+Int
+Tensor<T>::IndexOfMode(Int mode) const
+{
+    Int index = mode2indexMap_.at(mode);
+    return index;
+}
 
 template<typename T>
 Int

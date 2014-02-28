@@ -18,7 +18,7 @@ namespace tmen{
 
 template <typename T>
 void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex){
-    if(CheckReduceScatterRedist(B, A, reduceIndex, scatterIndex))
+    if(!CheckReduceScatterRedist(B, A, reduceIndex, scatterIndex))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
 
     int sendSize, recvSize;
