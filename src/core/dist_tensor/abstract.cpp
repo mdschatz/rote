@@ -580,13 +580,14 @@ mpi::Comm
 AbstractDistTensor<T>::GetCommunicator(int index) const
 {
 	mpi::Comm comm;
+	const int mode = this->ModeOfIndex(index);
 	std::vector<Int> gridViewShapeSlice = this->GridViewShape();
 	std::vector<Int> gridViewLocSlice = this->GridViewLoc();
-	const int commKey = gridViewLocSlice[index];
+	const int commKey = gridViewLocSlice[mode];
 
 	//Color is defined by the linear index into the logical grid EXCLUDING the index being distributed
-	gridViewShapeSlice.erase(gridViewShapeSlice.begin() + index);
-	gridViewLocSlice.erase(gridViewLocSlice.begin() + index);
+	gridViewShapeSlice.erase(gridViewShapeSlice.begin() + mode);
+	gridViewLocSlice.erase(gridViewLocSlice.begin() + mode);
 	const int commColor = LinearIndex(gridViewLocSlice, Dimensions2Strides(gridViewShapeSlice));
 
 	mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);

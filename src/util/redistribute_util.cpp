@@ -3,23 +3,20 @@
 
 namespace tmen{
 
+//NOTE: B is the output DistTensor, A is the input (consistency among the redistribution routines
 template <typename T>
-void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize){
-	if(!A.Participating())
+void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize){
+	if(!B.Participating())
 		return;
 
-	const int reduceIndexMode = A.ModeOfIndex(reduceIndex);
-	ModeDistribution reduceIndexDist = A.IndexDist(reduceIndex);
-	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), reduceIndexDist);
+	ModeDistribution indexDist = A.IndexDist(reduceIndex);
+	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
 
 	const int nRedistProcs = prod(gridViewSlice);
-	std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), A.GridViewShape());
-	const int nElemsPerProc = prod(maxLocalShape);
+	std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), B.GridView().Shape());
 
-	//NOTE: For now we are testing functionality of ReduceScatter to figure out what is appropriate size
-	//recvSize = nElemsPerProc / maxLocalShape[reduceIndexMode];
-	recvSize = nElemsPerProc;
-	sendSize = nElemsPerProc;
+	recvSize = prod(maxLocalShapeB);
+	sendSize = recvSize * nRedistProcs;
 }
 
 template <typename T>
@@ -27,18 +24,18 @@ void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherI
 	if(!A.Participating())
 		return;
 
-	ModeDistribution indexDist = A.ModeDist(allGatherIndex);
+	ModeDistribution indexDist = A.IndexDist(allGatherIndex);
 	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
 
 	const int nRedistProcs = prod(gridViewSlice);
-	std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), A.GridView().Shape());
-	const int nLocalElems = prod(maxLocalShape);
-	recvSize = nLocalElems * nRedistProcs;
-	sendSize = nLocalElems;
+	std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+
+	sendSize = prod(maxLocalShapeA);
+	recvSize = sendSize * nRedistProcs;
 }
 
 #define PROTO(T) \
-	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const int reduceIndex, int& recvSize, int& sendSize); \
+	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize); \
 	template void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize);
 
 PROTO(int)

@@ -130,6 +130,7 @@ TestRSRedist(DistTensor<T>& A)
     BShape.erase(BShape.begin());
     DistTensor<T> B(BShape, tdist, BIndices, g);
     ReduceScatterRedist(B, A, 0, 1);
+    Print(B, "B after rs redist");
 }
 
 template<typename T>

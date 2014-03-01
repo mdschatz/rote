@@ -22,8 +22,9 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int red
       LogicError("ReduceScatterRedist: Invalid redistribution request");
 
     int sendSize, recvSize;
-    DetermineRSCommunicateDataSize(A, reduceIndex, recvSize, sendSize);
+    DetermineRSCommunicateDataSize(B, A, reduceIndex, recvSize, sendSize);
     const mpi::Comm comm = A.GetCommunicator(reduceIndex);
+    const int myRank = mpi::CommRank(comm);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -31,7 +32,7 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int red
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    PackRSSendBuf(A, reduceIndex, scatterIndex, sendBuf);
+    PackRSSendBuf(B, A, reduceIndex, scatterIndex, sendBuf);
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
@@ -49,7 +50,7 @@ void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
 		LogicError("ReduceScatterRedist: Invalid redistribution request");
 
 	int sendSize, recvSize;
-	DetermineRSCommunicateDataSize(A, reduceScatterIndex, recvSize, sendSize);
+	DetermineRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
 	const mpi::Comm comm = A.GetCommunicator(reduceScatterIndex);
 
 	Memory<T> auxMemory;
