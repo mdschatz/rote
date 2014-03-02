@@ -229,6 +229,14 @@ DistTensorTest( const std::vector<Int>& shape, const Grid& g )
     //TestRedist( A_STAR_STAR, A_MC_MR );
 }
 
+void
+TestDistParse()
+{
+	std::string s("[(2,4), (1,3),(5 , 6)]");
+	TensorDistribution dist = StringToTensorDist(s);
+	std::cout << TensorDistToString(dist);
+}
+
 int 
 main( int argc, char* argv[] )
 {
@@ -255,6 +263,8 @@ main( int argc, char* argv[] )
 				printf(" x %d", args.gridShape[i]);
 			printf(" grid\n");
 		}
+
+		TestDistParse();
 
         const Grid g( comm, args.gridOrder, args.gridShape );
 

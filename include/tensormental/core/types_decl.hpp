@@ -124,8 +124,11 @@ enum Distribution
     CIRC  // Give to a single process
 };
 */
-std::string TensorDistToString( TensorDistribution distribution );
-TensorDistribution StringToTensorDist( std::string s );
+std::string TensorDistToString( const TensorDistribution&  distribution );
+TensorDistribution StringToTensorDist( const std::string& s );
+
+std::string ModeDistToString( const ModeDistribution&  distribution );
+ModeDistribution StringToModeDist( const std::string& s );
 }
 
 using namespace distribution_wrapper;

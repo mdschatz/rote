@@ -12,6 +12,7 @@
 #include "tensormental/core/types_decl.hpp"
 #include "tensormental/core/error_decl.hpp"
 #include <stdlib.h>
+#include <stdio.h>
 
 namespace tmen {
 
@@ -24,31 +25,68 @@ SafeProduct<F>::SafeProduct( Int numEntries )
 namespace distribution_wrapper {
 
 inline std::string 
-TensorDistToString( TensorDistribution distribution )
+TensorDistToString( const TensorDistribution& distribution )
 {
     std::stringstream ss;
-    ss << "[";// << distribution[0];
-    //for(int i = 1; i < distribution.size(); i++)
-    //  ss << ", " << distribution[i];
-    ss <<  "]";
+    ss << "[";
+    if(distribution.size() >= 1){
+    	ss << ModeDistToString(distribution[0]);
+		for(int i = 1; i < distribution.size(); i++)
+		  ss << ", " << ModeDistToString(distribution[i]);
+    }
+    ss <<  "]" << std::endl;
+    return ss.str();
+}
+
+inline std::string
+ModeDistToString( const ModeDistribution& distribution )
+{
+    std::stringstream ss;
+    ss << "(";
+    if(distribution.size() >= 1){
+    	ss << distribution[0];
+		for(int i = 1; i < distribution.size(); i++)
+		  ss << ", " << distribution[i];
+    }
+    ss <<  ")" << std::endl;
     return ss.str();
 }
 
 inline TensorDistribution
-StringToTensorDist( std::string s )
+StringToTensorDist( const std::string& s )
 {
     TensorDistribution distribution;
-//    std::string delims = "[], ";
-//    size_t cur;
-//    size_t next = -1;
-//    do
-//    {
-//      cur = next + 1;
-//      next = s.find_first_of(delims, cur );
-//      if(cur != next)
-//        distribution.push_back(atoi(s.substr(cur, next - cur).c_str()));
-//    }while(next != std::string::npos);
+
+    int pos, lastPos;
+    pos = s.find_first_of("[");
+    lastPos = s.find_first_of("]");
+    if(pos != 0 || lastPos != s.size() - 1)
+    	LogicError("Malformed tensor distribution string");
+    pos = s.find_first_of("(", pos);
+    while(pos != std::string::npos){
+    	lastPos = s.find_first_of(")", pos);
+    	distribution.push_back(StringToModeDist(s.substr(pos, lastPos - pos + 1)));
+    	pos = s.find_first_of("(", lastPos + 1);
+    }
     return distribution;
+}
+
+inline ModeDistribution
+StringToModeDist( const std::string& s)
+{
+	ModeDistribution distribution;
+	int pos, lastPos;
+	pos = s.find_first_of("(");
+	lastPos = s.find_first_of(")");
+	if(pos != 0 || lastPos != s.size() - 1)
+		LogicError("Malformed mode distribution string");
+	pos = s.find_first_not_of("(, ", pos);
+	while(pos != std::string::npos){
+		lastPos = s.find_first_of(", )", pos);
+		distribution.push_back(atoi(s.substr(pos, lastPos - pos + 1).c_str()));
+		pos = s.find_first_not_of(", )", lastPos+1);
+	}
+	return distribution;
 }
 
 } // namespace distribution_wrapper
