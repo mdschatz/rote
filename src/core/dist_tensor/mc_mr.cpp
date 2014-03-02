@@ -355,7 +355,8 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& l
 }
 
 
-
+//NOTE: INCREDIBLY INEFFICIENT (RECREATING A COMMUNICATOR ON EVERY REQUEST!!!
+//TODO: FIX THIS
 template<typename T>
 T
 DistTensor<T>::Get( const std::vector<Int>& index ) const
@@ -365,13 +366,21 @@ DistTensor<T>::Get( const std::vector<Int>& index ) const
     this->AssertValidEntry( index );
 #endif
     const Int owningProc = this->DetermineLinearIndexOwner(index);
+    mpi::Comm comm;
+
+    const tmen::GridView& gv = this->GridView();
+    int myLinearRank = gv.LinearRank();
+    int commColor = 0;
+    int commKey = myLinearRank;
+    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+
     T u;
-    const tmen::Grid& g = this->Grid();
-    if(g.LinearRank() == owningProc){
+    if(gv.LinearRank() == owningProc){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
     	u = this->GetLocal(localLoc);
     }
-    mpi::Broadcast( u, owningProc, g.OwningComm());
+
+    mpi::Broadcast( u, owningProc, comm);
     return u;
 }
 

@@ -34,7 +34,6 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     int ptr = 0;
     bool done = false;
     while(true){
-    	os << A.Get(curIndex) << " ";
 
     	//Update
     	curIndex[ptr]++;
@@ -76,6 +75,7 @@ Print
     T u;
     while(true){
     	u = A.Get(curIndex);
+
     	if(A.Grid().LinearRank() == 0){
     		os << u << " ";
     	}

@@ -97,8 +97,9 @@ GridView::LinearRank() const
 	int i;
 	int linearRank = 0;
 	const int order = this->Order();
-	for(i = 0; i < order; i++){
-		linearRank += this->ModeLoc(i) * this->Dimension(i);
+	linearRank += this->ModeLoc(0);
+	for(i = 1; i < order; i++){
+		linearRank += this->ModeLoc(i) * this->Dimension(i-1);
 	}
 	return linearRank;
 }

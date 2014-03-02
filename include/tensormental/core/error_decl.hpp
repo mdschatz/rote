@@ -14,7 +14,9 @@
 namespace tmen{
 
 inline void LogicError( std::string msg="LogicError" )
-{ throw std::logic_error( msg.c_str() ); }
+{
+	throw std::logic_error( msg.c_str() );
+}
 
 inline void RuntimeError( std::string msg="RuntimeError" )
 { throw std::runtime_error( msg.c_str() ); }
