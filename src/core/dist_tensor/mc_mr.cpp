@@ -397,7 +397,8 @@ DistTensor<T>::Set( const std::vector<Int>& index, T u )
 
     if(this->Grid().LinearRank() == owningProc){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
-        std::ostringstream msg;
+        //std::ostringstream msg;
+        /*
         msg << "GlobalIndex: [" << index[0];
         for(int i = 1; i < index.size(); i++)
             msg << ", " << index[i];
@@ -407,6 +408,7 @@ DistTensor<T>::Set( const std::vector<Int>& index, T u )
     	    msg << ", " << localLoc[i];
     	msg << "]\n";
     	printf("%s", msg.str().c_str());
+    	*/
     	this->SetLocal(localLoc, u);
     }
 

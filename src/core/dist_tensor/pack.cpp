@@ -130,14 +130,14 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
     int offSliceDataBuf;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    printf("alloced %d local elems for output\n", prod(B.LocalShape()));
-    std::ostringstream msg;
-    msg << "recv'd data: [" << recvBuf[0];
-    const int nMaxElemsPerProc = prod(maxRecvLocalShape);
-    for(int i = 1; i < nMaxElemsPerProc; i++)
-        msg << ", " << recvBuf[i];
-    msg << "]" << std::endl;
-    std::cout << msg.str();
+    //printf("alloced %d local elems for output\n", prod(B.LocalShape()));
+    //std::ostringstream msg;
+    //msg << "recv'd data: [" << recvBuf[0];
+    //const int nMaxElemsPerProc = prod(maxRecvLocalShape);
+    //for(int i = 1; i < nMaxElemsPerProc; i++)
+    //    msg << ", " << recvBuf[i];
+    //msg << "]" << std::endl;
+    //std::cout << msg.str();
 
     for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
     	if(sliceNum >= nLocalSlices)
@@ -150,7 +150,7 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
     		startRecvBuf = offSliceRecvBuf + (copySliceSize * wrapNum);
     		startDataBuf = offSliceDataBuf + (maxCopySliceSize * wrapNum);
 
-            printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
+            //printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
       		MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
     	}
     }
@@ -205,7 +205,7 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
 	  if(sliceNum >= nLocalSlices){
 		  break;
 	  }
-	  printf("offSliceSendBuf: %d offSliceDataBuf: %d copySliceSize: %d\n", offSliceSendBuf, offSliceDataBuf, copySliceSize);
+	  //printf("offSliceSendBuf: %d offSliceDataBuf: %d copySliceSize: %d\n", offSliceSendBuf, offSliceDataBuf, copySliceSize);
 	  MemCopy(&(sendBuf[offSliceSendBuf]), &(dataBuf[offSliceDataBuf]), copySliceSize);
   }
 }
@@ -258,13 +258,13 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
 	int offSliceDataBuf, offWrapDataBuf;  //Offsets used to index into dataBuf array
 	int startRecvBuf, startDataBuf;
 
-    printf("alloced %d local elems for output\n", prod(B.LocalShape()));
-    std::ostringstream msg;
-    msg << "recv'd data: [" << recvBuf[0];
-    for(int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
-        msg << ", " << recvBuf[i];
-    msg << "]" << std::endl;
-    std::cout << msg.str();
+    //printf("alloced %d local elems for output\n", prod(B.LocalShape()));
+    //std::ostringstream msg;
+    //msg << "recv'd data: [" << recvBuf[0];
+    //for(int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
+    //    msg << ", " << recvBuf[i];
+    //msg << "]" << std::endl;
+    //std::cout << msg.str();
 
 	for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
 	    offSliceRecvBuf = copySliceSize * agModeMaxLocalDim * sliceNum;
@@ -281,7 +281,7 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
                 if(wrapNum * nModeProcs + procRecvNum >= agModeLocalDim){
                     break;
                 }
-                printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
+                //printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
                 MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
             }
         }

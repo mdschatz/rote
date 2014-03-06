@@ -39,7 +39,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const std::vector<Int>& shape, const 
   modeAlignments_(shape.size(), 0),
   modeShifts_(shape.size(), 0),
 
-  tensor_(),
+  tensor_(shape.size()),
 
   grid_(&grid),
   gridView_(grid_, dist_),

@@ -204,6 +204,7 @@ protected:
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
+    //NOTE: Decide whether to remove the following constructor (should we allow creating a tensor without supplying the indices?)
     AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& g );
     AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& g );
 

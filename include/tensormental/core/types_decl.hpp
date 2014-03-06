@@ -127,6 +127,7 @@ enum Distribution
 std::string TensorDistToString( const TensorDistribution&  distribution );
 TensorDistribution StringToTensorDist( const std::string& s );
 
+std::string ModeDistToString_( const ModeDistribution&  distribution );
 std::string ModeDistToString( const ModeDistribution&  distribution );
 ModeDistribution StringToModeDist( const std::string& s );
 }
