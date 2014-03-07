@@ -22,6 +22,9 @@
 namespace tmen{
 
 template <typename T>
+void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, int& recvSize, int& sendSize);
+
+template <typename T>
 void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize);
 
 template <typename T>

@@ -16,6 +16,54 @@
 namespace tmen{
 
 //TODO: Properly Check indices and distributions match between input and output
+//TODO: Make sure outgoing reduce Index differs from incoming (partial reduction forms a new Index)
+template <typename T>
+int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex){
+    int i;
+    const tmen::GridView gvA = A.GridView();
+
+    const int AOrder = A.Order();
+    const int BOrder = B.Order();
+
+    //Test indices are correct
+    std::vector<Int> BIndices = B.Indices();
+    std::vector<Int> AIndices = A.Indices();
+    std::vector<Int> foundIndices(BOrder,0);
+
+    //Test index being reduced has been reduced to correct dimension
+    const int reduceScatterModeA = A.ModeOfIndex(reduceScatterIndex);
+    const int reduceScatterModeB = B.ModeOfIndex(reduceScatterIndex);
+
+
+    //Test order retained
+    if(BOrder != AOrder){
+        LogicError("CheckPartialReduceScatterRedist: Partial Reduction must retain index being reduced");
+    }
+
+    //Test dimension has been resized correctly
+    //NOTE: Uses fancy way of performing Ceil() on integer division
+    if(B.Dimension(reduceScatterModeB) != (A.Dimension(reduceScatterModeA) / gvA.Dimension(reduceScatterModeA)))
+        LogicError("CheckPartialReduceScatterRedist: Partial Reduction must reduce index dimension by factor Dimension/Grid Dimension");
+
+    //Ensure indices of input and output are similar
+    for(int i = 0; i < BOrder; i++){
+        if(std::find(AIndices.begin(), AIndices.end(), BIndices[i]) != AIndices.end())
+            foundIndices[i] = 1;
+    }
+    if(AnyZeroElem(foundIndices)){
+        LogicError("CheckPartialReduceScatterRedist: Input and Output objects represent different indices");
+    }
+
+    //Make sure all indices are distributed similarly between input and output (excluding reduce+scatter indices)
+    for(i = 0; i < BOrder; i++){
+        int index = B.IndexOfMode(i);
+        if(AnyElemwiseNotEqual(B.IndexDist(index), A.IndexDist(index)))
+            LogicError("CheckPartialReduceScatterRedist: All indices must be distributed similarly");
+    }
+    return 1;
+}
+
+//TODO: Properly Check indices and distributions match between input and output
 template <typename T>
 int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex){
     int i;
@@ -111,9 +159,10 @@ int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>&
 
 
 #define PROTO(T) \
+        template int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex); \
 		template int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int reduceIndex, const int scatterIndex); \
 		template int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex); \
-		template int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int index, const std::vector<int>& rsGridModes);
+
 
 PROTO(int)
 PROTO(float)

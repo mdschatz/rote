@@ -3,6 +3,11 @@
 
 namespace tmen{
 
+template <typename T>
+void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, int& recvSize, int& sendSize){
+    return DetermineRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
+}
+
 //NOTE: B is the output DistTensor, A is the input (consistency among the redistribution routines
 template <typename T>
 void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize){
@@ -27,7 +32,6 @@ void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherI
 	const int allGatherMode = A.ModeOfIndex(allGatherIndex);
 
 	const int nRedistProcs = A.GridView().Dimension(allGatherMode);
-	printf("nRedistProcs: %d\n", nRedistProcs);
 	std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
 	sendSize = prod(maxLocalShapeA);
@@ -35,6 +39,7 @@ void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherI
 }
 
 #define PROTO(T) \
+    template void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, int& recvSize, int& sendSize); \
 	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize); \
 	template void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize);
 

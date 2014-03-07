@@ -14,9 +14,15 @@
 namespace tmen{
 
 template <typename T>
-void PackRSSendBuf(const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf)
+void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf)
 {
+    PackRSSendBuf(B, A, reduceScatterIndex, reduceScatterIndex, sendBuf);
+}
 
+template <typename T>
+void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B)
+{
+    UnpackRSRecvBuf(recvBuf, reduceScatterIndex, reduceScatterIndex, A, B);
 }
 
 //Only called when fully reducing an index
@@ -26,7 +32,7 @@ void PackRSSendBuf(const DistTensor<T>& A, const Int reduceScatterIndex, T * con
 template <typename T>
 void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf)
 {
-    printf("A has %d elems to pack\n", prod(A.LocalShape()));
+//    printf("A has %d elems to pack\n", prod(A.LocalShape()));
     const std::vector<Int> start(A.Order(), 0);
     const T* dataBuf = A.LockedBuffer(start);
 
@@ -39,7 +45,7 @@ void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int red
     const tmen::GridView gvB = B.GridView();
 
     const int nModeProcs = gvA.Dimension(reduceModeA);
-    const int sModeGlobalDim = A.Dimension(scatterModeA);
+    const int sModeGlobalDim = B.Dimension(scatterModeB);
 
     const std::vector<Int> localShapeA = A.LocalShape(); //Shape of the local tensor we are packing
     const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
@@ -75,25 +81,25 @@ void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int red
     				break;
     			startSendBuf = offSliceSendBuf + offWrapSendBuf + (nMaxElemsPerProc * procNum);
     			startDataBuf = offSliceDataBuf + offWrapDataBuf + (procNum * copySliceSize);
-    			printf("startSendBuf: %d startDataBuf: %d copySliceSize: %d\n", startSendBuf, startDataBuf, copySliceSize);
+    			//printf("startSendBuf: %d startDataBuf: %d copySliceSize: %d\n", startSendBuf, startDataBuf, copySliceSize);
     			MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
     		}
     	}
     }
 
-    printf("packing %d elems\n", nModeProcs * nMaxElemsPerProc);
-    std::ostringstream msg;
-    msg << "recv'd data: [" << sendBuf[0];
-    for (int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
-        msg << ", " << sendBuf[i];
-    msg << "]" << std::endl;
-    std::cout << msg.str();
+//    printf("packing %d elems\n", nModeProcs * nMaxElemsPerProc);
+//    std::ostringstream msg;
+//    msg << "send'd data: [" << sendBuf[0];
+//    for (int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
+//        msg << ", " << sendBuf[i];
+//    msg << "]" << std::endl;
+//    std::cout << msg.str();
 }
 
 template <typename T>
 void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
-    printf("B can unpack %d elems\n", prod(B.LocalShape()));
+//    printf("B can unpack %d elems\n", prod(B.LocalShape()));
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
 
@@ -130,14 +136,14 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
     int offSliceDataBuf;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    //printf("alloced %d local elems for output\n", prod(B.LocalShape()));
-    //std::ostringstream msg;
-    //msg << "recv'd data: [" << recvBuf[0];
-    //const int nMaxElemsPerProc = prod(maxRecvLocalShape);
-    //for(int i = 1; i < nMaxElemsPerProc; i++)
-    //    msg << ", " << recvBuf[i];
-    //msg << "]" << std::endl;
-    //std::cout << msg.str();
+//    printf("alloced %d local elems for output\n", prod(B.LocalShape()));
+//    std::ostringstream msg;
+//    msg << "recv'd data: [" << recvBuf[0];
+//    const int nMaxElemsPerProc = prod(maxRecvLocalShape);
+//    for(int i = 1; i < nMaxElemsPerProc; i++)
+//        msg << ", " << recvBuf[i];
+//    msg << "]" << std::endl;
+//    std::cout << msg.str();
 
     for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
     	if(sliceNum >= nLocalSlices)
@@ -156,11 +162,6 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
     }
 }
 
-template <typename T>
-void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, DistTensor<T>& A)
-{
-
-}
 
 //TODO: Adjust this for blocks (not contiguous tensors)
 //For Allgather (without blocks) we just need to directly copy the data
@@ -173,7 +174,7 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, Dist
 template <typename T>
 void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf)
 {
-  printf("A has %d elems to pack\n", prod(A.LocalShape()));
+//  printf("A has %d elems to pack\n", prod(A.LocalShape()));
   const tmen::GridView gridView = A.GridView();
 
   const std::vector<Int> start(A.Order(), 0);
@@ -208,13 +209,13 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
 	  //printf("offSliceSendBuf: %d offSliceDataBuf: %d copySliceSize: %d\n", offSliceSendBuf, offSliceDataBuf, copySliceSize);
 	  MemCopy(&(sendBuf[offSliceSendBuf]), &(dataBuf[offSliceDataBuf]), copySliceSize);
   }
-  printf("packing %d elems\n", prod(maxLocalShape));
-  std::ostringstream msg;
-  msg << "send'd data: [" << sendBuf[0];
-  for (int i = 1; i < prod(maxLocalShape); i++)
-      msg << ", " << sendBuf[i];
-  msg << "]" << std::endl;
-  std::cout << msg.str();
+//  printf("packing %d elems\n", prod(maxLocalShape));
+//  std::ostringstream msg;
+//  msg << "send'd data: [" << sendBuf[0];
+//  for (int i = 1; i < prod(maxLocalShape); i++)
+//      msg << ", " << sendBuf[i];
+//  msg << "]" << std::endl;
+//  std::cout << msg.str();
 }
 
 
@@ -233,7 +234,7 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
-	printf("B can unpack %d elems\n", prod(B.LocalShape()));
+//	printf("B can unpack %d elems\n", prod(B.LocalShape()));
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
     const tmen::GridView gv = A.GridView();
@@ -293,19 +294,19 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
             }
         }
 	}
-    printf("unpacking %d elems\n", nModeProcs * nMaxElemsPerProc);
-    std::ostringstream msg;
-    msg << "recv'd data: [" << recvBuf[0];
-    for (int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
-        msg << ", " << recvBuf[i];
-    msg << "]" << std::endl;
-    std::cout << msg.str();
+//    printf("unpacking %d elems\n", nModeProcs * nMaxElemsPerProc);
+//    std::ostringstream msg;
+//    msg << "recv'd data: [" << recvBuf[0];
+//    for (int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
+//        msg << ", " << recvBuf[i];
+//    msg << "]" << std::endl;
+//    std::cout << msg.str();
 }
 
 #define PROTO(T) \
-		template void PackRSSendBuf(const DistTensor<T>& A, const int reduceScatterIndex, T * const sendBuf); \
+		template void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, T * const sendBuf); \
+		template void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B); \
         template void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
-        template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, DistTensor<T>& A); \
         template void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, const DistTensor<T>& A, DistTensor<T>& B); \
         template void PackAGSendBuf(const DistTensor<T>& A, const int allGatherIndex, T * const sendBuf); \
 		template void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);

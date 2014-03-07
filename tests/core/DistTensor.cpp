@@ -29,6 +29,7 @@ typedef struct Arguments{
 } Params;
 
 typedef std::pair< int, TensorDistribution> AGTest;
+typedef std::pair< int, TensorDistribution> PRSTest;
 typedef std::pair< std::pair<int, int>, TensorDistribution> RSTest;
 
 void ProcessInput(int argc,  char** const argv, Params& args){
@@ -130,10 +131,9 @@ TestRSRedist(DistTensor<T>& A, int reduceIndex, int scatterIndex, const TensorDi
     CallStackEntry entry("TestRSRedist");
 #endif
     const int redistMode = 0;
-    if(A.Dimension(redistMode) > A.GridView().Dimension(redistMode)){
-        LogicError("TestRedist only allows Dimension <= GridView Dimension");
-    }
+
     const Grid& g = A.Grid();
+    const GridView gv = A.GridView();
 
     std::vector<Int> BIndices = A.Indices();
     const int reduceMode = A.ModeOfIndex(reduceIndex);
@@ -141,8 +141,33 @@ TestRSRedist(DistTensor<T>& A, int reduceIndex, int scatterIndex, const TensorDi
     std::vector<Int> BShape = A.Shape();
     BShape.erase(BShape.begin() + reduceMode);
     DistTensor<T> B(BShape, resDist, BIndices, g);
+
     ReduceScatterRedist(B, A, reduceIndex, scatterIndex);
+
     Print(B, "B after rs redist");
+}
+
+template<typename T>
+void
+TestPRSRedist(DistTensor<T>& A, int reduceScatterIndex, const TensorDistribution& resDist)
+{
+#ifndef RELEASE
+    CallStackEntry entry("TestRSRedist");
+#endif
+    const int redistMode = 0;
+
+    const Grid& g = A.Grid();
+    const GridView gv = A.GridView();
+
+    const int modeOfRSIndex = A.ModeOfIndex(reduceScatterIndex);
+    std::vector<int> BShape = A.Shape();
+    BShape[modeOfRSIndex] = A.Dimension(modeOfRSIndex) / gv.Dimension(modeOfRSIndex);
+
+    DistTensor<T> B(BShape, resDist, A.Indices(), g);
+
+    PartialReduceScatterRedist(B, A, reduceScatterIndex);
+
+    Print(B, "B after prs redist");
 }
 
 template<typename T>
@@ -199,6 +224,15 @@ DetermineResultingDistributionRS(const DistTensor<T>& A, int reduceIndex, int sc
 }
 
 template<typename T>
+TensorDistribution
+DetermineResultingDistributionPRS(const DistTensor<T>& A, int reduceScatterIndex){
+    TensorDistribution ret;
+    const TensorDistribution ADist = A.TensorDist();
+    ret = ADist;
+    return ret;
+}
+
+template<typename T>
 std::vector<AGTest >
 CreateAGTests(const DistTensor<T>& A, const Params& args){
     std::vector<AGTest > ret;
@@ -216,6 +250,23 @@ CreateAGTests(const DistTensor<T>& A, const Params& args){
 }
 
 template<typename T>
+std::vector<PRSTest >
+CreatePRSTests(const DistTensor<T>& A, const Params& args){
+    std::vector<PRSTest> ret;
+
+    const int order = A.Order();
+    const std::vector<int> indices = A.Indices();
+
+    for(int i = 0; i < order; i++){
+        const int indexToReduceScatter = indices[i];
+        PRSTest test(indexToReduceScatter, DetermineResultingDistributionPRS(A, indexToReduceScatter));
+        ret.push_back(test);
+    }
+
+    return ret;
+}
+
+template<typename T>
 std::vector<RSTest >
 CreateRSTests(const DistTensor<T>& A, const Params& args){
     std::vector<RSTest> ret;
@@ -223,12 +274,18 @@ CreateRSTests(const DistTensor<T>& A, const Params& args){
     const int order = A.Order();
     const std::vector<int> indices = A.Indices();
 
+    const GridView gv = A.GridView();
+
     for(int i = 0; i < order; i++){
         for(int j = 0; j < order; j++){
             if(i == j)
                 continue;
             const int indexToReduce = indices[i];
+            const int reduceMode = A.ModeOfIndex(indexToReduce);
             const int indexToScatter = indices[j];
+
+            if(A.Dimension(reduceMode) > gv.Dimension(A.ModeOfIndex(reduceMode)))
+                continue;
             std::pair<int, int> redistIndices(i, j);
             RSTest test(redistIndices, DetermineResultingDistributionRS(A, indexToReduce, indexToScatter));
             ret.push_back(test);
@@ -257,27 +314,49 @@ DistTensorTest( const Params& args, const Grid& g )
 
     std::vector<AGTest> agTests = CreateAGTests(A, args);
     std::vector<RSTest> rsTests = CreateRSTests(A, args);
+    std::vector<PRSTest> prsTests = CreatePRSTests(A, args);
 
-    printf("Performing AllGather tests\n");
+    if(commRank == 0){
+        printf("Performing AllGather tests\n");
+    }
     for(int i = 0; i < agTests.size(); i++){
         AGTest thisTest = agTests[i];
         int agIndex = thisTest.first;
         TensorDistribution resDist = thisTest.second;
-        printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
+        if(commRank == 0){
+            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
+        }
         TestAGRedist(A, agIndex, resDist);
     }
 
-    printf("Performing ReduceScatter tests\n");
+    if(commRank == 0){
+        printf("Performing PartialReduceScatter tests\n");
+    }
+    for(int i = 0; i < prsTests.size(); i++){
+        PRSTest thisTest = prsTests[i];
+        int rsIndex = thisTest.first;
+        TensorDistribution resDist = thisTest.second;
+        if(commRank == 0){
+            printf("Partial reduce-scattering index %d with resulting distribution %s\n", rsIndex, (tmen::TensorDistToString(resDist)).c_str());
+        }
+        TestPRSRedist(A, rsIndex, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing ReduceScatter tests\n");
+    }
     for(int i = 0; i < rsTests.size(); i++){
         RSTest thisTest = rsTests[i];
         int reduceIndex = thisTest.first.first;
         int scatterIndex = thisTest.first.second;
         TensorDistribution resDist = thisTest.second;
 
+        if(commRank == 0){
         printf(
                 "Reducing index %d, scattering index %d, with resulting distribution %s\n",
                 reduceIndex, scatterIndex,
                 (tmen::TensorDistToString(resDist)).c_str());
+        }
         TestRSRedist(A, reduceIndex, scatterIndex, resDist);
     }
 }
@@ -289,7 +368,7 @@ main( int argc, char* argv[] )
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
     const Int commSize = mpi::CommSize( comm );
-    printf("My Rank: %d\n", commRank);
+    //printf("My Rank: %d\n", commRank);
     try
     {
         Params args;
@@ -339,6 +418,6 @@ main( int argc, char* argv[] )
     catch( std::exception& e ) { ReportException(e); }
 
     Finalize();
-    printf("Completed\n");
+    //printf("Completed\n");
     return 0;
 }

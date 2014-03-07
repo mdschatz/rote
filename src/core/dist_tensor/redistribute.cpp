@@ -17,6 +17,30 @@
 namespace tmen{
 
 template <typename T>
+void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex){
+    if(!CheckPartialReduceScatterRedist(B, A, reduceScatterIndex))
+        LogicError("PartialReduceScatterRedist: Invalid redistribution request");
+
+    int sendSize, recvSize;
+    DeterminePartialRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
+    const mpi::Comm comm = A.GetCommunicator(reduceScatterIndex);
+    const int myRank = mpi::CommRank(comm);
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    PackPartialRSSendBuf(B, A, reduceScatterIndex, sendBuf);
+
+    mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
+
+    UnpackPartialRSRecvBuf(recvBuf, reduceScatterIndex, A, B);
+
+}
+
+template <typename T>
 void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex){
     if(!CheckReduceScatterRedist(B, A, reduceIndex, scatterIndex))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
@@ -40,32 +64,6 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int red
 }
 
 template <typename T>
-void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex){
-	PartialReduceScatterRedist(B, A, reduceScatterIndex, A.ModeDist(reduceScatterIndex));
-}
-
-template <typename T>
-void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, const std::vector<Int>& rsGridModes){
-	if(CheckPartialReduceScatterRedist(A, B, reduceScatterIndex, rsGridModes))
-		LogicError("ReduceScatterRedist: Invalid redistribution request");
-
-	int sendSize, recvSize;
-	DetermineRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
-	const mpi::Comm comm = A.GetCommunicator(reduceScatterIndex);
-
-	Memory<T> auxMemory;
-	T* auxBuf = auxMemory.Require(sendSize + recvSize);
-	T* sendBuf = &(auxBuf[0]);
-	T* recvBuf = &(auxBuf[sendSize]);
-
-	PackRSSendBuf(A, reduceScatterIndex, sendBuf);
-
-	mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
-
-	UnpackRSRecvBuf(recvBuf, reduceScatterIndex, B);
-}
-
-template <typename T>
 void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex){
 	if(!CheckAllGatherRedist(B, A, allGatherIndex))
 		LogicError("AllGatherRedist: Invalid redistribution request");
@@ -77,7 +75,7 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 	Memory<T> auxMemory;
 	T* auxBuf = auxMemory.Require(sendSize + recvSize);
 	MemZero(&(auxBuf[0]), sendSize + recvSize);
-	printf("alloc'd sendSize: %d recvSize: %d\n", sendSize, recvSize);
+
 	T* sendBuf = &(auxBuf[0]);
 	T* recvBuf = &(auxBuf[sendSize]);
 
@@ -91,12 +89,9 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 	//Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
-
-
 #define PROTO(T) \
 	template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex); \
-    template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, const std::vector<Int>& rsGridModes); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
 
 PROTO(int)

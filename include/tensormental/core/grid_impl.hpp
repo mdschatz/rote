@@ -59,8 +59,7 @@ Grid::Grid( mpi::Comm comm, int order, std::vector<int> dimension )
     size_ = mpi::CommSize( comm );
     linearRank_ = mpi::CommRank( comm );
 
-    SetMyGridLoc(); 
-    std::cout << "Grid Loc set\n";
+    SetMyGridLoc();
     SetUpGrid();
 }
 
