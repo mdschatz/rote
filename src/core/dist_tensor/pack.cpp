@@ -208,6 +208,13 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
 	  //printf("offSliceSendBuf: %d offSliceDataBuf: %d copySliceSize: %d\n", offSliceSendBuf, offSliceDataBuf, copySliceSize);
 	  MemCopy(&(sendBuf[offSliceSendBuf]), &(dataBuf[offSliceDataBuf]), copySliceSize);
   }
+  printf("packing %d elems\n", prod(maxLocalShape));
+  std::ostringstream msg;
+  msg << "send'd data: [" << sendBuf[0];
+  for (int i = 1; i < prod(maxLocalShape); i++)
+      msg << ", " << sendBuf[i];
+  msg << "]" << std::endl;
+  std::cout << msg.str();
 }
 
 
@@ -286,6 +293,13 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
             }
         }
 	}
+    printf("unpacking %d elems\n", nModeProcs * nMaxElemsPerProc);
+    std::ostringstream msg;
+    msg << "recv'd data: [" << recvBuf[0];
+    for (int i = 1; i < nMaxElemsPerProc * nModeProcs; i++)
+        msg << ", " << recvBuf[i];
+    msg << "]" << std::endl;
+    std::cout << msg.str();
 }
 
 #define PROTO(T) \

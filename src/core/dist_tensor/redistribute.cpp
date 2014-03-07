@@ -77,6 +77,7 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 	Memory<T> auxMemory;
 	T* auxBuf = auxMemory.Require(sendSize + recvSize);
 	MemZero(&(auxBuf[0]), sendSize + recvSize);
+	printf("alloc'd sendSize: %d recvSize: %d\n", sendSize, recvSize);
 	T* sendBuf = &(auxBuf[0]);
 	T* recvBuf = &(auxBuf[sendSize]);
 

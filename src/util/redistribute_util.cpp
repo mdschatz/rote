@@ -12,7 +12,7 @@ void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>&
 	ModeDistribution indexDist = A.IndexDist(reduceIndex);
 	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
 
-	const int nRedistProcs = prod(gridViewSlice);
+	const int nRedistProcs = Max(1, prod(gridViewSlice));
 	std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), B.GridView().Shape());
 
 	recvSize = prod(maxLocalShapeB);
@@ -24,10 +24,10 @@ void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherI
 	if(!A.Participating())
 		return;
 
-	ModeDistribution indexDist = A.IndexDist(allGatherIndex);
-	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
+	const int allGatherMode = A.ModeOfIndex(allGatherIndex);
 
-	const int nRedistProcs = prod(gridViewSlice);
+	const int nRedistProcs = A.GridView().Dimension(allGatherMode);
+	printf("nRedistProcs: %d\n", nRedistProcs);
 	std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
 	sendSize = prod(maxLocalShapeA);

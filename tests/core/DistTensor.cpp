@@ -119,6 +119,7 @@ TestAGRedist( DistTensor<T>& A, int agIndex, const TensorDistribution& resDist )
 
     DistTensor<T> B(A.Shape(), resDist, A.Indices(), g);
     AllGatherRedist(B, A, agIndex);
+    Print(B, "B after ag redist");
 }
 
 template<typename T>

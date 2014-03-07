@@ -370,14 +370,47 @@ DistTensor<T>::Get( const std::vector<Int>& index ) const
 
     const tmen::GridView& gv = this->GridView();
     int myLinearRank = gv.LinearRank();
-    int commColor = 0;
-    int commKey = myLinearRank;
+
+    const tmen::Grid& g = this->Grid();
+    //Form the commColor based on modes of grid not represented in distribution
+    const int gridOrder = g.Order();
+    std::vector<int> commColorVec(gridOrder);
+    for(int i = 0; i < gridOrder; i++)
+        commColorVec[i] = i;
+
+    const TensorDistribution& thisDist = this->dist_;
+    for(int i = 0; i < thisDist.size(); i++){
+        const ModeDistribution& mDist = thisDist[i];
+        for(int j = 0; j < mDist.size(); j++){
+            commColorVec.erase(std::find(commColorVec.begin(), commColorVec.end(), mDist[j]));
+        }
+    }
+
+    const std::vector<int> physGridSlice = FilterVector(g.Shape(), commColorVec);
+    const std::vector<int> physGridSliceLoc = FilterVector(g.Loc(), commColorVec);
+    const std::vector<int> physGridStrides = Dimensions2Strides(physGridSlice);
+
+    const int commColor = LinearIndex(physGridSliceLoc, physGridStrides);
+    const int commKey = myLinearRank;
+
     mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
 
     T u;
     if(gv.LinearRank() == owningProc){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
     	u = this->GetLocal(localLoc);
+
+/*
+    	printf("GlobalIndex: [%d", index[0]);
+    	for(int i = 1; i < index.size(); i++){
+    	    printf(", %d", index[i]);
+    	}
+    	printf("] at ");
+    	printf("LocalIndex: [%d", localLoc[0]);
+    	for(int i = 1; i < localLoc.size(); i++)
+    	    printf(", %d", localLoc[i]);
+    	printf("]\n");
+*/
     }
 
     mpi::Broadcast( u, owningProc, comm);
