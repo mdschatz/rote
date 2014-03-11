@@ -21,21 +21,35 @@
 
 namespace tmen{
 
-template <typename T>
-void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf);
+////////////////////
+///  Pack routines
+////////////////////
 
 template <typename T>
-void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B);
+void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int permuteIndex, T * const sendBuf);
+
+template <typename T>
+void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf);
 
 template <typename T>
 void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf);
 
 template <typename T>
-void UnpackRSRecvBuf(const T* const recvBuf, const Int reduceIndex,
-        const Int scatterIndex, const DistTensor<T>& A, DistTensor<T>& B);
+void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf);
+
+////////////////////
+///  Unpack routines
+////////////////////
 
 template <typename T>
-void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf);
+void UnpackPermutationRecvBuf(const T * const recvBuf, const Int permuteIndex, const DistTensor<T>& A, DistTensor<T>& B);
+
+template <typename T>
+void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B);
+
+template <typename T>
+void UnpackRSRecvBuf(const T* const recvBuf, const Int reduceIndex,
+        const Int scatterIndex, const DistTensor<T>& A, DistTensor<T>& B);
 
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);

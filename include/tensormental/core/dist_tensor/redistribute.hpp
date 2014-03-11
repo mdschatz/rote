@@ -25,27 +25,30 @@ namespace tmen{
 /////////////////
 
 template<typename T>
+int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex);
+
+template<typename T>
 int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex);
 
 template<typename T>
 int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex);
 
 template<typename T>
-int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index, const std::vector<int>& rsGridModes);
-
-template<typename T>
 int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
+
+//template<typename T>
+//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index, const std::vector<int>& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
 int CheckAllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
 
-template<typename T>
-int CheckPermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
-
 /////////////////
 //Redist routines
 /////////////////
+
+template<typename T>
+void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex);
 
 template<typename T>
 void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex);
@@ -62,9 +65,6 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 //TODO: Not entirely correct definition
 template<typename T>
 void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
-
-template<typename T>
-void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_DECL_HPP

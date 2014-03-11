@@ -28,6 +28,7 @@ typedef struct Arguments{
   TensorDistribution tensorDist;
 } Params;
 
+typedef std::pair< int, ModeDistribution> PTest;
 typedef std::pair< int, TensorDistribution> AGTest;
 typedef std::pair< int, TensorDistribution> PRSTest;
 typedef std::pair< std::pair<int, int>, TensorDistribution> RSTest;
@@ -106,6 +107,24 @@ void ProcessInput(int argc,  char** const argv, Params& args){
         Usage();
         throw ArgException();
     }
+}
+
+template<typename T>
+void
+TestPRedist( DistTensor<T>& A, int permuteIndex, const ModeDistribution& resDist )
+{
+#ifndef RELEASE
+    CallStackEntry entry("TestAGRedist");
+#endif
+    //const int order = A.Order();
+    const Grid& g = A.Grid();
+
+    TensorDistribution BDist = A.TensorDist();
+    BDist[A.ModeOfIndex(permuteIndex)] = resDist;
+
+    DistTensor<T> B(A.Shape(), BDist, A.Indices(), g);
+    PermutationRedist(B, A, permuteIndex);
+    Print(B, "B after permute redist");
 }
 
 template<typename T>
@@ -233,6 +252,26 @@ DetermineResultingDistributionPRS(const DistTensor<T>& A, int reduceScatterIndex
 }
 
 template<typename T>
+std::vector<PTest>
+CreatePTests(const DistTensor<T>& A, const Params& args){
+    std::vector<PTest> ret;
+
+    const int order = A.Order();
+    const std::vector<int> indices = A.Indices();
+
+    for(int i = 0; i < order; i++){
+        const int indexToRedist = indices[i];
+        ModeDistribution indexDist = A.IndexDist(indexToRedist);
+        std::sort(indexDist.begin(), indexDist.end());
+        do{
+            PTest test(indexToRedist, indexDist);
+            ret.push_back(test);
+        } while(std::next_permutation(indexDist.begin(), indexDist.end()));
+    }
+    return ret;
+}
+
+template<typename T>
 std::vector<AGTest >
 CreateAGTests(const DistTensor<T>& A, const Params& args){
     std::vector<AGTest > ret;
@@ -315,49 +354,65 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<AGTest> agTests = CreateAGTests(A, args);
     std::vector<RSTest> rsTests = CreateRSTests(A, args);
     std::vector<PRSTest> prsTests = CreatePRSTests(A, args);
+    std::vector<PTest> pTests = CreatePTests(A, args);
 
-    if(commRank == 0){
-        printf("Performing AllGather tests\n");
-    }
-    for(int i = 0; i < agTests.size(); i++){
-        AGTest thisTest = agTests[i];
-        int agIndex = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
+//    if(commRank == 0){
+//        printf("Performing AllGather tests\n");
+//    }
+//    for(int i = 0; i < agTests.size(); i++){
+//        AGTest thisTest = agTests[i];
+//        int agIndex = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//        if(commRank == 0){
+//            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
+//        }
+//        TestAGRedist(A, agIndex, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing PartialReduceScatter tests\n");
+//    }
+//    for(int i = 0; i < prsTests.size(); i++){
+//        PRSTest thisTest = prsTests[i];
+//        int rsIndex = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//        if(commRank == 0){
+//            printf("Partial reduce-scattering index %d with resulting distribution %s\n", rsIndex, (tmen::TensorDistToString(resDist)).c_str());
+//        }
+//        TestPRSRedist(A, rsIndex, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing ReduceScatter tests\n");
+//    }
+//    for(int i = 0; i < rsTests.size(); i++){
+//        RSTest thisTest = rsTests[i];
+//        int reduceIndex = thisTest.first.first;
+//        int scatterIndex = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        if(commRank == 0){
+//        printf(
+//                "Reducing index %d, scattering index %d, with resulting distribution %s\n",
+//                reduceIndex, scatterIndex,
+//                (tmen::TensorDistToString(resDist)).c_str());
+//        }
+//        TestRSRedist(A, reduceIndex, scatterIndex, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing Permutation tests\n");
+//    }
+
+    for(int i = 0; i < pTests.size(); i++){
+        PTest thisTest = pTests[i];
+        int permuteIndex = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
+
         if(commRank == 0){
-            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
+            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
         }
-        TestAGRedist(A, agIndex, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing PartialReduceScatter tests\n");
-    }
-    for(int i = 0; i < prsTests.size(); i++){
-        PRSTest thisTest = prsTests[i];
-        int rsIndex = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
-        if(commRank == 0){
-            printf("Partial reduce-scattering index %d with resulting distribution %s\n", rsIndex, (tmen::TensorDistToString(resDist)).c_str());
-        }
-        TestPRSRedist(A, rsIndex, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing ReduceScatter tests\n");
-    }
-    for(int i = 0; i < rsTests.size(); i++){
-        RSTest thisTest = rsTests[i];
-        int reduceIndex = thisTest.first.first;
-        int scatterIndex = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        if(commRank == 0){
-        printf(
-                "Reducing index %d, scattering index %d, with resulting distribution %s\n",
-                reduceIndex, scatterIndex,
-                (tmen::TensorDistToString(resDist)).c_str());
-        }
-        TestRSRedist(A, reduceIndex, scatterIndex, resDist);
+        TestPRedist(A, permuteIndex, resDist);
     }
 }
 
@@ -368,7 +423,7 @@ main( int argc, char* argv[] )
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
     const Int commSize = mpi::CommSize( comm );
-    //printf("My Rank: %d\n", commRank);
+    printf("My Rank: %d\n", commRank);
     try
     {
         Params args;
@@ -386,6 +441,11 @@ main( int argc, char* argv[] )
             for(int i = 1; i < args.gridOrder; i++)
                 printf(" x %d", args.gridShape[i]);
             printf(" grid\n");
+
+            printf("Creating [%d", args.tensorShape[0]);
+            for(int i = 1; i < args.tenOrder; i++)
+                printf(", %d", args.tensorShape[i]);
+            printf("] tensor\n");
         }
 
         const Grid g( comm, args.gridOrder, args.gridShape );

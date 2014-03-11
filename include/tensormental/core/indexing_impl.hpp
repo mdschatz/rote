@@ -220,6 +220,33 @@ inline Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& st
 	return LinearIndex_(index, strides);
 }
 
+inline std::vector<Int> LinearLoc2Loc_(const int linearLoc, const std::vector<int>& shape, const std::vector<int>& permutation)
+{
+    const std::vector<int> permutedShape = FilterVector(shape, permutation);
+    const std::vector<int> strides = Dimensions2Strides(permutedShape);
+    const int order = strides.size();
+    std::vector<Int> ret(order);
+
+    int remainder = linearLoc;
+    for(int i = order - 1; i >= 0; i--){
+        const int indexLoc = remainder / strides[i];
+        ret[permutation[i]] = indexLoc;
+        remainder -= indexLoc * strides[i];
+    }
+    return ret;
+}
+
+inline std::vector<Int> LinearLoc2Loc(const int linearLoc, const std::vector<int>& shape, const std::vector<int>& permutation)
+{
+    if(shape.size() != permutation.size())
+        LogicError("Shape and Permutation orders differ.");
+    if(shape.size() == 0 && linearLoc != 0)
+        LogicError("Combination of linearIndex=0 and strides incompatible");
+    if(linearLoc < 0)
+        LogicError( "Linear index must be >= 0");
+    return LinearLoc2Loc_(linearLoc, shape, permutation);
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_IMPL_HPP

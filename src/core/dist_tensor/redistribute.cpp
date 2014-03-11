@@ -17,6 +17,57 @@
 namespace tmen{
 
 template <typename T>
+void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex){
+    if(!CheckPermutationRedist(B, A, permuteIndex))
+            LogicError("PermutationRedist: Invalid redistribution request");
+
+        int sendSize, recvSize;
+        DeterminePermCommunicateDataSize(B, A, permuteIndex, recvSize, sendSize);
+        const mpi::Comm comm = A.GetCommunicator(permuteIndex);
+        const int myRank = mpi::CommRank(comm);
+
+        Memory<T> auxMemory;
+        T* auxBuf = auxMemory.Require(sendSize + recvSize);
+        MemZero(&(auxBuf[0]), sendSize + recvSize);
+        T* sendBuf = &(auxBuf[0]);
+        T* recvBuf = &(auxBuf[sendSize]);
+
+        PackPermutationSendBuf(B, A, permuteIndex, sendBuf);
+
+        const GridView gvA = A.GridView();
+        const GridView gvB = B.GridView();
+
+        const ModeDistribution permuteIndexDistA = A.IndexDist(permuteIndex);
+        const ModeDistribution permuteIndexDistB = B.IndexDist(permuteIndex);
+
+        ModeDistribution gridModesUsed(permuteIndexDistB);
+        std::sort(gridModesUsed.begin(), gridModesUsed.end());
+
+        const std::vector<int> gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
+        const std::vector<int> gridSliceStridesA = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteIndexDistA));
+        const std::vector<int> gridSliceStridesB = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteIndexDistB));
+
+        const std::vector<int> permA = DeterminePermutation(gridModesUsed, permuteIndexDistA);
+        const std::vector<int> permB = DeterminePermutation(gridModesUsed, permuteIndexDistB);
+
+        //Determine sendRank
+        const std::vector<int> sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
+        const int sendRank = LinearIndex(FilterVector(sendLoc, permA), gridSliceStridesA);
+
+        //Determine recvRank
+        const std::vector<int> myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
+        const int recvLinearLoc = LinearIndex(FilterVector(myLoc, permB), gridSliceStridesB);
+        const std::vector<int> recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
+        const int recvRank = LinearIndex(FilterVector(recvLoc, permA), gridSliceStridesA);
+
+        printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
+        mpi::SendRecv(sendBuf, sendSize, sendRank,
+                      recvBuf, recvSize, recvRank, comm);
+
+        UnpackPermutationRecvBuf(recvBuf, permuteIndex, A, B);
+}
+
+template <typename T>
 void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex){
     if(!CheckPartialReduceScatterRedist(B, A, reduceScatterIndex))
         LogicError("PartialReduceScatterRedist: Invalid redistribution request");
@@ -90,7 +141,8 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 }
 
 #define PROTO(T) \
-	template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex); \
+    template void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex); \
+    template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
 

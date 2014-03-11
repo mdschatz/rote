@@ -91,6 +91,21 @@ bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2)
   return false;
 }
 
+template<typename T>
+bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2){
+    if(vec1.size() != vec2.size())
+        tmen::LogicError("Vector Permutation check must have same sized vectors");
+
+    for(int i = 0; i < vec1.size(); i++){
+        if(std::find(vec2.begin(), vec2.end(), vec1[i]) == vec2.end())
+            LogicError("EqualUnderPermutation: element in vec1 not found in vec2");
+    }
+    for(int i = 0; i < vec2.size(); i++){
+        if(std::find(vec1.begin(), vec1.end(), vec2[i]) == vec1.end())
+            LogicError("EqualUnderPermutation: element in vec2 not found in vec1");
+    }
+    return true;
+}
 
 template<typename T>
 std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter){
@@ -105,7 +120,20 @@ std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& f
 	return ret;
 }
 
+template<typename T>
+std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
+    if(ref.size() != vec.size())
+        LogicError("reference vector and permuted vector are of different sizes");
+    std::vector<T> ret(ref.size());
+    typename std::vector<T>::const_iterator begin = ref.begin();
+    typename std::vector<T>::const_iterator end = ref.end();
 
+    for(int i = 0; i < vec.size(); i++){
+        ret[i] = std::find(begin, end, vec[i]) - begin;
+    }
+
+    return ret;
+}
 
 #define PROTO(T) \
 	template T prod(const std::vector<T>& src, const int startIndex); \
@@ -118,7 +146,9 @@ std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& f
 	template bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
+	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter); \
+	template std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 PROTO(int)
 PROTO(float)

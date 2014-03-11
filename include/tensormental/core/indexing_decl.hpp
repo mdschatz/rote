@@ -41,6 +41,9 @@ std::vector<Int> Dimensions2Strides_(const std::vector<Int>& dimensions);
 Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& strides);
 Int LinearIndex_(const std::vector<Int>& index, const std::vector<Int>& strides);
 
+std::vector<Int> LinearLoc2Loc(const int linearLoc, const std::vector<Int>& shape, const std::vector<int>& permutation);
+std::vector<Int> LinearLoc2Loc_(const int linearLoc, const std::vector<Int>& shape, const std::vector<int>& permutation);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_DECL_HPP

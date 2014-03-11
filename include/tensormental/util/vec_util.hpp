@@ -47,7 +47,13 @@ template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
 std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
+
+template<typename T>
+std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 } // namespace tmen
 
