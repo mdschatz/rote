@@ -13,6 +13,7 @@
 #include "tensormental/core/error_decl.hpp"
 #include <stdlib.h>
 #include <stdio.h>
+#include <regex>
 
 namespace tmen {
 
@@ -60,11 +61,13 @@ ModeDistToString( const ModeDistribution& distribution )
     return str;
 }
 
+//TODO: Figure out how to error check these without C++11
 inline TensorDistribution
 StringToTensorDist( const std::string& s )
 {
     TensorDistribution distribution;
 
+    printf("%s\n", s.c_str());
     size_t pos, lastPos;
     pos = s.find_first_of("[");
     lastPos = s.find_first_of("]");
@@ -88,13 +91,14 @@ StringToModeDist( const std::string& s)
 	lastPos = s.find_first_of(")");
 	if(pos != 0 || lastPos != s.size() - 1)
 		LogicError("Malformed mode distribution string");
-	pos = s.find_first_not_of("(, ", pos);
+	pos = s.find_first_not_of("(,)", pos);
 	while(pos != std::string::npos){
-		lastPos = s.find_first_of(", )", pos);
-		distribution.push_back(atoi(s.substr(pos, lastPos - pos + 1).c_str()));
-		pos = s.find_first_not_of(", )", lastPos+1);
+		lastPos = s.find_first_of(",)", pos);
+		distribution.push_back(atoi(s.substr(pos, lastPos - pos).c_str()));
+		pos = s.find_first_not_of("(,)", lastPos+1);
 	}
 	return distribution;
+
 }
 
 } // namespace distribution_wrapper
