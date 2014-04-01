@@ -56,7 +56,7 @@ inline void
 GridView::SetupGridView()
 {
 #ifndef RELEASE
-    CallStackEntry entry("GridView::SetUpGridView");
+    CallStackEntry entry("GridView::SetupGridView");
 #endif
     int i;
     Unsigned j;
@@ -71,7 +71,6 @@ GridView::SetupGridView()
     	shape_[i] = gridViewDim;
     }
     SetMyGridViewLoc();
-
 }
 
 inline
@@ -133,6 +132,19 @@ GridView::ModeWrapStride(int mode) const
         LogicError( msg.str() );
     }
     return shape_[mode];
+}
+
+inline
+TensorDistribution
+GridView::Distribution() const
+{
+	return dist_;
+}
+
+inline
+const tmen::Grid* GridView::Grid() const
+{
+	return grid_;
 }
 
 inline

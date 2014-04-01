@@ -60,7 +60,7 @@ void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int permu
         const std::vector<int> recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
         const int recvRank = LinearIndex(FilterVector(recvLoc, permA), gridSliceStridesA);
 
-        printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
+        //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
         mpi::SendRecv(sendBuf, sendSize, sendRank,
                       recvBuf, recvSize, recvRank, comm);
 
@@ -75,7 +75,6 @@ void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
     int sendSize, recvSize;
     DeterminePartialRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
     const mpi::Comm comm = A.GetCommunicator(reduceScatterIndex);
-    const int myRank = mpi::CommRank(comm);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -99,7 +98,6 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int red
     int sendSize, recvSize;
     DetermineRSCommunicateDataSize(B, A, reduceIndex, recvSize, sendSize);
     const mpi::Comm comm = A.GetCommunicator(reduceIndex);
-    const int myRank = mpi::CommRank(comm);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -140,12 +138,69 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 	//Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
+template <typename T>
+void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups){
+    if(!CheckAllToAllDoubleIndexRedist(B, A, a2aIndices, a2aCommGroups))
+        LogicError("AllToAllSingleIndexRedist: Invalid redistribution request");
+
+    int sendSize, recvSize;
+
+    std::vector<int> commModes = a2aCommGroups.first;
+    commModes.insert(commModes.end(), a2aCommGroups.second.begin(), a2aCommGroups.second.end());
+    std::sort(commModes.begin(), commModes.end());
+
+    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
+    DetermineA2ADoubleIndexCommunicateDataSize(B, A, a2aIndices, a2aCommGroups, recvSize, sendSize);
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    PackA2ADoubleIndexSendBuf(B, A, a2aIndices, a2aCommGroups, sendBuf);
+
+    mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
+
+    UnpackA2ADoubleIndexRecvBuf(recvBuf, a2aIndices, commModes, A, B);
+}
+
+template <typename T>
+void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
+//NOTE: All2All is valid if both distributions are valid
+//	if(!CheckAllToAllRedist(B, A))
+//		LogicError("AllToAllRedist: Invalid redistribution request");
+
+	int sendSize, recvSize;
+	//Figure out which modes we have to communicate along (to save some pain)
+	const std::vector<int> commModes = DetermineA2ACommunicateModes(B, A);
+//	DetermineA2ACommunicateDataSize(B, A, recvSize, sendSize);
+//	//Get one big communicator for the modes we need to communicate along
+//	const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
+//
+//	Memory<T> auxMemory;
+//	T* auxBuf = auxMemory.Require(sendSize + recvSize);
+//	MemZero(&(auxBuf[0]), sendSize + recvSize);
+//
+//	T* sendBuf = &(auxBuf[0]);
+//	T* recvBuf = &(auxBuf[sendSize]);
+//
+//	//printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
+//	PackA2ASendBuf(B, A, sendBuf);
+//
+//	//printf("Allgathering %d elements\n", sendSize);
+//	mpi::AllToAll(sendBuf, sendSize, recvBuf, sendSize, comm);
+//
+//	UnpackA2ARecvBuf(recvBuf, A, B);
+}
+
 #define PROTO(T) \
     template void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex); \
     template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex); \
-	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
-
+	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex); \
+	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups);
 PROTO(int)
 PROTO(float)
 PROTO(double)

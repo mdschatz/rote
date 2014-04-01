@@ -36,12 +36,19 @@ int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, con
 template<typename T>
 int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
 
+template<typename T>
+int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups);
+
 //template<typename T>
 //int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index, const std::vector<int>& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
-int CheckAllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
+int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index);
+
+
+template<typename T>
+int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
 
 /////////////////
 //Redist routines
@@ -59,12 +66,18 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int red
 template<typename T>
 void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
 
+template<typename T>
+void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups);
+
 //template<typename T>
 //void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, const std::vector<int>& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
 void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
+
+template<typename T>
+void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_DECL_HPP

@@ -365,55 +365,18 @@ DistTensor<T>::Get( const std::vector<Int>& index ) const
     CallStackEntry entry("[MC,MR]::Get");
     this->AssertValidEntry( index );
 #endif
-    const Int owningProc = this->DetermineLinearIndexOwner(index);
-    mpi::Comm comm;
+    const std::vector<Int> owningProc = this->DetermineOwner(index);
 
     const tmen::GridView& gv = this->GridView();
-    int myLinearRank = gv.LinearRank();
-
-    const tmen::Grid& g = this->Grid();
-    //Form the commColor based on modes of grid not represented in distribution
-    const int gridOrder = g.Order();
-    std::vector<int> commColorVec(gridOrder);
-    for(int i = 0; i < gridOrder; i++)
-        commColorVec[i] = i;
-
-    const TensorDistribution& thisDist = this->dist_;
-    for(int i = 0; i < thisDist.size(); i++){
-        const ModeDistribution& mDist = thisDist[i];
-        for(int j = 0; j < mDist.size(); j++){
-            commColorVec.erase(std::find(commColorVec.begin(), commColorVec.end(), mDist[j]));
-        }
-    }
-
-    const std::vector<int> physGridSlice = FilterVector(g.Shape(), commColorVec);
-    const std::vector<int> physGridSliceLoc = FilterVector(g.Loc(), commColorVec);
-    const std::vector<int> physGridStrides = Dimensions2Strides(physGridSlice);
-
-    const int commColor = LinearIndex(physGridSliceLoc, physGridStrides);
-    const int commKey = myLinearRank;
-
-    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
 
     T u;
-    if(gv.LinearRank() == owningProc){
+    if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
     	u = this->GetLocal(localLoc);
-
-/*
-    	printf("GlobalIndex: [%d", index[0]);
-    	for(int i = 1; i < index.size(); i++){
-    	    printf(", %d", index[i]);
-    	}
-    	printf("] at ");
-    	printf("LocalIndex: [%d", localLoc[0]);
-    	for(int i = 1; i < localLoc.size(); i++)
-    	    printf(", %d", localLoc[i]);
-    	printf("]\n");
-*/
     }
 
-    mpi::Broadcast( u, owningProc, comm);
+    const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
+    mpi::Broadcast( u, ownerLinearLoc, mpi::COMM_WORLD);
     return u;
 }
 
@@ -425,10 +388,10 @@ DistTensor<T>::Set( const std::vector<Int>& index, T u )
     CallStackEntry entry("[MC,MR]::Set");
     this->AssertValidEntry( index );
 #endif
-    const Int owningProc = this->DetermineLinearIndexOwner(index);
+    const std::vector<Int> owningProc = this->DetermineOwner(index);
+    const GridView gv = this->GridView();
 
-
-    if(this->Grid().LinearRank() == owningProc){
+    if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
         //std::ostringstream msg;
         /*
@@ -455,8 +418,9 @@ DistTensor<T>::Update( const std::vector<Int>& index, T u )
     CallStackEntry entry("[MC,MR]::Update");
     this->AssertValidEntry( index );
 #endif
-    const Int owningProc = this->DetermineLinearIndexOwner(index);
-    if(this->Grid().LinearRank() == owningProc){
+    const GridView gv = this->GridView();
+    const std::vector<Int> owningProc = this->DetermineOwner(index);
+    if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
     	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
     	this->UpdateLocal(localLoc, u);
     }

@@ -53,6 +53,9 @@ template<typename T>
 std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
 
 template<typename T>
+std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
+
+template<typename T>
 std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 } // namespace tmen

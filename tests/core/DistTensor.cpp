@@ -32,6 +32,7 @@ typedef std::pair< int, ModeDistribution> PTest;
 typedef std::pair< int, TensorDistribution> AGTest;
 typedef std::pair< int, TensorDistribution> PRSTest;
 typedef std::pair< std::pair<int, int>, TensorDistribution> RSTest;
+typedef std::pair< std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > >, TensorDistribution> A2ADITest;
 
 void ProcessInput(int argc,  char** const argv, Params& args){
     int argCount = 0;
@@ -123,6 +124,7 @@ TestPRedist( DistTensor<T>& A, int permuteIndex, const ModeDistribution& resDist
     BDist[A.ModeOfIndex(permuteIndex)] = resDist;
 
     DistTensor<T> B(A.Shape(), BDist, A.Indices(), g);
+    //Print(B, "B before permute redist");
     PermutationRedist(B, A, permuteIndex);
     Print(B, "B after permute redist");
 }
@@ -149,7 +151,6 @@ TestRSRedist(DistTensor<T>& A, int reduceIndex, int scatterIndex, const TensorDi
 #ifndef RELEASE
     CallStackEntry entry("TestRSRedist");
 #endif
-    const int redistMode = 0;
 
     const Grid& g = A.Grid();
     const GridView gv = A.GridView();
@@ -173,7 +174,6 @@ TestPRSRedist(DistTensor<T>& A, int reduceScatterIndex, const TensorDistribution
 #ifndef RELEASE
     CallStackEntry entry("TestRSRedist");
 #endif
-    const int redistMode = 0;
 
     const Grid& g = A.Grid();
     const GridView gv = A.GridView();
@@ -187,6 +187,22 @@ TestPRSRedist(DistTensor<T>& A, int reduceScatterIndex, const TensorDistribution
     PartialReduceScatterRedist(B, A, reduceScatterIndex);
 
     Print(B, "B after prs redist");
+}
+
+template<typename T>
+void
+TestA2ADIRedist(DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, const TensorDistribution& resDist){
+#ifndef RELEASE
+    CallStackEntry entry("TestA2ADIRedist");
+#endif
+
+    const Grid& g = A.Grid();
+
+    DistTensor<T> B(A.Shape(), resDist, A.Indices(), g);
+
+    A2ADoubleIndexRedist(B, A, a2aIndices, commGroups);
+
+    Print(B, "B after a2a redist");
 }
 
 template<typename T>
@@ -248,6 +264,32 @@ DetermineResultingDistributionPRS(const DistTensor<T>& A, int reduceScatterIndex
     TensorDistribution ret;
     const TensorDistribution ADist = A.TensorDist();
     ret = ADist;
+    return ret;
+}
+
+template<typename T>
+TensorDistribution
+DetermineResultingDistributionA2ADI(const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups){
+    TensorDistribution ret;
+
+    const int a2aIndex1 = a2aIndices.first;
+    const int a2aIndex2 = a2aIndices.second;
+
+    const int a2aIndex1Mode = A.ModeOfIndex(a2aIndex1);
+    const int a2aIndex2Mode = A.ModeOfIndex(a2aIndex2);
+
+    const std::vector<int> a2aIndex1CommGroup = commGroups.first;
+    const std::vector<int> a2aIndex2CommGroup = commGroups.second;
+
+    const TensorDistribution ADist = A.TensorDist();
+    ret = ADist;
+
+    ret[a2aIndex1Mode].erase(ret[a2aIndex1Mode].end() - a2aIndex1CommGroup.size(), ret[a2aIndex1Mode].end());
+    ret[a2aIndex2Mode].erase(ret[a2aIndex2Mode].end() - a2aIndex2CommGroup.size(), ret[a2aIndex2Mode].end());
+
+    ret[a2aIndex1Mode].insert(ret[a2aIndex1Mode].end(), a2aIndex2CommGroup.begin(), a2aIndex2CommGroup.end());
+    ret[a2aIndex2Mode].insert(ret[a2aIndex2Mode].end(), a2aIndex1CommGroup.begin(), a2aIndex1CommGroup.end());
+
     return ret;
 }
 
@@ -335,6 +377,43 @@ CreateRSTests(const DistTensor<T>& A, const Params& args){
 }
 
 template<typename T>
+std::vector<A2ADITest>
+CreateA2ADITests(const DistTensor<T>& A, const Params& args){
+    std::vector<A2ADITest> ret;
+
+    int i, j, k, l;
+    const int order = A.Order();
+
+    for(i = 0; i < order; i++){
+        for(j = i+1; j < order; j++){
+            //We can make a test
+            std::pair<int, int> indices(i, j);
+
+            ModeDistribution mode1Dist = A.ModeDist(i);
+            ModeDistribution mode2Dist = A.ModeDist(j);
+
+            //Pick the groups of modes to communicate over with the all to all
+
+            for(k = 0; k <= mode1Dist.size(); k++){
+                for(l = 0; l <= mode2Dist.size(); l++){
+                    std::vector<int> commGroup1(mode1Dist.end() - k, mode1Dist.end());
+                    std::vector<int> commGroup2(mode2Dist.end() - l, mode2Dist.end());
+
+                    std::pair<std::vector<int>, std::vector<int> > commGroups(commGroup1, commGroup2);
+                    TensorDistribution resDist = DetermineResultingDistributionA2ADI(A, indices, commGroups);
+
+                    std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > testParams(indices, commGroups);
+                    A2ADITest test(testParams, resDist);
+
+                    ret.push_back(test);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+template<typename T>
 void
 DistTensorTest( const Params& args, const Grid& g )
 {
@@ -355,6 +434,7 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<RSTest> rsTests = CreateRSTests(A, args);
     std::vector<PRSTest> prsTests = CreatePRSTests(A, args);
     std::vector<PTest> pTests = CreatePTests(A, args);
+    std::vector<A2ADITest> a2aTests = CreateA2ADITests(A, args);
 
 //    if(commRank == 0){
 //        printf("Performing AllGather tests\n");
@@ -403,16 +483,30 @@ DistTensorTest( const Params& args, const Grid& g )
 //    if(commRank == 0){
 //        printf("Performing Permutation tests\n");
 //    }
+//    for(int i = 0; i <= pTests.size(); i++){
+//        PTest thisTest = pTests[1];
+//        int permuteIndex = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
+//
+//        if(commRank == 0){
+//            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
+//        }
+//        TestPRedist(A, permuteIndex, resDist);
+//    }
 
-    for(int i = 0; i < pTests.size(); i++){
-        PTest thisTest = pTests[i];
-        int permuteIndex = thisTest.first;
-        ModeDistribution resDist = thisTest.second;
+    if(commRank == 0){
+        printf("Performing All-to-all (double index) tests\n");
+    }
+    for(int i = 0; i < a2aTests.size(); i++){
+        A2ADITest thisTest = a2aTests[i];
+        std::pair<int, int> indices = thisTest.first.first;
+        std::pair<std::vector<int>, std::vector<int> > commGroups = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
 
         if(commRank == 0){
-            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
+            printf("Performing all-to-all involving indices (%d, %d) from distribution %s to distribution %s\n", indices.first, indices.second, (tmen::TensorDistToString(A.TensorDist())).c_str(), (tmen::TensorDistToString(resDist)).c_str());
         }
-        TestPRedist(A, permuteIndex, resDist);
+        //TestA2ADIRedist(A, indices, commGroups, resDist);
     }
 }
 
@@ -458,21 +552,21 @@ main( int argc, char* argv[] )
         }
         DistTensorTest<int>( args, g );
 
-        if( commRank == 0 )
-        {
-            std::cout << "--------------------" << std::endl
-                      << "Testing with floats:" << std::endl
-                      << "--------------------" << std::endl;
-        }
-        DistTensorTest<float>( args, g );
-
-        if( commRank == 0 )
-        {
-            std::cout << "---------------------" << std::endl
-                      << "Testing with doubles:" << std::endl
-                      << "---------------------" << std::endl;
-        }
-        DistTensorTest<double>( args, g );
+//        if( commRank == 0 )
+//        {
+//            std::cout << "--------------------" << std::endl
+//                      << "Testing with floats:" << std::endl
+//                      << "--------------------" << std::endl;
+//        }
+//        DistTensorTest<float>( args, g );
+//
+//        if( commRank == 0 )
+//        {
+//            std::cout << "---------------------" << std::endl
+//                      << "Testing with doubles:" << std::endl
+//                      << "---------------------" << std::endl;
+//        }
+//        DistTensorTest<double>( args, g );
 
     }
     catch( std::exception& e ) { ReportException(e); }

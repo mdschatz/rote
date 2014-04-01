@@ -25,9 +25,6 @@ void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, cons
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
-    const int nModeProcs = 1;
-    const int pModeGlobalDim = B.Dimension(permuteModeB);
-
     const std::vector<Int> localShapeA = A.LocalShape(); //Shape of the local tensor we are packing
     const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
     const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
@@ -43,9 +40,9 @@ void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, cons
     const int copySliceSize = pModeLocalStride * pModeLocalDim;
     const int nMaxElemsPerProc = prod(maxLocalShapeB);
 
-    int procNum, wrapNum, sliceNum; //Which slice of which wrap of which process are we packing
-    int offSliceSendBuf, offWrapSendBuf;  //Offsets used to index into send buf
-    int offSliceDataBuf, offWrapDataBuf;  //Offsets used to index into data buf
+    int sliceNum; //Which slice of which wrap of which process are we packing
+    int offSliceSendBuf;  //Offsets used to index into send buf
+    int offSliceDataBuf;  //Offsets used to index into data buf
     int startSendBuf, startDataBuf;
 
     for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
@@ -199,11 +196,93 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
 //  std::cout << msg.str();
 }
 
+template <typename T>
+void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf){
+    const tmen::GridView gridView = A.GridView();
+
+    const std::vector<int> start(A.Order(), 0);
+    const T* dataBuf = A.LockedBuffer(start);
+
+    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvB = B.GridView();
+
+    int a2aMode1 = A.ModeOfIndex(a2aIndices.first);
+    int a2aMode2 = A.ModeOfIndex(a2aIndices.second);
+
+
+    std::vector<int> commGroup1 = commGroups.first;
+    std::vector<int> commGroup2 = commGroups.second;
+
+    std::vector<int> distAa2aMode1 = A.ModeDist(a2aMode1);
+    std::vector<int> distAa2aMode2 = A.ModeDist(a2aMode2);
+
+    std::vector<int> distBa2aMode1 = B.ModeDist(a2aMode1);
+    std::vector<int> distBa2aMode2 = B.ModeDist(a2aMode2);
+
+    //For convenience make sure that a2aMode1 is earlier in the packing
+    if(a2aMode1 > a2aMode2){
+        std::swap(a2aMode1, a2aMode2);
+        std::swap(commGroup1, commGroup2);
+    }
+
+    std::vector<int> commModes  = commGroup1;
+    commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
+
+    const int a2aMode2LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode2), gvB.ModeWrapStride(a2aMode2));
+    const int a2aMode1LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode1), gvB.ModeWrapStride(a2aMode1));
+
+    const int nRedistProcs = prod(FilterVector(gvA.Shape(), commModes));
+
+    const std::vector<Int> localShape = A.LocalShape();
+    std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvA.Shape());
+
+    const int a2aMode1LocalDim = A.LocalDimension(a2aMode1);
+    const int a2aMode1MaxLocalDim = maxLocalShapeB[a2aMode1];
+    const int a2aMode1LocalStride = A.LocalModeStride(a2aMode1);
+
+    const int a2aMode2LocalDim = A.LocalDimension(a2aMode2);
+    const int a2aMode2MaxLocalDim = maxLocalShapeB[a2aMode2];
+    const int a2aMode2LocalStride = A.LocalModeStride(a2aMode2);
+
+    const int nLocalSlices2 = Max(1, prod(localShape, a2aMode2 + 1));
+    const int nMaxSlices2 = Max(1, prod(maxLocalShapeB, a2aMode2 + 1));
+
+    //Slices1 only counts up to next a2aIndex
+    const int nLocalSlices1 = Max(1, prod(localShape, a2aMode1 + 1)) / nLocalSlices2 / a2aMode2LocalDim;
+    const int nMaxSlices1 = Max(1, prod(maxLocalShapeB, a2aMode1 + 1)) / nMaxSlices2 / a2aMode2MaxLocalDim;
+
+    const int copySliceSize = a2aMode1LocalStride * a2aMode1LocalDim;
+
+    int sliceNum1, sliceNum2;  //Which slice we are packing for indexK
+    int offSendBuf, offDataBuf;  //Offsets used to index into data arrays
+
+    int procNum;
+
+    offSendBuf = 0;
+    offDataBuf = 0;
+    for(procNum = 0; procNum < nRedistProcs; procNum++){
+        for(sliceNum2 = 0; sliceNum2 < nMaxSlices2; sliceNum2++){
+            if(sliceNum2 >= nLocalSlices2)
+                break;
+            offSendBuf += copySliceSize * a2aMode1LocalDim * nLocalSlices1;
+            offDataBuf += copySliceSize * a2aMode1LocalDim * nLocalSlices1 * a2aMode2LCM / a2aMode2LocalDim;
+            for(sliceNum1 = 0; sliceNum1 < nMaxSlices1; sliceNum1++){
+                if(sliceNum1 >= nLocalSlices1)
+                    break;
+                offSendBuf += copySliceSize;
+                offDataBuf += copySliceSize * a2aMode1LCM / a2aMode1LocalDim;
+                memcpy(&(sendBuf[offSendBuf]), &(dataBuf[offDataBuf]), copySliceSize);
+            }
+        }
+    }
+}
+
 #define PROTO(T) \
         template void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int permuteIndex, T * const sendBuf); \
 		template void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, T * const sendBuf); \
         template void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
         template void PackAGSendBuf(const DistTensor<T>& A, const int allGatherIndex, T * const sendBuf); \
+        template void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf);
 
 PROTO(int)
 PROTO(float)

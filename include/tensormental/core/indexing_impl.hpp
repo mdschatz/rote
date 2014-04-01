@@ -44,6 +44,22 @@ inline Int GCD_( Int a, Int b )
         return GCD_( b, a-b*(a/b) );
 }
 
+inline Int LCM(Int a, Int b)
+{
+#ifndef RELEASE
+    if( a < 0 || b < 0 )
+        LogicError("LCM called with negative argument");
+#endif
+    return LCM_(a, b);
+}
+
+inline Int LCM_( Int a, Int b )
+{
+    if(a == 0 || b == 0)
+        return 0;
+    return a*b/(GCD(a, b));
+}
+
 inline Int Length( Int n, Int shift, Int stride )
 {
 #ifndef RELEASE
@@ -220,31 +236,73 @@ inline Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& st
 	return LinearIndex_(index, strides);
 }
 
+//TODO: Clean up FilterVector with () as filter
 inline std::vector<Int> LinearLoc2Loc_(const int linearLoc, const std::vector<int>& shape, const std::vector<int>& permutation)
 {
-    const std::vector<int> permutedShape = FilterVector(shape, permutation);
-    const std::vector<int> strides = Dimensions2Strides(permutedShape);
-    const int order = strides.size();
-    std::vector<Int> ret(order);
-
+	const int order = shape.size();
+	std::vector<Int> ret(order);
     int remainder = linearLoc;
-    for(int i = order - 1; i >= 0; i--){
-        const int indexLoc = remainder / strides[i];
-        ret[permutation[i]] = indexLoc;
-        remainder -= indexLoc * strides[i];
+    if(permutation.size() == 0){
+        const std::vector<int> strides = Dimensions2Strides(shape);
+
+    	for(int i = order - 1; i >= 0; i--){
+    	        const int indexLoc = remainder / strides[i];
+    	        ret[i] = indexLoc;
+    	        remainder -= indexLoc * strides[i];
+        }
+    }else{
+        const std::vector<int> permutedShape = FilterVector(shape, permutation);
+        const std::vector<int> strides = Dimensions2Strides(permutedShape);
+
+		for(int i = order - 1; i >= 0; i--){
+			const int indexLoc = remainder / strides[i];
+			ret[permutation[i]] = indexLoc;
+			remainder -= indexLoc * strides[i];
+		}
     }
     return ret;
 }
 
 inline std::vector<Int> LinearLoc2Loc(const int linearLoc, const std::vector<int>& shape, const std::vector<int>& permutation)
 {
-    if(shape.size() != permutation.size())
+    if(permutation.size() > 0 && shape.size() != permutation.size())
         LogicError("Shape and Permutation orders differ.");
     if(shape.size() == 0 && linearLoc != 0)
         LogicError("Combination of linearIndex=0 and strides incompatible");
     if(linearLoc < 0)
         LogicError( "Linear index must be >= 0");
     return LinearLoc2Loc_(linearLoc, shape, permutation);
+}
+
+inline int GridViewLoc2GridLinearLoc(const std::vector<int>& gridViewLoc, const GridView& gridView){
+	if(gridViewLoc.size() != gridView.Order())
+		LogicError("Supplied loc must be same order as gridView");
+	return GridViewLoc2GridLinearLoc_(gridViewLoc, gridView);
+}
+
+
+inline int GridViewLoc2GridLinearLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView){
+
+	const int gvOrder = gridView.Order();
+	const TensorDistribution tensorDist = gridView.Distribution();
+
+	const tmen::Grid* grid = gridView.Grid();
+	const int gridOrder = grid->Order();
+	const std::vector<int> gridShape = grid->Shape();
+	Unsigned i, j;
+
+	std::vector<int> gridLoc(gridOrder);
+	for(i = 0; i < gvOrder; i++){
+
+		const ModeDistribution modeDist = tensorDist[i];
+		const std::vector<int> gridSlice = FilterVector(gridShape, modeDist);
+		std::vector<int> sliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSlice);
+
+		for(j = 0; j < sliceLoc.size(); j++){
+			gridLoc[modeDist[j]] = sliceLoc[j];
+		}
+	}
+	return LinearIndex(gridLoc, Dimensions2Strides(gridShape));
 }
 
 } // namespace tmen

@@ -33,5 +33,8 @@ void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>&
 template <typename T>
 void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize);
 
+template <typename T>
+void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommModes, int& recvSize, int& sendSize);
+
 }
 #endif // ifndef TMEN_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP

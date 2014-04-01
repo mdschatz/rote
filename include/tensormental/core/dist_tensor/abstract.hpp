@@ -119,6 +119,7 @@ public:
     std::vector<Int> GridViewLoc() const;
     std::vector<Int> GridViewShape() const;
     mpi::Comm GetCommunicator(int index) const;
+    mpi::Comm GetCommunicatorForModes(const std::vector<int>& modes) const;
     void Empty();
     void EmptyData();
     void SetGrid( const tmen::Grid& grid );
@@ -156,7 +157,7 @@ public:
     //
     // Entry manipulation
     //
-    virtual Int DetermineLinearIndexOwner(const std::vector<Int>& index) const;
+    virtual std::vector<Int> DetermineOwner(const std::vector<Int>& index) const;
     virtual std::vector<Int> Global2LocalIndex(const std::vector<Int>& index) const;
     virtual T Get( const std::vector<Int>& index ) const = 0;
     virtual void Set( const std::vector<Int>& index, T alpha ) = 0;

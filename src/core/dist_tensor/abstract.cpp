@@ -594,6 +594,24 @@ AbstractDistTensor<T>::GetCommunicator(int index) const
 	return comm;
 }
 
+template<typename T>
+mpi::Comm
+AbstractDistTensor<T>::GetCommunicatorForModes(const std::vector<int>& commModes) const
+{
+    mpi::Comm comm;
+
+    std::vector<Int> gridViewShapeSlice = FilterVector(this->GridViewShape(), commModes);
+    std::vector<Int> gridViewNegShapeSlice = NegFilterVector(this->GridViewShape(), commModes);
+    std::vector<Int> gridViewLocSlice = FilterVector(this->GridViewLoc(), commModes);
+    std::vector<Int> gridViewNegLocSlice = NegFilterVector(this->GridViewLoc(), commModes);
+
+    const int commKey = LinearIndex(gridViewLocSlice, Dimensions2Strides(gridViewShapeSlice));
+    const int commColor = LinearIndex(gridViewNegLocSlice, Dimensions2Strides(gridViewNegShapeSlice));
+
+    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+    return comm;
+}
+
 //TODO: Figure out how to clear grid and gridView
 template<typename T>
 void
@@ -724,8 +742,8 @@ AbstractDistTensor<T>::ComplainIfReal() const
 }
 
 template<typename T>
-Int
-AbstractDistTensor<T>::DetermineLinearIndexOwner(const std::vector<Int>& index) const
+std::vector<Int>
+AbstractDistTensor<T>::DetermineOwner(const std::vector<Int>& index) const
 {
 #ifndef RELEASE
     CallStackEntry entry("AbstractDistTensor::DetermineLinearIndexOwner");
@@ -737,8 +755,7 @@ AbstractDistTensor<T>::DetermineLinearIndexOwner(const std::vector<Int>& index) 
     for(Int i = 0; i < gv.Order(); i++){
     	ownerLoc[i] = (index[i] + this->ModeAlignment(i)) % this->ModeStride(i);
     }
-
-    return LinearIndex(ownerLoc, Dimensions2Strides(gv.Shape()));
+    return ownerLoc;
 }
 
 template<typename T>

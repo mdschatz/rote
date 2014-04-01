@@ -121,6 +121,22 @@ std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& f
 }
 
 template<typename T>
+std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<int>& filter){
+    int i;
+    std::vector<T> ret;
+    std::vector<int> sortedFilter = filter;
+    std::sort(sortedFilter.begin(), sortedFilter.end());
+    int whichFilter = 0;
+    for(i = 0; i < vec.size(); i++){
+        if(whichFilter >= sortedFilter.size() || i != sortedFilter[whichFilter])
+            ret.push_back(vec[i]);
+        else
+            whichFilter++;
+    }
+    return ret;
+}
+
+template<typename T>
 std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
     if(ref.size() != vec.size())
         LogicError("reference vector and permuted vector are of different sizes");
@@ -148,7 +164,8 @@ std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter); \
-	template std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
+	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<int>& filter); \
+    template std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 PROTO(int)
 PROTO(float)

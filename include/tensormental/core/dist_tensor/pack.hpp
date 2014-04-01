@@ -37,6 +37,9 @@ void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int red
 template <typename T>
 void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf);
 
+template <typename T>
+void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf);
+
 ////////////////////
 ///  Unpack routines
 ////////////////////
@@ -53,6 +56,9 @@ void UnpackRSRecvBuf(const T* const recvBuf, const Int reduceIndex,
 
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);
+
+template <typename T>
+void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, int>& a2aIndices, const std::vector<int>& commModes, const DistTensor<T>& A, DistTensor<T>& B);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_UTIL_DECL_HPP

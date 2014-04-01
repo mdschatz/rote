@@ -15,6 +15,7 @@
 
 namespace tmen{
 
+//TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
 int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex){
     int i;
@@ -209,11 +210,32 @@ int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>&
 }
 
 
+template <typename T>
+int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups){
+    if(A.Order() != B.Order())
+        LogicError("CheckAllToAllDoubleIndexRedist: Objects being redistributed must be of same order");
+
+    int order = A.Order();
+    std::vector<Int> AIndices = A.Indices();
+    std::vector<Int> BIndices = B.Indices();
+
+    std::vector<int> foundIndices(order, 0);
+    for(int i = 0; i < order; i++){
+        if(std::find(BIndices.begin(), BIndices.end(), AIndices[i]) != BIndices.end())
+            foundIndices[i] = 1;
+    }
+
+    if(AnyZeroElem(foundIndices)){
+        LogicError("CheckAllToAllDoubleIndexRedist: Objects being redistributed must represent same indices");
+    }
+}
+
 #define PROTO(T) \
         template int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex); \
         template int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex); \
 		template int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int reduceIndex, const int scatterIndex); \
 		template int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const int allGatherIndex); \
+		template int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups);
 
 
 PROTO(int)
