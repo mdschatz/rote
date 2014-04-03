@@ -206,9 +206,10 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
+    const tmen::Grid& g = A.Grid();
+
     int a2aMode1 = A.ModeOfIndex(a2aIndices.first);
     int a2aMode2 = A.ModeOfIndex(a2aIndices.second);
-
 
     std::vector<int> commGroup1 = commGroups.first;
     std::vector<int> commGroup2 = commGroups.second;
@@ -228,10 +229,24 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     std::vector<int> commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
 
+    std::vector<int> nonCommModes;
+    for(int i = 0; i < g.Order(); i++){
+        if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
+            nonCommModes.push_back(i);
+        }
+    }
+
+    std::vector<int> myGridLoc = g.Loc();
+    std::vector<int> gridShape = g.Shape();
+
     const int a2aMode2LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode2), gvB.ModeWrapStride(a2aMode2));
     const int a2aMode1LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode1), gvB.ModeWrapStride(a2aMode1));
 
-    const int nRedistProcs = prod(FilterVector(gvA.Shape(), commModes));
+    const int a2aMode2PackWrapStride = a2aMode2LCM / gvA.ModeWrapStride(a2aMode2);
+    const int a2aMode1PackWrapStride = a2aMode1LCM / gvA.ModeWrapStride(a2aMode1);
+
+    const int nRedistProcs = prod(FilterVector(g.Shape(), commModes));
+    const std::vector<Int> gridCommModeSliceShape = FilterVector(g.Shape(), commModes);
 
     const std::vector<Int> localShape = A.LocalShape();
     std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvA.Shape());
@@ -244,37 +259,76 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     const int a2aMode2MaxLocalDim = maxLocalShapeB[a2aMode2];
     const int a2aMode2LocalStride = A.LocalModeStride(a2aMode2);
 
-    const int nLocalSlices2 = Max(1, prod(localShape, a2aMode2 + 1));
-    const int nMaxSlices2 = Max(1, prod(maxLocalShapeB, a2aMode2 + 1));
+    const int nLocalSlices2 = Max(1, prod(localShape, a2aMode2)) / a2aMode2PackWrapStride;
+    const int nMaxSlices2 = Max(1, prod(maxLocalShapeB, a2aMode2)) / a2aMode2PackWrapStride;
 
     //Slices1 only counts up to next a2aIndex
-    const int nLocalSlices1 = Max(1, prod(localShape, a2aMode1 + 1)) / nLocalSlices2 / a2aMode2LocalDim;
-    const int nMaxSlices1 = Max(1, prod(maxLocalShapeB, a2aMode1 + 1)) / nMaxSlices2 / a2aMode2MaxLocalDim;
+    const int nLocalSlices1 = Max(1, prod(localShape, a2aMode1)) / prod(localShape, a2aMode2) / a2aMode1PackWrapStride;
+    const int nMaxSlices1 = Max(1, prod(maxLocalShapeB, a2aMode1)) / prod(maxLocalShapeB, a2aMode2) / a2aMode1PackWrapStride;
 
-    const int copySliceSize = a2aMode1LocalStride * a2aMode1LocalDim;
+    const int copySliceSize = a2aMode1LocalStride;
 
     int sliceNum1, sliceNum2;  //Which slice we are packing for indexK
-    int offSendBuf, offDataBuf;  //Offsets used to index into data arrays
+    int offSendBufSlice2, offDataBufSlice2;  //Offsets used to index into data arrays
+    int offSendBufSlice1, offDataBufSlice1;  //Offsets used to index into data arrays
+    int offSendBufProc, offDataBufProc;
+    int startSendBuf, startDataBuf;
 
     int procNum;
 
-    offSendBuf = 0;
-    offDataBuf = 0;
     for(procNum = 0; procNum < nRedistProcs; procNum++){
+        offSendBufProc = copySliceSize * nMaxSlices1 * nMaxSlices2 * procNum;
+        //FIX THIS: offDataBufProc should reset to the process's initial offset
+        //1. Convert procNum to multi-index (relative to gridSlice in commModes)
+        //2. Determine multi-index in global grid, not commGrid (remaining indices are shared by all processes in this comm)
+        //3. Convert global multiloc to local multiloc
+        //4. Convert local multiloc to linear loc and that is the offDataBufProc offset
+
+        //1.
+        std::vector<int> procCommModesLoc = LinearLoc2Loc(procNum, gridCommModeSliceShape);
+        std::vector<int> procGridLoc(myGridLoc);
+        for(int i = 0; i < commModes.size(); i++){
+            procGridLoc[commModes[i]] = procCommModesLoc[i];
+        }
+        //2 Convert gridLoc to gridViewLoc (thereby getting the global loc (NOTE: Should change to use alignment value instead)
+        std::vector<int> procGridViewLoc = GridLoc2GridViewLoc(procGridLoc, gridShape, B.TensorDist());
+
+        //3.
+        std::vector<int> localLoc = A.Global2LocalIndex(procGridViewLoc);
+
+        //4.
+        offDataBufProc = LinearIndex(localLoc, Dimensions2Strides(localShape));
+
         for(sliceNum2 = 0; sliceNum2 < nMaxSlices2; sliceNum2++){
             if(sliceNum2 >= nLocalSlices2)
                 break;
-            offSendBuf += copySliceSize * a2aMode1LocalDim * nLocalSlices1;
-            offDataBuf += copySliceSize * a2aMode1LocalDim * nLocalSlices1 * a2aMode2LCM / a2aMode2LocalDim;
+            offSendBufSlice2 = copySliceSize * nMaxSlices1 * sliceNum2;
+            offDataBufSlice2 = copySliceSize * nLocalSlices1 * a2aMode1PackWrapStride * a2aMode2PackWrapStride * sliceNum2;
             for(sliceNum1 = 0; sliceNum1 < nMaxSlices1; sliceNum1++){
                 if(sliceNum1 >= nLocalSlices1)
                     break;
-                offSendBuf += copySliceSize;
-                offDataBuf += copySliceSize * a2aMode1LCM / a2aMode1LocalDim;
-                memcpy(&(sendBuf[offSendBuf]), &(dataBuf[offDataBuf]), copySliceSize);
+                offSendBufSlice1 = copySliceSize * sliceNum1;
+                offDataBufSlice1 = copySliceSize * a2aMode1PackWrapStride * sliceNum1;
+                startSendBuf = offSendBufProc + offSendBufSlice2 + offSendBufSlice1;
+                startDataBuf = offDataBufProc + offDataBufSlice2 + offDataBufSlice1;
+                printf("copying to sendBuf[%d]: %d from dataBuf[%d]: %d\n", startSendBuf, sendBuf[startSendBuf], startDataBuf, dataBuf[startDataBuf]);
+                MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+                printf("after copy to sendBuf[%d]: %d\n", startSendBuf, sendBuf[startSendBuf]);
             }
         }
     }
+
+    printf("dataBuf:");
+    for(int i = 0; i < prod(localShape); i++){
+        printf(" %d", dataBuf[i]);
+    }
+    printf("\n");
+
+    printf("Packed sendBuf:");
+    for(int i = 0; i < prod(maxLocalShapeB); i++){
+        printf(" %d", sendBuf[i]);
+    }
+    printf("\n");
 }
 
 #define PROTO(T) \

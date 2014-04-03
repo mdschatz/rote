@@ -21,21 +21,24 @@ namespace tmen {
 inline void
 GridView::SetMyGridViewLoc( )
 {
-	int i;
-	const int order = this->Order();
+
+//	int i;
+//	const int order = this->Order();
 	const std::vector<Int> gridShape = grid_->Shape();
 	const std::vector<Int> gridLoc = grid_->Loc();
 
-	for(i = 0; i < order; i++){
-		ModeDistribution modeDist = dist_[i];
-		std::vector<Int> gridSliceLoc(modeDist.size());
-		std::vector<Int> gridSliceShape(modeDist.size());
-
-		gridSliceLoc = FilterVector(gridLoc, modeDist);
-		gridSliceShape = FilterVector(gridShape, modeDist);
-
-		loc_[i] = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
-	}
+	loc_ = GridLoc2GridViewLoc(gridLoc, gridShape, this->Distribution());
+//
+//	for(i = 0; i < order; i++){
+//		ModeDistribution modeDist = dist_[i];
+//		std::vector<Int> gridSliceLoc(modeDist.size());
+//		std::vector<Int> gridSliceShape(modeDist.size());
+//
+//		gridSliceLoc = FilterVector(gridLoc, modeDist);
+//		gridSliceShape = FilterVector(gridShape, modeDist);
+//
+//		loc_[i] = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
+//	}
 }
 
 inline

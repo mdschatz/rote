@@ -200,7 +200,7 @@ TestA2ADIRedist(DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const s
 
     DistTensor<T> B(A.Shape(), resDist, A.Indices(), g);
 
-    A2ADoubleIndexRedist(B, A, a2aIndices, commGroups);
+    AllToAllDoubleIndexRedist(B, A, a2aIndices, commGroups);
 
     Print(B, "B after a2a redist");
 }
@@ -399,6 +399,9 @@ CreateA2ADITests(const DistTensor<T>& A, const Params& args){
                     std::vector<int> commGroup1(mode1Dist.end() - k, mode1Dist.end());
                     std::vector<int> commGroup2(mode2Dist.end() - l, mode2Dist.end());
 
+                    //No communication happens for this "redistribution"
+                    if(commGroup1.size() == 0 && commGroup2.size() == 0)
+                        continue;
                     std::pair<std::vector<int>, std::vector<int> > commGroups(commGroup1, commGroup2);
                     TensorDistribution resDist = DetermineResultingDistributionA2ADI(A, indices, commGroups);
 
@@ -506,7 +509,7 @@ DistTensorTest( const Params& args, const Grid& g )
         if(commRank == 0){
             printf("Performing all-to-all involving indices (%d, %d) from distribution %s to distribution %s\n", indices.first, indices.second, (tmen::TensorDistToString(A.TensorDist())).c_str(), (tmen::TensorDistToString(resDist)).c_str());
         }
-        //TestA2ADIRedist(A, indices, commGroups, resDist);
+        TestA2ADIRedist(A, indices, commGroups, resDist);
     }
 }
 

@@ -305,6 +305,24 @@ inline int GridViewLoc2GridLinearLoc_(const std::vector<int>& gridViewLoc, const
 	return LinearIndex(gridLoc, Dimensions2Strides(gridShape));
 }
 
+inline std::vector<int> GridLoc2GridViewLoc(const std::vector<int>& gridLoc, const std::vector<int>& gridShape, const TensorDistribution& tensorDist){
+    int i;
+    const int order = tensorDist.size();
+    std::vector<int> ret(order);
+
+    for(i = 0; i < order; i++){
+        ModeDistribution modeDist = tensorDist[i];
+        std::vector<Int> gridSliceLoc(modeDist.size());
+        std::vector<Int> gridSliceShape(modeDist.size());
+
+        gridSliceLoc = FilterVector(gridLoc, modeDist);
+        gridSliceShape = FilterVector(gridShape, modeDist);
+
+        ret[i] = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
+    }
+    return ret;
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_IMPL_HPP

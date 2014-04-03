@@ -50,6 +50,8 @@ std::vector<Int> LinearLoc2Loc_(const int linearLoc, const std::vector<Int>& sha
 int GridViewLoc2GridLinearLoc(const std::vector<int>& gridViewLoc, const GridView& gridView);
 int GridViewLoc2GridLinearLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView);
 
+std::vector<int> GridLoc2GridViewLoc(const std::vector<int>& gridLoc, const std::vector<int>& gridShape, const TensorDistribution& tensorDist);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_DECL_HPP
