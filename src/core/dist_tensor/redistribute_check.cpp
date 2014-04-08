@@ -228,6 +228,7 @@ int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& 
     if(AnyZeroElem(foundIndices)){
         LogicError("CheckAllToAllDoubleIndexRedist: Objects being redistributed must represent same indices");
     }
+    return 1;
 }
 
 #define PROTO(T) \

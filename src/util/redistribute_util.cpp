@@ -1,4 +1,4 @@
-#include "tensormental/util/redistribute_util.hpp"
+	#include "tensormental/util/redistribute_util.hpp"
 
 
 namespace tmen{
@@ -62,11 +62,11 @@ void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const Di
     commModes.insert(commModes.end(), a2aCommModes.second.begin(), a2aCommModes.second.end());
     std::sort(commModes.begin(), commModes.end());
 
-    const std::vector<int> commGridSlice = FilterVector(B.GridView().Shape(), commModes);
+    const std::vector<int> commGridSlice = FilterVector(B.Grid().Shape(), commModes);
     const int nRedistProcs = prod(commGridSlice);
     std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), B.GridView().Shape());
 
-    sendSize = prod(maxLocalShapeB) * nRedistProcs;
+    sendSize = prod(maxLocalShapeB);// * nRedistProcs;
     recvSize = sendSize;
 }
 

@@ -38,7 +38,7 @@ template <typename T>
 void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf);
 
 template <typename T>
-void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf);
+void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf, std::vector<std::vector<int> >& sendFirstLocs);
 
 ////////////////////
 ///  Unpack routines
@@ -58,7 +58,7 @@ template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);
 
 template <typename T>
-void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, int>& a2aIndices, const std::vector<int>& commModes, const DistTensor<T>& A, DistTensor<T>& B);
+void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, const std::vector<std::vector<int> >& recvFirstLocs, const DistTensor<T>& A, DistTensor<T>& B);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_UTIL_DECL_HPP

@@ -600,13 +600,13 @@ AbstractDistTensor<T>::GetCommunicatorForModes(const std::vector<int>& commModes
 {
     mpi::Comm comm;
 
-    std::vector<Int> gridViewShapeSlice = FilterVector(this->GridViewShape(), commModes);
-    std::vector<Int> gridViewNegShapeSlice = NegFilterVector(this->GridViewShape(), commModes);
-    std::vector<Int> gridViewLocSlice = FilterVector(this->GridViewLoc(), commModes);
-    std::vector<Int> gridViewNegLocSlice = NegFilterVector(this->GridViewLoc(), commModes);
+    std::vector<Int> gridShapeSlice = FilterVector(grid_->Shape(), commModes);
+    std::vector<Int> gridNegShapeSlice = NegFilterVector(grid_->Shape(), commModes);
+    std::vector<Int> gridLocSlice = FilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
+    std::vector<Int> gridNegLocSlice = NegFilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
 
-    const int commKey = LinearIndex(gridViewLocSlice, Dimensions2Strides(gridViewShapeSlice));
-    const int commColor = LinearIndex(gridViewNegLocSlice, Dimensions2Strides(gridViewNegShapeSlice));
+    const int commKey = LinearIndex(gridLocSlice, Dimensions2Strides(gridShapeSlice));
+    const int commColor = LinearIndex(gridNegLocSlice, Dimensions2Strides(gridNegShapeSlice));
 
     mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
     return comm;

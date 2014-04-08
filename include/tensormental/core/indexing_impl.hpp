@@ -305,6 +305,37 @@ inline int GridViewLoc2GridLinearLoc_(const std::vector<int>& gridViewLoc, const
 	return LinearIndex(gridLoc, Dimensions2Strides(gridShape));
 }
 
+inline std::vector<Int> GridViewLoc2GridLoc(const std::vector<int>& gridViewLoc, const GridView& gridView){
+    if(gridViewLoc.size() != gridView.Order())
+        LogicError("Supplied loc must be same order as gridView");
+    return GridViewLoc2GridLoc_(gridViewLoc, gridView);
+}
+
+
+inline std::vector<Int> GridViewLoc2GridLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView){
+
+    const int gvOrder = gridView.Order();
+    const TensorDistribution tensorDist = gridView.Distribution();
+
+    const tmen::Grid* grid = gridView.Grid();
+    const int gridOrder = grid->Order();
+    const std::vector<int> gridShape = grid->Shape();
+    Unsigned i, j;
+
+    std::vector<int> gridLoc(gridOrder);
+    for(i = 0; i < gvOrder; i++){
+
+        const ModeDistribution modeDist = tensorDist[i];
+        const std::vector<int> gridSlice = FilterVector(gridShape, modeDist);
+        std::vector<int> sliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSlice);
+
+        for(j = 0; j < sliceLoc.size(); j++){
+            gridLoc[modeDist[j]] = sliceLoc[j];
+        }
+    }
+    return gridLoc;
+}
+
 inline std::vector<int> GridLoc2GridViewLoc(const std::vector<int>& gridLoc, const std::vector<int>& gridShape, const TensorDistribution& tensorDist){
     int i;
     const int order = tensorDist.size();

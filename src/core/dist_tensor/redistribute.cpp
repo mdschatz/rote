@@ -141,7 +141,7 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGath
 template <typename T>
 void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups){
     if(!CheckAllToAllDoubleIndexRedist(B, A, a2aIndices, a2aCommGroups))
-        LogicError("AllToAllSingleIndexRedist: Invalid redistribution request");
+        LogicError("AllToAllDoubleIndexRedist: Invalid redistribution request");
 
     int sendSize, recvSize;
 
@@ -159,11 +159,39 @@ void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const s
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    PackA2ADoubleIndexSendBuf(B, A, a2aIndices, a2aCommGroups, sendBuf);
 
-    mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
+    //HACK STATEMENTS
+    std::vector<std::vector<int> > sendFirstLocs;
+    std::vector<std::vector<int> > recvFirstLocs;
+    //END HACK STATEMENTS
 
-    UnpackA2ADoubleIndexRecvBuf(recvBuf, a2aIndices, commModes, A, B);
+    PackA2ADoubleIndexSendBuf(B, A, a2aIndices, a2aCommGroups, sendBuf, sendFirstLocs);
+
+    //HACK STATEMENTS
+    Memory<Int> firstLocBufMemory;
+    int nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
+    Int* firstLocBuf = firstLocBufMemory.Require(A.Order() * nRedistProcs * 2);
+    MemZero(&(firstLocBuf[0]), A.Order() * nRedistProcs * 2);
+
+    Int* sendLocBuf = &(firstLocBuf[0]);
+    Int* recvLocBuf = &(firstLocBuf[A.Order() * nRedistProcs]);
+    for(int i = 0; i < nRedistProcs; i++)
+        MemCopy(&(sendLocBuf[A.Order() * i]), &(sendFirstLocs[i][0]), A.Order());
+
+    mpi::AllToAll(sendLocBuf, A.Order(), recvLocBuf, A.Order(), comm);
+
+    recvFirstLocs.reserve(nRedistProcs);
+    recvFirstLocs.resize(nRedistProcs);
+    for(int i = 0; i < nRedistProcs; i++){
+        recvFirstLocs[i].reserve(A.Order());
+        recvFirstLocs[i].resize(A.Order());
+        MemCopy(&(recvFirstLocs[i][0]), &(recvLocBuf[A.Order() * i]), A.Order());
+    }
+    //END HACK STATEMENTS
+
+    mpi::AllToAll(sendBuf, sendSize/nRedistProcs, recvBuf, recvSize/nRedistProcs, comm);
+
+    UnpackA2ADoubleIndexRecvBuf(recvBuf, a2aIndices, a2aCommGroups, recvFirstLocs, A, B);
 }
 
 template <typename T>

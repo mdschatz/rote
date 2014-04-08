@@ -413,6 +413,27 @@ CreateA2ADITests(const DistTensor<T>& A, const Params& args){
             }
         }
     }
+
+//    std::pair<int, int> a2aModes(0,1);
+//    std::vector<int> mode1CommGroup(2);
+//    mode1CommGroup[0] = 0;
+//    mode1CommGroup[1] = 1;
+//    std::vector<int> mode2CommGroup;
+//    std::pair<std::vector<int>, std::vector<int> > modeCommGroups(mode1CommGroup, mode2CommGroup);
+//    std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > params(a2aModes, modeCommGroups);
+//    TensorDistribution tdist(3);
+//    ModeDistribution mdist1;
+//    ModeDistribution mdist2(3);
+//    mdist2[0] = 2;
+//    mdist2[1] = 0;
+//    mdist2[2] = 1;
+//    ModeDistribution mdist3;
+//    tdist[0] = mdist1;
+//    tdist[1] = mdist2;
+//    tdist[2] = mdist3;
+//
+//    A2ADITest test(params, tdist);
+//    ret.push_back(test);
     return ret;
 }
 
