@@ -237,9 +237,9 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     for(int i = 0; i < order; i++)
     	modeLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
 
-    std::vector<int> modePackWrapStrides(order);
+    std::vector<int> modePackStrides(order);
     for(int i = 0; i < order; i++){
-    	modePackWrapStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
+    	modePackStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
     }
 
     const int nRedistProcs = prod(FilterVector(g.Shape(), commModes));
@@ -278,8 +278,8 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     int startSendBuf, startDataBuf;
 
     //a2aMode1 and a2aMode2 have different increments per slice because their distributions change
-    const int a2aMode1PackStride = modePackWrapStrides[a2aMode1];
-    const int a2aMode2PackStride = modePackWrapStrides[a2aMode2];
+    const int a2aMode1PackStride = modePackStrides[a2aMode1];
+    const int a2aMode2PackStride = modePackStrides[a2aMode2];
 
     //Stores the first packed multi-loc sent to each process in communicator
     sendFirstLocs.reserve(nRedistProcs);
@@ -287,10 +287,10 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     std::vector<int> myFirstLoc = A.ModeShifts();
 
     int packElemNum;
-    const int nPackElems = prod(modePackWrapStrides);
+    const int nPackElems = prod(modePackStrides);
 
     for(packElemNum = 0; packElemNum < nPackElems; packElemNum++){
-    	std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackWrapStrides);
+    	std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackStrides);
 
     	//Determine the global index of this first element we are packing
     	std::vector<int> startPackElemLoc = myFirstLoc;

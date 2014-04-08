@@ -224,161 +224,161 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
 
 template<typename T>
 void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, const std::vector<std::vector<int> >& recvFirstLocs, const DistTensor<T>& A, DistTensor<T>& B){
-//    const int order = A.Order();
-//    const std::vector<int> start(order, 0);
-//    T* dataBuf = B.Buffer(start);
-//
-//    const tmen::GridView gvA = A.GridView();
-//    const tmen::GridView gvB = B.GridView();
-//
-//    const tmen::Grid& g = A.Grid();
-//
-//    int a2aMode1 = A.ModeOfIndex(a2aIndices.first);
-//    int a2aMode2 = A.ModeOfIndex(a2aIndices.second);
-//
-//    std::vector<int> commGroup1 = commGroups.first;
-//    std::vector<int> commGroup2 = commGroups.second;
-//
-//    ModeDistribution distAa2aMode1 = A.ModeDist(a2aMode1);
-//    ModeDistribution distAa2aMode2 = A.ModeDist(a2aMode2);
-//
-//    ModeDistribution distBa2aMode1 = B.ModeDist(a2aMode1);
-//    ModeDistribution distBa2aMode2 = B.ModeDist(a2aMode2);
-//
-//    //For convenience make sure that a2aMode1 is earlier in the packing
-//    if(a2aMode1 > a2aMode2){
-//        std::swap(a2aMode1, a2aMode2);
-//        std::swap(commGroup1, commGroup2);
-//    }
-//
-//    std::vector<int> commModes  = commGroup1;
-//    commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
-//
-//    std::vector<int> nonCommModes;
-//    for(int i = 0; i < g.Order(); i++){
-//        if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
-//            nonCommModes.push_back(i);
-//        }
-//    }
-//
-//    std::vector<int> myGridLoc = g.Loc();
-//    std::vector<int> gridShape = g.Shape();
-//
-//    std::vector<int> modeLCMs(order);
-//    for(int i = 0; i < order; i++)
-//    	modeLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
-//
-//    std::vector<int> modeUnpackWrapStrides(B.Order());
-//    for(int i = 0; i < B.Order(); i++)
-//    	modeUnpackWrapStrides[i] = modeLCMs[i] / gvB.ModeWrapStride(i);
-//
-//    const int a2aMode2LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode2), gvB.ModeWrapStride(a2aMode2));
-//    const int a2aMode1LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode1), gvB.ModeWrapStride(a2aMode1));
-//
-//    const int a2aMode2UnpackWrapStride = a2aMode2LCM / gvB.ModeWrapStride(a2aMode2);
-//    const int a2aMode1UnpackWrapStride = a2aMode1LCM / gvB.ModeWrapStride(a2aMode1);
-//
-//    const int nRedistProcs = prod(FilterVector(g.Shape(), commModes));
-//    const std::vector<Int> gridCommModeSliceShape = FilterVector(g.Shape(), commModes);
-//
-//    const std::vector<Int> localShapeB = B.LocalShape();
-//    std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
-//
-//    const int a2aMode1LocalDim = B.LocalDimension(a2aMode1);
-//    const int a2aMode1MaxLocalDim = maxLocalShapeB[a2aMode1];
-//    const int a2aMode1LocalStride = B.LocalModeStride(a2aMode1);
-//
-//    const int a2aMode2LocalDim = B.LocalDimension(a2aMode2);
-//    const int a2aMode2MaxLocalDim = maxLocalShapeB[a2aMode2];
-//    const int a2aMode2LocalStride = B.LocalModeStride(a2aMode2);
-//
-//    const int nLocalSlices2 = Max(1, prod(localShapeB, a2aMode2)) / a2aMode2UnpackWrapStride;
-//    const int nMaxSlices2 = Max(1, prod(maxLocalShapeB, a2aMode2)) / a2aMode2UnpackWrapStride;
-//
-//    //Slices1 only counts up to next a2aIndex
-//    const int nLocalSlices1 = Max(1, prod(localShapeB, a2aMode1)) / prod(localShapeB, a2aMode2) / a2aMode1UnpackWrapStride;
-//    const int nMaxSlices1 = Max(1, prod(maxLocalShapeB, a2aMode1)) / prod(maxLocalShapeB, a2aMode2) / a2aMode1UnpackWrapStride;
-//
-//    const int copySliceSize = a2aMode1LocalStride;
-//
-//    int nUnpackSlices = a2aMode2UnpackWrapStride * a2aMode1UnpackWrapStride;
-//
-//    int sliceNum1, sliceNum2;  //Which slice we are packing for indexK
-//    int offRecvBufSlice2, offDataBufSlice2;  //Offsets used to index into data arrays
-//    int offRecvBufSlice1, offDataBufSlice1;  //Offsets used to index into data arrays
-//    int offRecvBufUnpackSlice, offDataBufUnpackSlice;
-//    int startRecvBuf, startDataBuf;
-//
-//    int unpackSlice;
-//
-//    std::vector<int> commGroupShape(B.Order());
-//    for(int i = 0; i < B.Order(); i++)
-//    	commGroupShape[i] = 1;
-//    commGroupShape[a2aMode1] = a2aMode1UnpackWrapStride;
-//    commGroupShape[a2aMode2] = a2aMode2UnpackWrapStride;
-//
-//    printf("recvBuf:");
-//    for(int i = 0; i < prod(localShapeB) * nRedistProcs; i++){
-//        printf(" %d", recvBuf[i]);
-//    }
-//    printf("\n");
-//
-//    std::vector<int> startLoc(B.Order());
-//    for(int i = 0; i < B.Order(); i++)
-//        startLoc[i] = B.ModeShift(i);
-//
-//    for(unpackSlice = 0; unpackSlice < nUnpackSlices; unpackSlice++){
-//        std::vector<int> unpackSliceMultiLoc = LinearLoc2Loc(unpackSlice, modeUnpackWrapStrides);
-//
-//        std::vector<int> startSliceLoc = startLoc;
-//        for(int i = 0; i < B.Order(); i++){
-//            startSliceLoc[i] += unpackSliceMultiLoc[i] * gvB.ModeWrapStride(i);
-//        }
-//
-//        //HACK TO DETERMINE WHICH PROC SEND THIS ELEMENT
-//        int owningProc = 0;
-//        for(int i = 0; i < nRedistProcs; i++){
-//            bool found = true;
-//            for(int j = 0; j < recvFirstLocs[i].size(); j++){
-//                if(recvFirstLocs[i][j] != startSliceLoc[j]){
-//                    found = false;
-//                    break;
-//                }
-//            }
-//            if(found){
-//                owningProc = i;
-//                break;
-//            }
-//        }
-//
-//        offRecvBufUnpackSlice = owningProc * prod(maxLocalShapeB) / nRedistProcs;
-//        offDataBufUnpackSlice = LinearIndex(B.Global2LocalIndex(startSliceLoc), Dimensions2Strides(localShapeB));
-//
-//        for(sliceNum2 = 0; sliceNum2 < nMaxSlices2; sliceNum2++){
-//            if(sliceNum2 >= nLocalSlices2)
-//                break;
-//            offRecvBufSlice2 = copySliceSize * nMaxSlices1 * sliceNum2;
-//            offDataBufSlice2 = copySliceSize * nLocalSlices1 * a2aMode1UnpackWrapStride * sliceNum2 * a2aMode2UnpackWrapStride;
-//
-//            for(sliceNum1 = 0; sliceNum1 < nMaxSlices1; sliceNum1++){
-//                if(sliceNum1 >= nLocalSlices1)
-//                    break;
-//                offRecvBufSlice1 = copySliceSize * sliceNum1;
-//                offDataBufSlice1 = copySliceSize * sliceNum1 * a2aMode1UnpackWrapStride;
-//
-//                startRecvBuf = offRecvBufUnpackSlice + offRecvBufSlice2 + offRecvBufSlice1;
-//                startDataBuf = offDataBufUnpackSlice + offDataBufSlice2 + offDataBufSlice1;
-//                MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
-//            }
-//        }
-//    }
-//
-//
-//    printf("Unpacked dataBuf:");
-//    for(int i = 0; i < prod(maxLocalShapeB); i++){
-//        printf(" %d", dataBuf[i]);
-//    }
-//    printf("\n");
+    const int order = A.Order();
+    const std::vector<int> start(order, 0);
+    T* dataBuf = B.Buffer(start);
+
+    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvB = B.GridView();
+
+    const tmen::Grid& g = A.Grid();
+
+    int a2aMode1 = A.ModeOfIndex(a2aIndices.first);
+    int a2aMode2 = A.ModeOfIndex(a2aIndices.second);
+
+    std::vector<int> commGroup1 = commGroups.first;
+    std::vector<int> commGroup2 = commGroups.second;
+
+    //For convenience make sure that a2aMode1 is earlier in the packing
+    if(a2aMode1 > a2aMode2){
+        std::swap(a2aMode1, a2aMode2);
+        std::swap(commGroup1, commGroup2);
+    }
+
+    std::vector<int> commModes  = commGroup1;
+    commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
+
+    std::vector<int> nonCommModes;
+    for(int i = 0; i < g.Order(); i++){
+        if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
+            nonCommModes.push_back(i);
+        }
+    }
+
+    std::vector<int> myGridLoc = g.Loc();
+    std::vector<int> gridShape = g.Shape();
+
+    std::vector<int> modeLCMs(order);
+    for(int i = 0; i < order; i++)
+    	modeLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
+
+    //Stride taken to unpack into databuf per mode
+    std::vector<int> modeUnpackStrides(order);
+    for(int i = 0; i < order; i++)
+    	modeUnpackStrides[i] = modeLCMs[i] / gvB.ModeWrapStride(i);
+
+    const int nRedistProcs = prod(FilterVector(g.Shape(), commModes));
+
+    const std::vector<Int> localShape = B.LocalShape();
+    std::vector<Int> maxLocalShape = MaxLengths(B.Shape(), gvB.Shape());
+
+    //Slices we can directly copy
+    const int nMaxContigSlices = Max(1, prod(maxLocalShape) / prod(maxLocalShape, a2aMode1));
+    const int nLocalContigSlices = Max(1, prod(localShape) / prod(localShape, a2aMode1));
+
+    //Slices of a2aMode1
+    const int nMaxA2AMode1Slices = maxLocalShape[a2aMode1];
+    const int nLocalA2AMode1Slices = localShape[a2aMode1];
+
+    //Slices between a2aMode1 and a2aMode2
+    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1) / prod(maxLocalShape, a2aMode2));
+    const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1) / prod(localShape, a2aMode2));
+
+    //Slices of a2aMode2
+    const int nMaxA2AMode2Slices = maxLocalShape[a2aMode2];
+    const int nLocalA2AMode2Slices = localShape[a2aMode2];
+
+    //All remaining slices
+    const int nMaxOuterSlices = Max(1, prod(maxLocalShape, a2aMode2 + 1));
+    const int nLocalOuterSlices = Max(1, prod(localShape, a2aMode1 + 1));
+
+    const int copySliceSize = B.LocalModeStride(a2aMode1);
+    const int nElemsPerProc = prod(maxLocalShape);
+
+    //Various counters used to offset in data arrays
+    int contigSliceNum, a2aMode1SliceNum, midSliceNum, a2aMode2SliceNum, outerSliceNum;  //Which slice we are packing for indexK
+    int contigRecvBufOff, a2aMode1RecvBufOff, midRecvBufOff, a2aMode2RecvBufOff, outerRecvBufOff;  //Offsets used to index into data arrays
+    int contigDataBufOff, a2aMode1DataBufOff, midDataBufOff, a2aMode2DataBufOff, outerDataBufOff;  //Offsets used to index into data arrays
+    int unpackElemRecvBufOff, unpackElemDataBufOff;
+    int startRecvBuf, startDataBuf;
+
+    const int a2aMode1UnpackStride = modeUnpackStrides[a2aMode1];
+    const int a2aMode2UnpackStride = modeUnpackStrides[a2aMode2];
+
+    printf("recvBuf:");
+    for(int i = 0; i < prod(maxLocalShape) * nRedistProcs; i++){
+        printf(" %d", recvBuf[i]);
+    }
+    printf("\n");
+
+    std::vector<int> myFirstLoc = B.ModeShifts();
+
+    int unpackElemNum;
+    const int nUnpackElems = prod(modeUnpackStrides);
+
+    for(unpackElemNum = 0; unpackElemNum < nUnpackElems; unpackElemNum++){
+        std::vector<int> unpackElemMultiLoc = LinearLoc2Loc(unpackElemNum, modeUnpackStrides);
+
+        //Determine the global index of this first element we are packing
+        std::vector<int> startUnpackElemLoc = myFirstLoc;
+        for(int i = 0; i < order; i++){
+            startUnpackElemLoc[i] += unpackElemMultiLoc[i] * gvB.ModeWrapStride(i);
+        }
+
+        //Determine the Multiloc of the process that sent this element
+        std::vector<int> owningProcGVA = A.DetermineOwner(startUnpackElemLoc);
+        std::vector<int> owningProcG = GridViewLoc2GridLoc(owningProcGVA, gvA);
+        int owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
+
+        //Find the local location of the global starting element we are now unpacking
+        std::vector<int> localLoc = B.Global2LocalIndex(startUnpackElemLoc);
+
+        //Update the corresponding offsets
+        unpackElemRecvBufOff = nElemsPerProc * owningProc;
+        unpackElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
+
+        //Now that we have figured out the starting point, begin copying the entire slice from this element
+        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+            if(outerSliceNum >= nLocalOuterSlices)
+                break;
+            outerRecvBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1UnpackStride) * nMaxMidSlices * (nMaxA2AMode2Slices / a2aMode2UnpackStride) * outerSliceNum;
+            outerDataBufOff = copySliceSize * (nLocalA2AMode1Slices) * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
+
+            for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nMaxA2AMode2Slices; a2aMode2SliceNum += a2aMode2UnpackStride){
+                if(a2aMode2SliceNum >= nLocalA2AMode2Slices)
+                    break;
+
+                a2aMode2RecvBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1UnpackStride) * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2UnpackStride);
+                a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * a2aMode2SliceNum;
+
+                for(midSliceNum = 0; midSliceNum < nMaxMidSlices; midSliceNum++){
+                    if(midSliceNum >= nLocalMidSlices)
+                        break;
+                    midRecvBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1UnpackStride) * midSliceNum;
+                    midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
+
+                    for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nMaxA2AMode1Slices; a2aMode1SliceNum += a2aMode1UnpackStride){
+                        if(a2aMode1SliceNum >= nLocalA2AMode1Slices)
+                            break;
+                        a2aMode1RecvBufOff = copySliceSize * (a2aMode1SliceNum / a2aMode1UnpackStride);
+                        a2aMode1DataBufOff = copySliceSize * a2aMode1SliceNum;
+
+                        //Down to all contiguous slices, so just copy
+                        startRecvBuf = unpackElemRecvBufOff + outerRecvBufOff + a2aMode2RecvBufOff + midRecvBufOff + a2aMode1RecvBufOff;
+                        startDataBuf = unpackElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
+                        MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
+
+                    }
+                }
+            }
+        }
+    }
+
+    printf("Unpacked dataBuf:");
+    for(int i = 0; i < prod(maxLocalShape); i++){
+        printf(" %d", dataBuf[i]);
+    }
+    printf("\n");
 }
 
 #define PROTO(T) \
