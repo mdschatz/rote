@@ -78,6 +78,7 @@ public:
     bool ConstrainedModeAlignment(Int mode) const;
     Int ModeAlignment(Int mode) const;
     Int ModeShift(Int mode) const;
+    std::vector<int> ModeShifts() const;
 
     void Align( const std::vector<Int>& modeAlign );
     void AlignMode( Int mode, Int align );

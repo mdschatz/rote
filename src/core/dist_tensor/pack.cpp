@@ -199,8 +199,8 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
 //TODO: HACK HACK HACK THIS IS A HACK. I SEND THE GLOBAL LOC OF THE FIRST ELEMENT I SEND TO EACH PROCESS TO MAKE LIFE EASIER
 template <typename T>
 void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf, std::vector<std::vector<int> >& sendFirstLocs){
-
-    const std::vector<int> start(A.Order(), 0);
+    const int order = A.Order();
+    const std::vector<int> start(order, 0);
     const T* dataBuf = A.LockedBuffer(start);
 
     const tmen::GridView gvA = A.GridView();
@@ -213,12 +213,6 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
 
     std::vector<int> commGroup1 = commGroups.first;
     std::vector<int> commGroup2 = commGroups.second;
-
-    std::vector<int> distAa2aMode1 = A.ModeDist(a2aMode1);
-    std::vector<int> distAa2aMode2 = A.ModeDist(a2aMode2);
-
-    std::vector<int> distBa2aMode1 = B.ModeDist(a2aMode1);
-    std::vector<int> distBa2aMode2 = B.ModeDist(a2aMode2);
 
     //For convenience make sure that a2aMode1 is earlier in the packing
     if(a2aMode1 > a2aMode2){
@@ -239,154 +233,125 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     std::vector<int> myGridLoc = g.Loc();
     std::vector<int> gridShape = g.Shape();
 
-    const int a2aMode2LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode2), gvB.ModeWrapStride(a2aMode2));
-    const int a2aMode1LCM = tmen::LCM(gvA.ModeWrapStride(a2aMode1), gvB.ModeWrapStride(a2aMode1));
-
-    std::vector<int> modeLCMs(A.Order());
-    for(int i = 0; i < A.Order(); i++)
+    std::vector<int> modeLCMs(order);
+    for(int i = 0; i < order; i++)
     	modeLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
 
-    std::vector<int> modePackWrapStrides(A.Order());
-    for(int i = 0; i < A.Order(); i++){
+    std::vector<int> modePackWrapStrides(order);
+    for(int i = 0; i < order; i++){
     	modePackWrapStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
     }
-    const int a2aMode2PackWrapStride = a2aMode2LCM / gvA.ModeWrapStride(a2aMode2);
-    const int a2aMode1PackWrapStride = a2aMode1LCM / gvA.ModeWrapStride(a2aMode1);
 
     const int nRedistProcs = prod(FilterVector(g.Shape(), commModes));
-    const std::vector<Int> gridCommModeSliceShape = FilterVector(g.Shape(), commModes);
 
     const std::vector<Int> localShape = A.LocalShape();
-    //TODO: Check this... I'm not sure why I'm mixing B and gvA
-    std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvA.Shape());
+    const std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), gvA.Shape());
 
-    const int a2aMode1LocalDim = A.LocalDimension(a2aMode1);
-    const int a2aMode1MaxLocalDim = maxLocalShapeB[a2aMode1];
-    const int a2aMode1LocalStride = A.LocalModeStride(a2aMode1);
+    //Slices we can directly copy
+    const int nMaxContigSlices = Max(1, prod(maxLocalShape) / prod(maxLocalShape, a2aMode1));
+    const int nLocalContigSlices = Max(1, prod(localShape) / prod(localShape, a2aMode1));
 
-    const int a2aMode2LocalDim = A.LocalDimension(a2aMode2);
-    const int a2aMode2MaxLocalDim = maxLocalShapeB[a2aMode2];
-    const int a2aMode2LocalStride = A.LocalModeStride(a2aMode2);
+    //Slices of a2aMode1
+    const int nMaxA2AMode1Slices = maxLocalShape[a2aMode1];
+    const int nLocalA2AMode1Slices = localShape[a2aMode1];
 
-    const int nLocalSlices2 = Max(1, prod(localShape, a2aMode2)) / a2aMode2PackWrapStride;
-    const int nMaxSlices2 = Max(1, prod(maxLocalShapeB, a2aMode2)) / a2aMode2PackWrapStride;
+    //Slices between a2aMode1 and a2aMode2
+    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1) / prod(maxLocalShape, a2aMode2));
+    const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1) / prod(localShape, a2aMode2));
 
-    //Slices1 only counts up to next a2aIndex
-    const int nLocalSlices1 = Max(1, prod(localShape, a2aMode1)) / prod(localShape, a2aMode2) / a2aMode1PackWrapStride;
-    const int nMaxSlices1 = Max(1, prod(maxLocalShapeB, a2aMode1)) / prod(maxLocalShapeB, a2aMode2) / a2aMode1PackWrapStride;
+    //Slices of a2aMode2
+    const int nMaxA2AMode2Slices = maxLocalShape[a2aMode2];
+    const int nLocalA2AMode2Slices = localShape[a2aMode2];
 
-    const int copySliceSize = a2aMode1LocalStride;
+    //All remaining slices
+    const int nMaxOuterSlices = Max(1, prod(maxLocalShape, a2aMode2 + 1));
+    const int nLocalOuterSlices = Max(1, prod(localShape, a2aMode1 + 1));
 
-    int sliceNum1, sliceNum2;  //Which slice we are packing for indexK
-    int offSendBufSlice2, offDataBufSlice2;  //Offsets used to index into data arrays
-    int offSendBufSlice1, offDataBufSlice1;  //Offsets used to index into data arrays
-    int offSendBufProc, offDataBufProc;
+    const int copySliceSize = A.LocalModeStride(a2aMode1);
+    const int nElemsPerProc = prod(maxLocalShape);
+
+    //Various counters used to offset in data arrays
+    int contigSliceNum, a2aMode1SliceNum, midSliceNum, a2aMode2SliceNum, outerSliceNum;  //Which slice we are packing for indexK
+    int contigSendBufOff, a2aMode1SendBufOff, midSendBufOff, a2aMode2SendBufOff, outerSendBufOff;  //Offsets used to index into data arrays
+    int contigDataBufOff, a2aMode1DataBufOff, midDataBufOff, a2aMode2DataBufOff, outerDataBufOff;  //Offsets used to index into data arrays
+    int packElemSendBufOff, packElemDataBufOff;
     int startSendBuf, startDataBuf;
 
-    int procNum;
+    //a2aMode1 and a2aMode2 have different increments per slice because their distributions change
+    const int a2aMode1PackStride = modePackWrapStrides[a2aMode1];
+    const int a2aMode2PackStride = modePackWrapStrides[a2aMode2];
 
-    //BEGIN HACK VARIABLES
+    //Stores the first packed multi-loc sent to each process in communicator
     sendFirstLocs.reserve(nRedistProcs);
     sendFirstLocs.resize(nRedistProcs);
-    std::vector<int> myFirstLoc(A.Order());
-    for(int i = 0 ; i < A.Order(); i++)
-    	myFirstLoc[i] = A.ModeShift(i);
-    //END HACK VARIABLES
+    std::vector<int> myFirstLoc = A.ModeShifts();
 
-    int packSlice;
-    const int nPackSlices = a2aMode2PackWrapStride * a2aMode1PackWrapStride;
+    int packElemNum;
+    const int nPackElems = prod(modePackWrapStrides);
 
-    for(packSlice = 0; packSlice < nPackSlices; packSlice++){
-    	std::vector<int> packSliceMultiLoc = LinearLoc2Loc(packSlice, modePackWrapStrides);
+    for(packElemNum = 0; packElemNum < nPackElems; packElemNum++){
+    	std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackWrapStrides);
 
-    	std::vector<int> startSliceLoc = myFirstLoc;
-    	for(int i = 0; i < A.Order(); i++){
-    		startSliceLoc[i] += packSliceMultiLoc[i] * gvA.ModeWrapStride(i);
+    	//Determine the global index of this first element we are packing
+    	std::vector<int> startPackElemLoc = myFirstLoc;
+    	for(int i = 0; i < order; i++){
+    		startPackElemLoc[i] += packElemMultiLoc[i] * gvA.ModeWrapStride(i);
     	}
 
-    	std::vector<int> owningProcGVB = B.DetermineOwner(startSliceLoc);
+    	//Determine the Multiloc of the process that owns this element
+    	std::vector<int> owningProcGVB = B.DetermineOwner(startPackElemLoc);
     	std::vector<int> owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
-
     	int owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
-        offSendBufProc = copySliceSize * nMaxSlices1 * nMaxSlices2 * owningProc;
 
-        //HACK HACK HACK STATEMENT
-        sendFirstLocs[owningProc].reserve(A.Order());
-        sendFirstLocs[owningProc].resize(A.Order());
-        sendFirstLocs[owningProc] = startSliceLoc;
-        //ElemwiseSum(packSliceMultiLoc, myFirstLoc, sendFirstLocs[owningProc]);
-        //END HACK HACK HACK STATEMENT
+        //Record the Multiloc of this first element for the associated process
+        sendFirstLocs[owningProc].reserve(order);
+        sendFirstLocs[owningProc].resize(order);
+        sendFirstLocs[owningProc] = startPackElemLoc;
 
-        //3.
+        //Find the local location of the global starting element we are now packing
         std::vector<int> localLoc = A.Global2LocalIndex(sendFirstLocs[owningProc]);
 
-        //4.
-        offDataBufProc = LinearIndex(localLoc, Dimensions2Strides(localShape));
+        //Update the corresponding offsets
+        packElemSendBufOff = nElemsPerProc * owningProc;
+        packElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
 
-        for(sliceNum2 = 0; sliceNum2 < nMaxSlices2; sliceNum2++){
-            if(sliceNum2 >= nLocalSlices2)
+        //Now that we have figured out the starting point, begin copying the entire slice from this element
+        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+            if(outerSliceNum >= nLocalOuterSlices)
                 break;
-            offSendBufSlice2 = copySliceSize * nMaxSlices1 * sliceNum2;
-            offDataBufSlice2 = copySliceSize * nLocalSlices1 * a2aMode1PackWrapStride * a2aMode2PackWrapStride * sliceNum2;
-            for(sliceNum1 = 0; sliceNum1 < nMaxSlices1; sliceNum1++){
-                if(sliceNum1 >= nLocalSlices1)
+            outerSendBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1PackStride) * nMaxMidSlices * (nMaxA2AMode2Slices / a2aMode2PackStride) * outerSliceNum;
+            outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
+
+            //offSendBufSlice2 = copySliceSize * nMaxSlices1 * sliceNum2;
+            //offDataBufSlice2 = copySliceSize * nLocalSlices1 * a2aMode1PackWrapStride * a2aMode2PackWrapStride * sliceNum2;
+            for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nMaxA2AMode2Slices; a2aMode2SliceNum += a2aMode2PackStride){
+                if(a2aMode2SliceNum >= nLocalA2AMode2Slices)
                     break;
-                offSendBufSlice1 = copySliceSize * sliceNum1;
-                offDataBufSlice1 = copySliceSize * a2aMode1PackWrapStride * sliceNum1;
-                startSendBuf = offSendBufProc + offSendBufSlice2 + offSendBufSlice1;
-                startDataBuf = offDataBufProc + offDataBufSlice2 + offDataBufSlice1;
-                MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+                a2aMode2SendBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1PackStride) * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2PackStride);
+                a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * a2aMode2SliceNum;
+
+                for(midSliceNum = 0; midSliceNum < nMaxMidSlices; midSliceNum++){
+                    if(midSliceNum >= nLocalMidSlices)
+                        break;
+                    midSendBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1PackStride) * midSliceNum;
+                    midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
+
+                    for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nMaxA2AMode1Slices; a2aMode1SliceNum += a2aMode1PackStride){
+                        if(a2aMode1SliceNum >= nLocalA2AMode1Slices)
+                            break;
+                        a2aMode1SendBufOff = copySliceSize * (a2aMode1SliceNum / a2aMode1PackStride);
+                        a2aMode1DataBufOff = copySliceSize * a2aMode1SliceNum;
+
+                        //Down to all contiguous slices, so just copy
+                        startSendBuf = packElemSendBufOff + outerSendBufOff + a2aMode2SendBufOff + midSendBufOff + a2aMode1SendBufOff;
+                        startDataBuf = packElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
+                        MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+                    }
+                }
             }
         }
     }
 
-    /*
-    for(procNum = 0; procNum < nRedistProcs; procNum++){
-        offSendBufProc = copySliceSize * nMaxSlices1 * nMaxSlices2 * procNum;
-        //FIX THIS: offDataBufProc should reset to the process's initial offset
-        //1. Convert procNum to multi-index (relative to gridSlice in commModes)
-        //2. Determine multi-index in global grid, not commGrid (remaining indices are shared by all processes in this comm)
-        //3. Convert global multiloc to local multiloc
-        //4. Convert local multiloc to linear loc and that is the offDataBufProc offset
-
-        //1.
-        std::vector<int> procCommModesLoc = LinearLoc2Loc(procNum, gridCommModeSliceShape);
-        std::vector<int> procGridLoc(myGridLoc);
-        for(int i = 0; i < commModes.size(); i++){
-            procGridLoc[commModes[i]] = procCommModesLoc[i];
-        }
-        //2 Convert gridLoc to gridViewLoc (thereby getting the global loc (NOTE: Should change to use shift value instead)
-        std::vector<int> procGridViewLoc = GridLoc2GridViewLoc(procGridLoc, gridShape, B.TensorDist());
-
-        //HACK HACK HACK STATEMENT
-        sendFirstLocs[procNum].reserve(A.Order());
-        sendFirstLocs[procNum].resize(A.Order());
-        ElemwiseSum(procGridViewLoc, myFirstLoc, sendFirstLocs[procNum]);
-        //END HACK HACK HACK STATEMENT
-
-        //3.
-        std::vector<int> localLoc = A.Global2LocalIndex(procGridViewLoc);
-
-        //4.
-        offDataBufProc = LinearIndex(localLoc, Dimensions2Strides(localShape));
-
-        for(sliceNum2 = 0; sliceNum2 < nMaxSlices2; sliceNum2++){
-            if(sliceNum2 >= nLocalSlices2)
-                break;
-            offSendBufSlice2 = copySliceSize * nMaxSlices1 * sliceNum2;
-            offDataBufSlice2 = copySliceSize * nLocalSlices1 * a2aMode1PackWrapStride * a2aMode2PackWrapStride * sliceNum2;
-            for(sliceNum1 = 0; sliceNum1 < nMaxSlices1; sliceNum1++){
-                if(sliceNum1 >= nLocalSlices1)
-                    break;
-                offSendBufSlice1 = copySliceSize * sliceNum1;
-                offDataBufSlice1 = copySliceSize * a2aMode1PackWrapStride * sliceNum1;
-                startSendBuf = offSendBufProc + offSendBufSlice2 + offSendBufSlice1;
-                startDataBuf = offDataBufProc + offDataBufSlice2 + offDataBufSlice1;
-                MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
-            }
-        }
-    }
-*/
     printf("dataBuf:");
     for(int i = 0; i < prod(localShape); i++){
         printf(" %d", dataBuf[i]);
@@ -394,7 +359,7 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     printf("\n");
 
     printf("Packed sendBuf:");
-    for(int i = 0; i < prod(localShape); i++){
+    for(int i = 0; i < prod(localShape) * nRedistProcs; i++){
         printf(" %d", sendBuf[i]);
     }
     printf("\n");

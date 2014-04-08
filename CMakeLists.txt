@@ -145,7 +145,7 @@ if(NOT WIN32) # I forget why we need this guard
     if(NOT ${LANG}_FLAGS_${UPPER_BUILD_TYPE})
       if(DEBUG)
 	  message("debug flags set")
-          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -Wall -Wunreachable-code -ggdb -std=c++11" CACHE STRING
+          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -Wall -Wunreachable-code -g -std=c++11" CACHE STRING
           "${LANG} optimization/debug flags for ${UPPER_BUILD_TYPE} mode")
       else()
         set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -g -Wall" CACHE STRING

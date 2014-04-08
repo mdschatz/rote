@@ -66,7 +66,7 @@ void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const Di
     const int nRedistProcs = prod(commGridSlice);
     std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), B.GridView().Shape());
 
-    sendSize = prod(maxLocalShapeB);// * nRedistProcs;
+    sendSize = prod(maxLocalShapeB) * nRedistProcs;
     recvSize = sendSize;
 }
 

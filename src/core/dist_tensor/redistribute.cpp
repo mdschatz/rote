@@ -176,7 +176,7 @@ void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const s
     Int* sendLocBuf = &(firstLocBuf[0]);
     Int* recvLocBuf = &(firstLocBuf[A.Order() * nRedistProcs]);
     for(int i = 0; i < nRedistProcs; i++)
-        MemCopy(&(sendLocBuf[A.Order() * i]), &(sendFirstLocs[i][0]), A.Order());
+        MemCopy(&(sendLocBuf[A.Order() * i]), &(sendFirstLocs[i][0]), sendFirstLocs[i].size());
 
     mpi::AllToAll(sendLocBuf, A.Order(), recvLocBuf, A.Order(), comm);
 

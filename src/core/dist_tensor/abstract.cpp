@@ -495,6 +495,13 @@ AbstractDistTensor<T>::ModeShift(Int mode) const
 }
 
 template<typename T>
+std::vector<int>
+AbstractDistTensor<T>::ModeShifts() const
+{
+    return modeShifts_;
+}
+
+template<typename T>
 const tmen::Grid&
 AbstractDistTensor<T>::Grid() const
 { return *grid_; }
