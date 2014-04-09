@@ -41,6 +41,9 @@ template<typename T>
 bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec);
 
 template<typename T>

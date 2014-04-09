@@ -248,16 +248,16 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     const std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), gvA.Shape());
 
     //Slices we can directly copy
-    const int nMaxContigSlices = Max(1, prod(maxLocalShape) / prod(maxLocalShape, a2aMode1));
-    const int nLocalContigSlices = Max(1, prod(localShape) / prod(localShape, a2aMode1));
+    const int nMaxContigSlices = Max(1, prod(maxLocalShape, 0, a2aMode1));
+    const int nLocalContigSlices = Max(1, prod(localShape, 0, a2aMode1));
 
     //Slices of a2aMode1
     const int nMaxA2AMode1Slices = maxLocalShape[a2aMode1];
     const int nLocalA2AMode1Slices = localShape[a2aMode1];
 
     //Slices between a2aMode1 and a2aMode2
-    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1) / prod(maxLocalShape, a2aMode2));
-    const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1) / prod(localShape, a2aMode2));
+    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1, a2aMode2));
+    const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1, a2aMode2));
 
     //Slices of a2aMode2
     const int nMaxA2AMode2Slices = maxLocalShape[a2aMode2];
@@ -288,15 +288,25 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
 
     int packElemNum;
     const int nPackElems = prod(modePackStrides);
+//    std::vector<int> elemsToPackShape(order);
+//    for(int i = 0; i < order; i++){
+//        elemsToPackShape[i] = Min(A.Dimension(i), modePackStrides[i]);
+//    }
+//    const int nPackElems = prod(elemsToPackShape);
 
     for(packElemNum = 0; packElemNum < nPackElems; packElemNum++){
     	std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackStrides);
+//        std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, elemsToPackShape);
 
     	//Determine the global index of this first element we are packing
     	std::vector<int> startPackElemLoc = myFirstLoc;
     	for(int i = 0; i < order; i++){
     		startPackElemLoc[i] += packElemMultiLoc[i] * gvA.ModeWrapStride(i);
     	}
+
+    	//If we run over the edge, don't try to pack the global element
+    	if(AnyElemwiseGreaterThanEqualTo(startPackElemLoc, A.Shape()))
+    	    continue;
 
     	//Determine the Multiloc of the process that owns this element
     	std::vector<int> owningProcGVB = B.DetermineOwner(startPackElemLoc);
@@ -359,7 +369,7 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     printf("\n");
 
     printf("Packed sendBuf:");
-    for(int i = 0; i < prod(localShape) * nRedistProcs; i++){
+    for(int i = 0; i < prod(maxLocalShape) * nRedistProcs; i++){
         printf(" %d", sendBuf[i]);
     }
     printf("\n");

@@ -273,16 +273,16 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, i
     std::vector<Int> maxLocalShape = MaxLengths(B.Shape(), gvB.Shape());
 
     //Slices we can directly copy
-    const int nMaxContigSlices = Max(1, prod(maxLocalShape) / prod(maxLocalShape, a2aMode1));
-    const int nLocalContigSlices = Max(1, prod(localShape) / prod(localShape, a2aMode1));
+    const int nMaxContigSlices = Max(1, prod(maxLocalShape, 0, a2aMode1));
+    const int nLocalContigSlices = Max(1, prod(localShape, 0, a2aMode1));
 
     //Slices of a2aMode1
     const int nMaxA2AMode1Slices = maxLocalShape[a2aMode1];
     const int nLocalA2AMode1Slices = localShape[a2aMode1];
 
     //Slices between a2aMode1 and a2aMode2
-    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1) / prod(maxLocalShape, a2aMode2));
-    const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1) / prod(localShape, a2aMode2));
+    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1, a2aMode2));
+    const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1, a2aMode2));
 
     //Slices of a2aMode2
     const int nMaxA2AMode2Slices = maxLocalShape[a2aMode2];
@@ -315,15 +315,26 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, i
 
     int unpackElemNum;
     const int nUnpackElems = prod(modeUnpackStrides);
+//    std::vector<int> elemsToUnpackShape(order);
+//    for(int i = 0; i < order; i++){
+//        elemsToUnpackShape[i] = Min(A.Dimension(i), modeUnpackStrides[i]);
+//    }
+//    const int nUnpackElems = prod(elemsToUnpackShape);
+
 
     for(unpackElemNum = 0; unpackElemNum < nUnpackElems; unpackElemNum++){
         std::vector<int> unpackElemMultiLoc = LinearLoc2Loc(unpackElemNum, modeUnpackStrides);
+//        std::vector<int> unpackElemMultiLoc = LinearLoc2Loc(unpackElemNum, elemsToUnpackShape);
 
         //Determine the global index of this first element we are packing
         std::vector<int> startUnpackElemLoc = myFirstLoc;
         for(int i = 0; i < order; i++){
             startUnpackElemLoc[i] += unpackElemMultiLoc[i] * gvB.ModeWrapStride(i);
         }
+
+        //If we run over the edge, don't try to pack the global element
+        if(AnyElemwiseGreaterThanEqualTo(startUnpackElemLoc, B.Shape()))
+            continue;
 
         //Determine the Multiloc of the process that sent this element
         std::vector<int> owningProcGVA = A.DetermineOwner(startUnpackElemLoc);
@@ -375,7 +386,7 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<int, i
     }
 
     printf("Unpacked dataBuf:");
-    for(int i = 0; i < prod(maxLocalShape); i++){
+    for(int i = 0; i < prod(localShape); i++){
         printf(" %d", dataBuf[i]);
     }
     printf("\n");

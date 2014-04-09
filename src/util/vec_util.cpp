@@ -73,6 +73,17 @@ bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& ve
 }
 
 template<typename T>
+bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2){
+    if(vec1.size() != vec2.size())
+        tmen::LogicError("Vector element-wise comparison must have matching sizes");
+
+    for(int i = 0; i < vec1.size(); i++)
+        if(vec1[i] >= vec2[i])
+            return true;
+    return false;
+}
+
+template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec){
   for(int i = 0; i < vec.size(); i++)
     if(vec[i] == 0)
@@ -160,6 +171,7 @@ std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector
 	template bool AnyNegativeElem(const std::vector<T>& vec); \
 	template bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
