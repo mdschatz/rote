@@ -319,26 +319,46 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
         packElemSendBufOff = nElemsPerProc * owningProc;
         packElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
 
+//        printf("MemCopy info:\n");
+//        printf("    packElemSendBufOff: %d\n", packElemSendBufOff);
+//        printf("    packElemDataBufOff: %d\n", packElemDataBufOff);
+//        printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//        printf("    nMaxA2AMode2Slices: %d\n", nMaxA2AMode2Slices);
+//        printf("    nMaxMidSlices: %d\n", nMaxMidSlices);
+//        printf("    nMaxA2AMode1Slices: %d\n", nMaxA2AMode1Slices);
+
         //Now that we have figured out the starting point, begin copying the entire slice from this element
         for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
             if(outerSliceNum >= nLocalOuterSlices)
                 break;
-            outerSendBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1PackStride) * nMaxMidSlices * (nMaxA2AMode2Slices / a2aMode2PackStride) * outerSliceNum;
+            outerSendBufOff = copySliceSize * Max(1, (nMaxA2AMode1Slices / a2aMode1PackStride)) * nMaxMidSlices * Max(1, (nMaxA2AMode2Slices / a2aMode2PackStride)) * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
+
+//            printf("      outerSliceNum: %d\n", outerSliceNum);
+//            printf("      outerSendBufOff: %d\n", outerSendBufOff);
+//            printf("      outerDataBufOff: %d\n", outerDataBufOff);
 
             //offSendBufSlice2 = copySliceSize * nMaxSlices1 * sliceNum2;
             //offDataBufSlice2 = copySliceSize * nLocalSlices1 * a2aMode1PackWrapStride * a2aMode2PackWrapStride * sliceNum2;
             for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nMaxA2AMode2Slices; a2aMode2SliceNum += a2aMode2PackStride){
                 if(a2aMode2SliceNum >= nLocalA2AMode2Slices)
                     break;
-                a2aMode2SendBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1PackStride) * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2PackStride);
+                a2aMode2SendBufOff = copySliceSize * Max(1, (nMaxA2AMode1Slices / a2aMode1PackStride)) * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2PackStride);
                 a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * a2aMode2SliceNum;
+
+//                printf("        a2aMode2SliceNum: %d\n", a2aMode2SliceNum);
+//                printf("        a2aMode2SendBufOff: %d\n", a2aMode2SendBufOff);
+//                printf("        a2aMode2DataBufOff: %d\n", a2aMode2DataBufOff);
 
                 for(midSliceNum = 0; midSliceNum < nMaxMidSlices; midSliceNum++){
                     if(midSliceNum >= nLocalMidSlices)
                         break;
-                    midSendBufOff = copySliceSize * (nMaxA2AMode1Slices / a2aMode1PackStride) * midSliceNum;
+                    midSendBufOff = copySliceSize * Max(1, (nMaxA2AMode1Slices / a2aMode1PackStride)) * midSliceNum;
                     midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
+
+//                    printf("          midSliceNum: %d\n", midSliceNum);
+//                    printf("          midSendBufOff: %d\n", midSendBufOff);
+//                    printf("          midDataBufOff: %d\n", midDataBufOff);
 
                     for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nMaxA2AMode1Slices; a2aMode1SliceNum += a2aMode1PackStride){
                         if(a2aMode1SliceNum >= nLocalA2AMode1Slices)
@@ -346,9 +366,15 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
                         a2aMode1SendBufOff = copySliceSize * (a2aMode1SliceNum / a2aMode1PackStride);
                         a2aMode1DataBufOff = copySliceSize * a2aMode1SliceNum;
 
+//                        printf("            a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
+//                        printf("            a2aMode1SendBufOff: %d\n", a2aMode1SendBufOff);
+//                        printf("            a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
                         //Down to all contiguous slices, so just copy
                         startSendBuf = packElemSendBufOff + outerSendBufOff + a2aMode2SendBufOff + midSendBufOff + a2aMode1SendBufOff;
                         startDataBuf = packElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
+
+//                        printf("              startSendBufOff: %d\n", startSendBuf);
+//                        printf("              startDataBufOff: %d\n", startDataBuf);
                         MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
                     }
                 }

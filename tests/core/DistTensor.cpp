@@ -384,46 +384,46 @@ CreateA2ADITests(const DistTensor<T>& A, const Params& args){
     int i, j, k, l;
     const int order = A.Order();
 
-//    for(i = 0; i < order; i++){
-//        for(j = i+1; j < order; j++){
-//            //We can make a test
-//            std::pair<int, int> indices(i, j);
-//
-//            ModeDistribution mode1Dist = A.ModeDist(i);
-//            ModeDistribution mode2Dist = A.ModeDist(j);
-//
-//            //Pick the groups of modes to communicate over with the all to all
-//
-//            for(k = 0; k <= mode1Dist.size(); k++){
-//                for(l = 0; l <= mode2Dist.size(); l++){
-//                    std::vector<int> commGroup1(mode1Dist.end() - k, mode1Dist.end());
-//                    std::vector<int> commGroup2(mode2Dist.end() - l, mode2Dist.end());
-//
-//                    //No communication happens for this "redistribution"
-//                    if(commGroup1.size() == 0 && commGroup2.size() == 0)
-//                        continue;
-//                    std::pair<std::vector<int>, std::vector<int> > commGroups(commGroup1, commGroup2);
-//                    TensorDistribution resDist = DetermineResultingDistributionA2ADI(A, indices, commGroups);
-//
-//                    std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > testParams(indices, commGroups);
-//                    A2ADITest test(testParams, resDist);
-//
-//                    ret.push_back(test);
-//                }
-//            }
-//        }
-//    }
+    for(i = 0; i < order; i++){
+        for(j = i+1; j < order; j++){
+            //We can make a test
+            std::pair<int, int> indices(i, j);
 
-    std::pair<int, int> a2aModes(0,1);
-    std::vector<int> mode1CommGroup(2);
-    mode1CommGroup[0] = 0;
-    mode1CommGroup[1] = 1;
-    std::vector<int> mode2CommGroup;
-    std::pair<std::vector<int>, std::vector<int> > modeCommGroups(mode1CommGroup, mode2CommGroup);
-    std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > params(a2aModes, modeCommGroups);
-    TensorDistribution  tdist = StringToTensorDist("[(),(2, 0, 1),()]");
-    A2ADITest test(params, tdist);
-    ret.push_back(test);
+            ModeDistribution mode1Dist = A.ModeDist(i);
+            ModeDistribution mode2Dist = A.ModeDist(j);
+
+            //Pick the groups of modes to communicate over with the all to all
+
+            for(k = 0; k <= mode1Dist.size(); k++){
+                for(l = 0; l <= mode2Dist.size(); l++){
+                    std::vector<int> commGroup1(mode1Dist.end() - k, mode1Dist.end());
+                    std::vector<int> commGroup2(mode2Dist.end() - l, mode2Dist.end());
+
+                    //No communication happens for this "redistribution"
+                    if(commGroup1.size() == 0 && commGroup2.size() == 0)
+                        continue;
+                    std::pair<std::vector<int>, std::vector<int> > commGroups(commGroup1, commGroup2);
+                    TensorDistribution resDist = DetermineResultingDistributionA2ADI(A, indices, commGroups);
+
+                    std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > testParams(indices, commGroups);
+                    A2ADITest test(testParams, resDist);
+
+                    ret.push_back(test);
+                }
+            }
+        }
+    }
+
+//    std::pair<int, int> a2aModes(0,1);
+//    std::vector<int> mode1CommGroup(2);
+//    mode1CommGroup[0] = 0;
+//    mode1CommGroup[1] = 1;
+//    std::vector<int> mode2CommGroup;
+//    std::pair<std::vector<int>, std::vector<int> > modeCommGroups(mode1CommGroup, mode2CommGroup);
+//    std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > params(a2aModes, modeCommGroups);
+//    TensorDistribution  tdist = StringToTensorDist("[(),(2, 0, 1),()]");
+//    A2ADITest test(params, tdist);
+//    ret.push_back(test);
 
     return ret;
 }
