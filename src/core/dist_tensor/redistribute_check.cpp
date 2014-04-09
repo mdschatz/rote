@@ -94,7 +94,7 @@ int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>&
 
     //Test dimension has been resized correctly
     //NOTE: Uses fancy way of performing Ceil() on integer division
-    if(B.Dimension(reduceScatterModeB) != (A.Dimension(reduceScatterModeA) / gvA.Dimension(reduceScatterModeA)))
+    if(B.Dimension(reduceScatterModeB) != Max(1,MaxLength(A.Dimension(reduceScatterModeA), gvA.Dimension(reduceScatterModeA))))
         LogicError("CheckPartialReduceScatterRedist: Partial Reduction must reduce index dimension by factor Dimension/Grid Dimension");
 
     //Ensure indices of input and output are similar

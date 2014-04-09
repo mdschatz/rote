@@ -178,9 +178,9 @@ TestPRSRedist(DistTensor<T>& A, int reduceScatterIndex, const TensorDistribution
     const Grid& g = A.Grid();
     const GridView gv = A.GridView();
 
-    const int modeOfRSIndex = A.ModeOfIndex(reduceScatterIndex);
+    const int rsMode = A.ModeOfIndex(reduceScatterIndex);
     std::vector<int> BShape = A.Shape();
-    BShape[modeOfRSIndex] = A.Dimension(modeOfRSIndex) / gv.Dimension(modeOfRSIndex);
+    BShape[rsMode] = Max(1, tmen::MaxLength(A.Dimension(rsMode), gv.Dimension(rsMode)));
 
     DistTensor<T> B(BShape, resDist, A.Indices(), g);
 
@@ -344,6 +344,8 @@ CreatePRSTests(const DistTensor<T>& A, const Params& args){
         ret.push_back(test);
     }
 
+//    PRSTest test(0, DetermineResultingDistributionPRS(A, 0));
+//    ret.push_back(test);
     return ret;
 }
 

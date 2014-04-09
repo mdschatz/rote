@@ -58,7 +58,85 @@ void UnpackPermutationRecvBuf(const T * const recvBuf, const Int permuteIndex, c
 template <typename T>
 void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
-    UnpackRSRecvBuf(recvBuf, reduceScatterIndex, reduceScatterIndex, A, B);
+    const std::vector<Int> start(B.Order(), 0);
+    T* dataBuf = B.Buffer(start);
+
+    const int rsModeA = A.ModeOfIndex(reduceScatterIndex);
+    const int rsModeB = B.ModeOfIndex(reduceScatterIndex);
+
+    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvB = B.GridView();
+
+    const int nModeProcs = gvB.Dimension(rsModeB);   //In PRS, scatter into same index
+    const int rsModeGlobalDimB = B.Dimension(rsModeB); //Number of indices in the mode we are redistributing
+    const int rsModeGlobalDimA = A.Dimension(rsModeA); //Number of indices in the mode we are redistributing
+
+    const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+
+    printf("recvBuf:");
+    for(int i = 0; i < prod(maxLocalShapeA) / nModeProcs; i++){
+        printf(" %d", recvBuf[i]);
+    }
+    printf("\n");
+
+    const std::vector<Int> localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
+
+    //Number of outer slices to unpack
+    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeB, rsModeB + 1));
+    const int nLocalOuterSlices = Max(1, prod(localShapeB, rsModeB + 1));
+
+    //Loop packing bounds variables
+    const int nMaxRSModeSlices = maxLocalShapeB[rsModeB];
+    const int nLocalRSModeSlices = localShapeB[rsModeB];
+
+    //Each wrap is copied contiguously because the distribution of reduceScatter index does not change
+
+    //Variables for calculating elements to copy
+    const int maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, rsModeB));
+    const int copySliceSize = B.LocalModeStride(rsModeB);
+
+    //Loop iteration vars
+    int outerSliceNum, rsModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+    int outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
+    int rsModeRecvBufOff, rsModeDataBufOff;  //Offsets used to index into dataBuf array
+    int startRecvBuf, startDataBuf;
+
+    printf("MemCopy info:\n");
+    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+    printf("    nMaxRSModeSlices: %d\n", nMaxRSModeSlices);
+    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+    printf("    copySliceSize: %d\n", copySliceSize);
+    for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+        if(outerSliceNum >= nLocalOuterSlices)
+            break;
+        outerRecvBufOff = maxCopySliceSize * nMaxRSModeSlices * outerSliceNum;
+        outerDataBufOff = copySliceSize * nLocalRSModeSlices * outerSliceNum;
+
+        printf("        outerSliceNum: %d\n", outerSliceNum);
+        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+        printf("        outerDataBufOff: %d\n", outerDataBufOff);
+
+        for(rsModeSliceNum = 0; rsModeSliceNum < nMaxRSModeSlices; rsModeSliceNum++){
+            if(rsModeSliceNum >= nLocalRSModeSlices)
+                break;
+
+            rsModeRecvBufOff = (maxCopySliceSize * rsModeSliceNum);
+            rsModeDataBufOff = (copySliceSize * rsModeSliceNum);
+
+            startRecvBuf = outerRecvBufOff + rsModeRecvBufOff;
+            startDataBuf = outerDataBufOff + rsModeDataBufOff;
+
+            printf("          startRecvBuf: %d\n", startRecvBuf);
+            printf("          startDataBuf: %d\n", startDataBuf);
+            MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
+        }
+    }
+
+    printf("dataBuf:");
+    for(int i = 0; i < prod(B.LocalShape()); i++)
+        printf(" %d", dataBuf[i]);
+    printf("\n");
 }
 
 //Only called when fully reducing an index
@@ -68,7 +146,6 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
 template <typename T>
 void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
-//    printf("B can unpack %d elems\n", prod(B.LocalShape()));
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
 
