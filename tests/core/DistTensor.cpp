@@ -414,17 +414,17 @@ CreateA2ADITests(const DistTensor<T>& A, const Params& args){
 //        }
 //    }
 
-    std::pair<int, int> a2aModes(0,2);
+    std::pair<int, int> a2aModes(0,1);
     std::vector<int> mode1CommGroup(2);
     mode1CommGroup[0] = 0;
     mode1CommGroup[1] = 1;
     std::vector<int> mode2CommGroup;
     std::pair<std::vector<int>, std::vector<int> > modeCommGroups(mode1CommGroup, mode2CommGroup);
     std::pair<std::pair<int, int>, std::pair<std::vector<int>, std::vector<int> > > params(a2aModes, modeCommGroups);
-    TensorDistribution  tdist = StringToTensorDist("[(),(2),(0,1)]");
-
+    TensorDistribution  tdist = StringToTensorDist("[(),(2, 0, 1),()]");
     A2ADITest test(params, tdist);
     ret.push_back(test);
+
     return ret;
 }
 
@@ -518,9 +518,9 @@ DistTensorTest( const Params& args, const Grid& g )
         std::pair<std::vector<int>, std::vector<int> > commGroups = thisTest.first.second;
         TensorDistribution resDist = thisTest.second;
 
-        if(commRank == 0){
+    //    if(commRank == 0){
             printf("Performing all-to-all involving indices (%d, %d) from distribution %s to distribution %s\n", indices.first, indices.second, (tmen::TensorDistToString(A.TensorDist())).c_str(), (tmen::TensorDistToString(resDist)).c_str());
-        }
+    //    }
         TestA2ADIRedist(A, indices, commGroups, resDist);
     }
 }

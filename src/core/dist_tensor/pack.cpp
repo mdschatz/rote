@@ -245,30 +245,30 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     const int nRedistProcs = prod(FilterVector(g.Shape(), commModes));
 
     const std::vector<Int> localShape = A.LocalShape();
-    const std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), gvA.Shape());
+    const std::vector<Int> packLocalShape = MaxLengths(A.Shape(), gvA.Shape());
 
     //Slices we can directly copy
-    const int nMaxContigSlices = Max(1, prod(maxLocalShape, 0, a2aMode1));
+    const int nMaxContigSlices = Max(1, prod(packLocalShape, 0, a2aMode1));
     const int nLocalContigSlices = Max(1, prod(localShape, 0, a2aMode1));
 
     //Slices of a2aMode1
-    const int nMaxA2AMode1Slices = maxLocalShape[a2aMode1];
+    const int nMaxA2AMode1Slices = packLocalShape[a2aMode1];
     const int nLocalA2AMode1Slices = localShape[a2aMode1];
 
     //Slices between a2aMode1 and a2aMode2
-    const int nMaxMidSlices = Max(1, prod(maxLocalShape, a2aMode1 + 1, a2aMode2));
+    const int nMaxMidSlices = Max(1, prod(packLocalShape, a2aMode1 + 1, a2aMode2));
     const int nLocalMidSlices = Max(1, prod(localShape, a2aMode1 + 1, a2aMode2));
 
     //Slices of a2aMode2
-    const int nMaxA2AMode2Slices = maxLocalShape[a2aMode2];
+    const int nMaxA2AMode2Slices = packLocalShape[a2aMode2];
     const int nLocalA2AMode2Slices = localShape[a2aMode2];
 
     //All remaining slices
-    const int nMaxOuterSlices = Max(1, prod(maxLocalShape, a2aMode2 + 1));
-    const int nLocalOuterSlices = Max(1, prod(localShape, a2aMode1 + 1));
+    const int nMaxOuterSlices = Max(1, prod(packLocalShape, a2aMode2 + 1));
+    const int nLocalOuterSlices = Max(1, prod(localShape, a2aMode2 + 1));
 
     const int copySliceSize = A.LocalModeStride(a2aMode1);
-    const int nElemsPerProc = prod(maxLocalShape);
+    const int nElemsPerProc = prod(packLocalShape);
 
     //Various counters used to offset in data arrays
     int contigSliceNum, a2aMode1SliceNum, midSliceNum, a2aMode2SliceNum, outerSliceNum;  //Which slice we are packing for indexK
@@ -288,15 +288,9 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
 
     int packElemNum;
     const int nPackElems = prod(modePackStrides);
-//    std::vector<int> elemsToPackShape(order);
-//    for(int i = 0; i < order; i++){
-//        elemsToPackShape[i] = Min(A.Dimension(i), modePackStrides[i]);
-//    }
-//    const int nPackElems = prod(elemsToPackShape);
 
     for(packElemNum = 0; packElemNum < nPackElems; packElemNum++){
     	std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackStrides);
-//        std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, elemsToPackShape);
 
     	//Determine the global index of this first element we are packing
     	std::vector<int> startPackElemLoc = myFirstLoc;
@@ -369,7 +363,7 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     printf("\n");
 
     printf("Packed sendBuf:");
-    for(int i = 0; i < prod(maxLocalShape) * nRedistProcs; i++){
+    for(int i = 0; i < prod(packLocalShape) * nRedistProcs; i++){
         printf(" %d", sendBuf[i]);
     }
     printf("\n");
