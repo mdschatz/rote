@@ -108,7 +108,7 @@ namespace left_or_right_wrapper {
 inline char 
 LeftOrRightToChar( LeftOrRight side )
 {
-    char sideChar;
+    char sideChar = 'L';
     switch( side )
     {
         case LEFT:  sideChar = 'L'; break;
@@ -120,7 +120,7 @@ LeftOrRightToChar( LeftOrRight side )
 inline LeftOrRight 
 CharToLeftOrRight( char c )
 {
-    LeftOrRight side;
+    LeftOrRight side = LEFT;
     switch( c )
     {
         case 'L': side = LEFT;  break;
@@ -138,7 +138,7 @@ namespace orientation_wrapper {
 inline char 
 OrientationToChar( Orientation orientation )
 {
-    char orientationChar;
+    char orientationChar = 'N';
     switch( orientation )
     {
         case NORMAL:    orientationChar = 'N'; break;
@@ -151,7 +151,7 @@ OrientationToChar( Orientation orientation )
 inline Orientation 
 CharToOrientation( char c )
 {
-    Orientation orientation;
+    Orientation orientation = NORMAL;
     switch( c )
     {
         case 'N': orientation = NORMAL;    break;
@@ -171,7 +171,7 @@ namespace unit_or_non_unit_wrapper {
 inline char 
 UnitOrNonUnitToChar( UnitOrNonUnit diag )
 {
-    char diagChar;
+    char diagChar = 'N';
     switch( diag )
     {
         case NON_UNIT: diagChar = 'N'; break;
@@ -183,7 +183,7 @@ UnitOrNonUnitToChar( UnitOrNonUnit diag )
 inline UnitOrNonUnit 
 CharToUnitOrNonUnit( char c )
 {
-    UnitOrNonUnit diag;
+    UnitOrNonUnit diag = NON_UNIT;
     switch( c )
     {
         case 'N': diag = NON_UNIT; break;
@@ -201,7 +201,7 @@ namespace upper_or_lower_wrapper {
 inline char 
 UpperOrLowerToChar( UpperOrLower uplo )
 {
-    char uploChar;
+    char uploChar = 'L';
     switch( uplo )
     {
         case LOWER: uploChar = 'L'; break;
@@ -213,7 +213,7 @@ UpperOrLowerToChar( UpperOrLower uplo )
 inline UpperOrLower 
 CharToUpperOrLower( char c )
 {
-    UpperOrLower uplo;
+    UpperOrLower uplo = LOWER;
     switch( c )
     {
         case 'L': uplo = LOWER; break;
