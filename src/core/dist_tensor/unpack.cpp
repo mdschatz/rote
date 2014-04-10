@@ -254,57 +254,98 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
-//  printf("B can unpack %d elems\n", prod(B.LocalShape()));
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
-    const tmen::GridView gv = A.GridView();
 
-    const int allGatherMode = A.ModeOfIndex(allGatherIndex);
-    const int nModeProcs = gv.Dimension(allGatherMode);   //Number of procs per wrap
-    const int agModeGlobalDim = B.Dimension(allGatherMode);           //Number of indices in the mode we are redistributing
+    const int agModeA = A.ModeOfIndex(allGatherIndex);
+    const int agModeB = B.ModeOfIndex(allGatherIndex);
 
-    const std::vector<Int> maxRecvLocalShape = MaxLengths(A.Shape(), gv.Shape());
-    const int agModeMaxLocalDim = maxRecvLocalShape[allGatherMode];
+    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvB = B.GridView();
 
-    const std::vector<Int> localShape = B.LocalShape();         //Shape of the local tensor we are packing
-    const int agModeLocalDim = B.LocalDimension(allGatherMode); //Local version
-    const int agModeLocalStride = B.LocalModeStride(allGatherMode);
+    const int nRedistProcs = gvA.Dimension(agModeA);
+
+    const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+
+    printf("recvBuf:");
+    for(int i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
+        printf(" %d", recvBuf[i]);
+    }
+    printf("\n");
+
+    const std::vector<Int> localShapeB = B.LocalShape();
+
+    //Number of outer slices to unpack
+    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeB, agModeB + 1));
+    const int nLocalOuterSlices = prod(localShapeB, agModeB + 1);
 
     //Loop packing bounds variables
-    const int nWraps = MaxLength(agModeGlobalDim, nModeProcs);
-    //Number of local slices and slice size we must pack per proc per wrap
-    const int nLocalSlices = Max(1, prod(localShape, allGatherMode + 1));
-    const int nMaxSlices = Max(1, prod(maxRecvLocalShape, allGatherMode + 1));
+    const int nMaxAGModeSlices = maxLocalShapeB[agModeB];
+    const int nLocalAGModeSlices = localShapeB[agModeB];
+    const int agModeUnpackStride = nRedistProcs;
 
     //Variables for calculating elements to copy
-    const int nMaxElemsPerProc = prod(maxRecvLocalShape);
-    const int copySliceSize = agModeLocalStride;
+    const int maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, agModeB));
+    const int copySliceSize = B.LocalModeStride(agModeB);
+
+    //Number of processes we have to unpack from
+    const int nElemSlices = nRedistProcs;
 
     //Loop iteration vars
-    int procRecvNum, wrapNum, sliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
-    int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into recvBuf array
-    int offSliceDataBuf, offWrapDataBuf;  //Offsets used to index into dataBuf array
+    int outerSliceNum, agModeSliceNum, elemSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+    int elemRecvBufOff, elemDataBufOff;
+    int outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
+    int agModeRecvBufOff, agModeDataBufOff;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
-        offSliceRecvBuf = copySliceSize * agModeMaxLocalDim * sliceNum;
-        offSliceDataBuf = copySliceSize * agModeGlobalDim * sliceNum;
-        if(sliceNum >= nLocalSlices){
-            break;
-        }
-        for(wrapNum = 0; wrapNum < nWraps; wrapNum++){
-            offWrapRecvBuf = copySliceSize * wrapNum;
-            offWrapDataBuf = copySliceSize * nModeProcs * wrapNum;
-            for(procRecvNum = 0; procRecvNum < nModeProcs; procRecvNum++){
-                startRecvBuf = offSliceRecvBuf + offWrapRecvBuf + (nMaxElemsPerProc * procRecvNum);
-                startDataBuf = offSliceDataBuf + offWrapDataBuf + (copySliceSize * procRecvNum);
-                if(wrapNum * nModeProcs + procRecvNum >= agModeLocalDim){
+    printf("MemCopy info:\n");
+    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+    printf("    copySliceSize: %d\n", copySliceSize);
+    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
+    for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
+        elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
+        elemDataBufOff = copySliceSize * elemSliceNum;
+
+        printf("      elemSliceNum: %d\n", elemSliceNum);
+        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
+        printf("      elemDataBufOff: %d\n", elemDataBufOff);
+        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+            if(outerSliceNum >= nLocalOuterSlices)
+                break;
+            //NOTE: the weird Max() function ensures we increment the recvBuf correctly
+            //e.g. we need to ensure that we jump over all slices packed by the pack routine.  Which should be maxLocalShapeA[agModeA];
+            //For consistency, kept same structure as in PackPartialRSSendBuf
+            outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxAGModeSlices - 1) / agModeUnpackStride + 1) * outerSliceNum;
+            outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
+
+            printf("        outerSliceNum: %d\n", outerSliceNum);
+            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+            for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum += agModeUnpackStride){
+                if(agModeSliceNum + elemSliceNum >= nLocalAGModeSlices)
                     break;
-                }
+                agModeRecvBufOff = maxCopySliceSize * (agModeSliceNum / agModeUnpackStride);
+                agModeDataBufOff = copySliceSize * agModeSliceNum;
+
+                printf("          agModeSliceNum: %d\n", agModeSliceNum);
+                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
+                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+                startRecvBuf = elemRecvBufOff + outerRecvBufOff + agModeRecvBufOff;
+                startDataBuf = elemDataBufOff + outerDataBufOff + agModeDataBufOff;
+
+                printf("          startRecvBuf: %d\n", startRecvBuf);
+                printf("          startDataBuf: %d\n", startDataBuf);
                 MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
             }
         }
     }
+    printf("dataBuf:");
+    for(int i = 0; i < prod(B.LocalShape()); i++)
+        printf(" %d", dataBuf[i]);
+    printf("\n");
 }
 
 template<typename T>
