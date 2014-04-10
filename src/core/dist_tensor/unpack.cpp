@@ -19,7 +19,6 @@ void UnpackPermutationRecvBuf(const T * const recvBuf, const Int permuteIndex, c
         const std::vector<Int> start(B.Order(), 0);
         T* dataBuf = B.Buffer(start);
 
-        const int pModeA = A.ModeOfIndex(permuteIndex);
         const int pModeB = B.ModeOfIndex(permuteIndex);
 
         const tmen::GridView gvA = A.GridView();
@@ -76,24 +75,19 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
 
-    const int rsModeA = A.ModeOfIndex(reduceScatterIndex);
     const int rsModeB = B.ModeOfIndex(reduceScatterIndex);
 
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
-    const int nRedistProcs = gvB.Dimension(rsModeB);   //In PRS, scatter into same index
-    const int rsModeGlobalDimB = B.Dimension(rsModeB); //Number of indices in the mode we are redistributing
-    const int rsModeGlobalDimA = A.Dimension(rsModeA); //Number of indices in the mode we are redistributing
-
     const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
     const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
 
-    printf("recvBuf:");
-    for(int i = 0; i < prod(maxLocalShapeA) / nRedistProcs; i++){
-        printf(" %d", recvBuf[i]);
-    }
-    printf("\n");
+//    printf("recvBuf:");
+//    for(int i = 0; i < prod(maxLocalShapeA) / nRedistProcs; i++){
+//        printf(" %d", recvBuf[i]);
+//    }
+//    printf("\n");
 
     const std::vector<Int> localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
 
@@ -117,20 +111,20 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
     int rsModeRecvBufOff, rsModeDataBufOff;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    printf("MemCopy info:\n");
-    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-    printf("    nMaxRSModeSlices: %d\n", nMaxRSModeSlices);
-    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("MemCopy info:\n");
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nMaxRSModeSlices: %d\n", nMaxRSModeSlices);
+//    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//    printf("    copySliceSize: %d\n", copySliceSize);
     for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
         if(outerSliceNum >= nLocalOuterSlices)
             break;
         outerRecvBufOff = maxCopySliceSize * nMaxRSModeSlices * outerSliceNum;
         outerDataBufOff = copySliceSize * nLocalRSModeSlices * outerSliceNum;
 
-        printf("        outerSliceNum: %d\n", outerSliceNum);
-        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-        printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//        printf("        outerSliceNum: %d\n", outerSliceNum);
+//        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//        printf("        outerDataBufOff: %d\n", outerDataBufOff);
 
         for(rsModeSliceNum = 0; rsModeSliceNum < nMaxRSModeSlices; rsModeSliceNum++){
             if(rsModeSliceNum >= nLocalRSModeSlices)
@@ -142,16 +136,16 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
             startRecvBuf = outerRecvBufOff + rsModeRecvBufOff;
             startDataBuf = outerDataBufOff + rsModeDataBufOff;
 
-            printf("          startRecvBuf: %d\n", startRecvBuf);
-            printf("          startDataBuf: %d\n", startDataBuf);
+//            printf("          startRecvBuf: %d\n", startRecvBuf);
+//            printf("          startDataBuf: %d\n", startDataBuf);
             MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
         }
     }
 
-    printf("dataBuf:");
-    for(int i = 0; i < prod(B.LocalShape()); i++)
-        printf(" %d", dataBuf[i]);
-    printf("\n");
+//    printf("dataBuf:");
+//    for(int i = 0; i < prod(B.LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
 }
 
 //Only called when fully reducing an index
@@ -162,23 +156,19 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
 
-    const int rModeA = A.ModeOfIndex(reduceIndex);
-    const int sModeA = A.ModeOfIndex(scatterIndex);
     const int sModeB = B.ModeOfIndex(scatterIndex);
 
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
-    const int nRedistProcs = gvA.Dimension(rModeA);   //In PRS, scatter into same index
-
     const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
     const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
 
-    printf("recvBuf:");
-    for(int i = 0; i < prod(maxLocalShapeA) / nRedistProcs; i++){
-        printf(" %d", recvBuf[i]);
-    }
-    printf("\n");
+//    printf("recvBuf:");
+//    for(int i = 0; i < prod(maxLocalShapeA) / nRedistProcs; i++){
+//        printf(" %d", recvBuf[i]);
+//    }
+//    printf("\n");
 
     const std::vector<Int> localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
 
@@ -202,20 +192,20 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
     int sModeRecvBufOff, sModeDataBufOff;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    printf("MemCopy info:\n");
-    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
-    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("MemCopy info:\n");
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
+//    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//    printf("    copySliceSize: %d\n", copySliceSize);
     for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
         if(outerSliceNum >= nLocalOuterSlices)
             break;
         outerRecvBufOff = maxCopySliceSize * nMaxSModeSlices * outerSliceNum;
         outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
 
-        printf("        outerSliceNum: %d\n", outerSliceNum);
-        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-        printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//        printf("        outerSliceNum: %d\n", outerSliceNum);
+//        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//        printf("        outerDataBufOff: %d\n", outerDataBufOff);
 
         for(sModeSliceNum = 0; sModeSliceNum < nMaxSModeSlices; sModeSliceNum++){
             if(sModeSliceNum >= nLocalSModeSlices)
@@ -227,30 +217,18 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
             startRecvBuf = outerRecvBufOff + sModeRecvBufOff;
             startDataBuf = outerDataBufOff + sModeDataBufOff;
 
-            printf("          startRecvBuf: %d\n", startRecvBuf);
-            printf("          startDataBuf: %d\n", startDataBuf);
+//            printf("          startRecvBuf: %d\n", startRecvBuf);
+//            printf("          startDataBuf: %d\n", startDataBuf);
             MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
         }
     }
 
-    printf("dataBuf:");
-    for(int i = 0; i < prod(B.LocalShape()); i++)
-        printf(" %d", dataBuf[i]);
-    printf("\n");
+//    printf("dataBuf:");
+//    for(int i = 0; i < prod(B.LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
 }
 
-//Given following set of strides in a tensor (s1, s2, ..., sm) and mode x we wish to redistribute
-//Pack according to following scheme:
-//ptr = 0  <-- Ptr into the sendBuf
-//foreach proc in nProcs:
-//  foreach wrapNum in ceil((mx-procNum)/nProcs)  <-- Number of wraps we have to send to each proc
-//    startIndex = sx * (wrapNum* nProcs + proc)  <-- Sets the first index we should copy from, i.e, (0,...,0,wrapNum*nProcs + proc, 0, ..., 0)
-//    foreach prod(m(x+1), ..., m(m)):  <-- Defines the number of slices we have to copy over per wrap
-//      memcpy(dataBuf[startIndex], sendBuf[ptr], max(1, prod(s1,..., s(x-1)))) <-- Copy the slice (0,..., 0, proc, 0, ..., 0) to (m1, m2, ..., m(x-1), proc, 0, ..., 0)
-//      startIndex += sx*mx  <-- Put us in the next slice , i.e., (0,..., 0, proc, 1, ..., 0) to (m1, m2, ..., m(x-1), proc, 1, ..., 0)
-//      ptr += max(1, prod(s1,..., s(x-1))) <-- Increment ptr in the sendBuf
-//TODO: Make this work with blocks
-//TODO: Swap nWrap test to be more like sliceNum test (Refer to local information)
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
@@ -268,11 +246,11 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
     const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
     const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
 
-    printf("recvBuf:");
-    for(int i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
-        printf(" %d", recvBuf[i]);
-    }
-    printf("\n");
+//    printf("recvBuf:");
+//    for(int i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
+//        printf(" %d", recvBuf[i]);
+//    }
+//    printf("\n");
 
     const std::vector<Int> localShapeB = B.LocalShape();
 
@@ -299,19 +277,19 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
     int agModeRecvBufOff, agModeDataBufOff;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    printf("MemCopy info:\n");
-    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
-    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-    printf("    copySliceSize: %d\n", copySliceSize);
-    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
+//    printf("MemCopy info:\n");
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+//    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
     for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
         elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
         elemDataBufOff = copySliceSize * elemSliceNum;
 
-        printf("      elemSliceNum: %d\n", elemSliceNum);
-        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
-        printf("      elemDataBufOff: %d\n", elemDataBufOff);
+//        printf("      elemSliceNum: %d\n", elemSliceNum);
+//        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
+//        printf("      elemDataBufOff: %d\n", elemDataBufOff);
         for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
             if(outerSliceNum >= nLocalOuterSlices)
                 break;
@@ -321,31 +299,31 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Int allGatherIndex, const Di
             outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxAGModeSlices - 1) / agModeUnpackStride + 1) * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
 
-            printf("        outerSliceNum: %d\n", outerSliceNum);
-            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
             for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum += agModeUnpackStride){
                 if(agModeSliceNum + elemSliceNum >= nLocalAGModeSlices)
                     break;
                 agModeRecvBufOff = maxCopySliceSize * (agModeSliceNum / agModeUnpackStride);
                 agModeDataBufOff = copySliceSize * agModeSliceNum;
 
-                printf("          agModeSliceNum: %d\n", agModeSliceNum);
-                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
-                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+//                printf("          agModeSliceNum: %d\n", agModeSliceNum);
+//                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
+//                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
                 startRecvBuf = elemRecvBufOff + outerRecvBufOff + agModeRecvBufOff;
                 startDataBuf = elemDataBufOff + outerDataBufOff + agModeDataBufOff;
 
-                printf("          startRecvBuf: %d\n", startRecvBuf);
-                printf("          startDataBuf: %d\n", startDataBuf);
+//                printf("          startRecvBuf: %d\n", startRecvBuf);
+//                printf("          startDataBuf: %d\n", startDataBuf);
                 MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
             }
         }
     }
-    printf("dataBuf:");
-    for(int i = 0; i < prod(B.LocalShape()); i++)
-        printf(" %d", dataBuf[i]);
-    printf("\n");
+//    printf("dataBuf:");
+//    for(int i = 0; i < prod(B.LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
 }
 
 template<typename T>

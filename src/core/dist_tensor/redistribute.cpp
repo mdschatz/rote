@@ -86,11 +86,6 @@ void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
-    printf("recvBuf after comm:");
-    for(int i = 0; i < recvSize; i++){
-        printf(" %d", recvBuf[i]);
-    }
-    printf("\n");
     UnpackPartialRSRecvBuf(recvBuf, reduceScatterIndex, A, B);
 
 }
