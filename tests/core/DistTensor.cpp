@@ -497,20 +497,20 @@ DistTensorTest( const Params& args, const Grid& g )
         TestRSRedist(A, reduceIndex, scatterIndex, resDist);
     }
 
-//    if(commRank == 0){
-//        printf("Performing Permutation tests\n");
-//    }
-//    for(int i = 0; i <= pTests.size(); i++){
-//        PTest thisTest = pTests[1];
-//        int permuteIndex = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
-//
-//        if(commRank == 0){
-//            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
-//        }
-//        TestPRedist(A, permuteIndex, resDist);
-//    }
-//
+    if(commRank == 0){
+        printf("Performing Permutation tests\n");
+    }
+    for(int i = 0; i <= pTests.size(); i++){
+        PTest thisTest = pTests[1];
+        int permuteIndex = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
+
+        if(commRank == 0){
+            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
+        }
+        TestPRedist(A, permuteIndex, resDist);
+    }
+
     if(commRank == 0){
         printf("Performing All-to-all (double index) tests\n");
     }

@@ -18,40 +18,54 @@ void UnpackPermutationRecvBuf(const T * const recvBuf, const Int permuteIndex, c
 {
         const std::vector<Int> start(B.Order(), 0);
         T* dataBuf = B.Buffer(start);
-        const tmen::GridView gv = A.GridView();
 
-        const int permuteModeA = A.ModeOfIndex(permuteIndex);
+        const int pModeA = A.ModeOfIndex(permuteIndex);
+        const int pModeB = B.ModeOfIndex(permuteIndex);
 
-        const std::vector<Int> maxRecvLocalShape = MaxLengths(A.Shape(), gv.Shape());
+        const tmen::GridView gvA = A.GridView();
+        const tmen::GridView gvB = B.GridView();
 
-        const std::vector<Int> localShape = B.LocalShape();         //Shape of the local tensor we are packing
-        const int pModeLocalDim = B.LocalDimension(permuteModeA); //Local version
-        const int pModeLocalStride = B.LocalModeStride(permuteModeA);
+        const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+        const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
 
-        //Number of local slices and slice size we must pack per proc per wrap
-        const int nLocalSlices = Max(1, prod(localShape, permuteModeA + 1));
-        const int nMaxSlices = Max(1, prod(maxRecvLocalShape, permuteModeA + 1));
+        const std::vector<Int> localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
+
+        //Number of outer slices to unpack
+        const int nMaxOuterSlices = Max(1, prod(maxLocalShapeB, pModeB + 1));
+        const int nLocalOuterSlices = prod(localShapeB, pModeB + 1);
+
+        //Loop packing bounds variables
+        const int nMaxPModeSlices = maxLocalShapeB[pModeB];
+        const int nLocalPModeSlices = localShapeB[pModeB];
 
         //Variables for calculating elements to copy
-        const int maxCopySliceSize = Max(1, prod(maxRecvLocalShape, 0, permuteModeA + 1));
-        const int copySliceSize = pModeLocalStride * pModeLocalDim;
+        const int maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, pModeB));
+        const int copySliceSize = B.LocalModeStride(pModeB);
 
         //Loop iteration vars
-        int sliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
-        int offSliceRecvBuf;  //Offsets used to index into recvBuf array
-        int offSliceDataBuf;  //Offsets used to index into dataBuf array
+        int outerSliceNum, pModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+        int outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
+        int pModeRecvBufOff, pModeDataBufOff;  //Offsets used to index into dataBuf array
         int startRecvBuf, startDataBuf;
 
-        for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
-            offSliceRecvBuf = maxCopySliceSize * sliceNum;
-            offSliceDataBuf = copySliceSize * sliceNum;
-            if(sliceNum >= nLocalSlices){
+        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+            if(outerSliceNum >= nLocalOuterSlices)
                 break;
+
+            outerRecvBufOff = maxCopySliceSize * nMaxPModeSlices * outerSliceNum;
+            outerDataBufOff = copySliceSize * nLocalPModeSlices * outerSliceNum;
+
+            for(pModeSliceNum = 0; pModeSliceNum < nMaxPModeSlices; pModeSliceNum++){
+                if(pModeSliceNum >= nLocalPModeSlices)
+                    break;
+                pModeRecvBufOff = maxCopySliceSize * pModeSliceNum;
+                pModeDataBufOff = copySliceSize * pModeSliceNum;
+
+                startRecvBuf = outerRecvBufOff + pModeRecvBufOff;
+                startDataBuf = outerDataBufOff + pModeDataBufOff;
+                //printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
+                MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
             }
-            startRecvBuf = offSliceRecvBuf;
-            startDataBuf = offSliceDataBuf;
-            //printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
-            MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
         }
 }
 
@@ -68,7 +82,7 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
-    const int nModeProcs = gvB.Dimension(rsModeB);   //In PRS, scatter into same index
+    const int nRedistProcs = gvB.Dimension(rsModeB);   //In PRS, scatter into same index
     const int rsModeGlobalDimB = B.Dimension(rsModeB); //Number of indices in the mode we are redistributing
     const int rsModeGlobalDimA = A.Dimension(rsModeA); //Number of indices in the mode we are redistributing
 
@@ -76,7 +90,7 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
     const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
 
     printf("recvBuf:");
-    for(int i = 0; i < prod(maxLocalShapeA) / nModeProcs; i++){
+    for(int i = 0; i < prod(maxLocalShapeA) / nRedistProcs; i++){
         printf(" %d", recvBuf[i]);
     }
     printf("\n");
@@ -85,7 +99,7 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
 
     //Number of outer slices to unpack
     const int nMaxOuterSlices = Max(1, prod(maxLocalShapeB, rsModeB + 1));
-    const int nLocalOuterSlices = Max(1, prod(localShapeB, rsModeB + 1));
+    const int nLocalOuterSlices = prod(localShapeB, rsModeB + 1);
 
     //Loop packing bounds variables
     const int nMaxRSModeSlices = maxLocalShapeB[rsModeB];
@@ -170,7 +184,7 @@ void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int s
 
     //Number of outer slices to unpack
     const int nMaxOuterSlices = Max(1, prod(maxLocalShapeB, sModeB + 1));
-    const int nLocalOuterSlices = Max(1, prod(localShapeB, sModeB + 1));
+    const int nLocalOuterSlices = prod(localShapeB, sModeB + 1);
 
     //Loop packing bounds variables
     const int nMaxSModeSlices = maxLocalShapeB[sModeB];

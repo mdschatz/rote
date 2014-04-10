@@ -13,44 +13,60 @@
 
 namespace tmen{
 
+//NOTE: This should just be a direct memcopy. But sticking to the same structured code as all other collectives
 template <typename T>
 void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int permuteIndex, T * const sendBuf)
 {
     const std::vector<Int> start(A.Order(), 0);
     const T* dataBuf = A.LockedBuffer(start);
 
-    const int permuteModeA = A.ModeOfIndex(permuteIndex);
+    const int pModeA = A.ModeOfIndex(permuteIndex);
 
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
 
-    const std::vector<Int> localShapeA = A.LocalShape(); //Shape of the local tensor we are packing
+    const int nRedistProcs = gvA.Dimension(pModeA);
+
+    //Shape of the local tensor we are packing
     const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+    const std::vector<Int> localShapeA = A.LocalShape();
 
-    const int pModeLocalDim = A.LocalDimension(permuteModeA); //Local version
-    const int pModeLocalStride = A.LocalModeStride(permuteModeA);
+    //Calculate number of outer slices to pack
+    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeA, pModeA + 1));
+    const int nLocalOuterSlices = prod(localShapeA, pModeA + 1);
 
-    //Calculate number of local slices and slice size we must pack per proc per wrap
-    const int nLocalSlices = Max(1, prod(localShapeA, permuteModeA + 1));
-    const int nMaxSlices = Max(1, prod(maxLocalShapeA, permuteModeA + 1)); //Cover the case where scatterMode is the last one (in which case we do need 1 slice)
+    //Calculate number of rsMode slices to pack
+    const int nMaxPModeSlices = maxLocalShapeA[pModeA];
+    const int nLocalPModeSlices = localShapeA[pModeA];
+    const int pModePackStride = nRedistProcs;
 
-    const int maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, permuteModeA + 1));
-    const int copySliceSize = pModeLocalStride * pModeLocalDim;
 
-    int sliceNum; //Which slice of which wrap of which process are we packing
-    int offSliceSendBuf;  //Offsets used to index into send buf
-    int offSliceDataBuf;  //Offsets used to index into data buf
+    const int maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, pModeA));
+    const int copySliceSize = prod(localShapeA, 0, pModeA);
+
+    const int nMaxElemsPerProc = prod(maxLocalShapeA);
+
+    int outerSliceNum, pModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
+    int elemSendBufOff, elemDataBufOff;
+    int outerSendBufOff, pModeSendBufOff;
+    int outerDataBufOff, pModeDataBufOff;
     int startSendBuf, startDataBuf;
 
-    for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
-        offSliceSendBuf = maxCopySliceSize * sliceNum;
-        offSliceDataBuf = copySliceSize * sliceNum;
-        if(sliceNum >= nLocalSlices)
+    for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+        if(outerSliceNum >= nLocalOuterSlices)
             break;
-        startSendBuf = offSliceSendBuf;
-        startDataBuf = offSliceDataBuf;
-        MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+        outerSendBufOff = maxCopySliceSize * nMaxPModeSlices * outerSliceNum;
+        outerDataBufOff = copySliceSize * nLocalPModeSlices * outerSliceNum;
+
+        for(pModeSliceNum = 0; pModeSliceNum < nMaxPModeSlices; pModeSliceNum++){
+            if(pModeSliceNum >= nLocalPModeSlices)
+                break;
+            pModeSendBufOff = maxCopySliceSize * pModeSliceNum;
+            pModeDataBufOff = copySliceSize * pModeSliceNum;
+
+            startSendBuf = outerSendBufOff + pModeSendBufOff;
+            startDataBuf = outerDataBufOff + pModeDataBufOff;
+            MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+        }
     }
 }
 
