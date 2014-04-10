@@ -55,6 +55,7 @@ void UnpackPermutationRecvBuf(const T * const recvBuf, const Int permuteIndex, c
         }
 }
 
+//NOTE: Should be equivalent to UnpackRSRecvBuf(recvBuf, reduceScatterIndex, reduceScatterIndex, A, B);
 template <typename T>
 void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
@@ -141,57 +142,87 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Int reduceScatterInde
 
 //Only called when fully reducing an index
 //NOTE: Looks an awful lot like PackAGSendBuf...
-//TODO: Merge with PackAGSendBuf?
-//TODO: Make this work with blocks (more general is commented out code
 template <typename T>
 void UnpackRSRecvBuf(const T * const recvBuf, const Int reduceIndex, const Int scatterIndex, const DistTensor<T>& A, DistTensor<T>& B)
 {
     const std::vector<Int> start(B.Order(), 0);
     T* dataBuf = B.Buffer(start);
 
-    const int scatterModeB = B.ModeOfIndex(scatterIndex);
+    const int rModeA = A.ModeOfIndex(reduceIndex);
+    const int sModeA = A.ModeOfIndex(scatterIndex);
+    const int sModeB = B.ModeOfIndex(scatterIndex);
 
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
-    const int nModeProcs = gvB.Dimension(scatterModeB);   //Number of procs per wrap
-    const int sModeGlobalDim = B.Dimension(scatterModeB);           //Number of indices in the mode we are redistributing
 
-    const std::vector<Int> maxRecvLocalShape = MaxLengths(B.Shape(), gvB.Shape());
+    const int nRedistProcs = gvA.Dimension(rModeA);   //In PRS, scatter into same index
+
+    const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+
+    printf("recvBuf:");
+    for(int i = 0; i < prod(maxLocalShapeA) / nRedistProcs; i++){
+        printf(" %d", recvBuf[i]);
+    }
+    printf("\n");
 
     const std::vector<Int> localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
-    const int sModeLocalDimB = B.LocalDimension(scatterModeB); //Local version
-    const int sModeLocalStrideB = B.LocalModeStride(scatterModeB);
+
+    //Number of outer slices to unpack
+    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeB, sModeB + 1));
+    const int nLocalOuterSlices = Max(1, prod(localShapeB, sModeB + 1));
 
     //Loop packing bounds variables
-    const int nMaxWraps = MaxLength(sModeGlobalDim, nModeProcs);
-    //Number of local slices and slice size we must pack per proc per wrap
-    const int nLocalSlices = Max(1, prod(localShapeB, scatterModeB + 1));
-    const int nMaxSlices = Max(1, prod(maxRecvLocalShape, scatterModeB + 1));
+    const int nMaxSModeSlices = maxLocalShapeB[sModeB];
+    const int nLocalSModeSlices = localShapeB[sModeB];
+
+    //Each wrap is copied contiguously because the distribution of reduceScatter index does not change
 
     //Variables for calculating elements to copy
-    const int copySliceSize = sModeLocalStrideB;
-    const int maxCopySliceSize = Max(1, prod(maxRecvLocalShape, 0, scatterModeB));
+    const int maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, sModeB));
+    const int copySliceSize = B.LocalModeStride(sModeB);
 
     //Loop iteration vars
-    int wrapNum, sliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
-    int offSliceRecvBuf;  //Offsets used to index into recvBuf array
-    int offSliceDataBuf;  //Offsets used to index into dataBuf array
+    int outerSliceNum, sModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+    int outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
+    int sModeRecvBufOff, sModeDataBufOff;  //Offsets used to index into dataBuf array
     int startRecvBuf, startDataBuf;
 
-    for(sliceNum = 0; sliceNum < nMaxSlices; sliceNum++){
-        if(sliceNum >= nLocalSlices)
+    printf("MemCopy info:\n");
+    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
+    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+    printf("    copySliceSize: %d\n", copySliceSize);
+    for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+        if(outerSliceNum >= nLocalOuterSlices)
             break;
-        offSliceRecvBuf = maxCopySliceSize * nMaxWraps * sliceNum;
-        offSliceDataBuf = copySliceSize * sModeLocalDimB * sliceNum;
-        for(wrapNum = 0; wrapNum < nMaxWraps; wrapNum++){
-            if(wrapNum >= sModeLocalDimB)
-                break;
-            startRecvBuf = offSliceRecvBuf + (copySliceSize * wrapNum);
-            startDataBuf = offSliceDataBuf + (maxCopySliceSize * wrapNum);
+        outerRecvBufOff = maxCopySliceSize * nMaxSModeSlices * outerSliceNum;
+        outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
 
+        printf("        outerSliceNum: %d\n", outerSliceNum);
+        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+        printf("        outerDataBufOff: %d\n", outerDataBufOff);
+
+        for(sModeSliceNum = 0; sModeSliceNum < nMaxSModeSlices; sModeSliceNum++){
+            if(sModeSliceNum >= nLocalSModeSlices)
+                break;
+
+            sModeRecvBufOff = (maxCopySliceSize * sModeSliceNum);
+            sModeDataBufOff = (copySliceSize * sModeSliceNum);
+
+            startRecvBuf = outerRecvBufOff + sModeRecvBufOff;
+            startDataBuf = outerDataBufOff + sModeDataBufOff;
+
+            printf("          startRecvBuf: %d\n", startRecvBuf);
+            printf("          startDataBuf: %d\n", startDataBuf);
             MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
         }
     }
+
+    printf("dataBuf:");
+    for(int i = 0; i < prod(B.LocalShape()); i++)
+        printf(" %d", dataBuf[i]);
+    printf("\n");
 }
 
 //Given following set of strides in a tensor (s1, s2, ..., sm) and mode x we wish to redistribute

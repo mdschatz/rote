@@ -28,8 +28,8 @@ void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTen
     const int nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), indexDist)));
     std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
-    sendSize = prod(maxLocalShapeA) * nRedistProcs;
     recvSize = prod(maxLocalShapeA);
+    sendSize = recvSize * nRedistProcs;
 }
 
 //NOTE: B is the output DistTensor, A is the input (consistency among the redistribution routines
@@ -41,11 +41,11 @@ void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>&
 	ModeDistribution indexDist = A.IndexDist(reduceIndex);
 	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
 
-	const int nRedistProcs = Max(1, prod(gridViewSlice));
+	const int nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), indexDist)));
 	std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
-	sendSize = prod(maxLocalShapeA);
-    recvSize = sendSize / nRedistProcs;
+	recvSize = prod(maxLocalShapeA);
+	sendSize = recvSize * nRedistProcs;
 }
 
 template <typename T>
