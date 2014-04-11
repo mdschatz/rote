@@ -27,23 +27,23 @@ public:
     ~GridView();
 
     // Simple interface (simpler version of distributed-based interface)
-    int Order() const;
-    std::vector<Int> Shape() const;
-    int Dimension(int mode) const;
-    std::vector<Int> Loc() const;
-    int ModeLoc(int mode) const;
-    int ModeWrapStride(int mode) const;
-    std::vector<Int> ModeWrapStrides() const;
+    Unsigned Order() const;
+    ObjShape Shape() const;
+    Unsigned Dimension(Mode mode) const;
+    Location Loc() const;
+    Unsigned ModeLoc(Mode mode) const;
+    Unsigned ModeWrapStride(Mode mode) const;
+    std::vector<Unsigned> ModeWrapStrides() const;
     TensorDistribution Distribution() const;
     const tmen::Grid* Grid() const;
 
-    int LinearRank() const;
+    Unsigned LinearRank() const;
     void SetMyGridViewLoc();
 
 private:
     TensorDistribution dist_;
-    std::vector<int> shape_;
-    std::vector<int> loc_;
+    ObjShape shape_;
+    Location loc_;
 
     const tmen::Grid* grid_;
 

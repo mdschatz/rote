@@ -19,14 +19,14 @@ namespace tmen {
 inline void
 Grid::SetMyGridLoc( )
 {
-  int i;
-  std::vector<int> stride(order_);
+  Unsigned i;
+  std::vector<Unsigned> stride(order_);
   stride[0] = 1;
   for(i = 1; i < order_; i++)
-    stride[i] = stride[i-1]*dimension_[i-1];
+    stride[i] = stride[i-1]*shape_[i-1];
 
-  int gridSliceSize = size_;
-  for(i = order_ - 1; i >= 0; i--){
+  Unsigned gridSliceSize = size_;
+  for(i = order_ - 1; i < order_; i--){
     if(stride[i] > linearRank_)
       gridLoc_[i] = 0;
     else
@@ -34,17 +34,15 @@ Grid::SetMyGridLoc( )
     gridSliceSize /= stride[i];
   }
 
-  int remainingRank = linearRank_;
-  for(; i >=0 ; i--){
-    if(gridLoc_[i] < 0)
-        LogicError("Process grid dimensions must be non-negative");
+  Unsigned remainingRank = linearRank_;
+  for(; i < order_ ; i--){
     gridLoc_[i] = remainingRank / stride[i];
     remainingRank -= gridLoc_[i] * stride[i];
   }
 }
 
 inline
-Grid::Grid( mpi::Comm comm, int order, std::vector<int> dimension )
+Grid::Grid( mpi::Comm comm, Unsigned order, const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry entry("Grid::Grid");
@@ -54,7 +52,7 @@ Grid::Grid( mpi::Comm comm, int order, std::vector<int> dimension )
     mpi::CommDup(comm, owningComm_);
 
     order_ = order;
-    dimension_ = dimension;
+    shape_ = shape;
     gridLoc_.resize(order_);
     size_ = mpi::CommSize( comm );
     linearRank_ = mpi::CommRank( comm );
@@ -70,13 +68,13 @@ Grid::SetUpGrid()
     CallStackEntry entry("Grid::SetUpGrid");
 #endif
     int i;
-    if( size_ != prod(dimension_))
+    if( size_ != prod(shape_))
     {
         std::ostringstream msg;
         msg << "Number of processes must match grid size:\n"
-            << "  size=" << size_ << ", dimension=[" << dimension_[0];
+            << "  size=" << size_ << ", dimension=[" << shape_[0];
         for(i = 1; i < order_; i++)
-          msg << ", " << dimension_[i];
+          msg << ", " << shape_[i];
         msg << "]";
         LogicError( msg.str() );
     }
@@ -84,16 +82,16 @@ Grid::SetUpGrid()
     if( inGrid_ )
     {
         // Create a cartesian communicator
-        int dimensions[order_];
+        int shape[order_];
         int periods[order_];
 
         for(i = 0; i < order_; i++){
-          dimensions[i] = dimension_[i];
+          shape[i] = shape_[i];
           periods[i] = true;
         }
         bool reorder = false;
         mpi::CartCreate
-        ( owningComm_, order_, dimensions, periods, reorder, cartComm_ );
+        ( owningComm_, order_, shape, periods, reorder, cartComm_ );
     }
 }
 
@@ -111,20 +109,20 @@ Grid::~Grid()
     }
 }
 
-inline std::vector<Int>
+inline Location
 Grid::Loc() const
 {
-	std::vector<Int> loc = gridLoc_;
+	Location loc = gridLoc_;
 	return loc;
 }
 
-inline Int
-Grid::ModeLoc(int mode) const
+inline Unsigned
+Grid::ModeLoc(Mode mode) const
 {
 	return gridLoc_[mode];
 }
 
-inline Int
+inline Unsigned
 Grid::LinearRank() const
 {
 	return linearRank_;
@@ -132,32 +130,31 @@ Grid::LinearRank() const
 
 
 
-inline int
+inline Unsigned
 Grid::Order() const
 { return order_; }
 
-inline int 
+inline Unsigned
 Grid::Size() const
 { return size_; }
 
-inline std::vector<Int>
+inline ObjShape
 Grid::Shape() const
 {
-	std::vector<Int> dims = dimension_;
-	return dims;
+	return shape_;
 }
 
 inline
-int
-Grid::Dimension(int mode) const
+Unsigned
+Grid::Dimension(Mode mode) const
 { 
-  if (mode > order_ || mode < 0){
+  if (mode >= order_){
     std::ostringstream msg;
     msg << "Dimension must be of valid mode:\n"
         << "  order=" << order_ << ", requested mode=" << mode;
     LogicError( msg.str() );
   }
-  return dimension_[mode];
+  return shape_[mode];
 }
 
 //

@@ -22,19 +22,19 @@
 namespace tmen{
 
 template <typename T>
-void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex, int& recvSize, int& sendSize);
+void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, int& recvSize, int& sendSize);
+void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize);
+void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize);
+void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommModes, int& recvSize, int& sendSize);
+void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
 
 }
 #endif // ifndef TMEN_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP

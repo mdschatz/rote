@@ -5,28 +5,28 @@ namespace tmen{
 
 //NOTE: B is the output DistTensor, A is the input (consistency among the redistribution routines
 template <typename T>
-void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex, int& recvSize, int& sendSize){
+void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Unsigned permuteIndex, Unsigned& recvSize, Unsigned& sendSize){
     if(!B.Participating())
         return;
 
-    ModeDistribution indexDist = A.IndexDist(permuteIndex);
-    std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
+    const ModeDistribution indexDist = A.IndexDist(permuteIndex);
+    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
 
-    std::vector<Int> maxLocalShapeB = MaxLengths(B.Shape(), B.GridView().Shape());
+    const ObjShape maxLocalShapeB = MaxLengths(B.Shape(), B.GridView().Shape());
 
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize;
 }
 
 template <typename T>
-void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, int& recvSize, int& sendSize){
+void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, Unsigned& recvSize, Unsigned& sendSize){
     if(!B.Participating())
         return;
 
-    ModeDistribution indexDist = A.IndexDist(reduceScatterIndex);
+    const ModeDistribution indexDist = A.IndexDist(reduceScatterIndex);
 
-    const int nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), indexDist)));
-    std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), indexDist)));
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
     recvSize = prod(maxLocalShapeA);
     sendSize = recvSize * nRedistProcs;
@@ -34,57 +34,57 @@ void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTen
 
 //NOTE: B is the output DistTensor, A is the input (consistency among the redistribution routines
 template <typename T>
-void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize){
+void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, Unsigned& recvSize, Unsigned& sendSize){
 	if(!B.Participating())
 		return;
 
-	ModeDistribution indexDist = A.IndexDist(reduceIndex);
-	std::vector<Int> gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
+	const ModeDistribution indexDist = A.IndexDist(reduceIndex);
+	const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), indexDist);
 
-	const int nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), indexDist)));
-	std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+	const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), indexDist)));
+	const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
 	recvSize = prod(maxLocalShapeA);
 	sendSize = recvSize * nRedistProcs;
 }
 
 template <typename T>
-void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize){
+void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, Unsigned& recvSize, Unsigned& sendSize){
 	if(!A.Participating())
 		return;
 
-	const int allGatherMode = A.ModeOfIndex(allGatherIndex);
+	const Mode allGatherMode = A.ModeOfIndex(allGatherIndex);
 
-	const int nRedistProcs = A.GridView().Dimension(allGatherMode);
-	std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+	const Unsigned nRedistProcs = A.GridView().Dimension(allGatherMode);
+	const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
 
 	sendSize = prod(maxLocalShapeA);
 	recvSize = sendSize * nRedistProcs;
 }
 
 template <typename T>
-void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommModes, int& recvSize, int& sendSize){
+void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize){
     if(!A.Participating())
         return;
 
-    std::vector<int> commModes = a2aCommModes.first;
+    ModeArray commModes = a2aCommModes.first;
     commModes.insert(commModes.end(), a2aCommModes.second.begin(), a2aCommModes.second.end());
     std::sort(commModes.begin(), commModes.end());
 
-    const std::vector<int> commGridSlice = FilterVector(B.Grid().Shape(), commModes);
-    const int nRedistProcs = prod(commGridSlice);
-    std::vector<Int> maxLocalShape = MaxLengths(A.Shape(), A.GridView().Shape());
+    const ObjShape commGridSlice = FilterVector(B.Grid().Shape(), commModes);
+    const Unsigned nRedistProcs = prod(commGridSlice);
+    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GridView().Shape());
 
     sendSize = prod(maxLocalShape) * nRedistProcs;
     recvSize = sendSize;
 }
 
 #define PROTO(T) \
-    template void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex, int& recvSize, int& sendSize); \
-    template void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, int& recvSize, int& sendSize); \
-	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, int& recvSize, int& sendSize); \
-	template void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const int allGatherIndex, int& recvSize, int& sendSize); \
-	template void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommModes, int& recvSize, int& sendSize);
+    template void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, Unsigned& recvSize, Unsigned& sendSize); \
+    template void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, Unsigned& recvSize, Unsigned& sendSize); \
+	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, Unsigned& recvSize, Unsigned& sendSize); \
+	template void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, Unsigned& recvSize, Unsigned& sendSize); \
+	template void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
 
 PROTO(int)
 PROTO(float)

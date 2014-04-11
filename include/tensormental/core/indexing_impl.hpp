@@ -11,32 +11,17 @@
 #define TMEN_CORE_INDEXING_IMPL_HPP
 
 namespace tmen {
-/*
-inline Int
-DiagonalLength( const std::vector<Int>& dims, Int offset )
+
+inline
+Unsigned
+GCD( Unsigned a, Unsigned b )
 {
-    if( offset > 0 )
-    {
-        Int remainingWidth = Max(width-offset,0);
-        return Min(height,remainingWidth);
-    }
-    else
-    {
-        Int remainingHeight = Max(height+offset,0);
-        return Min(remainingHeight,width);
-    }
-}
-*/
-inline Int GCD( Int a, Int b )
-{
-#ifndef RELEASE
-    if( a < 0 || b < 0 )
-        LogicError("GCD called with negative argument");
-#endif
     return GCD_( a, b );
 }
 
-inline Int GCD_( Int a, Int b )
+inline
+Unsigned
+GCD_( Unsigned a, Unsigned b )
 {
     if( b == 0 )
         return a;
@@ -44,307 +29,336 @@ inline Int GCD_( Int a, Int b )
         return GCD_( b, a-b*(a/b) );
 }
 
-inline Int LCM(Int a, Int b)
+inline
+Unsigned
+LCM(Unsigned a, Unsigned b)
 {
-#ifndef RELEASE
-    if( a < 0 || b < 0 )
-        LogicError("LCM called with negative argument");
-#endif
     return LCM_(a, b);
 }
 
-inline Int LCM_( Int a, Int b )
+inline
+Unsigned
+LCM_( Unsigned a, Unsigned b )
 {
     if(a == 0 || b == 0)
         return 0;
     return a*b/(GCD(a, b));
 }
 
-inline Int Length( Int n, Int shift, Int stride )
+inline
+Unsigned
+Length( Unsigned n, Unsigned shift, Unsigned wrap )
 {
 #ifndef RELEASE
     CallStackEntry entry("Length");
-    if( n < 0 )
-        LogicError("n must be non-negative");
-    if( shift < 0 || shift >= stride )
+    if( shift >= wrap )
     {
         std::ostringstream msg;
         msg << "Invalid shift: "
-            << "shift=" << shift << ", stride=" << stride;
+            << "shift=" << shift << ", wrap=" << wrap;
         LogicError( msg.str() );
     }
-    if( stride <= 0 )
+    if( wrap == 0 )
         LogicError("Modulus must be positive");
 #endif
-    return Length_( n, shift, stride );
-}
-
-inline Int Length_( Int n, Int shift, Int stride )
-{
-    return ( n > shift ? (n - shift - 1)/stride + 1 : 0 );
-}
-
-inline Int
-Length( Int n, Int rank, Int alignment, Int stride )
-{
-#ifndef RELEASE
-    CallStackEntry entry("Length");
-#endif
-    Int shift = Shift( rank, alignment, stride );
-    return Length( n, shift, stride );
-}
-
-inline Int Length_
-( Int n, Int rank, Int alignment, Int stride )
-{
-    Int shift = Shift_( rank, alignment, stride );
-    return Length_( n, shift, stride );
-}
-
-inline std::vector<Int>
-Lengths( const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& strides )
-{
-#ifndef RELEASE
-	int i;
-	int order;
-    CallStackEntry entry("Length");
-    if(!(dimensions.size() == shifts.size() && dimensions.size() == strides.size())){
-    	LogicError("dimensions, shifts, strides must contain same number of elements.");
-    }
-    order = dimensions.size();
-    for(i = 0; i < order; i++){
-		if( dimensions[i] < 0 )
-			LogicError("dimensions must be non-negative");
-		if( shifts[i] < 0 || shifts[i] >= strides[i] )
-		{
-			std::ostringstream msg;
-			msg << "Invalid shift: "
-				<< "shift[" << i << "]=" << shifts[i] << ", stride[" << i << "]=" << strides[i];
-			LogicError( msg.str() );
-		}
-		if( strides[i] <= 0 )
-			LogicError("Modulus must be positive");
-    }
-#endif
-    return Lengths_( dimensions, shifts, strides );
-}
-
-inline std::vector<Int> Lengths_
-(const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& strides){
-	Unsigned i;
-	std::vector<Int> lengths(dimensions.size());
-	for(i = 0; i < dimensions.size(); i++)
-		lengths[i] = Length(dimensions[i], shifts[i], strides[i]);
-	return lengths;
-}
-
-inline Int MaxLength( Int n, Int stride )
-{
-#ifndef RELEASE
-    CallStackEntry entry("MaxLength");
-    if( n < 0 )
-        LogicError("n must be non-negative");
-    if( stride <= 0 )
-        LogicError("Modulus must be positive");
-#endif
-    return MaxLength_( n, stride );
-}
-
-inline Int MaxLength_( Int n, Int stride )
-{
-    return ( n > 0 ? (n - 1)/stride + 1 : 0 );
+    return Length_( n, shift, wrap );
 }
 
 inline
-std::vector<Int> MaxLengths( const std::vector<Int>& shape, const std::vector<Int>& wrapShape)
+Unsigned
+Length_( Unsigned n, Unsigned shift, Unsigned wrap )
+{
+    return ( n > shift ? (n - shift - 1)/wrap + 1 : 0 );
+}
+
+inline
+Unsigned
+Length( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap )
+{
+#ifndef RELEASE
+    CallStackEntry entry("Length");
+#endif
+    Unsigned shift = Shift( rank, alignment, wrap );
+    return Length( n, shift, wrap );
+}
+
+inline
+Unsigned
+Length_( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap )
+{
+    Unsigned shift = Shift_( rank, alignment, wrap );
+    return Length_( n, shift, wrap );
+}
+
+inline
+std::vector<Unsigned>
+Lengths( const ObjShape& objShape, const std::vector<Unsigned>& shifts, const ObjShape& wrapShape )
+{
+#ifndef RELEASE
+	Unsigned i;
+	Unsigned order;
+    CallStackEntry entry("Length");
+    if(!(objShape.size() == shifts.size() && objShape.size() == wrapShape.size())){
+    	LogicError("dimensions, shifts, modulos must contain same number of elements.");
+    }
+    order = objShape.size();
+    for(i = 0; i < order; i++){
+		if( shifts[i] >= wrapShape[i] )
+		{
+			std::ostringstream msg;
+			msg << "Invalid shift: "
+				<< "shift[" << i << "]=" << shifts[i] << ", stride[" << i << "]=" << wrapShape[i];
+			LogicError( msg.str() );
+		}
+    }
+#endif
+    return Lengths_( objShape, shifts, wrapShape );
+}
+
+inline
+std::vector<Unsigned>
+Lengths_( const ObjShape& objShape, const std::vector<Unsigned>& shifts, const ObjShape& wrapShape )
+{
+	Unsigned i;
+	std::vector<Unsigned> lengths(objShape.size());
+	for(i = 0; i < objShape.size(); i++)
+		lengths[i] = Length(objShape[i], shifts[i], wrapShape[i]);
+	return lengths;
+}
+
+inline
+Unsigned
+MaxLength( Unsigned n, Unsigned wrap )
+{
+#ifndef RELEASE
+    CallStackEntry entry("MaxLength");
+    if( wrap == 0 )
+        LogicError("Modulus must be positive");
+#endif
+    return MaxLength_( n, wrap );
+}
+
+inline
+Unsigned
+MaxLength_( Unsigned n, Unsigned wrap )
+{
+    return ( n > 0 ? (n - 1)/wrap + 1 : 0 );
+}
+
+inline
+std::vector<Unsigned>
+MaxLengths( const ObjShape& shape, const ObjShape& wrapShape)
 {
 #ifndef RELEASE
     CallStackEntry entry("MaxLengths");
     if(wrapShape.size() != shape.size())
         LogicError("shape order and wrapShape order must be the same");
-    if( AnyNegativeElem(shape) )
-        LogicError("shape entries must be non-negative");
-    if( AnyNonPositiveElem(wrapShape) )
+    if( AnyZeroElem(wrapShape) )
         LogicError("wrapShape entries must be positive");
 #endif
     return MaxLengths_( shape, wrapShape );
 }
 
 inline
-std::vector<Int> MaxLengths_( const std::vector<Int>& shape, const std::vector<Int>& wrapShape)
+std::vector<Unsigned>
+MaxLengths_( const ObjShape& shape, const ObjShape& wrapShape)
 {
-    std::vector<Int> ret(shape.size());
+    std::vector<Unsigned> ret(shape.size());
     for(Unsigned i = 0; i < ret.size(); i++)
         ret[i] = MaxLength(shape[i], wrapShape[i]);
     return ret;
 }
+
 // For determining the first index assigned to a given rank
-inline Int Shift( Int rank, Int alignment, Int stride )
+inline
+Unsigned
+Shift( Int rank, Unsigned alignment, Unsigned wrap )
 {
 #ifndef RELEASE
     CallStackEntry entry("Shift");
-    if( rank < 0 || rank >= stride )
+    if( rank < 0 || rank >= wrap )
     {
         std::ostringstream msg;
         msg << "Invalid rank: "
-            << "rank=" << rank << ", stride=" << stride;
+            << "rank=" << rank << ", stride=" << wrap;
         LogicError( msg.str() );
     }
-    if( alignment < 0 || alignment >= stride )
+    if( alignment >= wrap )
     {
         std::ostringstream msg;
         msg << "Invalid alignment: "
-            << "alignment=" << alignment << ", stride=" << stride;
+            << "alignment=" << alignment << ", wrap=" << wrap;
         LogicError( msg.str() );
     }
-    if( stride <= 0 )
-        LogicError("Stride must be positive");
 #endif
-    return Shift_( rank, alignment, stride );
+    return Shift_( rank, alignment, wrap );
 }
 
-inline Int Shift_( Int rank, Int alignment, Int stride )
-{ return (rank + stride - alignment) % stride; }
+inline
+Unsigned
+Shift_( Int rank, Unsigned alignment, Unsigned wrap )
+{ return (rank + wrap - alignment) % wrap; }
 
-inline std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions)
+inline
+std::vector<Unsigned>
+Dimensions2Strides(const ObjShape& objShape)
 {
-  std::vector<Int> strides(dimensions.size());
+  std::vector<Unsigned> strides(objShape.size());
   if(strides.size() > 0){
 	  strides[0] = 1;
 	  for(Unsigned i = 1; i < strides.size(); i++){
-		  strides[i] = strides[i-1]*dimensions[i-1];
+		  strides[i] = strides[i-1]*objShape[i-1];
 	  }
   }
   return strides;
 }
 
-inline Int LinearIndex_(const std::vector<Int>& index, const std::vector<Int>& strides)
+inline
+Unsigned
+LinearIndex(const Location& loc, const std::vector<Unsigned>& strides)
 {
-	Int linearInd = 0;
-	for(Unsigned i = 0; i < index.size(); i++)
-		linearInd += index[i] * strides[i];
+    if(loc.size() != strides.size())
+        LogicError( "Invalid index+stride combination");
+    return LinearIndex_(loc, strides);
+}
+
+inline
+Unsigned
+LinearIndex_(const Location& loc, const std::vector<Unsigned>& strides)
+{
+    Unsigned i;
+	Unsigned linearInd = 0;
+	for(i = 0; i < loc.size(); i++)
+		linearInd += loc[i] * strides[i];
 	return linearInd;
 }
 
-inline Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& strides)
-{
-	if(index.size() !=strides.size())
-		LogicError( "Invalid index+stride combination");
-	if(AnyNegativeElem(index) || AnyNegativeElem(strides)){
-		LogicError( "Supplied index and strides must be non-negative");
-	}
-	return LinearIndex_(index, strides);
-}
-
-//TODO: Clean up FilterVector with () as filter
-inline std::vector<Int> LinearLoc2Loc_(const int linearLoc, const std::vector<int>& shape, const std::vector<int>& permutation)
-{
-	const int order = shape.size();
-	std::vector<Int> ret(order);
-    int remainder = linearLoc;
-    if(permutation.size() == 0){
-        const std::vector<int> strides = Dimensions2Strides(shape);
-
-    	for(int i = order - 1; i >= 0; i--){
-    	        const int indexLoc = remainder / strides[i];
-    	        ret[i] = indexLoc;
-    	        remainder -= indexLoc * strides[i];
-        }
-    }else{
-        const std::vector<int> permutedShape = FilterVector(shape, permutation);
-        const std::vector<int> strides = Dimensions2Strides(permutedShape);
-
-		for(int i = order - 1; i >= 0; i--){
-			const int indexLoc = remainder / strides[i];
-			ret[permutation[i]] = indexLoc;
-			remainder -= indexLoc * strides[i];
-		}
-    }
-    return ret;
-}
-
-inline std::vector<Int> LinearLoc2Loc(const int linearLoc, const std::vector<int>& shape, const std::vector<int>& permutation)
+inline
+Location
+LinearLoc2Loc(const Unsigned linearLoc, const ObjShape& shape, const Permutation& permutation)
 {
     if(permutation.size() > 0 && shape.size() != permutation.size())
         LogicError("Shape and Permutation orders differ.");
     if(shape.size() == 0 && linearLoc != 0)
-        LogicError("Combination of linearIndex=0 and strides incompatible");
-    if(linearLoc < 0)
-        LogicError( "Linear index must be >= 0");
+        LogicError("Combination of linearLoc=0 and strides incompatible");
     return LinearLoc2Loc_(linearLoc, shape, permutation);
 }
 
-inline int GridViewLoc2GridLinearLoc(const std::vector<int>& gridViewLoc, const GridView& gridView){
+//TODO: Clean up FilterVector with () as filter
+inline
+Location
+LinearLoc2Loc_(const Unsigned linearLoc, const ObjShape& shape, const Permutation& permutation)
+{
+    Unsigned i;
+    const Unsigned order = shape.size();
+    Location ret(order);
+    Unsigned remainder = linearLoc;
+    if(permutation.size() == 0){
+        const std::vector<Unsigned> strides = Dimensions2Strides(shape);
+
+        for(i = order - 1; i < order; i--){
+                const Unsigned modeLoc = remainder / strides[i];
+                ret[i] = modeLoc;
+                remainder -= modeLoc * strides[i];
+        }
+    }else{
+        const ObjShape permutedShape = FilterVector(shape, permutation);
+        const std::vector<Unsigned> strides = Dimensions2Strides(permutedShape);
+
+        for(i = order - 1; i < order; i--){
+            const Unsigned modeLoc = remainder / strides[i];
+            ret[permutation[i]] = modeLoc;
+            remainder -= modeLoc * strides[i];
+        }
+    }
+    return ret;
+}
+
+inline
+Unsigned
+GridViewLoc2GridLinearLoc(const Location& gridViewLoc, const GridView& gridView)
+{
 	if(gridViewLoc.size() != gridView.Order())
 		LogicError("Supplied loc must be same order as gridView");
 	return GridViewLoc2GridLinearLoc_(gridViewLoc, gridView);
 }
 
 
-inline int GridViewLoc2GridLinearLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView){
+inline
+Unsigned
+GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView)
+{
 
-	const int gvOrder = gridView.Order();
+	const Unsigned gvOrder = gridView.Order();
 	const TensorDistribution tensorDist = gridView.Distribution();
 
 	const tmen::Grid* grid = gridView.Grid();
-	const int gridOrder = grid->Order();
-	const std::vector<int> gridShape = grid->Shape();
+	const Unsigned gridOrder = grid->Order();
+	const ObjShape gridShape = grid->Shape();
 	Unsigned i, j;
 
-	std::vector<int> gridLoc(gridOrder);
+	Location gridLoc(gridOrder);
 	for(i = 0; i < gvOrder; i++){
-
 		const ModeDistribution modeDist = tensorDist[i];
-		const std::vector<int> gridSlice = FilterVector(gridShape, modeDist);
-		std::vector<int> sliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSlice);
+		const ObjShape gridSliceShape = FilterVector(gridShape, modeDist);
+		Location gridSliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSliceShape);
 
-		for(j = 0; j < sliceLoc.size(); j++){
-			gridLoc[modeDist[j]] = sliceLoc[j];
+		for(j = 0; j < gridSliceLoc.size(); j++){
+			gridLoc[modeDist[j]] = gridSliceLoc[j];
 		}
 	}
 	return LinearIndex(gridLoc, Dimensions2Strides(gridShape));
 }
 
-inline std::vector<Int> GridViewLoc2GridLoc(const std::vector<int>& gridViewLoc, const GridView& gridView){
+inline
+Location
+GridViewLoc2GridLoc(const Location& gridViewLoc, const GridView& gridView)
+{
     if(gridViewLoc.size() != gridView.Order())
         LogicError("Supplied loc must be same order as gridView");
     return GridViewLoc2GridLoc_(gridViewLoc, gridView);
 }
 
 
-inline std::vector<Int> GridViewLoc2GridLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView){
+inline
+Location
+GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
+{
 
-    const int gvOrder = gridView.Order();
+    const Unsigned gvOrder = gridView.Order();
     const TensorDistribution tensorDist = gridView.Distribution();
 
     const tmen::Grid* grid = gridView.Grid();
-    const int gridOrder = grid->Order();
-    const std::vector<int> gridShape = grid->Shape();
+    const Unsigned gridOrder = grid->Order();
+    const ObjShape gridShape = grid->Shape();
     Unsigned i, j;
 
-    std::vector<int> gridLoc(gridOrder);
+    Location gridLoc(gridOrder);
     for(i = 0; i < gvOrder; i++){
 
         const ModeDistribution modeDist = tensorDist[i];
-        const std::vector<int> gridSlice = FilterVector(gridShape, modeDist);
-        std::vector<int> sliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSlice);
+        const ObjShape gridSliceShape = FilterVector(gridShape, modeDist);
+        Location gridSliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSliceShape);
 
-        for(j = 0; j < sliceLoc.size(); j++){
-            gridLoc[modeDist[j]] = sliceLoc[j];
+        for(j = 0; j < gridSliceLoc.size(); j++){
+            gridLoc[modeDist[j]] = gridSliceLoc[j];
         }
     }
     return gridLoc;
 }
 
-inline std::vector<int> GridLoc2GridViewLoc(const std::vector<int>& gridLoc, const std::vector<int>& gridShape, const TensorDistribution& tensorDist){
-    int i;
-    const int order = tensorDist.size();
-    std::vector<int> ret(order);
+inline
+Location
+GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist)
+{
+    Unsigned i;
+    const Unsigned order = tensorDist.size();
+    Location ret(order);
 
     for(i = 0; i < order; i++){
         ModeDistribution modeDist = tensorDist[i];
-        std::vector<Int> gridSliceLoc(modeDist.size());
-        std::vector<Int> gridSliceShape(modeDist.size());
+        Location gridSliceLoc(modeDist.size());
+        ObjShape gridSliceShape(modeDist.size());
 
         gridSliceLoc = FilterVector(gridLoc, modeDist);
         gridSliceShape = FilterVector(gridShape, modeDist);

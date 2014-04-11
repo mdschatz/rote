@@ -16,8 +16,8 @@ namespace tmen {
 struct DistData
 {
     TensorDistribution distribution;
-    std::vector<Int> indices;
-    std::vector<Int> modeAlignments; 
+    IndexArray indices;
+    std::vector<Unsigned> modeAlignments;
 //    Int root;     // only relevant for [o ,o ]
 //    Int diagPath; // only relevant for [MD,* ]/[* ,MD] distributions
     const Grid* grid;
