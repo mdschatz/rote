@@ -18,14 +18,15 @@
 
 namespace tmen {
 
-inline void
+inline
+void
 GridView::SetMyGridViewLoc( )
 {
 
 //	int i;
 //	const int order = this->Order();
-	const std::vector<Int> gridShape = grid_->Shape();
-	const std::vector<Int> gridLoc = grid_->Loc();
+	const ObjShape gridShape = grid_->Shape();
+	const Location gridLoc = grid_->Loc();
 
 	loc_ = GridLoc2GridViewLoc(gridLoc, gridShape, this->Distribution());
 //
@@ -55,19 +56,20 @@ GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distributi
     SetupGridView();
 }
 
-inline void
+inline
+void
 GridView::SetupGridView()
 {
 #ifndef RELEASE
     CallStackEntry entry("GridView::SetupGridView");
 #endif
-    int i;
+    Unsigned i;
     Unsigned j;
-    const int order = this->Order();
+    const Unsigned order = this->Order();
 
     for(i = 0; i < order; i++){
     	ModeDistribution modeDist = dist_[i];
-    	int gridViewDim = 1;
+    	Unsigned gridViewDim = 1;
     	for(j = 0; j < modeDist.size(); j++){
     		gridViewDim *= grid_->Dimension(modeDist[j]);
     	}
@@ -81,24 +83,27 @@ GridView::~GridView()
 {
 }
 
-inline std::vector<Int>
+inline
+Location
 GridView::Loc() const
 {
 	return loc_;
 }
 
-inline Int
-GridView::ModeLoc(int mode) const
+inline
+Unsigned
+GridView::ModeLoc(Mode mode) const
 {
 	return loc_[mode];
 }
 
-inline Int
+inline
+Unsigned
 GridView::LinearRank() const
 {
-	int i;
-	int linearRank = 0;
-	const int order = this->Order();
+	Unsigned i;
+	Unsigned linearRank = 0;
+	const Unsigned order = this->Order();
 	linearRank += this->ModeLoc(0);
 	for(i = 1; i < order; i++){
 		linearRank += this->ModeLoc(i) * this->Dimension(i-1);
@@ -106,29 +111,31 @@ GridView::LinearRank() const
 	return linearRank;
 }
 
-inline int
+inline
+Unsigned
 GridView::Order() const
 { return shape_.size(); }
 
-inline std::vector<Int>
+inline
+ObjShape
 GridView::Shape() const
 {
 	return shape_;
 }
 
 inline
-std::vector<int>
+std::vector<Unsigned>
 GridView::ModeWrapStrides() const
 {
     return shape_;
 }
 
 inline
-int
-GridView::ModeWrapStride(int mode) const
+Unsigned
+GridView::ModeWrapStride(Mode mode) const
 {
-    const int order = this->Order();
-    if (mode > order || mode < 0){
+    const Unsigned order = this->Order();
+    if (mode >= order){
         std::ostringstream msg;
         msg << "Requested stride must be of valid mode:\n"
             << "  order=" << order << ", requested mode=" << mode;
@@ -145,17 +152,18 @@ GridView::Distribution() const
 }
 
 inline
-const tmen::Grid* GridView::Grid() const
+const tmen::Grid*
+GridView::Grid() const
 {
 	return grid_;
 }
 
 inline
-int
-GridView::Dimension(int mode) const
+Unsigned
+GridView::Dimension(Mode mode) const
 {
-  const int order = this->Order();
-  if (mode > order || mode < 0){
+  const Unsigned order = this->Order();
+  if (mode >= order){
     std::ostringstream msg;
     msg << "Dimension must be of valid mode:\n"
         << "  order=" << order << ", requested mode=" << mode;
@@ -168,11 +176,13 @@ GridView::Dimension(int mode) const
 // Comparison functions
 //
 
-inline bool
+inline
+bool
 operator==( const GridView& A, const GridView& B )
 { return &A == &B; }
 
-inline bool
+inline
+bool
 operator!=( const GridView& A, const GridView& B )
 { return &A != &B; }
 

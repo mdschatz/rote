@@ -20,7 +20,17 @@ typedef unsigned char byte;
 // existing MPI datatypes. This is only sometimes true for 'long long'
 typedef int Int;
 typedef unsigned Unsigned;
- 
+
+typedef std::vector<Unsigned> ModeDistribution;
+typedef std::vector<ModeDistribution> TensorDistribution;
+
+//NOTE: I'm really not sure why, but I cannot have Shape
+typedef std::vector<Unsigned> ObjShape;
+typedef std::vector<Unsigned> Location;
+typedef std::vector<Unsigned> Permutation;
+typedef Unsigned Index;
+typedef Unsigned Mode;
+
 template<typename Real>
 using Complex = std::complex<Real>;
 
@@ -108,8 +118,7 @@ enum Conjugation
 }
 using namespace conjugation_wrapper;
 
-typedef std::vector<Int> ModeDistribution;
-typedef std::vector<ModeDistribution> TensorDistribution;
+
 
 namespace distribution_wrapper {
 /*

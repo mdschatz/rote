@@ -26,9 +26,9 @@ public:
     // Assertions
     //
     
-    void AssertValidDimensions( const std::vector<Int>& shape ) const;
-    void AssertValidDimensions( const std::vector<Int>& shape, const std::vector<Int>& ldims ) const;
-    void AssertValidEntry( const std::vector<Int>& indices ) const;
+    void AssertValidDimensions( const ObjShape& shape ) const;
+    void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& ldims ) const;
+    void AssertValidEntry( const Location& loc ) const;
     void AssertValidIndices() const;
     
     //
@@ -36,12 +36,12 @@ public:
     // 
 
     Tensor( bool fixed=false );
-    Tensor( const std::vector<Int>& indices, bool fixed=false );
-    Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, bool fixed=false );
-    Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, const std::vector<Int>& ldims, bool fixed=false );
+    Tensor( const std::vector<Index>& indices, bool fixed=false );
+    Tensor( const std::vector<Index>& indices, const ObjShape& shape, bool fixed=false );
+    Tensor( const std::vector<Index>& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor
-    ( const std::vector<Int>& indices, const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims, bool fixed=false );
-    Tensor( const std::vector<Int>& indices, const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims, bool fixed=false );
+    ( const std::vector<Index>& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
+    Tensor( const std::vector<Index>& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor( const Tensor<T>& A );
 
     // Move constructor
@@ -63,32 +63,32 @@ public:
     // Basic information
     //
 
-    Int Order() const;
-    std::vector<Int> Shape() const;
-    Int Dimension(Int mode) const;
-    std::vector<Int> Indices() const;
-    Int ModeStride(Int mode) const;
+    Unsigned Order() const;
+    ObjShape Shape() const;
+    Unsigned Dimension(Mode mode) const;
+    std::vector<Index> Indices() const;
+    Unsigned ModeStride(Mode mode) const;
 
-    Int ModeOfIndex(Int index) const;
-    Int IndexOfMode(Int mode) const;
+    Mode ModeOfIndex(Index index) const;
+    Index IndexOfMode(Mode mode) const;
 
-    Int LDim(Int mode) const;
-    Int MemorySize() const;
+    Unsigned LDim(Mode mode) const;
+    Unsigned MemorySize() const;
 
-    Int LinearOffset(const std::vector<int>& index) const;
+    Unsigned LinearOffset(const Location& loc) const;
     T* Buffer();
-    T* Buffer( const std::vector<Int>& index );
+    T* Buffer( const Location& loc );
 
     const T* LockedBuffer() const;
-    const T* LockedBuffer( const std::vector<Int>& index ) const;
+    const T* LockedBuffer( const Location& loc ) const;
 
     //
     // Entry manipulation
     //
 
-    T Get( const std::vector<Int>& index ) const;
-    void Set( const std::vector<Int>& index, T alpha );
-    void Update( const std::vector<Int>& index, T alpha );
+    T Get( const Location& loc ) const;
+    void Set( const Location& loc, T alpha );
+    void Update( const Location& loc, T alpha );
 
     //void GetDiagonal( Tensor<T>& d, Int offset=0 ) const;
     //Tensor<T> GetDiagonal( Int offset=0 ) const;
@@ -101,14 +101,14 @@ public:
     // logically apply to real data.
     //
 
-    BASE(T) GetRealPart( const std::vector<Int>& index ) const;
-    BASE(T) GetImagPart( const std::vector<Int>& index ) const;
-    void SetRealPart( const std::vector<Int>& index, BASE(T) alpha );
+    BASE(T) GetRealPart( const Location& loc ) const;
+    BASE(T) GetImagPart( const Location& loc ) const;
+    void SetRealPart( const Location& loc, BASE(T) alpha );
     // Only valid for complex data
-    void SetImagPart( const std::vector<Int>& index, BASE(T) alpha );
-    void UpdateRealPart( const std::vector<Int>& index, BASE(T) alpha );
+    void SetImagPart( const Location& loc, BASE(T) alpha );
+    void UpdateRealPart( const Location& loc, BASE(T) alpha );
     // Only valid for complex data
-    void UpdateImagPart( const std::vector<Int>& index, BASE(T) alpha );
+    void UpdateImagPart( const Location& loc, BASE(T) alpha );
 
     //void GetRealPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
     //void GetImagPartOfDiagonal( Tensor<BASE(T)>& d, Int offset=0 ) const;
@@ -132,9 +132,9 @@ public:
     bool Viewing()     const;
     bool Locked()      const;
 
-    void Attach( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims );
+    void Attach( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
     void LockedAttach
-    ( const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims );
+    ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims );
 
     // Use this memory *as if it were not a view*, but do not take control of 
     // its deallocation. If Resize() forces reallocation, this buffer is 
@@ -148,19 +148,19 @@ public:
     const Tensor<T>& operator=( const Tensor<T>& A );
 
     void Empty();
-    void ResizeTo( const std::vector<Int>& shape );
-    void ResizeTo( const std::vector<Int>& shape, const std::vector<Int>& ldims );
+    void ResizeTo( const ObjShape& shape );
+    void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
 private:
-    std::vector<Int> indices_;
-    std::vector<Int> shape_;
-    std::vector<Int> strides_;
-    std::vector<Int> ldims_;
+    std::vector<Index> indices_;
+    ObjShape shape_;
+    std::vector<Unsigned> strides_;
+    std::vector<Unsigned> ldims_;
 
     //Index<->Mode maps
     //NOTE: Move this information to separate class
-    std::map<Int, Int> index2modeMap_;
-    std::map<Int, Int> mode2indexMap_;
+    std::map<Index, Mode> index2modeMap_;
+    std::map<Mode, Index> mode2indexMap_;
 
     ViewType viewType_;
 
@@ -169,19 +169,19 @@ private:
 
     void ComplainIfReal() const;
 
-    const T& Get_( const std::vector<Int>& index ) const;
-    T& Set_( const std::vector<Int>& index );
+    const T& Get_( const Location& loc ) const;
+    T& Set_( const Location& loc );
 
-    void SetLDims(const std::vector<Int>& shape);
+    void SetLDims(const ObjShape& shape);
     void SetIndexMaps();
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
-    void ResizeTo_( const std::vector<Int>& shape );
-    void ResizeTo_( const std::vector<Int>& shape, const std::vector<Int>& ldims );
-    void Control_( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims );
-    void Attach_( const std::vector<Int>& shape, T* buffer, const std::vector<Int>& ldims );
-    void LockedAttach_( const std::vector<Int>& shape, const T* buffer, const std::vector<Int>& ldims );
+    void ResizeTo_( const ObjShape& shape );
+    void ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims );
+    void Control_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
+    void Attach_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
+    void LockedAttach_( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims );
     
     template <typename F> 
     friend class Tensor;

@@ -13,14 +13,15 @@
 #include <vector>
 #include <iostream>
 #include "tensormental/core/error_decl.hpp"
+#include "tensormental/core/types_decl.hpp"
 
 namespace tmen {
 
 template<typename T>
-T prod(const std::vector<T>& a, const int startIndex = 0);
+T prod(const std::vector<T>& a, const Unsigned startIndex = 0);
 
 template<typename T>
-T prod(const std::vector<T>& a, const int startIndex, const int endIndex);
+T prod(const std::vector<T>& a, const Unsigned startIndex, const Unsigned endIndex);
 
 template<typename T>
 void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
@@ -46,6 +47,8 @@ bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec);
 
+bool AnyFalseElem(const std::vector<bool>& vec);
+
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
@@ -53,10 +56,10 @@ template<typename T>
 bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
-std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
+std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter);
 
 template<typename T>
-std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<int>& filter);
+std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter);
 
 template<typename T>
 std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);

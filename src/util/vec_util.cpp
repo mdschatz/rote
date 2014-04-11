@@ -8,14 +8,14 @@
 namespace tmen{
 
 template<typename T>
-T prod(const std::vector<T>& src, const int startIndex){
+T prod(const std::vector<T>& src, const Unsigned startIndex){
   if (src.size() == 0)
     return 0;
   return std::accumulate(src.begin() + startIndex, src.end(), T(1), std::multiplies<T>());
 }
 
 template<typename T>
-T prod(const std::vector<T>& src, const int startIndex, const int endIndex){
+T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex){
   if (src.size() == 0)
     return 0;
   return std::accumulate(src.begin() + startIndex, src.begin() + endIndex, T(1), std::multiplies<T>());
@@ -28,7 +28,8 @@ void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::ve
 
 template<typename T>
 bool AnyNonNegativeElem(const std::vector<T>& vec){
-  for(int i = 0; i < vec.size(); i++)
+  Unsigned i;
+  for(i = 0; i < vec.size(); i++)
     if(vec[i] >= 0)
       return true;
   return false;
@@ -36,7 +37,8 @@ bool AnyNonNegativeElem(const std::vector<T>& vec){
 
 template<typename T>
 bool AnyNonPositiveElem(const std::vector<T>& vec){
-  for(int i = 0; i < vec.size(); i++)
+  Unsigned i;
+  for(i = 0; i < vec.size(); i++)
     if(vec[i] <= 0)
       return true;
   return false;
@@ -44,7 +46,8 @@ bool AnyNonPositiveElem(const std::vector<T>& vec){
 
 template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec){
-  for(int i = 0; i < vec.size(); i++)
+  Unsigned i;
+  for(i = 0; i < vec.size(); i++)
     if(vec[i] < 0)
       return true;
   return false;
@@ -55,7 +58,8 @@ bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
     tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
-  for(int i = 0; i < vec1.size(); i++)
+  Unsigned i;
+  for(i = 0; i < vec1.size(); i++)
     if(vec1[i] >= vec2[i])
       return false;
   return true;
@@ -66,7 +70,8 @@ bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& ve
 	if(vec1.size() != vec2.size())
 		tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
-	for(int i = 0; i < vec1.size(); i++)
+	Unsigned i;
+	for(i = 0; i < vec1.size(); i++)
 		if(vec1[i] > vec2[i])
 			return true;
 	return false;
@@ -77,7 +82,8 @@ bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector
     if(vec1.size() != vec2.size())
         tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
-    for(int i = 0; i < vec1.size(); i++)
+    Unsigned i;
+    for(i = 0; i < vec1.size(); i++)
         if(vec1[i] >= vec2[i])
             return true;
     return false;
@@ -85,8 +91,17 @@ bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector
 
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec){
-  for(int i = 0; i < vec.size(); i++)
+  Unsigned i;
+  for(i = 0; i < vec.size(); i++)
     if(vec[i] == 0)
+      return true;
+  return false;
+}
+
+bool AnyFalseElem(const std::vector<bool>& vec){
+  Unsigned i;
+  for(i = 0; i < vec.size(); i++)
+    if(vec[i] == false)
       return true;
   return false;
 }
@@ -96,7 +111,8 @@ bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2)
   if(vec1.size() != vec2.size())
 	tmen::LogicError("Vector element-wise comparison must have matching sizes");
 
-  for(int i = 0; i < vec1.size(); i++)
+  Unsigned i;
+  for(i = 0; i < vec1.size(); i++)
     if(vec1[i] != vec2[i])
       return true;
   return false;
@@ -107,11 +123,12 @@ bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec
     if(vec1.size() != vec2.size())
         tmen::LogicError("Vector Permutation check must have same sized vectors");
 
-    for(int i = 0; i < vec1.size(); i++){
+    Unsigned i;
+    for(i = 0; i < vec1.size(); i++){
         if(std::find(vec2.begin(), vec2.end(), vec1[i]) == vec2.end())
             LogicError("EqualUnderPermutation: element in vec1 not found in vec2");
     }
-    for(int i = 0; i < vec2.size(); i++){
+    for(i = 0; i < vec2.size(); i++){
         if(std::find(vec1.begin(), vec1.end(), vec2[i]) == vec1.end())
             LogicError("EqualUnderPermutation: element in vec2 not found in vec1");
     }
@@ -119,8 +136,8 @@ bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec
 }
 
 template<typename T>
-std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter){
-	int i;
+std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter){
+	Unsigned i;
 	std::vector<T> ret;
 	for(i = 0; i < filter.size(); i++){
 		if(filter[i] < 0 || filter[i] >= vec.size())
@@ -132,12 +149,12 @@ std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& f
 }
 
 template<typename T>
-std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<int>& filter){
-    int i;
+std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter){
+    Unsigned i;
     std::vector<T> ret;
-    std::vector<int> sortedFilter = filter;
+    std::vector<Unsigned> sortedFilter = filter;
     std::sort(sortedFilter.begin(), sortedFilter.end());
-    int whichFilter = 0;
+    Unsigned whichFilter = 0;
     for(i = 0; i < vec.size(); i++){
         if(whichFilter >= sortedFilter.size() || i != sortedFilter[whichFilter])
             ret.push_back(vec[i]);
@@ -155,16 +172,19 @@ std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector
     typename std::vector<T>::const_iterator begin = ref.begin();
     typename std::vector<T>::const_iterator end = ref.end();
 
-    for(int i = 0; i < vec.size(); i++){
+    Unsigned i;
+    for(i = 0; i < vec.size(); i++){
         ret[i] = std::find(begin, end, vec[i]) - begin;
     }
 
     return ret;
 }
 
+//Non-template functions
+//bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template T prod(const std::vector<T>& src, const int startIndex); \
-    template T prod(const std::vector<T>& src, const int startIndex, const int endIndex); \
+	template T prod(const std::vector<T>& src, const Unsigned startIndex); \
+    template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template bool AnyNonNegativeElem(const std::vector<T>& vec); \
 	template bool AnyNonPositiveElem(const std::vector<T>& vec); \
@@ -175,11 +195,12 @@ std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<int>& filter); \
-	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<int>& filter); \
+	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
+	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
     template std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
-PROTO(int)
+PROTO(Unsigned)
+PROTO(Int)
 PROTO(float)
 PROTO(double)
 

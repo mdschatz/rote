@@ -12,48 +12,45 @@
 
 namespace tmen {
 
-//Int DiagonalLength( const std::vector<Int>& dims, Int offset=0 );
+Unsigned GCD( Unsigned a, Unsigned b );
+Unsigned GCD_( Unsigned a, Unsigned b );
 
-Int GCD( Int a, Int b ); 
-Int GCD_( Int a, Int b ); 
+Unsigned LCM( Unsigned a, Unsigned b );
+Unsigned LCM_( Unsigned a, Unsigned b );
 
-Int LCM( Int a, Int b );
-Int LCM_( Int a, Int b );
+Unsigned Length( Unsigned n, Unsigned shift, Unsigned wrap );
+Unsigned Length_( Unsigned n, Unsigned shift, Unsigned wrap );
 
-Int Length( Int n, Int shift, Int numProcs );
-Int Length_( Int n, Int shift, Int numProcs );
+Unsigned Length( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap );
+Unsigned Length_( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap );
 
-Int Length( Int n, Int rank, Int firstRank, Int numProcs );
-Int Length_( Int n, Int rank, Int firstRank, Int numProcs );
+std::vector<Unsigned> Lengths(const ObjShape& objShape, const std::vector<Unsigned>& shifts, const ObjShape& wrapShape);
+std::vector<Unsigned> Lengths_(const ObjShape& objShape, const std::vector<Unsigned>& shifts, const ObjShape& wrapShape);
 
-Int MaxLength( Int n, Int numProcs );
-Int MaxLength_( Int n, Int numProcs );
+Unsigned MaxLength( Unsigned n, Unsigned wrap );
+Unsigned MaxLength_( Unsigned n, Unsigned wrap );
 
-std::vector<Int> MaxLengths(const std::vector<Int>& shape, const std::vector<Int>& wrapShape);
-std::vector<Int> MaxLengths_(const std::vector<Int>& shape, const std::vector<Int>& wrapShape);
+std::vector<Unsigned> MaxLengths(const ObjShape& objShape, const ObjShape& wrapShape);
+std::vector<Unsigned> MaxLengths_(const ObjShape& objShape, const ObjShape& wrapShape);
 
-Int Shift( Int rank, Int firstRank, Int numProcs );
-Int Shift_( Int rank, Int firstRank, Int numProcs );
+Unsigned Shift( Int rank, Unsigned alignment, Unsigned wrap );
+Unsigned Shift_( Int rank, Unsigned alignment, Unsigned wrap );
 
-std::vector<Int> Lengths(const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& numProcs);
-std::vector<Int> Lengths_(const std::vector<Int>& dimensions, const std::vector<Int>& shifts, const std::vector<Int>& numProcs);
+std::vector<Unsigned> Dimensions2Strides(const ObjShape& objShape);
 
-std::vector<Int> Dimensions2Strides(const std::vector<Int>& dimensions);
-std::vector<Int> Dimensions2Strides_(const std::vector<Int>& dimensions);
+Unsigned LinearIndex(const Location& loc, const std::vector<Unsigned>& strides);
+Unsigned LinearIndex_(const Location& loc, const std::vector<Unsigned>& strides);
 
-Int LinearIndex(const std::vector<Int>& index, const std::vector<Int>& strides);
-Int LinearIndex_(const std::vector<Int>& index, const std::vector<Int>& strides);
+Location LinearLoc2Loc(Unsigned linearLoc, const ObjShape& objShape, const Permutation& permutation = Permutation());
+Location LinearLoc2Loc_(Unsigned linearLoc, const ObjShape& objShape, const Permutation& permutation = Permutation());
 
-std::vector<Int> LinearLoc2Loc(const int linearLoc, const std::vector<Int>& shape, const std::vector<int>& permutation = std::vector<int>());
-std::vector<Int> LinearLoc2Loc_(const int linearLoc, const std::vector<Int>& shape, const std::vector<int>& permutation = std::vector<int>());
+Unsigned GridViewLoc2GridLinearLoc(const Location& gridViewLoc, const GridView& gridView);
+Unsigned GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView);
 
-int GridViewLoc2GridLinearLoc(const std::vector<int>& gridViewLoc, const GridView& gridView);
-int GridViewLoc2GridLinearLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView);
+Location GridViewLoc2GridLoc(const Location& gridViewLoc, const GridView& gridView);
+Location GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView);
 
-std::vector<Int> GridViewLoc2GridLoc(const std::vector<int>& gridViewLoc, const GridView& gridView);
-std::vector<Int> GridViewLoc2GridLoc_(const std::vector<int>& gridViewLoc, const GridView& gridView);
-
-std::vector<int> GridLoc2GridViewLoc(const std::vector<int>& gridLoc, const std::vector<int>& gridShape, const TensorDistribution& tensorDist);
+Location GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist);
 
 } // namespace tmen
 
