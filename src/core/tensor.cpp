@@ -99,7 +99,7 @@ Tensor<T>::Tensor( bool fixed )
 { }
 
 template<typename T>
-Tensor<T>::Tensor( const std::vector<Index>& indices, bool fixed )
+Tensor<T>::Tensor( const IndexArray& indices, bool fixed )
 : indices_(indices), shape_(indices.size()), strides_(indices.size()), ldims_(indices.size()),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
@@ -113,7 +113,7 @@ Tensor<T>::Tensor( const std::vector<Index>& indices, bool fixed )
 
 //TODO: Check for valid set of indices
 template<typename T>
-Tensor<T>::Tensor( const std::vector<Index>& indices, const ObjShape& shape, bool fixed )
+Tensor<T>::Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(indices.size()),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
@@ -132,7 +132,7 @@ Tensor<T>::Tensor( const std::vector<Index>& indices, const ObjShape& shape, boo
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
-( const std::vector<Index>& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
+( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
@@ -152,7 +152,7 @@ Tensor<T>::Tensor
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
-( const std::vector<Index>& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
+( const IndexArray& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
   viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   data_(buffer), memory_()
@@ -168,7 +168,7 @@ Tensor<T>::Tensor
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
-( const std::vector<Index>& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
+( const IndexArray& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
   viewType_( fixed ? VIEW_FIXED: VIEW ),
   data_(buffer), memory_()
@@ -281,7 +281,7 @@ Tensor<T>::Dimension(Mode mode) const
 }
 
 template<typename T>
-std::vector<Index>
+IndexArray
 Tensor<T>::Indices() const
 {
     return indices_;

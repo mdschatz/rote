@@ -139,13 +139,13 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGa
 }
 
 template <typename T>
-void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommGroups){
+void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
     if(!CheckAllToAllDoubleIndexRedist(B, A, a2aIndices, a2aCommGroups))
         LogicError("AllToAllDoubleIndexRedist: Invalid redistribution request");
 
     Unsigned sendSize, recvSize;
 
-    std::vector<Mode> commModes = a2aCommGroups.first;
+    ModeArray commModes = a2aCommGroups.first;
     commModes.insert(commModes.end(), a2aCommGroups.second.begin(), a2aCommGroups.second.end());
     std::sort(commModes.begin(), commModes.end());
 
@@ -176,7 +176,7 @@ void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
 
 //	int sendSize, recvSize;
 	//Figure out which modes we have to communicate along (to save some pain)
-	const std::vector<Mode> commModes = DetermineA2ACommunicateModes(B, A);
+	const ModeArray commModes = DetermineA2ACommunicateModes(B, A);
 //	DetermineA2ACommunicateDataSize(B, A, recvSize, sendSize);
 //	//Get one big communicator for the modes we need to communicate along
 //	const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
@@ -202,7 +202,7 @@ void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
     template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex); \
-	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& commGroups);
+	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups);
 PROTO(int)
 PROTO(float)
 PROTO(double)

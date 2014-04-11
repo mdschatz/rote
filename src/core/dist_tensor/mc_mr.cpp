@@ -29,7 +29,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const tmen::Grid& grid )
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& grid )
 : AbstractDistTensor<T>(shape, dist, indices, grid)
 {
 	if(shape.size() != dist.size())
@@ -41,7 +41,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
   const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 {
@@ -53,7 +53,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
   const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 { 
@@ -65,7 +65,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 {
@@ -78,7 +78,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 {

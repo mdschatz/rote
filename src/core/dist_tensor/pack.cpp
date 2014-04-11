@@ -328,7 +328,7 @@ void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const
 }
 
 template <typename T>
-void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& commGroups, T * const sendBuf){
+void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf){
     Unsigned i;
     const Unsigned order = A.Order();
     const Location start(order, 0);
@@ -342,8 +342,8 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     Mode a2aMode1 = A.ModeOfIndex(a2aIndices.first);
     Mode a2aMode2 = A.ModeOfIndex(a2aIndices.second);
 
-    std::vector<Mode> commGroup1 = commGroups.first;
-    std::vector<Mode> commGroup2 = commGroups.second;
+    ModeArray commGroup1 = commGroups.first;
+    ModeArray commGroup2 = commGroups.second;
 
     //For convenience make sure that a2aMode1 is earlier in the packing
     if(a2aMode1 > a2aMode2){
@@ -351,10 +351,10 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
         std::swap(commGroup1, commGroup2);
     }
 
-    std::vector<Mode> commModes  = commGroup1;
+    ModeArray commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
 
-    std::vector<Mode> nonCommModes;
+    ModeArray nonCommModes;
     for(i = 0; i < g.Order(); i++){
         if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
             nonCommModes.push_back(i);
@@ -478,7 +478,7 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
 		template void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, T * const sendBuf); \
         template void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex, T * const sendBuf); \
         template void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf); \
-        template void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& commGroups, T * const sendBuf);
+        template void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf);
 
 PROTO(int)
 PROTO(float)

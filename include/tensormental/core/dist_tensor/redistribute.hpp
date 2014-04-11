@@ -37,10 +37,10 @@ template<typename T>
 Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
 
 template<typename T>
-Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& allToAllIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommGroups);
+Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 //template<typename T>
-//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index, const std::vector<int>& rsGridModes);
+//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index index, const ModeArray& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
@@ -67,10 +67,10 @@ template<typename T>
 void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
 
 template<typename T>
-void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommGroups);
+void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 //template<typename T>
-//void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, const std::vector<Index>& rsGridModes);
+//void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, const ModeArray& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>

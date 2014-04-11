@@ -63,11 +63,11 @@ void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGathe
 }
 
 template <typename T>
-void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize){
+void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize){
     if(!A.Participating())
         return;
 
-    std::vector<Mode> commModes = a2aCommModes.first;
+    ModeArray commModes = a2aCommModes.first;
     commModes.insert(commModes.end(), a2aCommModes.second.begin(), a2aCommModes.second.end());
     std::sort(commModes.begin(), commModes.end());
 
@@ -84,7 +84,7 @@ void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const Di
     template void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, Unsigned& recvSize, Unsigned& sendSize); \
 	template void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, Unsigned& recvSize, Unsigned& sendSize); \
 	template void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, Unsigned& recvSize, Unsigned& sendSize); \
-	template void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
+	template void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
 
 PROTO(int)
 PROTO(float)

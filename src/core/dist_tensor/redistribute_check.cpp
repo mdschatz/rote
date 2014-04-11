@@ -25,8 +25,8 @@ Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const
     const Unsigned BOrder = B.Order();
 
     //Test indices are correct
-    std::vector<Index> BIndices = B.Indices();
-    std::vector<Index> AIndices = A.Indices();
+    IndexArray BIndices = B.Indices();
+    IndexArray AIndices = A.Indices();
     std::vector<bool> foundIndices(BOrder,0);
 
     //Test index being reduced has been reduced to correct dimension
@@ -78,8 +78,8 @@ Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>&
     const Unsigned BOrder = B.Order();
 
     //Test indices are correct
-    std::vector<Index> BIndices = B.Indices();
-    std::vector<Index> AIndices = A.Indices();
+    IndexArray BIndices = B.Indices();
+    IndexArray AIndices = A.Indices();
     std::vector<bool> foundIndices(BOrder,0);
 
     //Test index being reduced has been reduced to correct dimension
@@ -126,8 +126,8 @@ Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, con
 	const Unsigned BOrder = B.Order();
 
 	//Test indices are correct
-	std::vector<Index> BIndices = B.Indices();
-	std::vector<Index> AIndices = A.Indices();
+	IndexArray BIndices = B.Indices();
+	IndexArray AIndices = A.Indices();
 	std::vector<bool> foundIndices(BOrder,0);
 
 
@@ -178,8 +178,8 @@ Int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const I
 	}
 
 	Unsigned AOrder = A.Order();
-	std::vector<Index> AIndices = A.Indices();
-	std::vector<Index> BIndices = B.Indices();
+	IndexArray AIndices = A.Indices();
+	IndexArray BIndices = B.Indices();
 
 	std::vector<bool> foundIndices(AOrder, 0);
 	for(int i = 0; i < AOrder; i++){
@@ -202,7 +202,7 @@ Int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const I
 }
 
 template <typename T>
-Int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index rsIndex, const std::vector<Mode>& rsGridModes){
+Int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index rsIndex, const ModeArray& rsGridModes){
 	LogicError("CheckPartialReduceScatterRedist: Not implemented");
 	//if(AnyElemwiseNotEqual(A.Indices(), B.Indices()))
 	//	LogicError("CheckPartialReduceScatterRedist: Invalid redistribution request");
@@ -212,13 +212,13 @@ Int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>&
 
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
-Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<Index, Index>& allToAllIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommGroups){
+Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
     if(A.Order() != B.Order())
         LogicError("CheckAllToAllDoubleIndexRedist: Objects being redistributed must be of same order");
 
     int order = A.Order();
-    std::vector<Index> AIndices = A.Indices();
-    std::vector<Index> BIndices = B.Indices();
+    IndexArray AIndices = A.Indices();
+    IndexArray BIndices = B.Indices();
 
     std::vector<bool> foundIndices(order, 0);
     for(Unsigned i = 0; i < order; i++){
@@ -237,7 +237,7 @@ Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& 
         template Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
 		template Int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index reduceIndex, const Index scatterIndex); \
 		template Int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index allGatherIndex); \
-		template Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& a2aCommGroups);
+		template Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 
 PROTO(int)

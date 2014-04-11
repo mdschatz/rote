@@ -31,26 +31,26 @@ public:
 
     // Create a "shape" distributed tensor specifying the associated indices
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const tmen::Grid& g=DefaultGrid() );
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor with specified alignments
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAligns,
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns,
       const tmen::Grid& g );
 
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
     // View a constant distributed tensor's buffer
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAligns,
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns,
       const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
     // View a mutable distributed tensor's buffer
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const std::vector<Unsigned>& modeAligns,
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns,
       T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
     // Create a copy of distributed matrix A

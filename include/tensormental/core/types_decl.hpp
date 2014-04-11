@@ -21,15 +21,19 @@ typedef unsigned char byte;
 typedef int Int;
 typedef unsigned Unsigned;
 
-typedef std::vector<Unsigned> ModeDistribution;
+typedef Unsigned Index;
+typedef Unsigned Mode;
+typedef std::vector<Index> IndexArray;
+typedef std::vector<Mode> ModeArray;
+
+typedef ModeArray ModeDistribution;
 typedef std::vector<ModeDistribution> TensorDistribution;
 
 //NOTE: I'm really not sure why, but I cannot have Shape
 typedef std::vector<Unsigned> ObjShape;
 typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
-typedef Unsigned Index;
-typedef Unsigned Mode;
+
 
 template<typename Real>
 using Complex = std::complex<Real>;

@@ -327,7 +327,7 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Index allGatherIndex, const 
 }
 
 template<typename T>
-void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& commGroups, const DistTensor<T>& A, DistTensor<T>& B){
+void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A, DistTensor<T>& B){
     Unsigned i;
     const Unsigned order = A.Order();
     const Location  start(order, 0);
@@ -341,8 +341,8 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
     Mode a2aMode1 = A.ModeOfIndex(a2aIndices.first);
     Mode a2aMode2 = A.ModeOfIndex(a2aIndices.second);
 
-    std::vector<Mode> commGroup1 = commGroups.first;
-    std::vector<Mode> commGroup2 = commGroups.second;
+    ModeArray commGroup1 = commGroups.first;
+    ModeArray commGroup2 = commGroups.second;
 
     //For convenience make sure that a2aMode1 is earlier in the packing
     if(a2aMode1 > a2aMode2){
@@ -350,10 +350,10 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
         std::swap(commGroup1, commGroup2);
     }
 
-    std::vector<Mode> commModes  = commGroup1;
+    ModeArray commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
 
-    std::vector<Mode> nonCommModes;
+    ModeArray nonCommModes;
     for(i = 0; i < g.Order(); i++){
         if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
             nonCommModes.push_back(i);
@@ -503,7 +503,7 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
         template void UnpackPartialRSRecvBuf(const T * const recvBuf, const Index reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B); \
         template void UnpackRSRecvBuf(const T * const recvBuf, const Index reduceIndex, const Index scatterIndex, const DistTensor<T>& A, DistTensor<T>& B); \
         template void UnpackAGRecvBuf(const T * const recvBuf, const Index allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B); \
-        template void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index, Index>& a2aIndices, const std::pair<std::vector<Mode>, std::vector<Mode> >& commGroups, const DistTensor<T>& A, DistTensor<T>& B);
+        template void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A, DistTensor<T>& B);
 
 PROTO(int)
 PROTO(float)

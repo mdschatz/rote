@@ -39,7 +39,7 @@ public:
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
     Unsigned LocalModeStride(Mode mode) const;
-    std::vector<Index> Indices() const;
+    IndexArray Indices() const;
     Index IndexOfMode(Mode mode) const;
     Mode ModeOfIndex(Index index) const;
 
@@ -109,7 +109,7 @@ public:
     Location GridViewLoc() const;
     ObjShape GridViewShape() const;
     mpi::Comm GetCommunicator(Index index) const;
-    mpi::Comm GetCommunicatorForModes(const std::vector<Mode>& modes) const;
+    mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
     void Empty();
     void EmptyData();
     void SetGrid( const tmen::Grid& grid );
@@ -193,7 +193,7 @@ protected:
     AbstractDistTensor( const tmen::Grid& g );
     //NOTE: Decide whether to remove the following constructor (should we allow creating a tensor without supplying the indices?)
     AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g );
-    AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const tmen::Grid& g );
+    AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g );
 
     void SetShifts();
     void SetModeShift(Mode mode);

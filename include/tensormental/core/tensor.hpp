@@ -36,12 +36,12 @@ public:
     // 
 
     Tensor( bool fixed=false );
-    Tensor( const std::vector<Index>& indices, bool fixed=false );
-    Tensor( const std::vector<Index>& indices, const ObjShape& shape, bool fixed=false );
-    Tensor( const std::vector<Index>& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
+    Tensor( const IndexArray& indices, bool fixed=false );
+    Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed=false );
+    Tensor( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor
-    ( const std::vector<Index>& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
-    Tensor( const std::vector<Index>& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
+    ( const IndexArray& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
+    Tensor( const IndexArray& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor( const Tensor<T>& A );
 
     // Move constructor
@@ -66,7 +66,7 @@ public:
     Unsigned Order() const;
     ObjShape Shape() const;
     Unsigned Dimension(Mode mode) const;
-    std::vector<Index> Indices() const;
+    IndexArray Indices() const;
     Unsigned ModeStride(Mode mode) const;
 
     Mode ModeOfIndex(Index index) const;
@@ -152,7 +152,7 @@ public:
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
 private:
-    std::vector<Index> indices_;
+    IndexArray indices_;
     ObjShape shape_;
     std::vector<Unsigned> strides_;
     std::vector<Unsigned> ldims_;

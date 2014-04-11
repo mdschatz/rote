@@ -50,7 +50,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDi
 }
 
 template<typename T>
-AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Index>& indices, const tmen::Grid& grid )
+AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& grid )
 : shape_(shape),
   dist_(dist),
 
@@ -411,7 +411,7 @@ AbstractDistTensor<T>::Order() const
 { return shape_.size(); }
 
 template<typename T>
-std::vector<Index>
+IndexArray
 AbstractDistTensor<T>::Indices() const
 { return this->tensor_.Indices(); }
 
@@ -601,7 +601,7 @@ AbstractDistTensor<T>::GetCommunicator(Index index) const
 
 template<typename T>
 mpi::Comm
-AbstractDistTensor<T>::GetCommunicatorForModes(const std::vector<Mode>& commModes) const
+AbstractDistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
 {
     mpi::Comm comm;
 
