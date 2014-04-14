@@ -426,7 +426,7 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
         //Determine the Multiloc of the process that sent this element
         Location owningProcGVA = A.DetermineOwner(startUnpackElemLoc);
         Location owningProcG = GridViewLoc2GridLoc(owningProcGVA, gvA);
-        Unsigned owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
+        Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
 
         //Find the local location of the global starting element we are now unpacking
         Location localLoc = B.Global2LocalIndex(startUnpackElemLoc);
@@ -464,7 +464,7 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
 
         //Update the corresponding offsets
         unpackElemRecvBufOff = nElemsPerProc * owningProc;
-        unpackElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
+        unpackElemDataBufOff = Loc2LinearLoc(localLoc, localShape);
 
         //Now that we have figured out the starting point, begin copying the entire slice from this element
         for(outerSliceNum = 0; outerSliceNum < nPackedOuterSlices; outerSliceNum++){
@@ -496,6 +496,10 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
             }
         }
     }
+//    printf("dataBuf:");
+//    for(Unsigned i = 0; i < prod(B.LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
 }
 
 #define PROTO(T) \

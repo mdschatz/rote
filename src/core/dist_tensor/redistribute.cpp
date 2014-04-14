@@ -52,13 +52,13 @@ void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index per
 
         //Determine sendRank
         const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
-        const Unsigned sendRank = LinearIndex(FilterVector(sendLoc, permA), gridSliceStridesA);
+        const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteIndexDistA));
 
         //Determine recvRank
         const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
-        const Unsigned recvLinearLoc = LinearIndex(FilterVector(myLoc, permB), gridSliceStridesB);
+        const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteIndexDistB));
         const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
-        const Unsigned recvRank = LinearIndex(FilterVector(recvLoc, permA), gridSliceStridesA);
+        const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteIndexDistA));
 
         //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
         mpi::SendRecv(sendBuf, sendSize, sendRank,

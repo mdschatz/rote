@@ -427,14 +427,14 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     	//Determine the Multiloc of the process that owns this element
     	Location owningProcGVB = B.DetermineOwner(startPackElemLoc);
     	Location owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
-    	Unsigned owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
+    	Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
 
         //Find the local location of the global starting element we are now packing
         Location localLoc = A.Global2LocalIndex(startPackElemLoc);
 
         //Update the corresponding offsets
         packElemSendBufOff = nElemsPerProc * owningProc;
-        packElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
+        packElemDataBufOff = Loc2LinearLoc(localLoc, localShape);
 
         //Now that we have figured out the starting point, begin copying the entire slice from this element
         for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){

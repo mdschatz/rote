@@ -593,7 +593,7 @@ AbstractDistTensor<T>::GetCommunicator(Index index) const
 	//Color is defined by the linear index into the logical grid EXCLUDING the index being distributed
 	gridViewSliceShape.erase(gridViewSliceShape.begin() + mode);
 	gridViewSliceLoc.erase(gridViewSliceLoc.begin() + mode);
-	const Unsigned commColor = LinearIndex(gridViewSliceLoc, Dimensions2Strides(gridViewSliceShape));
+	const Unsigned commColor = Loc2LinearLoc(gridViewSliceLoc, gridViewSliceShape);
 
 	mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
 	return comm;
@@ -610,8 +610,8 @@ AbstractDistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
     Location gridSliceLoc = FilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
     Location gridSliceNegLoc = NegFilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
 
-    const Unsigned commKey = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
-    const Unsigned commColor = LinearIndex(gridSliceNegLoc, Dimensions2Strides(gridSliceNegShape));
+    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
+    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
 
     mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
     return comm;

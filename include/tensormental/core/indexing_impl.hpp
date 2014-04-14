@@ -215,21 +215,32 @@ Dimensions2Strides(const ObjShape& objShape)
 
 inline
 Unsigned
-LinearIndex(const Location& loc, const std::vector<Unsigned>& strides)
+Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
 {
-    if(loc.size() != strides.size())
+    if(strides.size() != 0 && (loc.size() != strides.size() || shape.size() != loc.size()))
         LogicError( "Invalid index+stride combination");
-    return LinearIndex_(loc, strides);
+    return Loc2LinearLoc_(loc, shape, strides);
 }
 
 inline
 Unsigned
-LinearIndex_(const Location& loc, const std::vector<Unsigned>& strides)
+Loc2LinearLoc_(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
 {
     Unsigned i;
+
 	Unsigned linearInd = 0;
-	for(i = 0; i < loc.size(); i++)
-		linearInd += loc[i] * strides[i];
+	if(strides.size() == 0){
+	    if(loc.size() > 0){
+            const std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
+            linearInd += loc[0];
+            for(i = 1; i < loc.size(); i++)
+                linearInd += loc[i] * shape[i-1] * shapeStrides[i-1];
+	    }
+	}else{
+	    for(i = 0; i < loc.size(); i++)
+	        linearInd += loc[i] * strides[i];
+	}
+
 	return linearInd;
 }
 
@@ -307,7 +318,7 @@ GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView
 			gridLoc[modeDist[j]] = gridSliceLoc[j];
 		}
 	}
-	return LinearIndex(gridLoc, Dimensions2Strides(gridShape));
+	return Loc2LinearLoc(gridLoc, gridShape);
 }
 
 inline
@@ -363,7 +374,7 @@ GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const Te
         gridSliceLoc = FilterVector(gridLoc, modeDist);
         gridSliceShape = FilterVector(gridShape, modeDist);
 
-        ret[i] = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
+        ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     }
     return ret;
 }
