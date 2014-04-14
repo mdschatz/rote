@@ -21,18 +21,18 @@ namespace tmen {
 class Grid
 {
 public:
-    explicit Grid( mpi::Comm comm, int order, std::vector<int> dimension );
+    explicit Grid( mpi::Comm comm, Unsigned order, const ObjShape& shape );
     ~Grid();
 
     // Simple interface (simpler version of distributed-based interface)
-    int Order() const;
-    int Size() const;
-    std::vector<Int> Shape() const;
-    int Dimension(int mode) const;
-    std::vector<Int> Loc() const;
-    int ModeLoc(int mode) const;
+    Unsigned Order() const;
+    Unsigned Size() const;
+    ObjShape Shape() const;
+    Unsigned Dimension(Mode mode) const;
+    Location Loc() const;
+    Unsigned ModeLoc(Mode mode) const;
 
-    int LinearRank() const;
+    Unsigned LinearRank() const;
     void SetMyGridLoc();
 
 //These should be pushed to a separate GridView class
@@ -42,18 +42,18 @@ public:
 //    mpi::Comm CommUnderView(GridView view) const;
 
     // Advanced routines
-    explicit Grid( mpi::Comm viewers, mpi::Group owners, int height );
+    explicit Grid( mpi::Comm viewers, mpi::Group owners, Unsigned height );
     bool InGrid() const;
     mpi::Comm OwningComm() const;
 
     static int FindFactor( int p );
 
 private:
-    int order_;
-    std::vector<int> dimension_;
-    int size_;
-    int linearRank_;
-    std::vector<int> gridLoc_;
+    Unsigned order_;
+    ObjShape shape_;
+    Unsigned size_;
+    Unsigned linearRank_;
+    Location gridLoc_;
 
     //TODO: Look at how these are used
     // The processes that do and do not own data

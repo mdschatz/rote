@@ -17,7 +17,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& grid )
+( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : AbstractDistTensor<T>(shape, dist, grid)
 {
 	if(shape.size() != dist.size())
@@ -29,7 +29,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& grid )
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& grid )
 : AbstractDistTensor<T>(shape, dist, indices, grid)
 {
 	if(shape.size() != dist.size())
@@ -41,7 +41,7 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
   const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 {
@@ -53,8 +53,8 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
-  const std::vector<Int>& ldims, const tmen::Grid& g )
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+  const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 { 
 	if(shape.size() != dist.size())
@@ -65,8 +65,8 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
-  const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+  const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 {
 	if(shape.size() != dist.size())
@@ -78,8 +78,8 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAlignments,
-  T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
+( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+  T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 : AbstractDistTensor<T>(shape, dist, indices, g)
 {
 	if(shape.size() != dist.size())
@@ -138,15 +138,15 @@ DistTensor<T>::DistData() const
 
 //NOTE: This refers to the stride within grid mode.  NOT the stride through index of elements of tensor
 template<typename T>
-Int
-DistTensor<T>::ModeStride(Int mode) const
+Unsigned
+DistTensor<T>::ModeStride(Mode mode) const
 {
 	return this->gridView_.ModeWrapStride(mode);
 }
 
 template<typename T>
 Int
-DistTensor<T>::ModeRank(Int mode) const
+DistTensor<T>::ModeRank(Mode mode) const
 { return this->gridView_.ModeLoc(mode); }
 
 template<typename T>
@@ -227,7 +227,7 @@ DistTensor<T>::AlignWith( const AbstractDistTensor<T>& A )
 
 template<typename T>
 void
-DistTensor<T>::AlignModeWith( Int mode, const tmen::DistData& data )
+DistTensor<T>::AlignModeWith( Mode mode, const tmen::DistData& data )
 {
 /*
 #ifndef RELEASE
@@ -253,14 +253,14 @@ DistTensor<T>::AlignModeWith( Int mode, const tmen::DistData& data )
 
 template<typename T>
 void
-DistTensor<T>::AlignModeWith( Int mode, const AbstractDistTensor<T>& A )
+DistTensor<T>::AlignModeWith( Mode mode, const AbstractDistTensor<T>& A )
 { this->AlignModeWith( mode, A.DistData() ); }
 
 template<typename T>
 void
 DistTensor<T>::Attach
-( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments, 
-  T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
+( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
+  T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 {
 /*
 #ifndef RELEASE
@@ -285,14 +285,14 @@ DistTensor<T>::Attach
 template<typename T>
 void
 DistTensor<T>::LockedAttach
-( const std::vector<Int>& dims, const std::vector<Int>& modeAlignments, 
-  const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g )
+( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
+  const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::LockedAttach");
 #endif
     this->grid_ = &g;
-    this->shape_ = dims;
+    this->shape_ = shape;
     this->modeAlignments_ = modeAlignments;
     this->SetShifts();
 /*
@@ -317,14 +317,14 @@ DistTensor<T>::LockedAttach
 //TODO: FIX Participating
 template<typename T>
 void
-DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
+DistTensor<T>::ResizeTo( const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::ResizeTo");
     this->AssertNotLocked();
 #endif
-    this->shape_ = dims;
-    this->tensor_.ResizeTo(Lengths(dims, this->modeShifts_, this->gridView_.Shape()));
+    this->shape_ = shape;
+    this->tensor_.ResizeTo(Lengths(shape, this->modeShifts_, this->gridView_.Shape()));
 /*
     this->height_ = height;
     this->width_ = width;
@@ -337,13 +337,13 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims )
 
 template<typename T>
 void
-DistTensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims )
+DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims )
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::ResizeTo");
     this->AssertNotLocked();
 #endif
-    this->shape_ = dims;
+    this->shape_ = shape;
 /*
     this->height_ = height;
     this->width_ = width;
@@ -359,19 +359,19 @@ DistTensor<T>::ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& l
 //TODO: FIX THIS
 template<typename T>
 T
-DistTensor<T>::Get( const std::vector<Int>& index ) const
+DistTensor<T>::Get( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::Get");
-    this->AssertValidEntry( index );
+    this->AssertValidEntry( loc );
 #endif
-    const std::vector<Int> owningProc = this->DetermineOwner(index);
+    const Location owningProc = this->DetermineOwner(loc);
 
     const tmen::GridView& gv = this->GridView();
 
     T u;
     if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
-    	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+    	const Location localLoc = this->Global2LocalIndex(loc);
     	u = this->GetLocal(localLoc);
     }
 
@@ -382,17 +382,17 @@ DistTensor<T>::Get( const std::vector<Int>& index ) const
 
 template<typename T>
 void
-DistTensor<T>::Set( const std::vector<Int>& index, T u )
+DistTensor<T>::Set( const Location& loc, T u )
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::Set");
-    this->AssertValidEntry( index );
+    this->AssertValidEntry( loc );
 #endif
-    const std::vector<Int> owningProc = this->DetermineOwner(index);
+    const Location owningProc = this->DetermineOwner(loc);
     const GridView gv = this->GridView();
 
     if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
-    	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+    	const Location localLoc = this->Global2LocalIndex(loc);
         //std::ostringstream msg;
         /*
         msg << "GlobalIndex: [" << index[0];
@@ -412,16 +412,16 @@ DistTensor<T>::Set( const std::vector<Int>& index, T u )
 
 template<typename T>
 void
-DistTensor<T>::Update( const std::vector<Int>& index, T u )
+DistTensor<T>::Update( const Location& loc, T u )
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::Update");
-    this->AssertValidEntry( index );
+    this->AssertValidEntry( loc );
 #endif
     const GridView gv = this->GridView();
-    const std::vector<Int> owningProc = this->DetermineOwner(index);
+    const Location owningProc = this->DetermineOwner(loc);
     if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
-    	const std::vector<Int> localLoc = this->Global2LocalIndex(index);
+    	const Location localLoc = this->Global2LocalIndex(loc);
     	this->UpdateLocal(localLoc, u);
     }
 }
@@ -855,7 +855,7 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
 
 template<typename T>
 void
-DistTensor<T>::SetRealPart( Int i, Int j, BASE(T) u )
+DistTensor<T>::SetRealPart( const Location& loc, BASE(T) u )
 {
 /*
 #ifndef RELEASE
@@ -877,7 +877,7 @@ DistTensor<T>::SetRealPart( Int i, Int j, BASE(T) u )
 
 template<typename T>
 void
-DistTensor<T>::SetImagPart( Int i, Int j, BASE(T) u )
+DistTensor<T>::SetImagPart( const Location& loc, BASE(T) u )
 {
 /*
 #ifndef RELEASE
@@ -900,7 +900,7 @@ DistTensor<T>::SetImagPart( Int i, Int j, BASE(T) u )
 
 template<typename T>
 void
-DistTensor<T>::UpdateRealPart( Int i, Int j, BASE(T) u )
+DistTensor<T>::UpdateRealPart( const Location& loc, BASE(T) u )
 {
 /*
 #ifndef RELEASE
@@ -922,7 +922,7 @@ DistTensor<T>::UpdateRealPart( Int i, Int j, BASE(T) u )
 
 template<typename T>
 void
-DistTensor<T>::UpdateImagPart( Int i, Int j, BASE(T) u )
+DistTensor<T>::UpdateImagPart( const Location& loc, BASE(T) u )
 {
 /*
 #ifndef RELEASE

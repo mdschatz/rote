@@ -25,59 +25,59 @@ namespace tmen{
 /////////////////
 
 template<typename T>
-int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex);
+Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex);
 
 template<typename T>
-int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex);
+Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex);
 
 template<typename T>
-int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex);
+Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex);
 
 template<typename T>
-int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
+Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
 
 template<typename T>
-int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups);
+Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 //template<typename T>
-//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index, const std::vector<int>& rsGridModes);
+//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index index, const ModeArray& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
-int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const int index);
+Int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allToAllIndex);
 
 
 template<typename T>
-int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
+Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex);
 
 /////////////////
 //Redist routines
 /////////////////
 
 template<typename T>
-void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const int permuteIndex);
+void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex);
 
 template<typename T>
-void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex);
+void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex);
 
 template<typename T>
-void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex);
+void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex);
 
 template<typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const int allGatherIndex);
+void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
 
 template<typename T>
-void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& a2aCommGroups);
+void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 //template<typename T>
-//void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, const std::vector<int>& rsGridModes);
+//void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, const ModeArray& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
-void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
+void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index index);
 
 template<typename T>
-void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const int index);
+void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index index);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_DECL_HPP

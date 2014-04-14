@@ -27,31 +27,31 @@ public:
 
     // Create a "shape" distributed tensor
     DistTensor
-    ( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
+    ( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor specifying the associated indices
     DistTensor
-    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& g=DefaultGrid() );
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor with specified alignments
     DistTensor
-    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns,
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns,
       const tmen::Grid& g );
 
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns, const std::vector<Int>& ldims, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
     // View a constant distributed tensor's buffer
     DistTensor
-    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns,
-      const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns,
+      const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
     // View a mutable distributed tensor's buffer
     DistTensor
-    ( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const std::vector<Int>& modeAligns,
-      T* buffer, const std::vector<Int>& ldims, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAligns,
+      T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
     // Create a copy of distributed matrix A
     DistTensor( const DistTensor<T>& A );
@@ -75,8 +75,8 @@ public:
     // Non-collective routines
     //
 
-    virtual Int ModeStride(Int mode) const;
-    virtual Int ModeRank(Int mode) const;
+    virtual Unsigned ModeStride(Mode mode) const;
+    virtual Int ModeRank(Mode mode) const;
     virtual tmen::DistData DistData() const;
 
     //
@@ -86,30 +86,30 @@ public:
     //
     // Routines needed for indexing
     //
-    virtual T Get( const std::vector<Int>& index ) const;
-    virtual void Set( const std::vector<Int>& index, T alpha );
-    virtual void Update( const std::vector<Int>& index, T alpha );
+    virtual T Get( const Location& loc ) const;
+    virtual void Set( const Location& loc, T alpha );
+    virtual void Update( const Location& loc, T alpha );
 
-    virtual void ResizeTo( const std::vector<Int>& dims );
-    virtual void ResizeTo( const std::vector<Int>& dims, const std::vector<Int>& ldims );
+    virtual void ResizeTo( const ObjShape& shape );
+    virtual void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
     // Distribution alignment
     virtual void AlignWith( const tmen::DistData& data );
     virtual void AlignWith( const AbstractDistTensor<T>& A );
-    virtual void AlignModeWith( Int mode, const tmen::DistData& data );
-    virtual void AlignModeWith( Int mode, const AbstractDistTensor<T>& A );
+    virtual void AlignModeWith( Mode mode, const tmen::DistData& data );
+    virtual void AlignModeWith( Mode mode, const AbstractDistTensor<T>& A );
 
     //
     // Though the following routines are meant for complex data, all but two
     // logically apply to real data.
     //
 
-    virtual void SetRealPart( Int i, Int j, BASE(T) u );
+    virtual void SetRealPart( const Location& loc, BASE(T) u );
     // Only valid for complex data
-    virtual void SetImagPart( Int i, Int j, BASE(T) u );
-    virtual void UpdateRealPart( Int i, Int j, BASE(T) u );
+    virtual void SetImagPart( const Location& loc, BASE(T) u );
+    virtual void UpdateRealPart( const Location& loc, BASE(T) u );
     // Only valid for complex data
-    virtual void UpdateImagPart( Int i, Int j, BASE(T) u );
+    virtual void UpdateImagPart( const Location& loc, BASE(T) u );
 
     //-----------------------------------------------------------------------//
     // Routines specific to [MC,MR] distribution                             //
@@ -126,11 +126,11 @@ public:
 
     // (Immutable) view of a distributed matrix's buffer
     void Attach
-    ( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
-      T* buffer, const std::vector<Int>& ldims, const tmen::Grid& grid );
+    ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
+      T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& grid );
     void LockedAttach
-    ( const std::vector<Int>& dims, const std::vector<Int>& modeAligns,
-      const T* buffer, const std::vector<Int>& ldims, const tmen::Grid& grid );      
+    ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
+      const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& grid );
 
     // Equate/Update with the scattered summation of A[MC,* ] across process
     // rows

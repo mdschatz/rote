@@ -28,23 +28,23 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     if( title != "" )
         os << title << std::endl;
     
-    const Int order = A.Order();
-    std::vector<Int> curIndex(order);
-    std::fill(curIndex.begin(), curIndex.end(), 0);
+    const Unsigned order = A.Order();
+    Location curLoc(order);
+    std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
     bool done = false;
     while(true){
 
     	//Update
-    	curIndex[ptr]++;
-    	while(ptr < order && curIndex[ptr] == A.Dimension(ptr)){
-    		curIndex[ptr] = 0;
+    	curLoc[ptr]++;
+    	while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){
+    		curLoc[ptr] = 0;
     		ptr++;
     		if(ptr >= order){
     			done = true;
     			break;
     		}else{
-    			curIndex[ptr]++;
+    			curLoc[ptr]++;
     		}
     	}
     	if(done)
@@ -67,29 +67,29 @@ Print
     if( A.Grid().LinearRank() == 0 && title != "" )
         os << title << std::endl;
 
-    const Int order = A.Order();
-    std::vector<Int> curIndex(order);
-    std::fill(curIndex.begin(), curIndex.end(), 0);
+    const Unsigned order = A.Order();
+    Location curLoc(order);
+    std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
     bool done = false;
     T u;
     while(true){
-    	u = A.Get(curIndex);
+    	u = A.Get(curLoc);
 
     	if(A.Grid().LinearRank() == 0){
     		os << u << " ";
     	}
 
     	//Update
-    	curIndex[ptr]++;
-    	while(ptr < order && curIndex[ptr] == A.Dimension(ptr)){
-    		curIndex[ptr] = 0;
+    	curLoc[ptr]++;
+    	while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){
+    		curLoc[ptr] = 0;
     		ptr++;
     		if(ptr >= order){
     			done = true;
     			break;
     		}else{
-    			curIndex[ptr]++;
+    			curLoc[ptr]++;
     		}
     	}
     	if(done)

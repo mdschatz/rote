@@ -18,9 +18,9 @@ void Usage(){
 }
 
 typedef struct Arguments{
-  int order;
-  int size;
-  std::vector<int> gridDims;
+  Unsigned order;
+  Unsigned size;
+  ObjShape gridShape;
 } Params;
 
 void ProcessInput(const int argc,  char** const argv, Params& args){
@@ -45,7 +45,7 @@ void ProcessInput(const int argc,  char** const argv, Params& args){
 	}
 
 	args.size = 1;
-	args.gridDims.resize(order);
+	args.gridShape.resize(order);
 	for(int i = 0; i < order; i++){
 		int gridDim = atoi(argv[i+2]);
 		if(gridDim <= 0){
@@ -54,7 +54,7 @@ void ProcessInput(const int argc,  char** const argv, Params& args){
 			throw ArgException();
 		}
 		args.size *= gridDim;
-		args.gridDims[i] = gridDim;
+		args.gridShape[i] = gridDim;
 	}
 }
 
@@ -83,11 +83,11 @@ main( int argc, char* argv[] )
 
 	std::cout << "creating grid\n";
         printf("Args order: %d\n", args.order);
-	printf("Args dims: [%d", args.gridDims[0]);
+	printf("Args dims: [%d", args.gridShape[0]);
 	for(int i = 1; i < args.order; i++)
-		printf(", %d", args.gridDims[i]);
+		printf(", %d", args.gridShape[i]);
 	printf("]\n");
-	const Grid grid( comm, args.order, args.gridDims );
+	const Grid grid( comm, args.order, args.gridShape );
     }
     catch( std::exception& e ) { ReportException(e); }
 

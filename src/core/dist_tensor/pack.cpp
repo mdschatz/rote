@@ -15,33 +15,33 @@ namespace tmen{
 
 //NOTE: This should just be a direct memcopy. But sticking to the same structured code as all other collectives
 template <typename T>
-void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int permuteIndex, T * const sendBuf)
+void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, T * const sendBuf)
 {
-    const std::vector<Int> start(A.Order(), 0);
+    const Location start(A.Order(), 0);
     const T* dataBuf = A.LockedBuffer(start);
 
-    const int pModeA = A.ModeOfIndex(permuteIndex);
+    const Mode pModeA = A.ModeOfIndex(permuteIndex);
 
     const tmen::GridView gvA = A.GridView();
 
     //Shape of the local tensor we are packing
-    const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const std::vector<Int> localShapeA = A.LocalShape();
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape localShapeA = A.LocalShape();
 
     //Calculate number of outer slices to pack
-    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeA, pModeA + 1));
-    const int nLocalOuterSlices = prod(localShapeA, pModeA + 1);
+    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, pModeA + 1));
+    const Unsigned nLocalOuterSlices = prod(localShapeA, pModeA + 1);
 
     //Calculate number of rsMode slices to pack
-    const int nMaxPModeSlices = maxLocalShapeA[pModeA];
-    const int nLocalPModeSlices = localShapeA[pModeA];
-    const int maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, pModeA));
-    const int copySliceSize = prod(localShapeA, 0, pModeA);
+    const Unsigned nMaxPModeSlices = maxLocalShapeA[pModeA];
+    const Unsigned nLocalPModeSlices = localShapeA[pModeA];
+    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, pModeA));
+    const Unsigned copySliceSize = prod(localShapeA, 0, pModeA);
 
-    int outerSliceNum, pModeSliceNum; //Which slice of which wrap of which process are we packing
-    int outerSendBufOff, pModeSendBufOff;
-    int outerDataBufOff, pModeDataBufOff;
-    int startSendBuf, startDataBuf;
+    Unsigned outerSliceNum, pModeSliceNum; //Which slice of which wrap of which process are we packing
+    Unsigned outerSendBufOff, pModeSendBufOff;
+    Unsigned outerDataBufOff, pModeDataBufOff;
+    Unsigned startSendBuf, startDataBuf;
 
     for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
         if(outerSliceNum >= nLocalOuterSlices)
@@ -64,48 +64,48 @@ void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, cons
 
 //NOTE: Exactly the same code as PackRSSendBuf(B, A, reduceScatterIndex, reduceScatterIndex, sendBuf);
 template <typename T>
-void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceScatterIndex, T * const sendBuf)
+void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, T * const sendBuf)
 {
-    const std::vector<Int> start(A.Order(), 0);
+    const Location start(A.Order(), 0);
     const T* dataBuf = A.LockedBuffer(start);
 
 //    printf("dataBuf: ");
-//    for(int i = 0; i < prod(A.LocalShape()); i++){
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
 //        printf("%d ", dataBuf[i]);
 //    }
 //    printf("\n");
 
-    const int rsModeA = A.ModeOfIndex(reduceScatterIndex);
+    const Mode rsModeA = A.ModeOfIndex(reduceScatterIndex);
 
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
-    const int nRedistProcs = gvA.Dimension(rsModeA);
+    const Unsigned nRedistProcs = gvA.Dimension(rsModeA);
 
     //Shape of the local tensor we are packing
-    const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const std::vector<Int> localShapeA = A.LocalShape();
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape localShapeA = A.LocalShape();
 
     //Calculate number of outer slices to pack
-    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeA, rsModeA + 1));
-    const int nLocalOuterSlices = prod(localShapeA, rsModeA + 1);
+    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, rsModeA + 1));
+    const Unsigned nLocalOuterSlices = prod(localShapeA, rsModeA + 1);
 
     //Calculate number of rsMode slices to pack
-    const int nMaxRSModeSlices = maxLocalShapeA[rsModeA];
-    const int nLocalRSModeSlices = localShapeA[rsModeA];
-    const int rsModePackStride = nRedistProcs;
+    const Unsigned nMaxRSModeSlices = maxLocalShapeA[rsModeA];
+    const Unsigned nLocalRSModeSlices = localShapeA[rsModeA];
+    const Unsigned rsModePackStride = nRedistProcs;
 
     //Number of processes we have to pack for
-    const int nElemSlices = nRedistProcs;
+    const Unsigned nElemSlices = nRedistProcs;
 
-    const int maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, rsModeA));
-    const int copySliceSize = prod(localShapeA, 0, rsModeA);
+    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, rsModeA));
+    const Unsigned copySliceSize = prod(localShapeA, 0, rsModeA);
 
-    int outerSliceNum, rsModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
-    int elemSendBufOff, elemDataBufOff;
-    int outerSendBufOff, rsModeSendBufOff;
-    int outerDataBufOff, rsModeDataBufOff;
-    int startSendBuf, startDataBuf;
+    Unsigned outerSliceNum, rsModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
+    Unsigned elemSendBufOff, elemDataBufOff;
+    Unsigned outerSendBufOff, rsModeSendBufOff;
+    Unsigned outerDataBufOff, rsModeDataBufOff;
+    Unsigned startSendBuf, startDataBuf;
 
 //    printf("MemCopy info:\n");
 //    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
@@ -155,7 +155,7 @@ void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const 
         }
     }
 //    printf("packed sendBuf: ");
-//    for(int i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++)
+//    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++)
 //        printf("%d ", sendBuf[i]);
 //    printf("\n");
 }
@@ -164,49 +164,49 @@ void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const 
 //NOTE: Looks an awful lot like PackAGSendBuf...
 //TODO: Merge with PackAGSendBuf?
 template <typename T>
-void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int reduceIndex, const Int scatterIndex, T * const sendBuf)
+void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex, T * const sendBuf)
 {
-    const std::vector<Int> start(A.Order(), 0);
+    const Location start(A.Order(), 0);
     const T* dataBuf = A.LockedBuffer(start);
 
 //    printf("dataBuf: ");
-//    for(int i = 0; i < prod(A.LocalShape()); i++){
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
 //        printf("%d ", dataBuf[i]);
 //    }
 //    printf("\n");
 
-    const int rModeA = A.ModeOfIndex(reduceIndex);
-    const int sModeA = A.ModeOfIndex(scatterIndex);
+    const Mode rModeA = A.ModeOfIndex(reduceIndex);
+    const Mode sModeA = A.ModeOfIndex(scatterIndex);
 
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
-    const int nRedistProcs = gvA.Dimension(rModeA);
+    const Unsigned nRedistProcs = gvA.Dimension(rModeA);
 
     //Shape of the local tensor we are packing
-    const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const std::vector<Int> localShapeA = A.LocalShape();
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape localShapeA = A.LocalShape();
 
     //Calculate number of outer slices to pack
-    const int nMaxOuterSlices = Max(1, prod(maxLocalShapeA, sModeA + 1));
-    const int nLocalOuterSlices = prod(localShapeA, sModeA + 1);
+    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, sModeA + 1));
+    const Unsigned nLocalOuterSlices = prod(localShapeA, sModeA + 1);
 
     //Calculate number of sMode slices to pack
-    const int nMaxSModeSlices = maxLocalShapeA[sModeA];
-    const int nLocalSModeSlices = localShapeA[sModeA];
-    const int sModePackStride = nRedistProcs;
+    const Unsigned nMaxSModeSlices = maxLocalShapeA[sModeA];
+    const Unsigned nLocalSModeSlices = localShapeA[sModeA];
+    const Unsigned sModePackStride = nRedistProcs;
 
     //Number of processes we have to pack for
-    const int nElemSlices = nRedistProcs;
+    const Unsigned nElemSlices = nRedistProcs;
 
-    const int maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, sModeA));
-    const int copySliceSize = prod(localShapeA, 0, sModeA);
+    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, sModeA));
+    const Unsigned copySliceSize = prod(localShapeA, 0, sModeA);
 
-    int outerSliceNum, sModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
-    int elemSendBufOff, elemDataBufOff;
-    int outerSendBufOff, sModeSendBufOff;
-    int outerDataBufOff, sModeDataBufOff;
-    int startSendBuf, startDataBuf;
+    Unsigned outerSliceNum, sModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
+    Unsigned elemSendBufOff, elemDataBufOff;
+    Unsigned outerSendBufOff, sModeSendBufOff;
+    Unsigned outerDataBufOff, sModeDataBufOff;
+    Unsigned startSendBuf, startDataBuf;
 
 
 //    printf("MemCopy info:\n");
@@ -253,40 +253,40 @@ void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int red
     }
 
 //    printf("packed sendBuf: ");
-//    for(int i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++)
+//    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++)
 //        printf("%d ", sendBuf[i]);
 //    printf("\n");
 }
 
 template <typename T>
-void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const sendBuf)
+void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf)
 {
-  const std::vector<Int> start(A.Order(), 0);
+  const Location start(A.Order(), 0);
   const T* dataBuf = A.LockedBuffer(start);
 
-  const int agModeA = A.ModeOfIndex(allGatherIndex);
+  const Mode agModeA = A.ModeOfIndex(allGatherIndex);
 
   const tmen::GridView gvA = A.GridView();
 
   //Shape of the local tensor we are packing
-  const std::vector<Int> maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-  const std::vector<Int> localShapeA = A.LocalShape();
+  const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+  const ObjShape localShapeA = A.LocalShape();
 
   //Calculate number of outer slices to pack
-  const int nMaxOuterSlices = Max(1, prod(maxLocalShapeA, agModeA + 1));
-  const int nLocalOuterSlices = prod(localShapeA, agModeA + 1);
+  const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, agModeA + 1));
+  const Unsigned nLocalOuterSlices = prod(localShapeA, agModeA + 1);
 
   //Calculate number of rsMode slices to pack
-  const int nMaxAGModeSlices = maxLocalShapeA[agModeA];
-  const int nLocalAGModeSlices = localShapeA[agModeA];
+  const Unsigned nMaxAGModeSlices = maxLocalShapeA[agModeA];
+  const Unsigned nLocalAGModeSlices = localShapeA[agModeA];
 
-  const int maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, agModeA));
-  const int copySliceSize = prod(localShapeA, 0, agModeA);
+  const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, agModeA));
+  const Unsigned copySliceSize = prod(localShapeA, 0, agModeA);
 
-  int outerSliceNum, agModeSliceNum; //Which slice of which wrap of which process are we packing
-  int outerSendBufOff, agModeSendBufOff;
-  int outerDataBufOff, agModeDataBufOff;
-  int startSendBuf, startDataBuf;
+  Unsigned outerSliceNum, agModeSliceNum; //Which slice of which wrap of which process are we packing
+  Unsigned outerSendBufOff, agModeSendBufOff;
+  Unsigned outerDataBufOff, agModeDataBufOff;
+  Unsigned startSendBuf, startDataBuf;
 
 //  printf("MemCopy info:\n");
 //  printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
@@ -322,15 +322,16 @@ void PackAGSendBuf(const DistTensor<T>& A, const Int allGatherIndex, T * const s
       }
   }
 //  printf("packed sendBuf: ");
-//  for(int i = 0; i < prod(maxLocalShapeA); i++)
+//  for(Unsigned i = 0; i < prod(maxLocalShapeA); i++)
 //      printf("%d ", sendBuf[i]);
 //  printf("\n");
 }
 
 template <typename T>
-void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf){
-    const int order = A.Order();
-    const std::vector<int> start(order, 0);
+void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf){
+    Unsigned i;
+    const Unsigned order = A.Order();
+    const Location start(order, 0);
     const T* dataBuf = A.LockedBuffer(start);
 
     const tmen::GridView gvA = A.GridView();
@@ -338,11 +339,11 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
 
     const tmen::Grid& g = A.Grid();
 
-    int a2aMode1 = A.ModeOfIndex(a2aIndices.first);
-    int a2aMode2 = A.ModeOfIndex(a2aIndices.second);
+    Mode a2aMode1 = A.ModeOfIndex(a2aIndices.first);
+    Mode a2aMode2 = A.ModeOfIndex(a2aIndices.second);
 
-    std::vector<int> commGroup1 = commGroups.first;
-    std::vector<int> commGroup2 = commGroups.second;
+    ModeArray commGroup1 = commGroups.first;
+    ModeArray commGroup2 = commGroups.second;
 
     //For convenience make sure that a2aMode1 is earlier in the packing
     if(a2aMode1 > a2aMode2){
@@ -350,72 +351,72 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
         std::swap(commGroup1, commGroup2);
     }
 
-    std::vector<int> commModes  = commGroup1;
+    ModeArray commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
 
-    std::vector<int> nonCommModes;
-    for(int i = 0; i < g.Order(); i++){
+    ModeArray nonCommModes;
+    for(i = 0; i < g.Order(); i++){
         if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
             nonCommModes.push_back(i);
         }
     }
 
-    std::vector<int> myGridLoc = g.Loc();
-    std::vector<int> gridShape = g.Shape();
+    Location myGridLoc = g.Loc();
+    ObjShape gridShape = g.Shape();
 
-    std::vector<int> modeLCMs(order);
-    for(int i = 0; i < order; i++)
+    std::vector<Unsigned> modeLCMs(order);
+    for(i = 0; i < order; i++)
     	modeLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
 
-    std::vector<int> modePackStrides(order);
-    for(int i = 0; i < order; i++){
+    std::vector<Unsigned> modePackStrides(order);
+    for(i = 0; i < order; i++){
     	modePackStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
     }
 
-    const std::vector<Int> localShape = A.LocalShape();
-    const std::vector<Int> packLocalShape = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape localShape = A.LocalShape();
+    const ObjShape packLocalShape = MaxLengths(A.Shape(), gvA.Shape());
 
     //Slices of a2aMode1
-    const int nMaxA2AMode1Slices = packLocalShape[a2aMode1];
-    const int nLocalA2AMode1Slices = localShape[a2aMode1];
+    const Unsigned nMaxA2AMode1Slices = packLocalShape[a2aMode1];
+    const Unsigned nLocalA2AMode1Slices = localShape[a2aMode1];
 
     //Slices between a2aMode1 and a2aMode2
-    const int nMaxMidSlices = Max(1, prod(packLocalShape, a2aMode1 + 1, a2aMode2));
-    const int nLocalMidSlices = prod(localShape, a2aMode1 + 1, a2aMode2);
+    const Unsigned nMaxMidSlices = Max(1, prod(packLocalShape, a2aMode1 + 1, a2aMode2));
+    const Unsigned nLocalMidSlices = prod(localShape, a2aMode1 + 1, a2aMode2);
 
     //Slices of a2aMode2
-    const int nMaxA2AMode2Slices = packLocalShape[a2aMode2];
-    const int nLocalA2AMode2Slices = localShape[a2aMode2];
+    const Unsigned nMaxA2AMode2Slices = packLocalShape[a2aMode2];
+    const Unsigned nLocalA2AMode2Slices = localShape[a2aMode2];
 
     //All remaining slices
-    const int nMaxOuterSlices = Max(1, prod(packLocalShape, a2aMode2 + 1));
-    const int nLocalOuterSlices = prod(localShape, a2aMode2 + 1);
+    const Unsigned nMaxOuterSlices = Max(1, prod(packLocalShape, a2aMode2 + 1));
+    const Unsigned nLocalOuterSlices = prod(localShape, a2aMode2 + 1);
 
-    const int copySliceSize = A.LocalModeStride(a2aMode1);
-    const int nElemsPerProc = prod(packLocalShape);
+    const Unsigned copySliceSize = A.LocalModeStride(a2aMode1);
+    const Unsigned nElemsPerProc = prod(packLocalShape);
 
     //Various counters used to offset in data arrays
-    int a2aMode1SliceNum, midSliceNum, a2aMode2SliceNum, outerSliceNum;  //Which slice we are packing for indexK
-    int a2aMode1SendBufOff, midSendBufOff, a2aMode2SendBufOff, outerSendBufOff;  //Offsets used to index into data arrays
-    int a2aMode1DataBufOff, midDataBufOff, a2aMode2DataBufOff, outerDataBufOff;  //Offsets used to index into data arrays
-    int packElemSendBufOff, packElemDataBufOff;
-    int startSendBuf, startDataBuf;
+    Unsigned a2aMode1SliceNum, midSliceNum, a2aMode2SliceNum, outerSliceNum;  //Which slice we are packing for indexK
+    Unsigned a2aMode1SendBufOff, midSendBufOff, a2aMode2SendBufOff, outerSendBufOff;  //Offsets used to index into data arrays
+    Unsigned a2aMode1DataBufOff, midDataBufOff, a2aMode2DataBufOff, outerDataBufOff;  //Offsets used to index into data arrays
+    Unsigned packElemSendBufOff, packElemDataBufOff;
+    Unsigned startSendBuf, startDataBuf;
 
     //a2aMode1 and a2aMode2 have different increments per slice because their distributions change
-    const int a2aMode1PackStride = modePackStrides[a2aMode1];
-    const int a2aMode2PackStride = modePackStrides[a2aMode2];
+    const Unsigned a2aMode1PackStride = modePackStrides[a2aMode1];
+    const Unsigned a2aMode2PackStride = modePackStrides[a2aMode2];
 
-    std::vector<int> myFirstLoc = A.ModeShifts();
+    Location myFirstLoc = A.ModeShifts();
 
-    int packElemNum;
-    const int nPackElems = prod(modePackStrides);
+    Unsigned packElemNum;
+    const Unsigned nPackElems = prod(modePackStrides);
 
     for(packElemNum = 0; packElemNum < nPackElems; packElemNum++){
-    	std::vector<int> packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackStrides);
+    	Location packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackStrides);
 
     	//Determine the global index of this first element we are packing
-    	std::vector<int> startPackElemLoc = myFirstLoc;
-    	for(int i = 0; i < order; i++){
+    	Location startPackElemLoc = myFirstLoc;
+    	for(i = 0; i < order; i++){
     		startPackElemLoc[i] += packElemMultiLoc[i] * gvA.ModeWrapStride(i);
     	}
 
@@ -424,12 +425,12 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     	    continue;
 
     	//Determine the Multiloc of the process that owns this element
-    	std::vector<int> owningProcGVB = B.DetermineOwner(startPackElemLoc);
-    	std::vector<int> owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
-    	int owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
+    	Location owningProcGVB = B.DetermineOwner(startPackElemLoc);
+    	Location owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
+    	Unsigned owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
 
         //Find the local location of the global starting element we are now packing
-        std::vector<int> localLoc = A.Global2LocalIndex(startPackElemLoc);
+        Location localLoc = A.Global2LocalIndex(startPackElemLoc);
 
         //Update the corresponding offsets
         packElemSendBufOff = nElemsPerProc * owningProc;
@@ -473,11 +474,11 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
 }
 
 #define PROTO(T) \
-        template void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Int permuteIndex, T * const sendBuf); \
-		template void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceScatterIndex, T * const sendBuf); \
-        template void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const int reduceIndex, const int scatterIndex, T * const sendBuf); \
-        template void PackAGSendBuf(const DistTensor<T>& A, const int allGatherIndex, T * const sendBuf); \
-        template void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<int, int>& a2aIndices, const std::pair<std::vector<int>, std::vector<int> >& commGroups, T * const sendBuf);
+        template void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, T * const sendBuf); \
+		template void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, T * const sendBuf); \
+        template void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex, T * const sendBuf); \
+        template void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf); \
+        template void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf);
 
 PROTO(int)
 PROTO(float)

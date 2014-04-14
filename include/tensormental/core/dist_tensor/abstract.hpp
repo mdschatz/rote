@@ -10,6 +10,7 @@
 #ifndef TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
 #define TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
 
+#include <vector>
 namespace tmen {
 
 template<typename T> 
@@ -18,54 +19,43 @@ class AbstractDistTensor
 public:
     virtual ~AbstractDistTensor();
 
-    //-----------------------------------------------------------------------//
-    // Routines that do NOT need to be implemented in derived classes        //
-    //-----------------------------------------------------------------------//
-
-#ifndef SWIG
-    // Move constructor
-//    AbstractDistTensor( AbstractDistTensor<T>&& A );
-    // Move assignment
-//    AbstractDistTensor<T>& operator=( AbstractDistTensor<T>&& A );
-#endif
-
 #ifndef RELEASE
     void AssertNotLocked() const;
     void AssertNotStoringData() const;
-    void AssertValidEntry( const std::vector<Int>& index ) const;
+    void AssertValidEntry( const Location& loc ) const;
     void AssertValidSubtensor
-    ( const std::vector<Int>& index, const std::vector<Int>& shape ) const;
+    ( const Location& loc, const ObjShape& shape ) const;
     void AssertSameGrid( const tmen::Grid& grid ) const;
-    void AssertSameSize( const std::vector<Int>& shape ) const;
+    void AssertSameSize( const ObjShape& shape ) const;
 #endif // ifndef RELEASE
 
     //
     // Basic information
     //
 
-    Int Order() const;
-    Int Dimension(Int mode) const;
-    std::vector<Int> Shape() const;
-    std::vector<Int> LocalShape() const;
-    Int LocalDimension(Int mode) const;
-    Int LocalModeStride(Int mode) const;
-    std::vector<Int> Indices() const;
-    Int IndexOfMode(Int mode) const;
-    Int ModeOfIndex(Int index) const;
+    Unsigned Order() const;
+    Unsigned Dimension(Mode mode) const;
+    ObjShape Shape() const;
+    ObjShape LocalShape() const;
+    Unsigned LocalDimension(Mode mode) const;
+    Unsigned LocalModeStride(Mode mode) const;
+    IndexArray Indices() const;
+    Index IndexOfMode(Mode mode) const;
+    Mode ModeOfIndex(Index index) const;
 
     TensorDistribution TensorDist() const;
-    ModeDistribution ModeDist(Int mode) const;
-    ModeDistribution IndexDist(Int index) const;
+    ModeDistribution ModeDist(Mode mode) const;
+    ModeDistribution IndexDist(Index index) const;
 
 
-    Int LDim(Int mode) const;
+    Unsigned LDim(Mode mode) const;
     size_t AllocatedMemory() const;
 
     const tmen::Grid& Grid() const;
     const tmen::GridView GridView() const;
 
-          T* Buffer( const std::vector<Int>& loc );
-    const T* LockedBuffer( const std::vector<Int>& loc ) const;
+          T* Buffer( const Location& loc );
+    const T* LockedBuffer( const Location& loc ) const;
 
           tmen::Tensor<T>& Tensor();
     const tmen::Tensor<T>& LockedTensor() const;
@@ -75,37 +65,36 @@ public:
     //
 
     void FreeAlignments();
-    bool ConstrainedModeAlignment(Int mode) const;
-    Int ModeAlignment(Int mode) const;
-    Int ModeShift(Int mode) const;
-    std::vector<int> ModeShifts() const;
+    bool ConstrainedModeAlignment(Mode mode) const;
+    Unsigned ModeAlignment(Mode mode) const;
+    Unsigned ModeShift(Mode mode) const;
+    std::vector<Unsigned> ModeShifts() const;
 
-    void Align( const std::vector<Int>& modeAlign );
-    void AlignMode( Int mode, Int align );
-    //void AlignRows( Int rowAlign );
+    void Align( const std::vector<Unsigned>& modeAlign );
+    void AlignMode( Mode mode, Unsigned align );
 
     //
     // Local entry manipulation
     //
 
-    T GetLocal( const std::vector<Int>& loc ) const;
-    void SetLocal( const std::vector<Int>& loc, T alpha );
-    void UpdateLocal( const std::vector<Int>& loc, T alpha );
+    T GetLocal( const Location& loc ) const;
+    void SetLocal( const Location& loc, T alpha );
+    void UpdateLocal( const Location& loc, T alpha );
 
     //
     // Though the following routines are meant for complex data, all but two
     // logically apply to real data.
     //
 
-    BASE(T) GetRealPart( const std::vector<Int>& index ) const;
-    BASE(T) GetImagPart( const std::vector<Int>& index ) const;
-    BASE(T) GetLocalRealPart( const std::vector<Int>& index ) const;
-    BASE(T) GetLocalImagPart( const std::vector<Int>& index ) const;
-    void SetLocalRealPart( const std::vector<Int>& index, BASE(T) alpha );
-    void UpdateLocalRealPart( const std::vector<Int>& index, BASE(T) alpha );
+    BASE(T) GetRealPart( const Location& loc ) const;
+    BASE(T) GetImagPart( const Location& loc ) const;
+    BASE(T) GetLocalRealPart( const Location& loc ) const;
+    BASE(T) GetLocalImagPart( const Location& loc ) const;
+    void SetLocalRealPart( const Location& loc, BASE(T) alpha );
+    void UpdateLocalRealPart( const Location& loc, BASE(T) alpha );
     // Only valid for complex data
-    void SetLocalImagPart( const std::vector<Int>& index, BASE(T) alpha );
-    void UpdateLocalImagPart( const std::vector<Int>& index, BASE(T) alpha );
+    void SetLocalImagPart( const Location& loc, BASE(T) alpha );
+    void UpdateLocalImagPart( const Location& loc, BASE(T) alpha );
 
     //
     // Viewing 
@@ -117,10 +106,10 @@ public:
     //
     // Utilities
     //
-    std::vector<Int> GridViewLoc() const;
-    std::vector<Int> GridViewShape() const;
-    mpi::Comm GetCommunicator(int index) const;
-    mpi::Comm GetCommunicatorForModes(const std::vector<int>& modes) const;
+    Location GridViewLoc() const;
+    ObjShape GridViewShape() const;
+    mpi::Comm GetCommunicator(Index index) const;
+    mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
     void Empty();
     void EmptyData();
     void SetGrid( const tmen::Grid& grid );
@@ -134,11 +123,8 @@ public:
     virtual bool Participating() const;
     virtual void AlignWith( const tmen::DistData& data );
     virtual void AlignWith( const AbstractDistTensor<T>& A );
-    virtual void AlignModeWith( Int mode, const tmen::DistData& data );
-    virtual void AlignModeWith( Int mode, const AbstractDistTensor<T>& A );
-//    virtual void AlignColsWith( const AbstractDistTensor<T>& A );
-//    virtual void AlignRowsWith( const tmen::DistData& data );
-//    virtual void AlignRowsWith( const AbstractDistTensor<T>& A );
+    virtual void AlignModeWith( Mode mode, const tmen::DistData& data );
+    virtual void AlignModeWith( Mode mode, const AbstractDistTensor<T>& A );
 
     virtual void MakeConsistent();
 
@@ -151,48 +137,47 @@ public:
     //
 
     virtual tmen::DistData DistData() const = 0;
-
-    virtual Int ModeStride(Int mode) const = 0; 
-    virtual Int ModeRank(Int mode) const = 0;
+    virtual Unsigned ModeStride(Mode mode) const = 0;
+    virtual Int ModeRank(Mode mode) const = 0;
 
     //
     // Entry manipulation
     //
-    virtual std::vector<Int> DetermineOwner(const std::vector<Int>& index) const;
-    virtual std::vector<Int> Global2LocalIndex(const std::vector<Int>& index) const;
-    virtual T Get( const std::vector<Int>& index ) const = 0;
-    virtual void Set( const std::vector<Int>& index, T alpha ) = 0;
-    virtual void Update( const std::vector<Int>& index, T alpha ) = 0;
+    virtual Location DetermineOwner(const Location& loc) const;
+    virtual Location Global2LocalIndex(const Location& loc) const;
+    virtual T Get( const Location& loc ) const = 0;
+    virtual void Set( const Location& loc, T alpha ) = 0;
+    virtual void Update( const Location& loc, T alpha ) = 0;
 
     //
     // Though the following routines are meant for complex data, all but two
     // logically applies to real data.
     //
 
-    virtual void SetRealPart( Int i, Int j, BASE(T) alpha ) = 0;
+    virtual void SetRealPart( const Location& loc, BASE(T) alpha ) = 0;
     // Only valid for complex data
-    virtual void SetImagPart( Int i, Int j, BASE(T) alpha ) = 0;
-    virtual void UpdateRealPart( Int i, Int j, BASE(T) alpha ) = 0;
+    virtual void SetImagPart( const Location& loc, BASE(T) alpha ) = 0;
+    virtual void UpdateRealPart( const Location& loc, BASE(T) alpha ) = 0;
     // Only valid for complex data
-    virtual void UpdateImagPart( Int i, Int j, BASE(T) alpha ) = 0;
+    virtual void UpdateImagPart( const Location& loc, BASE(T) alpha ) = 0;
 
     //
     // Utilities
     //
     
-    virtual void ResizeTo( const std::vector<Int>& shape ) = 0;
-    virtual void ResizeTo( const std::vector<Int>& shape, const std::vector<Int>& ldims ) = 0;
+    virtual void ResizeTo( const ObjShape& shape ) = 0;
+    virtual void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims ) = 0;
 
 protected:
 
     //Distributed information
-    std::vector<Int> shape_;
+    ObjShape shape_;
     TensorDistribution dist_;
     
     //Wrapping information
     std::vector<bool> constrainedModeAlignments_;
-    std::vector<Int> modeAlignments_;
-    std::vector<Int> modeShifts_;
+    std::vector<Unsigned> modeAlignments_;
+    std::vector<Unsigned> modeShifts_;
 
     //Local information
     tmen::Tensor<T> tensor_;
@@ -207,29 +192,24 @@ protected:
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
     //NOTE: Decide whether to remove the following constructor (should we allow creating a tensor without supplying the indices?)
-    AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const tmen::Grid& g );
-    AbstractDistTensor( const std::vector<Int>& shape, const TensorDistribution& dist, const std::vector<Int>& indices, const tmen::Grid& g );
+    AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g );
+    AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g );
 
     void SetShifts();
-    void SetModeShift(Int Mode);
+    void SetModeShift(Mode mode);
     void SetGrid();
 
     void ComplainIfReal() const;
 
     void SetAlignmentsAndResize
-    ( const std::vector<Int>& aligns, const std::vector<Int>& shape );
+    ( const std::vector<Unsigned>& aligns, const ObjShape& shape );
     void ForceAlignmentsAndResize
-    ( const std::vector<Int>& aligns, const std::vector<Int>& shape );
+    ( const std::vector<Unsigned>& aligns, const ObjShape& shape );
 
     void SetModeAlignmentAndResize
-    ( Int mode, Int align, const std::vector<Int>& shape );
+    ( Mode mode, Unsigned align, const ObjShape& shape );
     void ForceModeAlignmentAndResize
-    ( Int mode, Int align, const std::vector<Int>& shape );
-
-//    void SetRowAlignmentAndResize
-//    ( Int rowAlign, Int height, Int width );
-//    void ForceRowAlignmentAndResize
-//    ( Int rowAlign, Int height, Int width );
+    ( Mode mode, Unsigned align, const ObjShape& shape );
 
 #ifndef SWIG
  //   template<typename S,Distribution U,Distribution V> 
@@ -279,3 +259,4 @@ protected:
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
+
