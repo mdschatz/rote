@@ -145,7 +145,7 @@ DistTensor<T>::ModeStride(Mode mode) const
 }
 
 template<typename T>
-Int
+Unsigned
 DistTensor<T>::ModeRank(Mode mode) const
 { return this->gridView_.ModeLoc(mode); }
 

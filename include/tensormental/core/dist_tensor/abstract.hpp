@@ -13,6 +13,11 @@
 #include <vector>
 namespace tmen {
 
+#ifndef RELEASE
+    template<typename T>
+    void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index);
+#endif
+
 template<typename T> 
 class AbstractDistTensor
 {
@@ -66,6 +71,7 @@ public:
 
     void FreeAlignments();
     bool ConstrainedModeAlignment(Mode mode) const;
+    std::vector<Unsigned> Alignments() const;
     Unsigned ModeAlignment(Mode mode) const;
     Unsigned ModeShift(Mode mode) const;
     std::vector<Unsigned> ModeShifts() const;
@@ -138,7 +144,7 @@ public:
 
     virtual tmen::DistData DistData() const = 0;
     virtual Unsigned ModeStride(Mode mode) const = 0;
-    virtual Int ModeRank(Mode mode) const = 0;
+    virtual Unsigned ModeRank(Mode mode) const = 0;
 
     //
     // Entry manipulation
@@ -212,42 +218,26 @@ protected:
     ( Mode mode, Unsigned align, const ObjShape& shape );
 
 #ifndef SWIG
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void View( DistTensor<S,U,V>& A, DistTensor<S,U,V>& B );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void LockedView( DistTensor<S,U,V>& A, const DistTensor<S,U,V>& B );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void View
- //   ( DistTensor<S,U,V>& A, DistTensor<S,U,V>& B,
- //     Int i, Int j, Int height, Int width );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void LockedView
- //   ( DistTensor<S,U,V>& A, const DistTensor<S,U,V>& B,
- //     Int i, Int j, Int height, Int width );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void View1x2
- //   ( DistTensor<S,U,V>& A, DistTensor<S,U,V>& BL, DistTensor<S,U,V>& BR );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void LockedView1x2
- //   (       DistTensor<S,U,V>& A,
- //     const DistTensor<S,U,V>& BL, const DistTensor<S,U,V>& BR );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void View2x1
- //   ( DistTensor<S,U,V>& A, DistTensor<S,U,V>& BT, DistTensor<S,U,V>& BB );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void LockedView2x1
- //   (       DistTensor<S,U,V>& A,
- //     const DistTensor<S,U,V>& BT, const DistTensor<S,U,V>& BB );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void View2x2
- //   ( DistTensor<S,U,V>& A,
- //     DistTensor<S,U,V>& BTL, DistTensor<S,U,V>& BTR,
- //     DistTensor<S,U,V>& BBL, DistTensor<S,U,V>& BBR );
- //   template<typename S,Distribution U,Distribution V> 
- //   friend void LockedView2x2
- //   (       DistTensor<S,U,V>& A,
- //     const DistTensor<S,U,V>& BTL, const DistTensor<S,U,V>& BTR,
- //     const DistTensor<S,U,V>& BBL, const DistTensor<S,U,V>& BBR );
+    template<typename S>
+    friend void View( DistTensor<S>& A, DistTensor<S>& B );
+    template<typename S>
+    friend void LockedView( DistTensor<S>& A, const DistTensor<S>& B );
+    template<typename S>
+    friend void View
+    ( DistTensor<S>& A, DistTensor<S>& B,
+      const Location& loc, const ObjShape& shape );
+    template<typename S>
+    friend void LockedView
+    ( DistTensor<S>& A, const DistTensor<S>& B,
+            const Location& loc, const ObjShape& shape );
+    template<typename S>
+    friend void View2x1
+    ( DistTensor<S>& A, DistTensor<S>& BT, DistTensor<S>& BB, Index index );
+    template<typename S>
+    friend void LockedView2x1
+    (       DistTensor<S>& A,
+      const DistTensor<S>& BT, const DistTensor<S>& BB, Index index );
+
 
     template<typename S>
     friend class DistTensor;

@@ -13,177 +13,87 @@
 namespace tmen {
 
 //
-// Viewing a full matrix
+// Viewing a full tensor
 //
 
 template<typename T>
 void View( Tensor<T>& A, Tensor<T>& B );
 template<typename T>
 Tensor<T> View( Tensor<T>& B );
-//template<typename T,Distribution U,Distribution V>
-//void View( DistTensor<T,U,V>& A, DistTensor<T,U,V>& B );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> View( DistTensor<T,U,V>& B );
+
+template<typename T>
+void View( DistTensor<T>& A, DistTensor<T>& B );
+template<typename T>
+DistTensor<T> View( DistTensor<T>& B );
 
 template<typename T>
 void LockedView( Tensor<T>& A, const Tensor<T>& B );
 template<typename T>
 Tensor<T> LockedView( const Tensor<T>& B );
-//template<typename T,Distribution U,Distribution V>
-//void LockedView( DistTensor<T,U,V>& A, const DistTensor<T,U,V>& B );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> LockedView( const DistTensor<T,U,V>& B );
+
+template<typename T>
+void LockedView( DistTensor<T>& A, const DistTensor<T>& B );
+template<typename T>
+DistTensor<T> LockedView( const DistTensor<T>& B );
 
 //
-// Viewing a submatrix
-//
-
-template<typename T>
-void View( Tensor<T>& A, Tensor<T>& B, Int i, Int j, Int height, Int width );
-template<typename T>
-Tensor<T> View( Tensor<T>& B, Int i, Int j, Int height, Int width );
-//template<typename T,Distribution U,Distribution V>
-//void View
-//( DistTensor<T,U,V>& A, DistTensor<T,U,V>& B,
-//  Int i, Int j, Int height, Int width );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> View
-//( DistTensor<T,U,V>& B, Int i, Int j, Int height, Int width );
-
-template<typename T>
-void LockedView
-( Tensor<T>& A, const Tensor<T>& B,
-  Int i, Int j, Int height, Int width );
-template<typename T>
-Tensor<T> LockedView( const Tensor<T>& B, Int i, Int j, Int height, Int width );
-//template<typename T,Distribution U,Distribution V>
-//void LockedView
-//( DistTensor<T,U,V>& A, const DistTensor<T,U,V>& B,
-//  Int i, Int j, Int height, Int width );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> LockedView
-//( const DistTensor<T,U,V>& B, Int i, Int j, Int height, Int width );
-
-//
-// View two horizontally connected matrices
+// Viewing a subtensor
 //
 
 template<typename T>
-void View1x2
-( Tensor<T>& A,
-  Tensor<T>& BL, Tensor<T>& BR );
+void View( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
 template<typename T>
-Tensor<T> View1x2( Tensor<T>& BL, Tensor<T>& BR );
-//template<typename T,Distribution U,Distribution V>
-//void View1x2
-//( DistTensor<T,U,V>& A,
-//  DistTensor<T,U,V>& BL, DistTensor<T,U,V>& BR );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> View1x2( DistTensor<T,U,V>& BL, DistTensor<T,U,V>& BR );
+Tensor<T> View( Tensor<T>& B, const Location& loc, const ObjShape& shape );
 
 template<typename T>
-void LockedView1x2
-(       Tensor<T>& A,
-  const Tensor<T>& BL,
-  const Tensor<T>& BR );
+void View( DistTensor<T>& A, DistTensor<T>& B, const Location& loc, const ObjShape& shape );
 template<typename T>
-Tensor<T> LockedView1x2( const Tensor<T>& BL, const Tensor<T>& BR );
-//template<typename T,Distribution U,Distribution V>
-//void LockedView1x2
-//(       DistTensor<T,U,V>& A,
-//  const DistTensor<T,U,V>& BL,
-//  const DistTensor<T,U,V>& BR );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> LockedView1x2
-//( const DistTensor<T,U,V>& BL, const DistTensor<T,U,V>& BR );
+DistTensor<T> View( DistTensor<T>& B, const Location& loc, const ObjShape& shape );
+
+template<typename T>
+void LockedView( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape );
+template<typename T>
+Tensor<T> LockedView( const Tensor<T>& B, const Location& loc, const ObjShape& shape );
+
+template<typename T>
+void LockedView( DistTensor<T>& A, const DistTensor<T>& B, const Location& loc, const ObjShape& shape );
+template<typename T>
+DistTensor<T> LockedView( const DistTensor<T>& B, const Location& loc, const ObjShape& shape );
 
 //
-// View two vertically connected matrices
+// View two index-ly connected tensors
 //
 
 template<typename T>
 void View2x1
 ( Tensor<T>& A,
   Tensor<T>& BT,
-  Tensor<T>& BB );
+  Tensor<T>& BB, Index index );
 template<typename T>
-Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB );
-//template<typename T,Distribution U,Distribution V>
-//void View2x1
-//( DistTensor<T,U,V>& A,
-//  DistTensor<T,U,V>& BT,
-//  DistTensor<T,U,V>& BB );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> View2x1( DistTensor<T,U,V>& BT, DistTensor<T,U,V>& BB );
+Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Index index );
+template<typename T>
+void View2x1
+( DistTensor<T>& A,
+  DistTensor<T>& BT,
+  DistTensor<T>& BB, Index index );
+template<typename T>
+DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Index index );
 
 template<typename T>
 void LockedView2x1
 (       Tensor<T>& A,
   const Tensor<T>& BT,
-  const Tensor<T>& BB );
+  const Tensor<T>& BB, Index index );
 template<typename T>
-Tensor<T> LockedView2x1( const Tensor<T>& BT, const Tensor<T>& BB );
-//template<typename T,Distribution U,Distribution V>
-//void LockedView2x1
-//(       DistTensor<T,U,V>& A,
-//  const DistTensor<T,U,V>& BT,
-//  const DistTensor<T,U,V>& BB );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> LockedView2x1
-//( const DistTensor<T,U,V>& BT, const DistTensor<T,U,V>& BB );
-
-//
-// View a two-by-two set of connected matrices
-//
-
+Tensor<T> LockedView2x1( const Tensor<T>& BT, const Tensor<T>& BB, Index index );
 template<typename T>
-void View2x2
-( Tensor<T>& A,
-  Tensor<T>& BTL, Tensor<T>& BTR,
-  Tensor<T>& BBL, Tensor<T>& BBR );
+void LockedView2x1
+(       DistTensor<T>& A,
+  const DistTensor<T>& BT,
+  const DistTensor<T>& BB, Index index );
 template<typename T>
-Tensor<T> View2x2
-( Tensor<T>& BTL, Tensor<T>& BTR,
-  Tensor<T>& BBL, Tensor<T>& BBR );
-//template<typename T,Distribution U,Distribution V>
-//void View2x2
-//( DistTensor<T,U,V>& A,
-//  DistTensor<T,U,V>& BTL, DistTensor<T,U,V>& BTR,
-//  DistTensor<T,U,V>& BBL, DistTensor<T,U,V>& BBR );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> View2x2
-//( DistTensor<T,U,V>& BTL, DistTensor<T,U,V>& BTR,
-//  DistTensor<T,U,V>& BBL, DistTensor<T,U,V>& BBR );
-
-template<typename T>
-void LockedView2x2
-(       Tensor<T>& A,
-  const Tensor<T>& BTL, const Tensor<T>& BTR,
-  const Tensor<T>& BBL, const Tensor<T>& BBR );
-template<typename T>
-Tensor<T> LockedView2x2
-( const Tensor<T>& BTL, const Tensor<T>& BTR,
-  const Tensor<T>& BBL, const Tensor<T>& BBR );
-//template<typename T,Distribution U,Distribution V>
-//void LockedView2x2
-//(       DistTensor<T,U,V>& A,
-//  const DistTensor<T,U,V>& BTL, const DistTensor<T,U,V>& BTR,
-//  const DistTensor<T,U,V>& BBL, const DistTensor<T,U,V>& BBR );
-//template<typename T,Distribution U,Distribution V>
-//DistTensor<T,U,V> LockedView2x2
-//( const DistTensor<T,U,V>& BTL, const DistTensor<T,U,V>& BTR,
-//  const DistTensor<T,U,V>& BBL, const DistTensor<T,U,V>& BBR );
-
-// Utilities for handling the extra information needed for [MD,* ] and [* ,MD]
-//template<typename T,Distribution U,Distribution V>
-//void HandleDiagPath
-//( DistTensor<T,U,V>& A, const DistTensor<T,U,V>& B );
-//template<typename T>
-//void HandleDiagPath
-//( DistTensor<T,MD,STAR>& A, const DistTensor<T,MD,STAR>& B );
-//template<typename T>
-//void HandleDiagPath
-//( DistTensor<T,STAR,MD>& A, const DistTensor<T,STAR,MD>& B );
+DistTensor<T> LockedView2x1
+( const DistTensor<T>& BT, const DistTensor<T>& BB, Index index );
 
 } // namespace tmen
 

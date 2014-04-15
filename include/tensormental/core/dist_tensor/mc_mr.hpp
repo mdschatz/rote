@@ -76,7 +76,7 @@ public:
     //
 
     virtual Unsigned ModeStride(Mode mode) const;
-    virtual Int ModeRank(Mode mode) const;
+    virtual Unsigned ModeRank(Mode mode) const;
     virtual tmen::DistData DistData() const;
 
     //

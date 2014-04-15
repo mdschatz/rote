@@ -36,6 +36,9 @@ std::vector<Unsigned> MaxLengths_(const ObjShape& objShape, const ObjShape& wrap
 Unsigned Shift( Int rank, Unsigned alignment, Unsigned wrap );
 Unsigned Shift_( Int rank, Unsigned alignment, Unsigned wrap );
 
+std::vector<Unsigned> Shifts( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape);
+std::vector<Unsigned> Shifts_( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape);
+
 std::vector<Unsigned> Dimensions2Strides(const ObjShape& objShape);
 
 Unsigned Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides = std::vector<Unsigned>());

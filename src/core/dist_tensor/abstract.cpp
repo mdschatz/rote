@@ -188,63 +188,32 @@ AbstractDistTensor<T>::AssertSameSize( const ObjShape& shape ) const
         LogicError("Argument must match shape of this object");
 }
 
-//template<typename T> 
-//void
-//AssertConforming1x2
-//( const AbstractDistTensor<T>& AL, const AbstractDistTensor<T>& AR )
-//{
-//    if( AL.Height() != AR.Height() )    
-//    {
-//        std::ostringstream msg;
-//        msg << "1x2 not conformant. Left is " << AL.Height() << " x " 
-//            << AL.Width() << ", right is " << AR.Height() << " x " 
-//            << AR.Width();
-//        LogicError( msg.str() );
-//    }
-//    if( AL.ColAlignment() != AR.ColAlignment() )
-//        LogicError("1x2 is misaligned");
-//}
-//
-//template<typename T> 
-//void
-//AssertConforming2x1
-//( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB )
-//{
-//    if( AT.Width() != AB.Width() )
-//    {
-//        std::ostringstream msg;        
-//        msg << "2x1 is not conformant. Top is " << AT.Height() << " x " 
-//            << AT.Width() << ", bottom is " << AB.Height() << " x " 
-//            << AB.Width();
-//        LogicError( msg.str() );
-//    }
-//    if( AT.RowAlignment() != AB.RowAlignment() )
-//        LogicError("2x1 is not aligned");
-//}
-//
-//template<typename T> 
-//void
-//AssertConforming2x2
-//( const AbstractDistTensor<T>& ATL, const AbstractDistTensor<T>& ATR,
-//  const AbstractDistTensor<T>& ABL, const AbstractDistTensor<T>& ABR ) 
-//{
-//    if( ATL.Width() != ABL.Width() || ATR.Width() != ABR.Width() ||
-//        ATL.Height() != ATR.Height() || ABL.Height() != ABR.Height() )
-//    {
-//        std::ostringstream msg;
-//        msg << "2x2 is not conformant: " << std::endl
-//            << "  TL is " << ATL.Height() << " x " << ATL.Width() << std::endl
-//            << "  TR is " << ATR.Height() << " x " << ATR.Width() << std::endl
-//            << "  BL is " << ABL.Height() << " x " << ABL.Width() << std::endl
-//            << "  BR is " << ABR.Height() << " x " << ABR.Width();
-//        LogicError( msg.str() );
-//    }
-//    if( ATL.ColAlignment() != ATR.ColAlignment() ||
-//        ABL.ColAlignment() != ABR.ColAlignment() ||
-//        ATL.RowAlignment() != ABL.RowAlignment() ||
-//        ATR.RowAlignment() != ABR.RowAlignment() )
-//        LogicError("2x2 set of matrices must aligned to combine");
-//}
+template<typename T>
+void
+AssertConforming2x1
+( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index )
+{
+    const Mode indexModeAT = AT.ModeOfIndex(index);
+    const Mode indexModeAB = AB.ModeOfIndex(index);
+    if( AT.Dimension(indexModeAT) != AB.Dimension(indexModeAB) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+        msg << "2x1 is not conformant. Top is ";
+        if(AT.Order() > 0)
+            msg << AT.Dimension(0);
+        for(i = 1; i < AT.Order(); i++)
+            msg << " x " << AT.Dimension(i);
+        msg << ", bottom is ";
+        if(AB.Order() > 0)
+            msg << AB.Dimension(0);
+        for(i = 1; i < AB.Order(); i++)
+            msg << " x " << AB.Dimension(i);
+        LogicError( msg.str() );
+    }
+    if( AT.ModeAlignment(indexModeAT) != AB.ModeAlignment(indexModeAB) )
+        LogicError("2x1 is not aligned");
+}
 #endif // RELEASE
 
 //TODO: Check if this should retain order of object
@@ -472,6 +441,12 @@ AbstractDistTensor<T>::ConstrainedModeAlignment(Mode mode) const
     return constrainedModeAlignments_[mode];
 }
 
+template<typename T>
+std::vector<Unsigned>
+AbstractDistTensor<T>::Alignments() const
+{
+    return modeAlignments_;
+}
 template<typename T>
 Unsigned
 AbstractDistTensor<T>::ModeAlignment(Mode mode) const
@@ -869,14 +844,10 @@ PROTO(Complex<double>);
 
 #ifndef RELEASE
 
-/*
-#define CONFORMING(T) \
-  template void AssertConforming1x2( const AbstractDistTensor<T>& AL, const AbstractDistTensor<T>& AR ); \
-  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB ); \
-  template void AssertConforming2x2( const AbstractDistTensor<T>& ATL, const AbstractDistTensor<T>& ATR, const AbstractDistTensor<T>& ABL, const AbstractDistTensor<T>& ABR )
-*/
 
-/*
+#define CONFORMING(T) \
+  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index ); \
+
 CONFORMING(Int);
 #ifndef DISABLE_FLOAT
 CONFORMING(float);
@@ -888,7 +859,7 @@ CONFORMING(Complex<float>);
 #endif // ifndef DISABLE_FLOAT
 CONFORMING(Complex<double>);
 #endif // ifndef DISABLE_COMPLEX
-*/
+
 #endif // ifndef RELEASE
 
 } // namespace tmen

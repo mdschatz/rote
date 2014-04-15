@@ -163,8 +163,9 @@ inline
 std::vector<Unsigned>
 MaxLengths_( const ObjShape& shape, const ObjShape& wrapShape)
 {
+    Unsigned i;
     std::vector<Unsigned> ret(shape.size());
-    for(Unsigned i = 0; i < ret.size(); i++)
+    for(i = 0; i < ret.size(); i++)
         ret[i] = MaxLength(shape[i], wrapShape[i]);
     return ret;
 }
@@ -198,6 +199,68 @@ inline
 Unsigned
 Shift_( Int rank, Unsigned alignment, Unsigned wrap )
 { return (rank + wrap - alignment) % wrap; }
+
+// For determining the first index assigned to a given rank
+inline
+std::vector<Unsigned>
+Shifts( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape )
+{
+#ifndef RELEASE
+    CallStackEntry entry("Shift");
+    if(modeRanks.size() != alignments.size() || alignments.size() != wrapShape.size() || modeRanks.size() != wrapShape.size())
+        LogicError("modeRanks, alignments, and wrapShape must be of same order");
+    if( !ElemwiseLessThan(modeRanks, wrapShape) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+        msg << "Invalid rank: "
+            << "rank= (";
+        if(modeRanks.size() > 0)
+            msg << modeRanks[0];
+        for(i = 1; i < modeRanks.size(); i++)
+            msg << ", " << modeRanks[i];
+        msg << "), stride=";
+        if(wrapShape.size() > 0)
+            msg << wrapShape[0];
+        for(i = 1; i < wrapShape.size(); i++)
+            msg << ", " << wrapShape[i];
+        msg <<")";
+
+        LogicError( msg.str() );
+    }
+    if( !ElemwiseLessThan(alignments, wrapShape) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+        msg << "Invalid alignment: "
+            << "alignments= (";
+        if(alignments.size() > 0)
+            msg << alignments[0];
+        for(i = 1; i < alignments.size(); i++)
+            msg << ", " << alignments[i];
+        msg << "), stride=";
+        if(wrapShape.size() > 0)
+            msg << wrapShape[0];
+        for(i = 1; i < wrapShape.size(); i++)
+            msg << ", " << wrapShape[i];
+        msg <<")";
+
+        LogicError( msg.str() );
+        LogicError( msg.str() );
+    }
+#endif
+    return Shifts_( modeRanks, alignments, wrapShape );
+}
+
+inline
+std::vector<Unsigned>
+Shifts_( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape )
+{
+    std::vector<Unsigned> ret(modeRanks.size());
+    for(Unsigned i = 0; i < ret.size(); i++)
+        ret[i] = Shift(modeRanks[i], alignments[i], wrapShape[i]);
+    return ret;
+}
 
 inline
 std::vector<Unsigned>
