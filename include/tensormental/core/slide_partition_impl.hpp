@@ -30,7 +30,7 @@ SlidePartitionUp
 #ifndef RELEASE
     CallStackEntry entry("SlidePartitionUp [Tensor]");
 #endif
-    View( AT, A0, index );
+    View( AT, A0 );
     View2x1( AB, A1, A2, index );
 }
 
@@ -44,7 +44,7 @@ SlidePartitionUp
 #ifndef RELEASE
     CallStackEntry entry("SlidePartitionUp [DistTensor]");
 #endif
-    View( AT, A0, index );
+    View( AT, A0 );
     View2x1( AB, A1, A2, index );
 }
 
@@ -58,7 +58,7 @@ SlideLockedPartitionUp
 #ifndef RELEASE
     CallStackEntry entry("SlideLockedPartitionUp [Tensor]");
 #endif
-    LockedView( AT, A0, index );
+    LockedView( AT, A0 );
     LockedView2x1( AB, A1, A2, index );
 }
 
@@ -72,7 +72,7 @@ SlideLockedPartitionUp
 #ifndef RELEASE
     CallStackEntry entry("SlideLockedPartitionUp [DistTensor]");
 #endif
-    LockedView( AT, A0, index );
+    LockedView( AT, A0 );
     LockedView2x1( AB, A1, A2, index );
 }
 
@@ -91,7 +91,7 @@ SlidePartitionDown
     CallStackEntry entry("SlidePartitionDown [Tensor]");
 #endif
     View2x1( AT, A0, A1, index );
-    View( AB, A2, index );
+    View( AB, A2 );
 }
 
 template<typename T>
@@ -105,7 +105,7 @@ SlidePartitionDown
     CallStackEntry entry("SlidePartitionDown [DistTensor]");
 #endif
     View2x1( AT, A0, A1, index );
-    View( AB, A2, index );
+    View( AB, A2 );
 }
 
 template<typename T>
@@ -119,7 +119,7 @@ SlideLockedPartitionDown
     CallStackEntry entry("SlideLockedPartitionDown [Tensor]");
 #endif
     LockedView2x1( AT, A0, A1, index );
-    LockedView( AB, A2, index );
+    LockedView( AB, A2 );
 }
 
 template<typename T>
@@ -133,7 +133,7 @@ SlideLockedPartitionDown
     CallStackEntry entry("SlideLockedPartitionDown [DistTensor]");
 #endif
     LockedView2x1( AT, A0, A1, index );
-    LockedView( AB, A2, index );
+    LockedView( AB, A2 );
 }
 
 #undef DTEN

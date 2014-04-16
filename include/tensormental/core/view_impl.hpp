@@ -20,7 +20,11 @@ inline void View( Tensor<T>& A, Tensor<T>& B )
 #endif
     A.memory_.Empty();
     A.shape_ = B.shape_;
+    A.indices_ = B.indices_;
+    A.index2modeMap_ = B.index2modeMap_;
+    A.mode2indexMap_ = B.mode2indexMap_;
     A.ldims_     = B.ldims_;
+    A.strides_     = B.strides_;
     A.data_     = B.data_;
     A.viewType_ = VIEW;
 }
@@ -41,8 +45,9 @@ inline void View( DistTensor<T>& A, DistTensor<T>& B )
 #endif
     A.Empty();
     A.grid_ = B.grid_;
-    A.shape_ = B.Shape();
-    A.modeAlignments_ = B.Alignments();
+    A.gridView_ = B.gridView_;
+    A.shape_ = B.shape_;
+    A.modeAlignments_ = B.modeAlignments_;
     A.viewType_ = VIEW;
     if( A.Participating() )
     {
@@ -51,7 +56,7 @@ inline void View( DistTensor<T>& A, DistTensor<T>& B )
     }
     else
     {
-        std::fill(A.modeShifts_.begin(), A.modeShifts.end(), 0);
+        std::fill(A.modeShifts_.begin(), A.modeShifts_.end(), 0);
     }
 }
 
@@ -71,7 +76,11 @@ inline void LockedView( Tensor<T>& A, const Tensor<T>& B )
 #endif
     A.memory_.Empty();
     A.shape_    = B.shape_;
+    A.indices_ = B.indices_;
+    A.index2modeMap_ = B.index2modeMap_;
+    A.mode2indexMap_ = B.mode2indexMap_;
     A.ldims_     = B.ldims_;
+    A.strides_     = B.strides_;
     A.data_     = B.data_;
     A.viewType_ = LOCKED_VIEW;
 }
@@ -92,9 +101,10 @@ inline void LockedView( DistTensor<T>& A, const DistTensor<T>& B )
 #endif
     A.Empty();
     A.grid_ = B.grid_;
-    A.shape_ = B.Shape();
-    A.modeAlignments_ = B.Alignments();
-    HandleDiagPath( A, B );
+    A.gridView_ = B.gridView_;
+    A.shape_ = B.shape_;
+    A.modeAlignments_ = B.modeAlignments_;
+
     A.viewType_ = LOCKED_VIEW;
     if( A.Participating() )
     {
@@ -126,7 +136,7 @@ inline void View
     Location maxLoc(shape.size());
     ElemwiseSum(loc, shape, maxLoc);
 
-    if( !ElemwiseLessThan(maxLoc, shapeB) )
+    if( AnyElemwiseGreaterThan(maxLoc, shapeB) )
     {
         Unsigned i;
         std::ostringstream msg;
@@ -152,8 +162,12 @@ inline void View
     }
 #endif
     A.memory_.Empty();
-    A.shape_ = B.Shape();
+    A.shape_ = shape;
+    A.indices_ = B.indices_;
+    A.index2modeMap_ = B.index2modeMap_;
+    A.mode2indexMap_ = B.mode2indexMap_;
     A.ldims_ = B.ldims_;
+    A.strides_     = B.strides_;
     A.data_     = B.Buffer(loc);
     A.viewType_ = VIEW;
 }
@@ -185,6 +199,7 @@ inline void View
 
 
     A.grid_ = &g;
+    A.gridView_ = B.gridView_;
     A.shape_ = shape;
 
     for(i = 0; i < order; i++)
@@ -232,7 +247,7 @@ inline void LockedView
     Location maxLoc(shape.size());
     ElemwiseSum(loc, shape, maxLoc);
 
-    if( !ElemwiseLessThan(maxLoc, shapeB) )
+    if( AnyElemwiseGreaterThan(maxLoc, shapeB) )
     {
         Unsigned i;
         std::ostringstream msg;
@@ -259,7 +274,11 @@ inline void LockedView
 #endif
     A.memory_.Empty();
     A.shape_ = shape;
+    A.indices_ = B.indices_;
+    A.index2modeMap_ = B.index2modeMap_;
+    A.mode2indexMap_ = B.mode2indexMap_;
     A.ldims_     = B.ldims_;
+    A.strides_     = B.strides_;
     A.data_     = &B.Buffer(loc);
     A.viewType_ = LOCKED_VIEW;
 }
@@ -291,12 +310,12 @@ inline void LockedView
     const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
 
     A.grid_ = &g;
+    A.gridView_ = B.gridView_;
     A.shape_ = shape;
 
     for(i = 0; i < order; i++)
         A.modeAlignments_[i] = (B.ModeAlignment(i) + loc[i]) % modeWrapStrides;
 
-    HandleDiagPath( A, B );
     A.viewType_ = LOCKED_VIEW;
 
     if( A.Participating() )
@@ -332,11 +351,17 @@ inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Index index )
 {
     Mode indexModeA, indexModeBT, indexModeBB;
 #ifndef RELEASE
+    CallStackEntry entry("View2x1");
     indexModeA = A.ModeOfIndex(index);
     indexModeBT = BT.ModeOfIndex(index);
     indexModeBB = BB.ModeOfIndex(index);
-    CallStackEntry entry("View2x1");
-    if( BT.Dimension(indexModeBT) != BB.Dimension(indexModeBB) )
+
+    std::vector<Mode> negFilterBT(1);
+    std::vector<Mode> negFilterBB(1);
+    negFilterBT[0] = indexModeBT;
+    negFilterBB[0] = indexModeBB;
+
+    if( AnyElemwiseNotEqual(NegFilterVector(BT.Shape(), negFilterBT), NegFilterVector(BB.Shape(), negFilterBB)) )
         LogicError("2x1 must have consistent width to combine");
     if( BT.LDim(indexModeBT) != BB.LDim(indexModeBB) )
         LogicError("2x1 must have consistent ldim to combine");
@@ -346,7 +371,11 @@ inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Index index )
     A.memory_.Empty();
     A.shape_    = BT.shape_;
     A.shape_[indexModeA] += BB.shape_[indexModeBB];
+    A.indices_  = BT.indices_;
+    A.index2modeMap_ = BT.index2modeMap_;
+    A.mode2indexMap_ = BT.mode2indexMap_;
     A.ldims_    = BT.ldims_;
+    A.strides_     = BT.strides_;
     A.data_     = BT.data_;
     A.viewType_ = VIEW;
 }
@@ -372,6 +401,7 @@ inline void View2x1
     const Mode indexModeBB = BB.ModeOfIndex(index);
     A.Empty();
     A.grid_ = BT.grid_;
+    A.gridView_ = BT.gridView_;
     A.shape_ = BT.shape_;
     A.shape_[indexModeA] += BB.shape_[indexModeBB];
     A.modeAlignments_ = BT.modeAlignments_;
@@ -417,7 +447,11 @@ inline void LockedView2x1
     A.memory_.Empty();
     A.shape_    = BT.shape_;
     A.shape_[indexModeA] += BB.shape_[indexModeBB];
-    A.ldims_     = BT.ldims_;
+    A.indices_  = BT.indices_;
+    A.index2modeMap_ = BT.index2modeMap_;
+    A.mode2indexMap_ = BT.mode2indexMap_;
+    A.ldims_    = BT.ldims_;
+    A.strides_     = BT.strides_;
     A.data_     = BT.data_;
     A.viewType_ = LOCKED_VIEW;
 }
@@ -446,6 +480,7 @@ inline void LockedView2x1
     const Mode indexModeBB = BB.ModeOfIndex(index);
     A.Empty();
     A.grid_ = BT.grid_;
+    A.gridView_ = BT.gridView_;
     A.shape_ = BT.shape_;
     A.shape_[indexModeA] += BB.shape_[indexModeBB];
     A.modeAlignments_ = BT.modeAlignments_;

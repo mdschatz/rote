@@ -107,6 +107,46 @@ void ProcessInput(int argc,  char** const argv, Params& args){
 
 template<typename T>
 void
+PrintLocalView(const Tensor<T>& A){
+    Unsigned i;
+    const Unsigned order = A.Order();
+    printf("      Local tensor info:\n");
+    printf("        shape:");
+    if(order > 0)
+        printf(" %d", A.Dimension(0));
+    for(i = 1; i < order; i++)
+        printf(" x %d", A.Dimension(i));
+    printf("\n");
+
+    Print(A, "        data: ");
+
+}
+
+template<typename T>
+void
+PrintView(const char* msg, const DistTensor<T>& A){
+    Unsigned i;
+    const Unsigned order = A.Order();
+    printf("Info for: %s\n", msg);
+    printf("    shape:");
+    if(order > 0)
+        printf(" %d", A.Dimension(0));
+    for(i = 1; i < order; i++)
+        printf(" x %d", A.Dimension(i));
+    printf("\n");
+
+    printf("    alignments:");
+    if(order > 0)
+        printf(" %d", A.ModeAlignment(0));
+    for(i = 1; i < order; i++)
+        printf(" x %d", A.ModeAlignment(i));
+    printf("\n");
+
+    PrintLocalView(A.LockedTensor());
+}
+
+template<typename T>
+void
 TestConstViews(DistTensor<T>& A){
 #ifndef RELEASE
     CallStackEntry entry("TestConstViews");
@@ -125,16 +165,36 @@ TestNonConstViews(DistTensor<T>& A){
     const Unsigned order = A.Order();
     Location start(order);
     std::fill(start.begin(), start.end(), 0);
-    const IndexArray indicesA = A.Indices();
-    const ObjShape shapeA = A.Shape();
+    const IndexArray indices = A.Indices();
+    const ObjShape shape = A.Shape();
 
-    DistTensor<T> B(g), BT(g), BB(g);
-    View(B, A, start, shapeA);
-    B = View(A, start, shapeA);
+    DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
 
+    for(i = 0; i < order; i++){
+        Index index = indices[i];
+        Mode mode = A.ModeOfIndex(index);
+        printf("Iterating over index: %d\n", index);
 
-    for(i = 0; i < A.Order(); i++){
-        View2x1(A, BT, BB, indicesA[i]);
+        PartitionDown(A, AT, AB, index, 0);
+
+        Unsigned count = 0;
+        while(AT.Dimension(mode) < A.Dimension(mode)){
+            printf("  iteration: %d\n", count);
+            RepartitionDown(AT,   A0,
+                                  A1,
+                           /**/  /**/
+                            AB,   A2, index, 1);
+            /////////////////////////////////
+            PrintView("A0", A0);
+            PrintView("A1", A1);
+            PrintView("A2", A2);
+            /////////////////////////////////
+            SlidePartitionDown(AT,  A0,
+                                    A1,
+                              /**/ /**/
+                               AB,  A2, index);
+        }
+
     }
 }
 
