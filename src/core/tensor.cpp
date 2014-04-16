@@ -875,7 +875,7 @@ Tensor<T>::Empty_()
     std::fill(indices_.begin(), indices_.end(), 0);
     std::fill(shape_.begin(), shape_.end(), 0);
     std::fill(strides_.begin(), strides_.end(), 0);
-    std::fill(ldims_.begin(), shape_.end(), 0);
+    std::fill(ldims_.begin(), ldims_.end(), 0);
 
     viewType_ = (ViewType)( viewType_ & ~LOCKED_VIEW );
 
