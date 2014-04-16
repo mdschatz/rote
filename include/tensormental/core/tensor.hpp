@@ -36,6 +36,7 @@ public:
     // 
 
     Tensor( bool fixed=false );
+    Tensor( const Unsigned order, bool fixed = false);
     Tensor( const IndexArray& indices, bool fixed=false );
     Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed=false );
     Tensor( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );

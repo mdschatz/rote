@@ -197,6 +197,7 @@ protected:
 
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
+    AbstractDistTensor( const Unsigned order, const tmen::Grid& g );
     //NOTE: Decide whether to remove the following constructor (should we allow creating a tensor without supplying the indices?)
     AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g );
     AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g );

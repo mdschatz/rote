@@ -31,6 +31,25 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 }
 
 template<typename T>
+AbstractDistTensor<T>::AbstractDistTensor( const Unsigned order, const tmen::Grid& grid )
+: shape_(order, 0),
+  dist_(order),
+
+  constrainedModeAlignments_(order, 0),
+  modeAlignments_(order, 0),
+  modeShifts_(order, 0),
+
+  tensor_(order, false),
+
+  grid_(&grid),
+  gridView_(grid_, dist_),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+}
+
+template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : shape_(shape),
   dist_(dist),
@@ -39,7 +58,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDi
   modeAlignments_(shape.size(), 0),
   modeShifts_(shape.size(), 0),
 
-  tensor_(shape.size()),
+  tensor_(shape.size(), false),
 
   grid_(&grid),
   gridView_(grid_, dist_),
@@ -153,7 +172,7 @@ AbstractDistTensor<T>::AssertValidSubtensor
     Location maxLoc(order);
     ElemwiseSum(loc, shape, maxLoc);
 
-    if( !ElemwiseLessThan(maxLoc, shape_) )
+    if( AnyElemwiseGreaterThan(maxLoc, shape_) )
     {
         Unsigned i;
         std::ostringstream msg;
@@ -193,9 +212,12 @@ void
 AssertConforming2x1
 ( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index )
 {
-    const Mode indexModeAT = AT.ModeOfIndex(index);
-    const Mode indexModeAB = AB.ModeOfIndex(index);
-    if( AT.Dimension(indexModeAT) != AB.Dimension(indexModeAB) )
+    std::vector<Mode> negFilterAT(1);
+    std::vector<Mode> negFilterAB(1);
+    negFilterAT[0] = AT.ModeOfIndex(index);
+    negFilterAB[0] = AB.ModeOfIndex(index);
+
+    if( AnyElemwiseNotEqual(NegFilterVector(AT.Shape(), negFilterAT), NegFilterVector(AB.Shape(), negFilterAB)) )
     {
         Unsigned i;
         std::ostringstream msg;
@@ -211,7 +233,7 @@ AssertConforming2x1
             msg << " x " << AB.Dimension(i);
         LogicError( msg.str() );
     }
-    if( AT.ModeAlignment(indexModeAT) != AB.ModeAlignment(indexModeAB) )
+    if( AnyElemwiseNotEqual(NegFilterVector(AT.Alignments(), negFilterAT), NegFilterVector(AB.Alignments(), negFilterAB)) )
         LogicError("2x1 is not aligned");
 }
 #endif // RELEASE
@@ -597,15 +619,13 @@ template<typename T>
 void
 AbstractDistTensor<T>::Empty()
 {
-    Unsigned i;
-    const Unsigned order = this->Order();
-    shape_.clear();
-    dist_.clear();
+    std::fill(shape_.begin(), shape_.end(), 0);
+    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
-    modeAlignments_.clear();
-    for(i = 0; i < order; i++)
-      constrainedModeAlignments_[i] = false;
-    modeShifts_.clear();
+    std::fill(modeAlignments_.begin(), modeAlignments_.end(), 0);
+    //NOTE: C++ complains if I fill with 'false' for the boolean vector
+    std::fill(constrainedModeAlignments_.begin(), constrainedModeAlignments_.end(), 0);
+    std::fill(modeShifts_.begin(), modeShifts_.end(), 0);
 
     tensor_.Empty_();
 
@@ -617,8 +637,8 @@ template<typename T>
 void
 AbstractDistTensor<T>::EmptyData()
 {
-    shape_.clear();
-    dist_.clear();
+    std::fill(shape_.begin(), shape_.end(), 0);
+    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
     tensor_.Empty_();
     viewType_ = OWNER;

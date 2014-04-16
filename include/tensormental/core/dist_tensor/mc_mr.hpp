@@ -25,6 +25,9 @@ public:
     // Create a 0 distributed tensor
     DistTensor( const tmen::Grid& g=DefaultGrid() );
 
+    // Create a 0 distributed tensor
+    DistTensor( const Unsigned order, const tmen::Grid& g=DefaultGrid() );
+
     // Create a "shape" distributed tensor
     DistTensor
     ( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );

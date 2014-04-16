@@ -99,8 +99,17 @@ Tensor<T>::Tensor( bool fixed )
 { }
 
 template<typename T>
+Tensor<T>::Tensor( const Unsigned order, bool fixed )
+: indices_(order), shape_(order), strides_(order), ldims_(order),
+  index2modeMap_(), mode2indexMap_(),
+  viewType_( fixed ? OWNER_FIXED : OWNER ),
+  data_(nullptr), memory_()
+{ SetIndexMaps();}
+
+template<typename T>
 Tensor<T>::Tensor( const IndexArray& indices, bool fixed )
 : indices_(indices), shape_(indices.size()), strides_(indices.size()), ldims_(indices.size()),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
 {
@@ -115,6 +124,7 @@ Tensor<T>::Tensor( const IndexArray& indices, bool fixed )
 template<typename T>
 Tensor<T>::Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(indices.size()),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
@@ -134,6 +144,7 @@ template<typename T>
 Tensor<T>::Tensor
 ( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
@@ -154,6 +165,7 @@ template<typename T>
 Tensor<T>::Tensor
 ( const IndexArray& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   data_(buffer), memory_()
 {
@@ -170,6 +182,7 @@ template<typename T>
 Tensor<T>::Tensor
 ( const IndexArray& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? VIEW_FIXED: VIEW ),
   data_(buffer), memory_()
 {
