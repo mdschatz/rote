@@ -30,6 +30,7 @@ public:
     void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& ldims ) const;
     void AssertValidEntry( const Location& loc ) const;
     void AssertValidIndices() const;
+    void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices ) const;
     
     //
     // Constructors

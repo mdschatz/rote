@@ -86,6 +86,39 @@ Tensor<T>::AssertValidIndices() const
     }
 }
 
+template<typename T>
+void
+Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::AssertMergeableIndices");
+    if(newIndices.size() != oldIndices.size())
+    {
+        LogicError("Each new Index must be formed from a set of current indices");
+    }
+    for(Unsigned i = 0; i < oldIndices.size(); i++){
+        IndexArray mergedIndices = oldIndices[i];
+        if(mergedIndices.size() == 0){
+            LogicError("New index must come from merging some indices");
+        }
+        for(Unsigned j = 0; j < mergedIndices.size(); j++){
+            //Checks that this tensor has all the oldIndices, if not, will throw error
+            ModeOfIndex(mergedIndices[j]);
+        }
+    }
+#endif
+
+    Unsigned i, j;
+    for(i = 0; i < newIndices.size(); i++){
+        IndexArray mergedIndices = oldIndices[0];
+        Mode startMode = ModeOfIndex(mergedIndices[0]);
+        for(j = 1; j < mergedIndices.size(); j++){
+            if(ModeOfIndex(mergedIndices[j]) != startMode + j)
+                LogicError("Modes to be merged must be contiguously stored");
+        }
+    }
+}
+
 //
 // Constructors
 //

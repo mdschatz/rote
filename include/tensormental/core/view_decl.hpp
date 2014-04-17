@@ -95,6 +95,64 @@ template<typename T>
 DistTensor<T> LockedView2x1
 ( const DistTensor<T>& BT, const DistTensor<T>& BB, Index index );
 
+//
+// View object as lower order object
+//
+
+template<typename T>
+void ViewAsLowerOrder
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+Tensor<T> ViewAsLowerOrder
+( Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+void ViewAsLowerOrder
+( DistTensor<T>& A,
+  DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+DistTensor<T> ViewAsLowerOrder
+( DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+void LockedViewAsLowerOrder
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+Tensor<T> LockedViewAsLowerOrder
+( const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+void LockedViewAsLowerOrder
+( DistTensor<T>& A,
+  const DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+template<typename T>
+DistTensor<T> LockedViewAsLowerOrder
+( const DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices );
+
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_VIEW_DECL_HPP
+

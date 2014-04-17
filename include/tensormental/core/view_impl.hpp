@@ -507,6 +507,228 @@ inline DistTensor<T> LockedView2x1
     return A;
 }
 
+template<typename T>
+inline void ViewAsLowerOrder
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsLowerOrder");
+    B.AssertMergeableIndices(newIndices, oldIndices);
+#endif
+    Unsigned i;
+    const Unsigned newOrder = newIndices.size();
+    A.memory_.Empty();
+    A.indices_ = newIndices;
+
+    //Update the shape, ldims_, strides_, maps_
+    A.shape_.resize(newOrder);
+    A.ldims_.resize(newOrder);
+    A.strides_.resize(newOrder);
+    A.index2modeMap_.clear();
+    A.mode2indexMap_.clear();
+    for(i = 0; i < newOrder; i++){
+        Index newIndex = newIndices[i];
+        IndexArray mergedIndices = oldIndices[i];
+        A.shape[i] = prod(FilterVector(B.Shape(), mergedIndices));
+        A.ldims_[i] = B.LDim(B.ModeOfIndex(mergedIndices[0]));
+        A.strides_[i] = B.LDim(B.ModeOfIndex(mergedIndices[0]));
+        A.index2modeMap_[newIndex] = i;
+        A.mode2indexMap_[i] = newIndex;
+    }
+
+    A.data_     = B.data_;
+    A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline Tensor<T> ViewAsLowerOrder
+( Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+   Tensor<T> A;
+   ViewAsLowerOrder(A, B, newIndices, oldIndices);
+   return A;
+}
+
+template<typename T>
+inline void ViewAsLowerOrder
+( DistTensor<T>& A,
+  DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsLowerOrder");
+    B.AssertMergeableIndices(newIndices, oldIndices);
+#endif
+    Unsigned i, j;
+    const Unsigned newOrder = newIndices.size();
+    const tmen::Grid& g = B.Grid();
+
+    A.Empty();
+    A.grid_ = &g;
+
+    //Adjust shape_ alignments_, shifts_, distributions_
+    //Adjust gridView_
+    A.shape_.resize(newOrder);
+    A.modeAlignments_.resize(newOrder);
+    A.constrainedModeAlignments_.resize(newOrder);
+    A.modeShifts_.resize(newOrder);
+    A.dist_.resize(newOrder);
+    A.gridView_.grid_ = &g;
+    A.gridView_.shape_.resize(newOrder);
+    A.gridView_.loc_.resize(newOrder);
+
+    for(i = 0; i < newOrder; i++){
+        IndexArray mergedIndices = oldIndices[i];
+        A.shape_[i] = prod(FilterVector(B.Shape(), mergedIndices));
+        A.modeAlignments_[i] = Loc2LinearLoc(FilterVector(B.modeAlignments_, mergedIndices), A.shape_[i]);
+        A.constrainedModeAlignments_[i] = Loc2LinearLoc(FilterVector(B.constrainedModeAlignments_, mergedIndices), A.shape_[i]);
+        A.modeShifts_[i] = Loc2LinearLoc(FilterVector(B.modeShifts_, mergedIndices), A.shape_[i]);
+        //NOTE: Figure out how to change the distribution more intelligently
+        A.dist_[i].resize(0);
+        for(j = 0; j < mergedIndices.size(); j++){
+            ModeDistribution distToAppend = B.ModeDist(B.ModeOfIndex(mergedIndices[j]));
+            A.dist_[i].insert(A.dist_[i].end(), distToAppend.begin(), distToAppend.end());
+        }
+        A.gridView_.shape_[i] = prod(FilterVector(g.Shape(), A.dist_[i]));
+        A.gridView_.loc_[i] = Loc2LinearLoc(FilterVector(B.gridView_.loc_, mergedIndices), FilterVector(B.gridView_.shape_, mergedIndices));
+    }
+
+    //Adjust gridView_ distribution
+    A.gridView_.dist_ = A.dist_;
+
+    ViewAsLowerOrder(A.tensor_, B.tensor_, newIndices, oldIndices);
+
+    A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline DistTensor<T> ViewAsLowerOrder
+( DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+   DistTensor<T> A;
+   ViewAsLowerOrder(A, B, newIndices, oldIndices);
+   return A;
+}
+
+template<typename T>
+inline void LockedViewAsLowerOrder
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+#ifndef RELEASE
+    CallStackEntry entry("LockedViewAsLowerOrder");
+    B.AssertMergeableIndices(newIndices, oldIndices);
+#endif
+    Unsigned i;
+    const Unsigned newOrder = newIndices.size();
+    A.memory_.Empty();
+    A.indices_ = newIndices;
+
+    //Update the shape, ldims_, strides_, maps_
+    A.shape_.resize(newOrder);
+    A.ldims_.resize(newOrder);
+    A.strides_.resize(newOrder);
+    A.index2modeMap_.clear();
+    A.mode2indexMap_.clear();
+    for(i = 0; i < newOrder; i++){
+        Index newIndex = newIndices[i];
+        IndexArray mergedIndices = oldIndices[i];
+        A.shape[i] = prod(FilterVector(B.Shape(), mergedIndices));
+        A.ldims_[i] = B.LDim(B.ModeOfIndex(mergedIndices[0]));
+        A.strides_[i] = B.LDim(B.ModeOfIndex(mergedIndices[0]));
+        A.index2modeMap_[newIndex] = i;
+        A.mode2indexMap_[i] = newIndex;
+    }
+
+    A.data_     = B.data_;
+    A.viewType_ = LOCKED_VIEW;
+}
+
+template<typename T>
+inline Tensor<T> LockedViewAsLowerOrder
+( Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+   Tensor<T> A;
+   LockedViewAsLowerOrder(A, B, newIndices, oldIndices);
+   return A;
+}
+
+template<typename T>
+inline void LockedViewAsLowerOrder
+( DistTensor<T>& A,
+  DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAs");
+    B.AssertMergeableIndices(newIndices, oldIndices);
+#endif
+    Unsigned i, j;
+    const Unsigned newOrder = newIndices.size();
+    const tmen::Grid& g = B.Grid();
+
+    A.Empty();
+    A.grid_ = &g;
+
+    //Adjust shape_ alignments_, shifts_, distributions_
+    //Adjust gridView_
+    A.shape_.resize(newOrder);
+    A.modeAlignments_.resize(newOrder);
+    A.constrainedModeAlignments_.resize(newOrder);
+    A.modeShifts_.resize(newOrder);
+    A.dist_.resize(newOrder);
+    A.gridView_.grid_ = &g;
+    A.gridView_.shape_.resize(newOrder);
+    A.gridView_.loc_.resize(newOrder);
+
+    for(i = 0; i < newOrder; i++){
+        IndexArray mergedIndices = oldIndices[i];
+        A.shape_[i] = prod(FilterVector(B.Shape(), mergedIndices));
+        A.modeAlignments_[i] = Loc2LinearLoc(FilterVector(B.modeAlignments_, mergedIndices), A.shape_[i]);
+        A.constrainedModeAlignments_[i] = Loc2LinearLoc(FilterVector(B.constrainedModeAlignments_, mergedIndices), A.shape_[i]);
+        A.modeShifts_[i] = Loc2LinearLoc(FilterVector(B.modeShifts_, mergedIndices), A.shape_[i]);
+        //NOTE: Figure out how to change the distribution more intelligently
+        A.dist_[i].resize(0);
+        for(j = 0; j < mergedIndices.size(); j++){
+            ModeDistribution distToAppend = B.ModeDist(B.ModeOfIndex(mergedIndices[j]));
+            A.dist_[i].insert(A.dist_[i].end(), distToAppend.begin(), distToAppend.end());
+        }
+        A.gridView_.shape_[i] = prod(FilterVector(g.Shape(), A.dist_[i]));
+        A.gridView_.loc_[i] = Loc2LinearLoc(FilterVector(B.gridView_.loc_, mergedIndices), FilterVector(B.gridView_.shape_, mergedIndices));
+    }
+
+    //Adjust gridView_ distribution
+    A.gridView_.dist_ = A.dist_;
+
+    LockedViewAsLowerOrder(A.tensor_, B.tensor_, newIndices, oldIndices);
+
+    A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline DistTensor<T> LockedViewAsLowerOrder
+( DistTensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+   DistTensor<T> A;
+   LockedViewAsLowerOrder(A, B, newIndices, oldIndices);
+   return A;
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_VIEW_IMPL_HPP

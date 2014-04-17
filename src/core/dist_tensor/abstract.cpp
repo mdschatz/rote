@@ -209,6 +209,13 @@ AbstractDistTensor<T>::AssertSameSize( const ObjShape& shape ) const
 
 template<typename T>
 void
+AbstractDistTensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
+{
+    tensor_.AssertMergeableIndices(newIndices, oldIndices);
+}
+
+template<typename T>
+void
 AssertConforming2x1
 ( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index )
 {
@@ -236,6 +243,7 @@ AssertConforming2x1
     if( AnyElemwiseNotEqual(NegFilterVector(AT.Alignments(), negFilterAT), NegFilterVector(AB.Alignments(), negFilterAB)) )
         LogicError("2x1 is not aligned");
 }
+
 #endif // RELEASE
 
 //TODO: Check if this should retain order of object

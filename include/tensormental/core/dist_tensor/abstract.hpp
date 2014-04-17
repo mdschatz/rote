@@ -32,6 +32,7 @@ public:
     ( const Location& loc, const ObjShape& shape ) const;
     void AssertSameGrid( const tmen::Grid& grid ) const;
     void AssertSameSize( const ObjShape& shape ) const;
+    void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const;
 #endif // ifndef RELEASE
 
     //
