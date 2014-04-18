@@ -216,7 +216,7 @@ Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& 
     if(A.Order() != B.Order())
         LogicError("CheckAllToAllDoubleIndexRedist: Objects being redistributed must be of same order");
 
-    int order = A.Order();
+    Unsigned order = A.Order();
     IndexArray AIndices = A.Indices();
     IndexArray BIndices = B.Indices();
 
