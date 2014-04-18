@@ -92,29 +92,68 @@ Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vecto
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertMergeableIndices");
+#endif
+    Unsigned i, j;
     if(newIndices.size() != oldIndices.size())
     {
         LogicError("Each new Index must be formed from a set of current indices");
     }
-    for(Unsigned i = 0; i < oldIndices.size(); i++){
+    for(i = 0; i < oldIndices.size(); i++){
         IndexArray mergedIndices = oldIndices[i];
         if(mergedIndices.size() == 0){
             LogicError("New index must come from merging some indices");
         }
-        for(Unsigned j = 0; j < mergedIndices.size(); j++){
-            //Checks that this tensor has all the oldIndices, if not, will throw error
-            ModeOfIndex(mergedIndices[j]);
+        for(j = 0; j < mergedIndices.size(); j++){
+            if(std::find(indices_.begin(), indices_.end(), mergedIndices[j]) != indices_.end())
+                LogicError("Attempting to merge an index that this tensor does not represent");
         }
     }
-#endif
 
-    Unsigned i, j;
     for(i = 0; i < newIndices.size(); i++){
         IndexArray mergedIndices = oldIndices[0];
         Mode startMode = ModeOfIndex(mergedIndices[0]);
         for(j = 1; j < mergedIndices.size(); j++){
             if(ModeOfIndex(mergedIndices[j]) != startMode + j)
                 LogicError("Modes to be merged must be contiguously stored");
+        }
+    }
+}
+
+template<typename T>
+void
+Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::AssertMergeableIndices");
+#endif
+
+    Unsigned i, j;
+    if(newIndices.size() != oldIndices.size())
+    {
+        LogicError("Each new Index must be formed from a set of current indices");
+    }
+    if(oldIndices.size() != newIndicesShape.size())
+    {
+        LogicError("Each split index must be resized");
+    }
+
+    for(i = 0; i < newIndices.size(); i++){
+        IndexArray newIndexArray = newIndices[i];
+        ObjShape newIndexShape = newIndicesShape[i];
+        Index splitIndex = oldIndices[i];
+        Mode splitMode = ModeOfIndex(splitIndex);
+        Unsigned splitIndexDimension = Dimension(splitMode);
+
+        if(newIndexArray.size() != newIndicesShape.size())
+            LogicError("Each new index must have an associated dimension");
+
+        if(prod(newIndexShape) != splitIndexDimension)
+            LogicError("New shape must represent same number of locations as index being split");
+
+        for(j = 0; j < newIndexArray.size(); j++){
+            Index newIndex = newIndexArray[j];
+            if(std::find(indices_.begin(), indices_.end(), newIndex) != indices_.end())
+                LogicError("Index already used");
         }
     }
 }

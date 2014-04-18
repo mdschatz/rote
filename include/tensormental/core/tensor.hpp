@@ -31,6 +31,7 @@ public:
     void AssertValidEntry( const Location& loc ) const;
     void AssertValidIndices() const;
     void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices ) const;
+    void AssertSplittableIndices( const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const;
     
     //
     // Constructors

@@ -113,19 +113,6 @@ Tensor<T> ViewAsLowerOrder
   const std::vector<IndexArray>& oldIndices );
 
 template<typename T>
-void ViewAsLowerOrder
-( DistTensor<T>& A,
-  DistTensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
-
-template<typename T>
-DistTensor<T> ViewAsLowerOrder
-( DistTensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
-
-template<typename T>
 void LockedViewAsLowerOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
@@ -138,19 +125,38 @@ Tensor<T> LockedViewAsLowerOrder
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices );
 
+//
+// View as higher order object
+//
 template<typename T>
-void LockedViewAsLowerOrder
-( DistTensor<T>& A,
-  const DistTensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
+void ViewAsHigherOrder
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape );
 
 template<typename T>
-DistTensor<T> LockedViewAsLowerOrder
-( const DistTensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
+Tensor<T> ViewAsHigherOrder
+( Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape );
 
+template<typename T>
+void LockedViewAsHigherOrder
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape );
+
+template<typename T>
+Tensor<T> LockedViewAsHigherOrder
+( const Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape );
 
 } // namespace tmen
 
