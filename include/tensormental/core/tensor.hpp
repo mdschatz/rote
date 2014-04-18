@@ -192,16 +192,58 @@ private:
     friend class DistTensor;
     friend class AbstractDistTensor<T>;
 
-    friend void View<T>( Tensor<T>& A, Tensor<T>& B );
-    friend void View<T>
-    ( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
-    friend void View2x1<T>( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Index index );
+    friend void ViewHelper<T>( Tensor<T>& A, const Tensor<T>& B, bool isLocked );
+    friend void ViewHelper<T>
+    ( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape, bool isLocked );
+    friend void View2x1Helper<T>( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index, bool isLocked );
+    friend void ViewAsLowerOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
+                                     const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices, bool isLocked );
+    friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
+                                   const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices,
+                                   const std::vector<ObjShape>& newIndicesShape, bool isLocked );
 
-    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B );
-    friend void LockedView<T>
-    ( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape );
+    friend void View<T>( Tensor<T>& A, Tensor<T>& B);
+    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B);
+    friend void View<T>( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
+    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape );
+
+    friend void View2x1<T>
+    ( Tensor<T>& A,
+      Tensor<T>& BT,
+      Tensor<T>& BB, Index index );
     friend void LockedView2x1<T>
-    ( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index );
+    (       Tensor<T>& A,
+      const Tensor<T>& BT,
+      const Tensor<T>& BB, Index index );
+
+    friend
+    void ViewAsLowerOrder<T>
+    ( Tensor<T>& A,
+      Tensor<T>& B,
+      const IndexArray& newIndices,
+      const std::vector<IndexArray>& oldIndices );
+    friend
+    void LockedViewAsLowerOrder<T>
+    ( Tensor<T>& A,
+      const Tensor<T>& B,
+      const IndexArray& newIndices,
+      const std::vector<IndexArray>& oldIndices );
+
+    friend
+    void ViewAsHigherOrder
+    ( Tensor<T>& A,
+      Tensor<T>& B,
+      const std::vector<IndexArray>& newIndices,
+      const IndexArray& oldIndices,
+      const std::vector<ObjShape>& newIndicesShape );
+    friend
+    void LockedViewAsHigherOrder
+    ( Tensor<T>& A,
+      const Tensor<T>& B,
+      const std::vector<IndexArray>& newIndices,
+      const IndexArray& oldIndices,
+      const std::vector<ObjShape>& newIndicesShape );
+
 };
 
 } // namespace tmen

@@ -221,25 +221,14 @@ protected:
 
 #ifndef SWIG
     template<typename S>
-    friend void View( DistTensor<S>& A, DistTensor<S>& B );
+    friend void ViewHelper( DistTensor<S>& A, const DistTensor<S>& B, bool isLocked );
     template<typename S>
-    friend void LockedView( DistTensor<S>& A, const DistTensor<S>& B );
-    template<typename S>
-    friend void View
-    ( DistTensor<S>& A, DistTensor<S>& B,
-      const Location& loc, const ObjShape& shape );
-    template<typename S>
-    friend void LockedView
+    friend void ViewHelper
     ( DistTensor<S>& A, const DistTensor<S>& B,
-            const Location& loc, const ObjShape& shape );
+      const Location& loc, const ObjShape& shape, bool isLocked );
     template<typename S>
-    friend void View2x1
-    ( DistTensor<S>& A, DistTensor<S>& BT, DistTensor<S>& BB, Index index );
-    template<typename S>
-    friend void LockedView2x1
-    (       DistTensor<S>& A,
-      const DistTensor<S>& BT, const DistTensor<S>& BB, Index index );
-
+    friend void View2x1Helper
+    ( DistTensor<S>& A, const DistTensor<S>& BT, const DistTensor<S>& BB, Index index, bool isLocked );
 
     template<typename S>
     friend class DistTensor;

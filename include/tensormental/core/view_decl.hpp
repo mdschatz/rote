@@ -17,6 +17,11 @@ namespace tmen {
 //
 
 template<typename T>
+void ViewHelper( Tensor<T>& A, const Tensor<T>& B, bool isLocked );
+template<typename T>
+void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked );
+
+template<typename T>
 void View( Tensor<T>& A, Tensor<T>& B );
 template<typename T>
 Tensor<T> View( Tensor<T>& B );
@@ -41,6 +46,12 @@ DistTensor<T> LockedView( const DistTensor<T>& B );
 //
 
 template<typename T>
+void ViewHelper( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape, bool isLocked );
+
+template<typename T>
+void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, const Location& loc, const ObjShape& shape, bool isLocked );
+
+template<typename T>
 void View( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
 template<typename T>
 Tensor<T> View( Tensor<T>& B, const Location& loc, const ObjShape& shape );
@@ -63,6 +74,18 @@ DistTensor<T> LockedView( const DistTensor<T>& B, const Location& loc, const Obj
 //
 // View two index-ly connected tensors
 //
+
+template<typename T>
+void View2x1Helper
+(       Tensor<T>& A,
+  const Tensor<T>& BT,
+  const Tensor<T>& BB, Index index, bool isLocked );
+
+template<typename T>
+void View2x1Helper
+(       DistTensor<T>& A,
+  const DistTensor<T>& BT,
+  const DistTensor<T>& BB, Index index, bool isLocked );
 
 template<typename T>
 void View2x1
@@ -100,6 +123,13 @@ DistTensor<T> LockedView2x1
 //
 
 template<typename T>
+void ViewAsLowerOrderHelper
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices, bool isLocked );
+
+template<typename T>
 void ViewAsLowerOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
@@ -128,6 +158,15 @@ Tensor<T> LockedViewAsLowerOrder
 //
 // View as higher order object
 //
+
+template<typename T>
+void ViewAsHigherOrderHelper
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape, bool isLocked );
+
 template<typename T>
 void ViewAsHigherOrder
 ( Tensor<T>& A,
