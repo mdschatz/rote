@@ -230,20 +230,19 @@ private:
       const std::vector<IndexArray>& oldIndices );
 
     friend
-    void ViewAsHigherOrder
+    void ViewAsHigherOrder<T>
     ( Tensor<T>& A,
       Tensor<T>& B,
       const std::vector<IndexArray>& newIndices,
       const IndexArray& oldIndices,
       const std::vector<ObjShape>& newIndicesShape );
     friend
-    void LockedViewAsHigherOrder
+    void LockedViewAsHigherOrder<T>
     ( Tensor<T>& A,
       const Tensor<T>& B,
       const std::vector<IndexArray>& newIndices,
       const IndexArray& oldIndices,
       const std::vector<ObjShape>& newIndicesShape );
-
 };
 
 } // namespace tmen

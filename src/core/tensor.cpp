@@ -103,19 +103,18 @@ Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vecto
         if(mergedIndices.size() == 0){
             LogicError("New index must come from merging some indices");
         }
+        Mode startMode = ModeOfIndex(mergedIndices[0]);
         for(j = 0; j < mergedIndices.size(); j++){
-            if(std::find(indices_.begin(), indices_.end(), mergedIndices[j]) != indices_.end())
+            if(std::find(indices_.begin(), indices_.end(), mergedIndices[j]) == indices_.end())
                 LogicError("Attempting to merge an index that this tensor does not represent");
+            if(ModeOfIndex(mergedIndices[j]) != startMode + j)
+                LogicError("Modes to be merged must be contiguously stored");
         }
     }
 
     for(i = 0; i < newIndices.size(); i++){
-        IndexArray mergedIndices = oldIndices[0];
-        Mode startMode = ModeOfIndex(mergedIndices[0]);
-        for(j = 1; j < mergedIndices.size(); j++){
-            if(ModeOfIndex(mergedIndices[j]) != startMode + j)
-                LogicError("Modes to be merged must be contiguously stored");
-        }
+        if(std::find(indices_.begin(), indices_.end(), newIndices[i]) != indices_.end())
+            LogicError("Merging indices into an index this tensor already represents");
     }
 }
 
@@ -124,7 +123,7 @@ void
 Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertMergeableIndices");
+    CallStackEntry cse("Tensor::AssertSplittableIndices");
 #endif
 
     Unsigned i, j;
@@ -141,10 +140,13 @@ Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, co
         IndexArray newIndexArray = newIndices[i];
         ObjShape newIndexShape = newIndicesShape[i];
         Index splitIndex = oldIndices[i];
+        if(std::find(indices_.begin(), indices_.end(), splitIndex) == indices_.end())
+            LogicError("Attempting to split an index this object does not represent");
+
         Mode splitMode = ModeOfIndex(splitIndex);
         Unsigned splitIndexDimension = Dimension(splitMode);
 
-        if(newIndexArray.size() != newIndicesShape.size())
+        if(newIndexArray.size() != newIndexShape.size())
             LogicError("Each new index must have an associated dimension");
 
         if(prod(newIndexShape) != splitIndexDimension)
@@ -925,18 +927,14 @@ Tensor<T>::operator=( const Tensor<T>& A )
         LogicError
         ("Cannot assign to a view of different dimensions");
 #endif
-//    if( viewType_ == OWNER )
-//        ResizeTo( A.dims_ );
-    //TODO: IMPLEMENT CORRECTLY
-//    const Int height = Height();
-//    const Int width = Width();
-//    const Int ldim = LDim();
-//    const Int ldimOfA = A.LDim();
-//    const T* src = A.LockedBuffer();
-//    T* dst = this->Buffer();
-//    PARALLEL_FOR
-//    for( Int j=0; j<width; ++j )
-//        MemCopy( &dst[j*ldim], &src[j*ldimOfA], height );
+    if( viewType_ == OWNER )
+        ResizeTo( A.shape_ );
+    indices_ = A.indices_;
+    index2modeMap_ = A.index2modeMap_;
+    mode2indexMap_ = A.mode2indexMap_;
+    T* dst = this->Buffer();
+    const T* src = A.LockedBuffer();
+    MemCopy(&dst[0], &src[0], prod(shape_));
     return *this;
 }
 

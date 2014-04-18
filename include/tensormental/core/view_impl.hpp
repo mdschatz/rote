@@ -252,26 +252,68 @@ inline void ViewAsLowerOrderHelper
     CallStackEntry entry("ViewAsLowerOrderHelper");
     B.AssertMergeableIndices(newIndices, oldIndices);
 #endif
-    Unsigned i;
-    const Unsigned newOrder = newIndices.size();
+    Unsigned i, j;
+    const Unsigned oldOrder = B.Order();
+    Unsigned newOrder = oldOrder + newIndices.size();
+    for(i = 0; i < oldIndices.size(); i++)
+        newOrder -= oldIndices[i].size();
     A.memory_.Empty();
-    A.indices_ = newIndices;
+
 
     //Update the shape, ldims_, strides_, maps_
+    A.indices_.resize(newOrder);
     A.shape_.resize(newOrder);
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
     A.index2modeMap_.clear();
     A.mode2indexMap_.clear();
-    for(i = 0; i < newOrder; i++){
+
+    Unsigned mergeGroupCounter = 0;
+    Unsigned newMode = 0;
+    for(i = 0; i < oldOrder; i++){
+        //The remaining indices are not merged
+        if(mergeGroupCounter >= oldIndices.size())
+            break;
+        Index oldIndex = B.IndexOfMode(i);
         Index newIndex = newIndices[i];
-        IndexArray mergedIndices = oldIndices[i];
-        A.shape[i] = prod(FilterVector(B.Shape(), mergedIndices));
-        A.ldims_[i] = B.LDim(B.ModeOfIndex(mergedIndices[0]));
-        A.strides_[i] = B.LDim(B.ModeOfIndex(mergedIndices[0]));
-        A.index2modeMap_[newIndex] = i;
-        A.mode2indexMap_[i] = newIndex;
+        IndexArray mergeGroup = oldIndices[mergeGroupCounter];
+        //This index is not being merged, copy over the data
+        if(oldIndex != mergeGroup[0]){
+            A.indices_[newMode] = oldIndex;
+            A.shape_[newMode] = B.Dimension(i);
+            A.ldims_[newMode] = B.LDim(i);
+            A.strides_[newMode] = B.LDim(i);
+            A.index2modeMap_[oldIndex] = newMode;
+            A.mode2indexMap_[newMode] = oldIndex;
+        }
+        //This index is being merged, update accordingly
+        else
+        {
+            std::vector<Unsigned> modesToMerge(mergeGroup.size());
+            Unsigned startMode = B.ModeOfIndex(mergeGroup[0]);
+            for(j = 0; j < mergeGroup.size(); j++)
+                modesToMerge[j] = startMode + j;
+            A.shape_[newMode] = prod(FilterVector(B.Shape(), modesToMerge));
+            A.ldims_[newMode] = B.LDim(startMode);
+            A.strides_[newMode] = B.LDim(startMode);
+            A.index2modeMap_[newIndex] = newMode;
+            A.mode2indexMap_[newMode] = newIndex;
+            mergeGroupCounter++;
+            i += mergeGroup.size() - 1;
+        }
+        newMode++;
     }
+    for(; i < oldOrder; i++){
+        Index oldIndex = B.IndexOfMode(i);
+        A.indices_[newMode] = oldIndex;
+        A.shape_[newMode] = B.Dimension(i);
+        A.ldims_[newMode] = B.LDim(i);
+        A.strides_[newMode] = B.LDim(i);
+        A.index2modeMap_[oldIndex] = newMode;
+        A.mode2indexMap_[newMode] = oldIndex;
+        newMode++;
+    }
+
 
 //    A.data_     = B.data_;
     if(isLocked)
@@ -281,7 +323,7 @@ inline void ViewAsLowerOrderHelper
 }
 
 template<typename T>
-inline Tensor<T> ViewAsHigherOrderHelper
+inline void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
   const std::vector<IndexArray>& newIndices,
@@ -312,6 +354,9 @@ inline Tensor<T> ViewAsHigherOrderHelper
     Unsigned splitIndexCounter = 0;
     Unsigned newMode = 0;
     for(i = 0; i < oldOrder; i++){
+        //The remaining indices are unsplit indices;
+        if(splitIndexCounter >= oldIndices.size())
+            break;
         Index oldIndex = B.IndexOfMode(i);
         Index indexToSplit = oldIndices[splitIndexCounter];
         //We are splitting this index
@@ -326,23 +371,34 @@ inline Tensor<T> ViewAsHigherOrderHelper
                 A.shape_[newMode] = newIndexDimension;
                 A.ldims_[newMode] = newLDim;
                 A.strides_[newMode] = newLDim;
-                A.index2modeMap[newIndex] = newMode;
-                A.mode2indexMap[newMode] = newIndex;
+                A.index2modeMap_[newIndex] = newMode;
+                A.mode2indexMap_[newMode] = newIndex;
 
                 //Update counters
                 newLDim *= newIndexDimension;
+                newMode++;
             }
         }
         //Not splitting, so copy over info
         else{
-
-            A.indices[newMode] = oldIndex;
+            A.indices_[newMode] = oldIndex;
             A.shape_[newMode] = B.Dimension(i);
             A.ldims_[newMode] = B.LDim(i);
             A.strides_[newMode] = B.LDim(i);
-            A.index2modeMap[B.IndexOfMode(i)] = newMode;
-            A.mode2indexMap[newMode] = B.IndexOfMode(i);
+            A.index2modeMap_[B.IndexOfMode(i)] = newMode;
+            A.mode2indexMap_[newMode] = B.IndexOfMode(i);
+            newMode++;
         }
+
+    }
+    for(; i < oldOrder; i++){
+        Index oldIndex = B.IndexOfMode(i);
+        A.indices_[newMode] = oldIndex;
+        A.shape_[newMode] = B.Dimension(i);
+        A.ldims_[newMode] = B.LDim(i);
+        A.strides_[newMode] = B.LDim(i);
+        A.index2modeMap_[B.IndexOfMode(i)] = newMode;
+        A.mode2indexMap_[newMode] = B.IndexOfMode(i);
         newMode++;
     }
 
@@ -654,7 +710,7 @@ inline Tensor<T> ViewAsLowerOrder
 template<typename T>
 inline void LockedViewAsLowerOrder
 ( Tensor<T>& A,
-  Tensor<T>& B,
+  const Tensor<T>& B,
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {
@@ -668,7 +724,7 @@ inline void LockedViewAsLowerOrder
 
 template<typename T>
 inline Tensor<T> LockedViewAsLowerOrder
-( Tensor<T>& B,
+( const Tensor<T>& B,
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {
@@ -678,7 +734,7 @@ inline Tensor<T> LockedViewAsLowerOrder
 }
 
 template<typename T>
-inline Tensor<T> ViewAsHigherOrder
+inline void ViewAsHigherOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
   const std::vector<IndexArray>& newIndices,
@@ -705,9 +761,9 @@ inline Tensor<T> ViewAsHigherOrder
 }
 
 template<typename T>
-inline Tensor<T> LockedViewAsHigherOrder
+inline void LockedViewAsHigherOrder
 ( Tensor<T>& A,
-  Tensor<T>& B,
+  const Tensor<T>& B,
   const std::vector<IndexArray>& newIndices,
   const IndexArray& oldIndices,
   const std::vector<ObjShape>& newIndicesShape)
@@ -722,7 +778,7 @@ inline Tensor<T> LockedViewAsHigherOrder
 
 template<typename T>
 inline Tensor<T> LockedViewAsHigherOrder
-( Tensor<T>& B,
+( const Tensor<T>& B,
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {

@@ -152,7 +152,7 @@ TestConstViews(DistTensor<T>& A){
     CallStackEntry entry("TestConstViews");
 #endif
     const tmen::Grid& g = A.Grid();
-    Unsigned i;
+    Unsigned i, j;
     const Unsigned order = A.Order();
     Location start(order);
     std::fill(start.begin(), start.end(), 0);
@@ -185,6 +185,63 @@ TestConstViews(DistTensor<T>& A){
                                     A1,
                               /**/ /**/
                                AB,  A2, index);
+        }
+    }
+
+    //Perform lower/higher order view changes (only applies to Local Tensors)
+    Tensor<T> ATensor(order);
+    ATensor = A.Tensor();
+    Tensor<T> ALO(order), AHO(order);
+    //View as lower order object
+    std::vector<Index> newIndex(1);
+    newIndex[0] = 100;
+    Unsigned startMode, nMergeModes;
+    for(startMode = 0; startMode < order; startMode++){
+        for(nMergeModes = 2; startMode + nMergeModes <= order; nMergeModes++){
+            std::vector<IndexArray> oldIndices(1);
+            IndexArray indicesToMerge(nMergeModes);
+            for(i = 0; i < nMergeModes; i++){
+                indicesToMerge[i] = ATensor.IndexOfMode(startMode + i);
+            }
+            oldIndices[0] = indicesToMerge;
+            printf("Merging indices (%d", indicesToMerge[0]);
+            for(i = 1; i < nMergeModes; i++)
+                printf(" %d", indicesToMerge[i]);
+            printf(") of dimension (%d", ATensor.Dimension(startMode));
+            for(i = 1; i < nMergeModes; i++)
+                printf(" %d", ATensor.Dimension(startMode + i));
+            printf(")\n");
+            LockedViewAsLowerOrder(ALO, ATensor, newIndex, oldIndices);
+            PrintLocalView(ALO);
+        }
+    }
+
+    //Try to view as higher order object
+    ObjShape ATensorShape = ATensor.Shape();
+    //See if we can split any index into two
+    std::vector<IndexArray> newIndices(1);
+    IndexArray splitIndices(2);
+    splitIndices[0] = 100;
+    splitIndices[1] = 101;
+    newIndices[0] = splitIndices;
+    for(i = 0; i < order; i++){
+        Unsigned indexDim = ATensorShape[i];
+        for(j = 2; j < indexDim; j++){
+            if(indexDim % j == 0){
+                Index indexToSplit = ATensor.IndexOfMode(i);
+                Unsigned newIndex1Dim = indexDim / j;
+                Unsigned newIndex2Dim = j;
+                IndexArray oldIndices(1);
+                oldIndices[0] = indexToSplit;
+                std::vector<ObjShape> splitShape(1);
+                ObjShape newShape(2);
+                newShape[0] = newIndex1Dim;
+                newShape[1] = newIndex2Dim;
+                splitShape[0] = newShape;
+                printf("Splitting index %d of dimension %d into shape (%d, %d)\n", indexToSplit, ATensor.Dimension(ATensor.ModeOfIndex(indexToSplit)), newIndex1Dim, newIndex2Dim);
+                LockedViewAsHigherOrder(AHO, ATensor, newIndices, oldIndices, splitShape);
+                PrintLocalView(AHO);
+            }
         }
     }
 }
@@ -232,10 +289,62 @@ TestNonConstViews(DistTensor<T>& A){
         }
     }
 
-    //View as lower order object (just viewing all pairs should do)
-    for(i = 0; i < order; i++)
+    //Perform lower/higher order view changes (only applies to Local Tensors)
+    Tensor<T> ATensor(order);
+    ATensor = A.Tensor();
+    Tensor<T> ALO(order), AHO(order);
+    //View as lower order object
+    std::vector<Index> newIndex(1);
+    newIndex[0] = 100;
+    Unsigned startMode, nMergeModes;
+    for(startMode = 0; startMode < order; startMode++){
+        for(nMergeModes = 2; startMode + nMergeModes <= order; nMergeModes++){
+            std::vector<IndexArray> oldIndices(1);
+            IndexArray indicesToMerge(nMergeModes);
+            for(i = 0; i < nMergeModes; i++){
+                indicesToMerge[i] = ATensor.IndexOfMode(startMode + i);
+            }
+            oldIndices[0] = indicesToMerge;
+            printf("Merging indices (%d", indicesToMerge[0]);
+            for(i = 1; i < nMergeModes; i++)
+                printf(" %d", indicesToMerge[i]);
+            printf(") of dimension (%d", ATensor.Dimension(startMode));
+            for(i = 1; i < nMergeModes; i++)
+                printf(" %d", ATensor.Dimension(startMode + i));
+            printf(")\n");
+            ViewAsLowerOrder(ALO, ATensor, newIndex, oldIndices);
+            PrintLocalView(ALO);
+        }
+    }
 
     //Try to view as higher order object
+    ObjShape ATensorShape = ATensor.Shape();
+    //See if we can split any index into two
+    std::vector<IndexArray> newIndices(1);
+    IndexArray splitIndices(2);
+    splitIndices[0] = 100;
+    splitIndices[1] = 101;
+    newIndices[0] = splitIndices;
+    for(i = 0; i < order; i++){
+        Unsigned indexDim = ATensorShape[i];
+        for(j = 2; j < indexDim; j++){
+            if(indexDim % j == 0){
+                Index indexToSplit = ATensor.IndexOfMode(i);
+                Unsigned newIndex1Dim = indexDim / j;
+                Unsigned newIndex2Dim = j;
+                IndexArray oldIndices(1);
+                oldIndices[0] = indexToSplit;
+                std::vector<ObjShape> splitShape(1);
+                ObjShape newShape(2);
+                newShape[0] = newIndex1Dim;
+                newShape[1] = newIndex2Dim;
+                splitShape[0] = newShape;
+                printf("Splitting index %d of dimension %d into shape (%d, %d)\n", indexToSplit, ATensor.Dimension(ATensor.ModeOfIndex(indexToSplit)), newIndex1Dim, newIndex2Dim);
+                ViewAsHigherOrder(AHO, ATensor, newIndices, oldIndices, splitShape);
+                PrintLocalView(AHO);
+            }
+        }
+    }
 }
 
 template<typename T>
