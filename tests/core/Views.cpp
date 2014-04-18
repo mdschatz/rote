@@ -196,7 +196,7 @@ TestNonConstViews(DistTensor<T>& A){
     CallStackEntry entry("TestNonConstViews");
 #endif
     const tmen::Grid& g = A.Grid();
-    Unsigned i;
+    Unsigned i, j;
     const Unsigned order = A.Order();
     Location start(order);
     std::fill(start.begin(), start.end(), 0);
@@ -231,6 +231,11 @@ TestNonConstViews(DistTensor<T>& A){
                                AB,  A2, index);
         }
     }
+
+    //View as lower order object (just viewing all pairs should do)
+    for(i = 0; i < order; i++)
+
+    //Try to view as higher order object
 }
 
 template<typename T>

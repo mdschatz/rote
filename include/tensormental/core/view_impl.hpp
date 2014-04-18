@@ -364,13 +364,14 @@ inline void View( Tensor<T>& A, Tensor<T>& B )
     CallStackEntry entry("View");
 #endif
     ViewHelper(A, B, false);
+    //Set the data we can't set in helper
     A.data_ = B.data_;
 }
 
 template<typename T>
 inline Tensor<T> View( Tensor<T>& B )
 {
-    Tensor<T> A;
+    Tensor<T> A(B.Order());
     View( A, B );
     return A;
 }
@@ -382,6 +383,7 @@ inline void View( DistTensor<T>& A, DistTensor<T>& B )
     CallStackEntry entry("View");
 #endif
     ViewHelper(A, B, false);
+    //Set the data we can't set in helper
     if(A.Participating() )
     {
         View( A.Tensor(), B.Tensor() );
@@ -391,7 +393,7 @@ inline void View( DistTensor<T>& A, DistTensor<T>& B )
 template<typename T>
 inline DistTensor<T> View( DistTensor<T>& B )
 {
-    DistTensor<T> A(B.Grid());
+    DistTensor<T> A(B.Order(), B.Grid());
     View( A, B );
     return A;
 }
@@ -403,13 +405,14 @@ inline void LockedView( Tensor<T>& A, const Tensor<T>& B )
     CallStackEntry entry("LockedView");
 #endif
     ViewHelper(A, B, true);
+    //Set the data we can't set in helper
     A.data_ = B.data_;
 }
 
 template<typename T>
 inline Tensor<T> LockedView( const Tensor<T>& B )
 {
-    Tensor<T> A;
+    Tensor<T> A(B.Order());
     LockedView( A, B );
     return A;
 }
@@ -421,6 +424,7 @@ inline void LockedView( DistTensor<T>& A, const DistTensor<T>& B )
     CallStackEntry entry("LockedView");
 #endif
     ViewHelper(A, B, true);
+    //Set the data we can't set in helper
     if(A.Participating()){
         LockedView(A.Tensor(), B.LockedTensor());
     }
@@ -430,7 +434,7 @@ inline void LockedView( DistTensor<T>& A, const DistTensor<T>& B )
 template<typename T>
 inline DistTensor<T> LockedView( const DistTensor<T>& B )
 {
-    DistTensor<T> A(B.Grid());
+    DistTensor<T> A(B.Order(), B.Grid());
     LockedView( A, B );
     return A;
 }
@@ -444,13 +448,14 @@ inline void View
     CallStackEntry entry("View");
 #endif
     ViewHelper(A, B, loc, shape, false);
+    //Set the data we can't set in helper
     A.data_ = B.Buffer(loc);
 }
 
 template<typename T>
 inline Tensor<T> View( Tensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    Tensor<T> A;
+    Tensor<T> A(B.Order());
     View( A, B, loc, shape );
     return A;
 }
@@ -464,6 +469,7 @@ inline void View
     CallStackEntry entry("View");
 #endif
     ViewHelper(A, B, loc, shape, false);
+    //Set the data we can't set in helper
     if(A.Participating()){
         const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
         const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
@@ -477,7 +483,7 @@ template<typename T>
 inline DistTensor<T> View
 ( DistTensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    DistTensor<T> A(B.Grid());
+    DistTensor<T> A(B.Order(), B.Grid());
     View( A, B, loc, shape );
     return A;
 }
@@ -491,6 +497,7 @@ inline void LockedView
     CallStackEntry entry("LockedView");
 #endif
     ViewHelper(A, B, loc, shape, true);
+    //Set the data we can't set in helper
     A.data_ = B.LockedBuffer(loc);
 }
 
@@ -498,7 +505,7 @@ template<typename T>
 inline Tensor<T> LockedView
 ( const Tensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    Tensor<T> A;
+    Tensor<T> A(B.Order());
     LockedView( A, B, loc, shape );
     return A;
 }
@@ -512,6 +519,7 @@ inline void LockedView
     CallStackEntry entry("LockedView");
 #endif
     ViewHelper(A, B, loc, shape, true);
+    //Set the data we can't set in helper
     if(A.Participating()){
         const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
         const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
@@ -525,7 +533,7 @@ template<typename T>
 inline DistTensor<T> LockedView
 ( const DistTensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    DistTensor<T> A(B.Grid());
+    DistTensor<T> A(B.Order(), B.Grid());
     LockedView( A, B, loc, shape );
     return A;
 }
@@ -537,13 +545,14 @@ inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Index index )
     CallStackEntry entry("View2x1");
 #endif
     View2x1Helper(A, BT, BB, index, false);
+    //Set the data we can't set in helper
     A.data_ = BT.data_;
 }
 
 template<typename T>
 inline Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Index index )
 {
-    Tensor<T> A;
+    Tensor<T> A(BT.Order());
     View2x1( A, BT, BB, index );
     return A;
 }
@@ -556,6 +565,7 @@ inline void View2x1
     CallStackEntry entry("View2x1");
 #endif
     View2x1Helper(A, BT, BB, index, false);
+    //Set the data we can't set in helper
     if(A.Participating()){
         View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), index );
     }
@@ -564,7 +574,7 @@ inline void View2x1
 template<typename T>
 inline DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Index index )
 {
-    DistTensor<T> A(BT.Grid());
+    DistTensor<T> A(BT.Order(), BT.Grid());
     View2x1( A, BT, BB, index );
     return A;
 }
@@ -577,6 +587,7 @@ inline void LockedView2x1
     CallStackEntry entry("LockedView2x1");
 #endif
     View2x1Helper(A, BT, BB, index, true);
+    //Set the data we can't set in helper
     A.data_ = BT.data_;
 }
 
@@ -584,7 +595,7 @@ template<typename T>
 inline Tensor<T> LockedView2x1
 ( const Tensor<T>& BT, const Tensor<T>& BB, Index index )
 {
-    Tensor<T> A;
+    Tensor<T> A(BT.Order());
     LockedView2x1( A, BT, BB, index );
     return A;
 }
@@ -599,6 +610,7 @@ inline void LockedView2x1
     CallStackEntry entry("LockedView2x1");
 #endif
     View2x1Helper(A, BT, BB, index, true);
+    //Set the data we can't set in helper
     if(A.Participating()){
         LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index );
     }
@@ -608,7 +620,7 @@ template<typename T>
 inline DistTensor<T> LockedView2x1
 ( const DistTensor<T>& BT, const DistTensor<T>& BB, Index index )
 {
-    DistTensor<T> A(BT.Grid());
+    DistTensor<T> A(BT.Order(), BT.Grid());
     LockedView2x1( A, BT, BB, index );
     return A;
 }
@@ -624,6 +636,7 @@ inline void ViewAsLowerOrder
     CallStackEntry entry("ViewAsLowerOrder");
 #endif
     ViewAsLowerOrderHelper(A, B, newIndices, oldIndices, false);
+    //Set the data we can't set in helper
     A.data_ = B.data_;
 }
 
@@ -633,7 +646,7 @@ inline Tensor<T> ViewAsLowerOrder
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {
-   Tensor<T> A;
+   Tensor<T> A(B.Order());
    ViewAsLowerOrder(A, B, newIndices, oldIndices);
    return A;
 }
@@ -649,6 +662,7 @@ inline void LockedViewAsLowerOrder
     CallStackEntry entry("LockedViewAsLowerOrder");
 #endif
     ViewAsLowerOrderHelper(A, B, newIndices, oldIndices, true);
+    //Set the data we can't set in helper
     A.data_ = B.data_;
 }
 
@@ -658,7 +672,7 @@ inline Tensor<T> LockedViewAsLowerOrder
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {
-   Tensor<T> A;
+   Tensor<T> A(B.Order());
    LockedViewAsLowerOrder(A, B, newIndices, oldIndices);
    return A;
 }
@@ -675,6 +689,7 @@ inline Tensor<T> ViewAsHigherOrder
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
     ViewAsHigherOrderHelper(A, B, newIndices, oldIndices, newIndicesShape, false);
+    //Set the data we can't set in helper
     A.data_ = B.data_;
 }
 
@@ -684,7 +699,7 @@ inline Tensor<T> ViewAsHigherOrder
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {
-   Tensor<T> A;
+   Tensor<T> A(B.Order());
    ViewAsHigherOrder(A, B, newIndices, oldIndices);
    return A;
 }
@@ -701,6 +716,7 @@ inline Tensor<T> LockedViewAsHigherOrder
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
     ViewAsHigherOrderHelper(A, B, newIndices, oldIndices, newIndicesShape, true);
+    //Set the data we can't set in helper
     A.data_ = B.data_;
 }
 
@@ -710,7 +726,7 @@ inline Tensor<T> LockedViewAsHigherOrder
   const IndexArray& newIndices,
   const std::vector<IndexArray>& oldIndices )
 {
-   Tensor<T> A;
+   Tensor<T> A(B.Order());
    LockedViewAsHigherOrder(A, B, newIndices, oldIndices);
    return A;
 }
