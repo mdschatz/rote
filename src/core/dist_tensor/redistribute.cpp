@@ -168,6 +168,37 @@ void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const s
     UnpackA2ADoubleIndexRecvBuf(recvBuf, a2aIndices, a2aCommGroups, A, B);
 }
 
+template<typename T>
+void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes){
+    if(!CheckLocalRedist(B, A, localIndex, gridRedistModes))
+        LogicError("LocalRedist: Invalid redistribution request");
+
+    //Packing is what is stored in memory
+    UnpackLocalRedist(B, A, localIndex, gridRedistModes);
+}
+
+//NOTE: Assuming everything is correct, this is just a straight memcopy
+template<typename T>
+void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& newIndexPositions){
+    if(!CheckRemoveUnitIndicesRedist(B, A, newIndexPositions))
+        LogicError("RemoveUnitIndicesRedist: Invalid redistribution request");
+
+    T* dst = B.Buffer();
+    const T* src = A.Buffer();
+    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+}
+
+//NOTE: Assuming everything is correct, this is just a straight memcopy
+template<typename T>
+void IntroduceUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions){
+    if(!CheckIntroduceUnitIndicesRedist(B, A, newIndexPositions))
+        LogicError("IntroduceUnitIndicesRedist: Invalid redistribution request");
+
+    T* dst = B.Buffer();
+    const T* src = A.Buffer();
+    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+}
+
 template <typename T>
 void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
 //NOTE: All2All is valid if both distributions are valid
@@ -202,7 +233,11 @@ void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
     template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex); \
-	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups);
+	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \
+	template void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& newIndexPositions); \
+	template void IntroduceUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions); \
+
+
 PROTO(int)
 PROTO(float)
 PROTO(double)
