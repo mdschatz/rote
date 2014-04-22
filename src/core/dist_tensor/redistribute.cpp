@@ -183,8 +183,10 @@ void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const Ind
     if(!CheckRemoveUnitIndicesRedist(B, A, newIndexPositions))
         LogicError("RemoveUnitIndicesRedist: Invalid redistribution request");
 
-    T* dst = B.Buffer();
-    const T* src = A.Buffer();
+    const Unsigned order = A.Order();
+    const Location start(order, 0);
+    T* dst = B.Buffer(start);
+    const T* src = A.LockedBuffer(start);
     MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
 }
 
@@ -194,8 +196,10 @@ void IntroduceUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
     if(!CheckIntroduceUnitIndicesRedist(B, A, newIndexPositions))
         LogicError("IntroduceUnitIndicesRedist: Invalid redistribution request");
 
-    T* dst = B.Buffer();
-    const T* src = A.Buffer();
+    const Unsigned order = A.Order();
+    const Location start(order, 0);
+    T* dst = B.Buffer(start);
+    const T* src = A.LockedBuffer(start);
     MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
 }
 

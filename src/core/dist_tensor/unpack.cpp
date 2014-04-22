@@ -331,8 +331,9 @@ void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index loc
 {
     Unsigned i;
     const Unsigned order = A.Order();
-    T* dstBuf = B.Buffer();
-    const T* srcBuf = A.LockedBuffer();
+    const Location start(order, 0);
+    T* dstBuf = B.Buffer(start);
+    const T* srcBuf = A.LockedBuffer(start);
 
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
