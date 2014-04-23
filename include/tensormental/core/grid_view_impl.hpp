@@ -43,22 +43,49 @@ GridView::SetMyGridViewLoc( )
 }
 
 inline
-GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution )
+void
+GridView::SetGridModeTypes(const ModeArray& unusedModes)
+{
+    const Unsigned gridOrder = grid_->Order();
+    const Unsigned order = dist_.size();
+    Unsigned i;
+    Unsigned j;
+    for(i = 0; i < order; i++){
+        ModeDistribution modeDist = dist_[i];
+        for(j = 0; j < modeDist.size(); j++){
+            Mode mode = modeDist[j];
+            boundModes_.push_back(mode);
+        }
+    }
+    unusedModes_ = unusedModes;
+
+    for(i = 0; i < gridOrder; i++){
+        if(std::find(boundModes_.begin(), boundModes_.end(), i) == boundModes_.end()){
+            if(std::find(unusedModes_.begin(), unusedModes_.end(), i) == unusedModes_.end()){
+                freeModes_.push_back(i);
+            }
+        }
+    }
+}
+
+inline
+GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution, const ModeArray& unusedModes )
 : dist_(distribution),
   shape_(distribution.size()),
   loc_(distribution.size()),
+  //freeModes_, boundModes_, unusedModes_ are set in SetGridModeTypes
   grid_(grid)
 {
 #ifndef RELEASE
     CallStackEntry entry("GridView::GridView");
 #endif
 
-    SetupGridView();
+    SetupGridView(unusedModes);
 }
 
 inline
 void
-GridView::SetupGridView()
+GridView::SetupGridView(const ModeArray& unusedModes)
 {
 #ifndef RELEASE
     CallStackEntry entry("GridView::SetupGridView");
@@ -76,6 +103,7 @@ GridView::SetupGridView()
     	shape_[i] = gridViewDim;
     }
     SetMyGridViewLoc();
+    SetGridModeTypes(unusedModes);
 }
 
 inline
@@ -171,6 +199,41 @@ GridView::Dimension(Mode mode) const
   }
   return shape_[mode];
 }
+
+//
+//
+//
+
+inline
+ModeArray
+GridView::BoundModes() const
+{ return boundModes_; }
+
+inline
+ModeArray
+GridView::FreeModes() const
+{ return freeModes_; }
+
+inline
+ModeArray
+GridView::UnusedModes() const
+{ return unusedModes_; }
+
+inline
+bool
+GridView::IsBound(Mode mode) const
+{ return std::find(boundModes_.begin(), boundModes_.end(), mode) != boundModes_.end(); }
+
+inline
+bool
+GridView::IsFree(Mode mode) const
+{ return std::find(freeModes_.begin(), freeModes_.end(), mode) != freeModes_.end(); }
+
+inline
+bool
+GridView::IsUnused(Mode mode) const
+{ return std::find(unusedModes_.begin(), unusedModes_.end(), mode) != unusedModes_.end(); }
+
 
 //
 // Comparison functions

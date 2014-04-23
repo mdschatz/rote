@@ -23,7 +23,7 @@ namespace tmen {
 class GridView
 {
 public:
-    explicit GridView( const tmen::Grid* g, const TensorDistribution& dist );
+    explicit GridView( const tmen::Grid* g, const TensorDistribution& dist, const ModeArray& unusedModes=ModeArray() );
     ~GridView();
 
     // Simple interface (simpler version of distributed-based interface)
@@ -31,23 +31,36 @@ public:
     ObjShape Shape() const;
     Unsigned Dimension(Mode mode) const;
     Location Loc() const;
+    Location GridLoc() const;
     Unsigned ModeLoc(Mode mode) const;
     Unsigned ModeWrapStride(Mode mode) const;
     std::vector<Unsigned> ModeWrapStrides() const;
     TensorDistribution Distribution() const;
     const tmen::Grid* Grid() const;
 
+    ModeArray BoundModes() const;
+    ModeArray FreeModes() const;
+    ModeArray UnusedModes() const;
+
+    bool IsBound(Mode mode) const;
+    bool IsFree(Mode mode) const;
+    bool IsUnused(Mode mode) const;
+
     Unsigned LinearRank() const;
     void SetMyGridViewLoc();
 
 private:
     TensorDistribution dist_;
+    ModeArray boundModes_;
+    ModeArray freeModes_;
+    ModeArray unusedModes_;
     ObjShape shape_;
     Location loc_;
 
     const tmen::Grid* grid_;
 
-    void SetupGridView();
+    void SetupGridView(const ModeArray& unusedModes = ModeArray());
+    void SetGridModeTypes(const ModeArray& unusedModes = ModeArray());
 };
 
 bool operator== ( const GridView& A, const GridView& B );
