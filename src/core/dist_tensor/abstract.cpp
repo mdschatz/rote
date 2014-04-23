@@ -609,11 +609,13 @@ mpi::Comm
 AbstractDistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
 {
     mpi::Comm comm;
+    const Location gridLoc = grid_->Loc();
+    const ObjShape gridShape = grid_->Shape();
 
-    ObjShape gridSliceShape = FilterVector(grid_->Shape(), commModes);
-    ObjShape gridSliceNegShape = NegFilterVector(grid_->Shape(), commModes);
-    Location gridSliceLoc = FilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
-    Location gridSliceNegLoc = NegFilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
+    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
+    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
+    Location gridSliceLoc = FilterVector(gridLoc, commModes);
+    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
 
     const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);

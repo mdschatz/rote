@@ -23,7 +23,10 @@ void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index per
 
         Unsigned sendSize, recvSize;
         DeterminePermCommunicateDataSize(B, A, permuteIndex, recvSize, sendSize);
-        const mpi::Comm comm = A.GetCommunicator(permuteIndex);
+
+        //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+        const ModeArray commModes = A.ModeDist(A.ModeOfIndex(permuteIndex));
+        const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
         const int myRank = mpi::CommRank(comm);
 
         Memory<T> auxMemory;
@@ -74,7 +77,9 @@ void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
 
     Unsigned sendSize, recvSize;
     DeterminePartialRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
-    const mpi::Comm comm = A.GetCommunicator(reduceScatterIndex);
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    const ModeArray commModes = A.ModeDist(A.ModeOfIndex(reduceScatterIndex));
+    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -97,7 +102,9 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index r
 
     Unsigned sendSize, recvSize;
     DetermineRSCommunicateDataSize(B, A, reduceIndex, recvSize, sendSize);
-    const mpi::Comm comm = A.GetCommunicator(reduceIndex);
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    const ModeArray commModes = A.ModeDist(A.ModeOfIndex(reduceIndex));
+    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -119,7 +126,9 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGa
 
 	Unsigned sendSize, recvSize;
 	DetermineAGCommunicateDataSize(A, allGatherIndex, recvSize, sendSize);
-	const mpi::Comm comm = A.GetCommunicator(allGatherIndex);
+	//NOTE: Hack for testing.  We actually need to let the user specify the commModes
+	const ModeArray commModes = A.ModeDist(A.ModeOfIndex(allGatherIndex));
+	const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
 
 	Memory<T> auxMemory;
 	T* auxBuf = auxMemory.Require(sendSize + recvSize);

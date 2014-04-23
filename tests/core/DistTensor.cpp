@@ -324,8 +324,11 @@ CreateAGTests(const DistTensor<T>& A, const Params& args){
 
     const Unsigned order = A.Order();
     const IndexArray indices = A.Indices();
+    const TensorDistribution distA = A.TensorDist();
 
     for(i = 0; i < order; i++){
+        if(distA[i].size() == 0)
+            continue;
         const Index indexToRedist = indices[i];
         AGTest test(indexToRedist, DetermineResultingDistributionAG(A, indexToRedist));
         ret.push_back(test);
@@ -425,16 +428,15 @@ CreateA2ADITests(const DistTensor<T>& A, const Params& args){
         }
     }
 
-    std::pair<Index, Index> a2aModes(0,1);
-    ModeArray mode1CommGroup(1);
-    mode1CommGroup[0] = 1;
-    ModeArray mode2CommGroup(1);
-    mode2CommGroup[0] = 2;
-    std::pair<ModeArray, ModeArray > modeCommGroups(mode1CommGroup, mode2CommGroup);
-    std::pair<std::pair<Index, Index>, std::pair<ModeArray, ModeArray > > params(a2aModes, modeCommGroups);
-    TensorDistribution  tdist = StringToTensorDist("[(0,2),(1),()]");
-    A2ADITest test(params, tdist);
-    ret.push_back(test);
+//    std::pair<Index, Index> a2aModes(0,1);
+//    ModeArray mode1CommGroup(1);
+//    mode1CommGroup[0] = 0;
+//    ModeArray mode2CommGroup;
+//    std::pair<ModeArray, ModeArray > modeCommGroups(mode1CommGroup, mode2CommGroup);
+//    std::pair<std::pair<Index, Index>, std::pair<ModeArray, ModeArray > > params(a2aModes, modeCommGroups);
+//    TensorDistribution  tdist = StringToTensorDist("[(1),(0),()]");
+//    A2ADITest test(params, tdist);
+//    ret.push_back(test);
 
     return ret;
 }
@@ -463,64 +465,64 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<PTest> pTests = CreatePTests(A, args);
     std::vector<A2ADITest> a2aTests = CreateA2ADITests(A, args);
 
-    if(commRank == 0){
-        printf("Performing AllGather tests\n");
-    }
-    for(i = 0; i < agTests.size(); i++){
-        AGTest thisTest = agTests[i];
-        Index agIndex = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
-        if(commRank == 0){
-            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
-        }
-        TestAGRedist(A, agIndex, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing AllGather tests\n");
+//    }
+//    for(i = 0; i < agTests.size(); i++){
+//        AGTest thisTest = agTests[i];
+//        Index agIndex = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//        if(commRank == 0){
+//            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
+//        }
+//        TestAGRedist(A, agIndex, resDist);
+//    }
 
-    if(commRank == 0){
-        printf("Performing PartialReduceScatter tests\n");
-    }
-    for(i = 0; i < prsTests.size(); i++){
-        PRSTest thisTest = prsTests[i];
-        Index rsIndex = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
-        if(commRank == 0){
-            printf("Partial reduce-scattering index %d with resulting distribution %s\n", rsIndex, (tmen::TensorDistToString(resDist)).c_str());
-        }
-        TestPRSRedist(A, rsIndex, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing PartialReduceScatter tests\n");
+//    }
+//    for(i = 0; i < prsTests.size(); i++){
+//        PRSTest thisTest = prsTests[i];
+//        Index rsIndex = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//        if(commRank == 0){
+//            printf("Partial reduce-scattering index %d with resulting distribution %s\n", rsIndex, (tmen::TensorDistToString(resDist)).c_str());
+//        }
+//        TestPRSRedist(A, rsIndex, resDist);
+//    }
 
 
-    if(commRank == 0){
-        printf("Performing ReduceScatter tests\n");
-    }
-    for(i = 0; i < rsTests.size(); i++){
-        RSTest thisTest = rsTests[i];
-        Index reduceIndex = thisTest.first.first;
-        Index scatterIndex = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
+//    if(commRank == 0){
+//        printf("Performing ReduceScatter tests\n");
+//    }
+//    for(i = 0; i < rsTests.size(); i++){
+//        RSTest thisTest = rsTests[i];
+//        Index reduceIndex = thisTest.first.first;
+//        Index scatterIndex = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        if(commRank == 0){
+//        printf(
+//                "Reducing index %d, scattering index %d, with resulting distribution %s\n",
+//                reduceIndex, scatterIndex,
+//                (tmen::TensorDistToString(resDist)).c_str());
+//        }
+//        TestRSRedist(A, reduceIndex, scatterIndex, resDist);
+//    }
 
-        if(commRank == 0){
-        printf(
-                "Reducing index %d, scattering index %d, with resulting distribution %s\n",
-                reduceIndex, scatterIndex,
-                (tmen::TensorDistToString(resDist)).c_str());
-        }
-        TestRSRedist(A, reduceIndex, scatterIndex, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing Permutation tests\n");
-    }
-    for(i = 0; i <= pTests.size(); i++){
-        PTest thisTest = pTests[1];
-        Index permuteIndex = thisTest.first;
-        ModeDistribution resDist = thisTest.second;
-
-        if(commRank == 0){
-            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
-        }
-        TestPRedist(A, permuteIndex, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing Permutation tests\n");
+//    }
+//    for(i = 0; i <= pTests.size(); i++){
+//        PTest thisTest = pTests[1];
+//        Index permuteIndex = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
+//
+//        if(commRank == 0){
+//            printf("Permuting index %d with resulting index distribution %s\n", permuteIndex, (tmen::ModeDistToString(resDist)).c_str());
+//        }
+//        TestPRedist(A, permuteIndex, resDist);
+//    }
 
     if(commRank == 0){
         printf("Performing All-to-all (double index) tests\n");

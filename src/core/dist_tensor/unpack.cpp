@@ -549,29 +549,53 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
         unpackElemRecvBufOff = nElemsPerProc * owningProc;
         unpackElemDataBufOff = Loc2LinearLoc(localLoc, localShape);
 
+
+//        printf("MemCopy info:\n");
+//        printf("    unpackElemRecvBufOff: %d\n", unpackElemRecvBufOff);
+//        printf("    unpackElemDataBufOff: %d\n", unpackElemDataBufOff);
+//        printf("    nPackElems: %d\n", nUnpackElems);
+//        printf("    nPackedOuterSlices: %d\n", nPackedOuterSlices);
+//        printf("    nPackedA2AMode2Slices: %d\n", nPackedA2AMode2Slices);
+//        printf("    nPackedMidSlices: %d\n", nPackedMidSlices);
+//        printf("    nPackedA2AMode1Slices: %d\n", nPackedA2AMode1Slices);
+//        printf("    copySliceSize: %d\n", copySliceSize);
         //Now that we have figured out the starting point, begin copying the entire slice from this element
         for(outerSliceNum = 0; outerSliceNum < nPackedOuterSlices; outerSliceNum++){
 
             outerRecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * nMaxPackedMidSlices * nMaxPackedA2AMode2Slices * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
 
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
             for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nPackedA2AMode2Slices; a2aMode2SliceNum++){
 
                 a2aMode2RecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * nMaxPackedMidSlices * a2aMode2SliceNum;
                 a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * (a2aMode2SliceNum * a2aMode2UnpackStride);
 
+//                printf("        a2aMode2SliceNum: %d\n", a2aMode2SliceNum);
+//                printf("        a2aMode2RecvBufOff: %d\n", a2aMode2RecvBufOff);
+//                printf("        a2aMode2DataBufOff: %d\n", a2aMode2DataBufOff);
                 for(midSliceNum = 0; midSliceNum < nPackedMidSlices; midSliceNum++){
                     midRecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * midSliceNum;
                     midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
 
+//                    printf("        midSliceNum: %d\n", midSliceNum);
+//                    printf("        midRecvBufOff: %d\n", midRecvBufOff);
+//                    printf("        midDataBufOff: %d\n", midDataBufOff);
                     for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nPackedA2AMode1Slices; a2aMode1SliceNum++){
                         a2aMode1RecvBufOff = copySliceSize * a2aMode1SliceNum;
                         a2aMode1DataBufOff = copySliceSize * (a2aMode1SliceNum * a2aMode1UnpackStride);
 
+//                        printf("        a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
+//                        printf("        a2aMode1RecvBufOff: %d\n", a2aMode1RecvBufOff);
+//                        printf("        a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
                         //Down to all contiguous slices, so just copy
                         startRecvBuf = unpackElemRecvBufOff + outerRecvBufOff + a2aMode2RecvBufOff + midRecvBufOff + a2aMode1RecvBufOff;
                         startDataBuf = unpackElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
 
+//                        printf("          startRecvBuf: %d\n", startRecvBuf);
+//                        printf("          startDataBuf: %d\n", startDataBuf);
                         MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
 
                     }
