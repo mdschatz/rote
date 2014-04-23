@@ -418,6 +418,7 @@ GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
             gridLoc[modeDist[j]] = gridSliceLoc[j];
         }
     }
+
     return gridLoc;
 }
 

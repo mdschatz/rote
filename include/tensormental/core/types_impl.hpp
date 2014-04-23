@@ -67,7 +67,6 @@ StringToTensorDist( const std::string& s )
 {
     TensorDistribution distribution;
 
-    printf("%s\n", s.c_str());
     size_t pos, lastPos;
     pos = s.find_first_of("[");
     lastPos = s.find_first_of("]");
