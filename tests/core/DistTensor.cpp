@@ -391,13 +391,12 @@ CreateLTests(const DistTensor<T>& A, const Params& args){
 
     //NOTE: Just picking up to 2 modes to redistribute along
     for(i = 0; i < tDist.size(); i++){
-        TensorDistribution resDist(tDist.begin(), tDist.end());
-        ModeDistribution newDist = resDist[i];
         for(j = 0; j < freeModes.size(); j++){
             for(k = 0; k < freeModes.size(); k++){
+                TensorDistribution resDist(tDist.begin(), tDist.end());
+                ModeDistribution newDist = resDist[i];
                 newDist.insert(newDist.end(), freeModes[j]);
                 if(j != k){
-                    newDist.insert(newDist.end(), freeModes[j]);
                     newDist.insert(newDist.end(), freeModes[k]);
                 }
                 LTest thisTest(indices[i], newDist);
