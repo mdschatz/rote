@@ -137,11 +137,11 @@ enum Distribution
     CIRC  // Give to a single process
 };
 */
-std::string TensorDistToString( const TensorDistribution&  distribution );
+std::string TensorDistToString( const TensorDistribution&  distribution, bool endLine=false );
 TensorDistribution StringToTensorDist( const std::string& s );
 
-std::string ModeDistToString_( const ModeDistribution&  distribution );
-std::string ModeDistToString( const ModeDistribution&  distribution );
+std::string ModeDistToString_( const ModeDistribution&  distribution, bool endLine=false );
+std::string ModeDistToString( const ModeDistribution&  distribution, bool endLine=false );
 ModeDistribution StringToModeDist( const std::string& s );
 }
 
