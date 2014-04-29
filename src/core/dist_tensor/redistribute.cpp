@@ -246,6 +246,7 @@ void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
     template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex); \
+	template void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes); \
 	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \
 	template void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& newIndexPositions); \
 	template void IntroduceUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions); \

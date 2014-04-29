@@ -241,6 +241,7 @@ Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index local
     Unsigned order = A.Order();
     IndexArray AIndices = A.Indices();
     IndexArray BIndices = B.Indices();
+    TensorDistribution distA = A.TensorDist();
     TensorDistribution distB = B.TensorDist();
     ModeDistribution localIndexDistA = A.ModeDist(A.ModeOfIndex(localIndex));
     ModeDistribution localIndexDistB = B.ModeDist(B.ModeOfIndex(localIndex));
@@ -273,9 +274,9 @@ Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index local
     }
 
     ModeArray boundModes;
-    for(i = 0; i < distB.size(); i++){
-        for(j = 0; j < distB[i].size(); j++){
-            boundModes.push_back(distB[i][j]);
+    for(i = 0; i < distA.size(); i++){
+        for(j = 0; j < distA[i].size(); j++){
+            boundModes.push_back(distA[i][j]);
         }
     }
 

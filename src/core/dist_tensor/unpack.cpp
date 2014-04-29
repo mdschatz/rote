@@ -335,6 +335,8 @@ void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index loc
     T* dstBuf = B.Buffer(start);
     const T* srcBuf = A.LockedBuffer(start);
 
+
+
     const tmen::GridView gvA = A.GridView();
     const tmen::GridView gvB = B.GridView();
 
@@ -361,52 +363,64 @@ void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index loc
     //Number of slices after the mode to redist
     const ObjShape localShape = A.LocalShape();
     const ObjShape outerSliceShape(localShape.begin() + localModeA + 1, localShape.end());
-    const Unsigned nOuterSlices = prod(outerSliceShape);
+    const Unsigned nOuterSlices = Max(1, prod(outerSliceShape));
 
     //Number of slices represented by the mode
     const Unsigned nLModeSlices = localShape[localModeA];
 
     //Size of slice to copy
     const ObjShape copySliceShape(localShape.begin(), localShape.begin() + localModeA);
-    const Unsigned copySliceSize = prod(copySliceShape);
+    //NOTE: This is based on modeA, different from all other unpacks
+    const Unsigned copySliceSize = B.LocalModeStride(localModeB);
 
     //Where we start copying
-    const Unsigned elemStartLoc = myCommLinLoc * copySliceSize;
+    const Unsigned elemStartLoc = myCommLinLoc;
 
     Unsigned lModeSliceNum, outerSliceNum;
     Unsigned lModeDstOff, outerDstOff;
     Unsigned lModeSrcOff, outerSrcOff;
     Unsigned startDstBuf, startSrcBuf;
 
+    printf("srcBuf:");
+    for(Unsigned i = 0; i < prod(localShape); i++){
+        printf(" %d", srcBuf[i]);
+    }
+    printf("\n");
 
-//        printf("MemCopy info:\n");
-//        printf("    nOuterSlices: %d\n", nOuterSlices);
-//        printf("    nLModeSlices: %d\n", nLModeSlices);
-//        printf("    copySliceSize: %d\n", copySliceSize);
-//        printf("    modeUnpackStride: %d\n", modeUnpackStride);
+    printf("MemCopy info:\n");
+    printf("    elemStartLoc: %d\n", elemStartLoc);
+    printf("    nOuterSlices: %d\n", nOuterSlices);
+    printf("    nLModeSlices: %d\n", nLModeSlices);
+    printf("    copySliceSize: %d\n", copySliceSize);
+    printf("    modeUnpackStride: %d\n", modeUnpackStride);
     for(outerSliceNum = 0; outerSliceNum < nOuterSlices; outerSliceNum++){
         //NOTE: FIX THIS, WE NEED TO SEE HOW MANY TIMES WE RUN THROUGH THE lModeSliceNum loop (similar to some other unpack routine)
-        outerDstOff = copySliceSize * (nLModeSlices / modeUnpackStride) * outerSliceNum;
+        outerDstOff = copySliceSize * ((nLModeSlices - 1) / modeUnpackStride + 1) * outerSliceNum;
         outerSrcOff = copySliceSize * nLModeSlices * outerSliceNum;
 
-//      printf("        outerSliceNum: %d\n", outerSliceNum);
-//      printf("        outerDstOff: %d\n", outerDstOff);
-//      printf("        outerSrcOff: %d\n", outerSrcOff);
-        for(lModeSliceNum = 0; lModeSliceNum < nLModeSlices; lModeSliceNum += modeUnpackStride){
-            lModeDstOff = copySliceSize * lModeSliceNum / modeUnpackStride;
+        printf("        outerSliceNum: %d\n", outerSliceNum);
+        printf("        outerDstOff: %d\n", outerDstOff);
+        printf("        outerSrcOff: %d\n", outerSrcOff);
+        for(lModeSliceNum = elemStartLoc; lModeSliceNum < nLModeSlices; lModeSliceNum += modeUnpackStride){
+            lModeDstOff = copySliceSize * (lModeSliceNum - elemStartLoc) / modeUnpackStride;
             lModeSrcOff = copySliceSize * lModeSliceNum;
 
-//          printf("          lModeSliceNum: %d\n", lModeSliceNum);
-//          printf("          lModeDstOff: %d\n", lModeDstOff);
-//          printf("          lModeSrcOff: %d\n", lModeSrcOff);
+            printf("          lModeSliceNum: %d\n", lModeSliceNum);
+            printf("          lModeDstOff: %d\n", lModeDstOff);
+            printf("          lModeSrcOff: %d\n", lModeSrcOff);
             startDstBuf = outerDstOff + lModeDstOff;
-            startSrcBuf = outerSrcOff + lModeSrcOff + elemStartLoc;
+            startSrcBuf = outerSrcOff + lModeSrcOff;
 
-//          printf("          startDstBuf: %d\n", startDstBuf);
-//          printf("          startSrcBuf: %d\n", startSrcBuf);
+            printf("          startDstBuf: %d\n", startDstBuf);
+            printf("          startSrcBuf: %d\n", startSrcBuf);
             MemCopy(&(dstBuf[startDstBuf]), &(srcBuf[startSrcBuf]), copySliceSize);
         }
     }
+    printf("dstBuf:");
+    for(Unsigned i = 0; i < prod(B.LocalShape()); i++){
+        printf(" %d", dstBuf[i]);
+    }
+    printf("\n");
 }
 
 template<typename T>
