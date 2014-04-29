@@ -395,7 +395,7 @@ void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index loc
     printf("    modeUnpackStride: %d\n", modeUnpackStride);
     for(outerSliceNum = 0; outerSliceNum < nOuterSlices; outerSliceNum++){
         //NOTE: FIX THIS, WE NEED TO SEE HOW MANY TIMES WE RUN THROUGH THE lModeSliceNum loop (similar to some other unpack routine)
-        outerDstOff = copySliceSize * ((nLModeSlices - 1) / modeUnpackStride + 1) * outerSliceNum;
+        outerDstOff = copySliceSize * ((nLModeSlices - elemStartLoc - 1) / modeUnpackStride + 1) * outerSliceNum;
         outerSrcOff = copySliceSize * nLModeSlices * outerSliceNum;
 
         printf("        outerSliceNum: %d\n", outerSliceNum);

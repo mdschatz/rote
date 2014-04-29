@@ -382,34 +382,35 @@ std::vector<LTest>
 CreateLTests(const DistTensor<T>& A, const Params& args){
     Unsigned i, j, k, l;
     std::vector<LTest> ret;
-//    const tmen::GridView& gv = A.GridView();
-//
-//    const Unsigned order = A.Order();
-//    const IndexArray indices = A.Indices();
-//    const TensorDistribution tDist = A.TensorDist();
-//    ModeArray freeModes = gv.FreeModes();
-//
-//    //NOTE: Just picking up to 2 modes to redistribute along
-//    for(i = 0; i < tDist.size(); i++){
-//        TensorDistribution resDist(tDist.begin(), tDist.end());
-//        ModeDistribution newDist = resDist[i];
-//        for(j = 0; j < freeModes.size(); j++){
-//            for(k = 0; k < freeModes.size(); k++){
-//                newDist.insert(newDist.end(), freeModes[j]);
-//                if(j != k){
-//                    newDist.insert(newDist.end(), freeModes[j]);
-//                    newDist.insert(newDist.end(), freeModes[k]);
-//                }
-//                LTest thisTest(indices[i], newDist);
-//                ret.push_back(thisTest);
-//            }
-//        }
-//    }
+    const tmen::GridView& gv = A.GridView();
 
-    ModeDistribution resDist(1);
-    resDist[0] = 2;
-    LTest test(1, resDist);
-    ret.push_back(test);
+    const Unsigned order = A.Order();
+    const IndexArray indices = A.Indices();
+    const TensorDistribution tDist = A.TensorDist();
+    ModeArray freeModes = gv.FreeModes();
+
+    //NOTE: Just picking up to 2 modes to redistribute along
+    for(i = 0; i < tDist.size(); i++){
+        TensorDistribution resDist(tDist.begin(), tDist.end());
+        ModeDistribution newDist = resDist[i];
+        for(j = 0; j < freeModes.size(); j++){
+            for(k = 0; k < freeModes.size(); k++){
+                newDist.insert(newDist.end(), freeModes[j]);
+                if(j != k){
+                    newDist.insert(newDist.end(), freeModes[j]);
+                    newDist.insert(newDist.end(), freeModes[k]);
+                }
+                LTest thisTest(indices[i], newDist);
+                ret.push_back(thisTest);
+            }
+        }
+    }
+
+//    ModeDistribution resDist(1);
+//    resDist[0] = 2;
+//    LTest test(1, resDist);
+//    ret.push_back(test);
+
     return ret;
 }
 
