@@ -31,6 +31,25 @@ AbstractDistTensor<T>::AbstractDistTensor( const tmen::Grid& grid )
 }
 
 template<typename T>
+AbstractDistTensor<T>::AbstractDistTensor( const Unsigned order, const tmen::Grid& grid )
+: shape_(order, 0),
+  dist_(order),
+
+  constrainedModeAlignments_(order, 0),
+  modeAlignments_(order, 0),
+  modeShifts_(order, 0),
+
+  tensor_(order, false),
+
+  grid_(&grid),
+  gridView_(grid_, dist_),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+}
+
+template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : shape_(shape),
   dist_(dist),
@@ -39,7 +58,7 @@ AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDi
   modeAlignments_(shape.size(), 0),
   modeShifts_(shape.size(), 0),
 
-  tensor_(shape.size()),
+  tensor_(shape.size(), false),
 
   grid_(&grid),
   gridView_(grid_, dist_),
@@ -153,7 +172,7 @@ AbstractDistTensor<T>::AssertValidSubtensor
     Location maxLoc(order);
     ElemwiseSum(loc, shape, maxLoc);
 
-    if( !ElemwiseLessThan(maxLoc, shape_) )
+    if( AnyElemwiseGreaterThan(maxLoc, shape_) )
     {
         Unsigned i;
         std::ostringstream msg;
@@ -188,63 +207,43 @@ AbstractDistTensor<T>::AssertSameSize( const ObjShape& shape ) const
         LogicError("Argument must match shape of this object");
 }
 
-//template<typename T> 
-//void
-//AssertConforming1x2
-//( const AbstractDistTensor<T>& AL, const AbstractDistTensor<T>& AR )
-//{
-//    if( AL.Height() != AR.Height() )    
-//    {
-//        std::ostringstream msg;
-//        msg << "1x2 not conformant. Left is " << AL.Height() << " x " 
-//            << AL.Width() << ", right is " << AR.Height() << " x " 
-//            << AR.Width();
-//        LogicError( msg.str() );
-//    }
-//    if( AL.ColAlignment() != AR.ColAlignment() )
-//        LogicError("1x2 is misaligned");
-//}
-//
-//template<typename T> 
-//void
-//AssertConforming2x1
-//( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB )
-//{
-//    if( AT.Width() != AB.Width() )
-//    {
-//        std::ostringstream msg;        
-//        msg << "2x1 is not conformant. Top is " << AT.Height() << " x " 
-//            << AT.Width() << ", bottom is " << AB.Height() << " x " 
-//            << AB.Width();
-//        LogicError( msg.str() );
-//    }
-//    if( AT.RowAlignment() != AB.RowAlignment() )
-//        LogicError("2x1 is not aligned");
-//}
-//
-//template<typename T> 
-//void
-//AssertConforming2x2
-//( const AbstractDistTensor<T>& ATL, const AbstractDistTensor<T>& ATR,
-//  const AbstractDistTensor<T>& ABL, const AbstractDistTensor<T>& ABR ) 
-//{
-//    if( ATL.Width() != ABL.Width() || ATR.Width() != ABR.Width() ||
-//        ATL.Height() != ATR.Height() || ABL.Height() != ABR.Height() )
-//    {
-//        std::ostringstream msg;
-//        msg << "2x2 is not conformant: " << std::endl
-//            << "  TL is " << ATL.Height() << " x " << ATL.Width() << std::endl
-//            << "  TR is " << ATR.Height() << " x " << ATR.Width() << std::endl
-//            << "  BL is " << ABL.Height() << " x " << ABL.Width() << std::endl
-//            << "  BR is " << ABR.Height() << " x " << ABR.Width();
-//        LogicError( msg.str() );
-//    }
-//    if( ATL.ColAlignment() != ATR.ColAlignment() ||
-//        ABL.ColAlignment() != ABR.ColAlignment() ||
-//        ATL.RowAlignment() != ABL.RowAlignment() ||
-//        ATR.RowAlignment() != ABR.RowAlignment() )
-//        LogicError("2x2 set of matrices must aligned to combine");
-//}
+template<typename T>
+void
+AbstractDistTensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
+{
+    tensor_.AssertMergeableIndices(newIndices, oldIndices);
+}
+
+template<typename T>
+void
+AssertConforming2x1
+( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index )
+{
+    std::vector<Mode> negFilterAT(1);
+    std::vector<Mode> negFilterAB(1);
+    negFilterAT[0] = AT.ModeOfIndex(index);
+    negFilterAB[0] = AB.ModeOfIndex(index);
+
+    if( AnyElemwiseNotEqual(NegFilterVector(AT.Shape(), negFilterAT), NegFilterVector(AB.Shape(), negFilterAB)) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+        msg << "2x1 is not conformant. Top is ";
+        if(AT.Order() > 0)
+            msg << AT.Dimension(0);
+        for(i = 1; i < AT.Order(); i++)
+            msg << " x " << AT.Dimension(i);
+        msg << ", bottom is ";
+        if(AB.Order() > 0)
+            msg << AB.Dimension(0);
+        for(i = 1; i < AB.Order(); i++)
+            msg << " x " << AB.Dimension(i);
+        LogicError( msg.str() );
+    }
+    if( AnyElemwiseNotEqual(NegFilterVector(AT.Alignments(), negFilterAT), NegFilterVector(AB.Alignments(), negFilterAB)) )
+        LogicError("2x1 is not aligned");
+}
+
 #endif // RELEASE
 
 //TODO: Check if this should retain order of object
@@ -473,6 +472,12 @@ AbstractDistTensor<T>::ConstrainedModeAlignment(Mode mode) const
 }
 
 template<typename T>
+std::vector<Unsigned>
+AbstractDistTensor<T>::Alignments() const
+{
+    return modeAlignments_;
+}
+template<typename T>
 Unsigned
 AbstractDistTensor<T>::ModeAlignment(Mode mode) const
 {
@@ -593,7 +598,7 @@ AbstractDistTensor<T>::GetCommunicator(Index index) const
 	//Color is defined by the linear index into the logical grid EXCLUDING the index being distributed
 	gridViewSliceShape.erase(gridViewSliceShape.begin() + mode);
 	gridViewSliceLoc.erase(gridViewSliceLoc.begin() + mode);
-	const Unsigned commColor = LinearIndex(gridViewSliceLoc, Dimensions2Strides(gridViewSliceShape));
+	const Unsigned commColor = Loc2LinearLoc(gridViewSliceLoc, gridViewSliceShape);
 
 	mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
 	return comm;
@@ -604,14 +609,16 @@ mpi::Comm
 AbstractDistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
 {
     mpi::Comm comm;
+    const Location gridLoc = grid_->Loc();
+    const ObjShape gridShape = grid_->Shape();
 
-    ObjShape gridSliceShape = FilterVector(grid_->Shape(), commModes);
-    ObjShape gridSliceNegShape = NegFilterVector(grid_->Shape(), commModes);
-    Location gridSliceLoc = FilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
-    Location gridSliceNegLoc = NegFilterVector(GridViewLoc2GridLoc(gridView_.Loc(), gridView_), commModes);
+    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
+    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
+    Location gridSliceLoc = FilterVector(gridLoc, commModes);
+    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
 
-    const Unsigned commKey = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
-    const Unsigned commColor = LinearIndex(gridSliceNegLoc, Dimensions2Strides(gridSliceNegShape));
+    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
+    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
 
     mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
     return comm;
@@ -622,15 +629,13 @@ template<typename T>
 void
 AbstractDistTensor<T>::Empty()
 {
-    Unsigned i;
-    const Unsigned order = this->Order();
-    shape_.clear();
-    dist_.clear();
+    std::fill(shape_.begin(), shape_.end(), 0);
+    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
-    modeAlignments_.clear();
-    for(i = 0; i < order; i++)
-      constrainedModeAlignments_[i] = false;
-    modeShifts_.clear();
+    std::fill(modeAlignments_.begin(), modeAlignments_.end(), 0);
+    //NOTE: C++ complains if I fill with 'false' for the boolean vector
+    std::fill(constrainedModeAlignments_.begin(), constrainedModeAlignments_.end(), 0);
+    std::fill(modeShifts_.begin(), modeShifts_.end(), 0);
 
     tensor_.Empty_();
 
@@ -642,8 +647,8 @@ template<typename T>
 void
 AbstractDistTensor<T>::EmptyData()
 {
-    shape_.clear();
-    dist_.clear();
+    std::fill(shape_.begin(), shape_.end(), 0);
+    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
     tensor_.Empty_();
     viewType_ = OWNER;
@@ -869,14 +874,10 @@ PROTO(Complex<double>);
 
 #ifndef RELEASE
 
-/*
-#define CONFORMING(T) \
-  template void AssertConforming1x2( const AbstractDistTensor<T>& AL, const AbstractDistTensor<T>& AR ); \
-  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB ); \
-  template void AssertConforming2x2( const AbstractDistTensor<T>& ATL, const AbstractDistTensor<T>& ATR, const AbstractDistTensor<T>& ABL, const AbstractDistTensor<T>& ABR )
-*/
 
-/*
+#define CONFORMING(T) \
+  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index ); \
+
 CONFORMING(Int);
 #ifndef DISABLE_FLOAT
 CONFORMING(float);
@@ -888,7 +889,7 @@ CONFORMING(Complex<float>);
 #endif // ifndef DISABLE_FLOAT
 CONFORMING(Complex<double>);
 #endif // ifndef DISABLE_COMPLEX
-*/
+
 #endif // ifndef RELEASE
 
 } // namespace tmen

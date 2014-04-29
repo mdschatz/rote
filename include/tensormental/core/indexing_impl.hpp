@@ -163,8 +163,9 @@ inline
 std::vector<Unsigned>
 MaxLengths_( const ObjShape& shape, const ObjShape& wrapShape)
 {
+    Unsigned i;
     std::vector<Unsigned> ret(shape.size());
-    for(Unsigned i = 0; i < ret.size(); i++)
+    for(i = 0; i < ret.size(); i++)
         ret[i] = MaxLength(shape[i], wrapShape[i]);
     return ret;
 }
@@ -199,6 +200,68 @@ Unsigned
 Shift_( Int rank, Unsigned alignment, Unsigned wrap )
 { return (rank + wrap - alignment) % wrap; }
 
+// For determining the first index assigned to a given rank
+inline
+std::vector<Unsigned>
+Shifts( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape )
+{
+#ifndef RELEASE
+    CallStackEntry entry("Shift");
+    if(modeRanks.size() != alignments.size() || alignments.size() != wrapShape.size() || modeRanks.size() != wrapShape.size())
+        LogicError("modeRanks, alignments, and wrapShape must be of same order");
+    if( !ElemwiseLessThan(modeRanks, wrapShape) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+        msg << "Invalid rank: "
+            << "rank= (";
+        if(modeRanks.size() > 0)
+            msg << modeRanks[0];
+        for(i = 1; i < modeRanks.size(); i++)
+            msg << ", " << modeRanks[i];
+        msg << "), stride=";
+        if(wrapShape.size() > 0)
+            msg << wrapShape[0];
+        for(i = 1; i < wrapShape.size(); i++)
+            msg << ", " << wrapShape[i];
+        msg <<")";
+
+        LogicError( msg.str() );
+    }
+    if( !ElemwiseLessThan(alignments, wrapShape) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+        msg << "Invalid alignment: "
+            << "alignments= (";
+        if(alignments.size() > 0)
+            msg << alignments[0];
+        for(i = 1; i < alignments.size(); i++)
+            msg << ", " << alignments[i];
+        msg << "), stride=";
+        if(wrapShape.size() > 0)
+            msg << wrapShape[0];
+        for(i = 1; i < wrapShape.size(); i++)
+            msg << ", " << wrapShape[i];
+        msg <<")";
+
+        LogicError( msg.str() );
+        LogicError( msg.str() );
+    }
+#endif
+    return Shifts_( modeRanks, alignments, wrapShape );
+}
+
+inline
+std::vector<Unsigned>
+Shifts_( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape )
+{
+    std::vector<Unsigned> ret(modeRanks.size());
+    for(Unsigned i = 0; i < ret.size(); i++)
+        ret[i] = Shift(modeRanks[i], alignments[i], wrapShape[i]);
+    return ret;
+}
+
 inline
 std::vector<Unsigned>
 Dimensions2Strides(const ObjShape& objShape)
@@ -215,21 +278,32 @@ Dimensions2Strides(const ObjShape& objShape)
 
 inline
 Unsigned
-LinearIndex(const Location& loc, const std::vector<Unsigned>& strides)
+Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
 {
-    if(loc.size() != strides.size())
+    if(strides.size() != 0 && (loc.size() != strides.size() || shape.size() != loc.size()))
         LogicError( "Invalid index+stride combination");
-    return LinearIndex_(loc, strides);
+    return Loc2LinearLoc_(loc, shape, strides);
 }
 
 inline
 Unsigned
-LinearIndex_(const Location& loc, const std::vector<Unsigned>& strides)
+Loc2LinearLoc_(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
 {
     Unsigned i;
+
 	Unsigned linearInd = 0;
-	for(i = 0; i < loc.size(); i++)
-		linearInd += loc[i] * strides[i];
+	if(strides.size() == 0){
+	    if(loc.size() > 0){
+            const std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
+            linearInd += loc[0];
+            for(i = 1; i < loc.size(); i++)
+                linearInd += loc[i] * shape[i-1] * shapeStrides[i-1];
+	    }
+	}else{
+	    for(i = 0; i < loc.size(); i++)
+	        linearInd += loc[i] * strides[i];
+	}
+
 	return linearInd;
 }
 
@@ -307,7 +381,7 @@ GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView
 			gridLoc[modeDist[j]] = gridSliceLoc[j];
 		}
 	}
-	return LinearIndex(gridLoc, Dimensions2Strides(gridShape));
+	return Loc2LinearLoc(gridLoc, gridShape);
 }
 
 inline
@@ -344,6 +418,7 @@ GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
             gridLoc[modeDist[j]] = gridSliceLoc[j];
         }
     }
+
     return gridLoc;
 }
 
@@ -363,7 +438,7 @@ GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const Te
         gridSliceLoc = FilterVector(gridLoc, modeDist);
         gridSliceShape = FilterVector(gridShape, modeDist);
 
-        ret[i] = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
+        ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     }
     return ret;
 }

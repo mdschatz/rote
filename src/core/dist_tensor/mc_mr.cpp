@@ -16,6 +16,11 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 { this->SetShifts(); }
 
 template<typename T>
+DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
+: AbstractDistTensor<T>(order, grid)
+{ this->SetShifts(); }
+
+template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : AbstractDistTensor<T>(shape, dist, grid)
@@ -145,7 +150,7 @@ DistTensor<T>::ModeStride(Mode mode) const
 }
 
 template<typename T>
-Int
+Unsigned
 DistTensor<T>::ModeRank(Mode mode) const
 { return this->gridView_.ModeLoc(mode); }
 

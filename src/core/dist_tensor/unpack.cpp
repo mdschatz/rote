@@ -326,6 +326,103 @@ void UnpackAGRecvBuf(const T * const recvBuf, const Index allGatherIndex, const 
 //    printf("\n");
 }
 
+template <typename T>
+void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes)
+{
+    Unsigned i;
+    const Unsigned order = A.Order();
+    const Location start(order, 0);
+    T* dstBuf = B.Buffer(start);
+    const T* srcBuf = A.LockedBuffer(start);
+
+
+
+    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvB = B.GridView();
+
+    const tmen::Grid& g = A.Grid();
+
+    Mode localModeA = A.ModeOfIndex(localIndex);
+    Mode localModeB = B.ModeOfIndex(localIndex);
+
+    ModeDistribution lIndexDistA = A.ModeDist(localModeA);
+    ModeDistribution lIndexDistB = B.ModeDist(localModeB);
+
+    ModeArray commModes(lIndexDistB.begin() + lIndexDistA.size(), lIndexDistB.end());
+
+    Location myGridLoc = g.Loc();
+    ObjShape gridShape = g.Shape();
+
+    Location myCommLoc = FilterVector(myGridLoc, commModes);
+    ObjShape commShape = FilterVector(gridShape, commModes);
+    Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, commShape);
+
+    //NOTE: CHECK THIS IS CORRECT
+    Unsigned modeUnpackStride = prod(commShape);
+
+    //Number of slices after the mode to redist
+    const ObjShape localShape = A.LocalShape();
+    const ObjShape outerSliceShape(localShape.begin() + localModeA + 1, localShape.end());
+    const Unsigned nOuterSlices = Max(1, prod(outerSliceShape));
+
+    //Number of slices represented by the mode
+    const Unsigned nLModeSlices = localShape[localModeA];
+
+    //Size of slice to copy
+    const ObjShape copySliceShape(localShape.begin(), localShape.begin() + localModeA);
+    //NOTE: This is based on modeA, different from all other unpacks
+    const Unsigned copySliceSize = B.LocalModeStride(localModeB);
+
+    //Where we start copying
+    const Unsigned elemStartLoc = myCommLinLoc;
+
+    Unsigned lModeSliceNum, outerSliceNum;
+    Unsigned lModeDstOff, outerDstOff;
+    Unsigned lModeSrcOff, outerSrcOff;
+    Unsigned startDstBuf, startSrcBuf;
+
+//    printf("srcBuf:");
+//    for(Unsigned i = 0; i < prod(localShape); i++){
+//        printf(" %d", srcBuf[i]);
+//    }
+//    printf("\n");
+
+//    printf("MemCopy info:\n");
+//    printf("    elemStartLoc: %d\n", elemStartLoc);
+//    printf("    nOuterSlices: %d\n", nOuterSlices);
+//    printf("    nLModeSlices: %d\n", nLModeSlices);
+//    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("    modeUnpackStride: %d\n", modeUnpackStride);
+    for(outerSliceNum = 0; outerSliceNum < nOuterSlices; outerSliceNum++){
+        //NOTE: FIX THIS, WE NEED TO SEE HOW MANY TIMES WE RUN THROUGH THE lModeSliceNum loop (similar to some other unpack routine)
+        outerDstOff = copySliceSize * ((nLModeSlices - elemStartLoc - 1) / modeUnpackStride + 1) * outerSliceNum;
+        outerSrcOff = copySliceSize * nLModeSlices * outerSliceNum;
+
+//        printf("        outerSliceNum: %d\n", outerSliceNum);
+//        printf("        outerDstOff: %d\n", outerDstOff);
+//        printf("        outerSrcOff: %d\n", outerSrcOff);
+        for(lModeSliceNum = elemStartLoc; lModeSliceNum < nLModeSlices; lModeSliceNum += modeUnpackStride){
+            lModeDstOff = copySliceSize * (lModeSliceNum - elemStartLoc) / modeUnpackStride;
+            lModeSrcOff = copySliceSize * lModeSliceNum;
+
+//            printf("          lModeSliceNum: %d\n", lModeSliceNum);
+//            printf("          lModeDstOff: %d\n", lModeDstOff);
+//            printf("          lModeSrcOff: %d\n", lModeSrcOff);
+            startDstBuf = outerDstOff + lModeDstOff;
+            startSrcBuf = outerSrcOff + lModeSrcOff;
+
+//            printf("          startDstBuf: %d\n", startDstBuf);
+//            printf("          startSrcBuf: %d\n", startSrcBuf);
+            MemCopy(&(dstBuf[startDstBuf]), &(srcBuf[startSrcBuf]), copySliceSize);
+        }
+    }
+//    printf("dstBuf:");
+//    for(Unsigned i = 0; i < prod(B.LocalShape()); i++){
+//        printf(" %d", dstBuf[i]);
+//    }
+//    printf("\n");
+}
+
 template<typename T>
 void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A, DistTensor<T>& B){
     Unsigned i;
@@ -426,7 +523,7 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
         //Determine the Multiloc of the process that sent this element
         Location owningProcGVA = A.DetermineOwner(startUnpackElemLoc);
         Location owningProcG = GridViewLoc2GridLoc(owningProcGVA, gvA);
-        Unsigned owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
+        Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
 
         //Find the local location of the global starting element we are now unpacking
         Location localLoc = B.Global2LocalIndex(startUnpackElemLoc);
@@ -464,31 +561,55 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
 
         //Update the corresponding offsets
         unpackElemRecvBufOff = nElemsPerProc * owningProc;
-        unpackElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
+        unpackElemDataBufOff = Loc2LinearLoc(localLoc, localShape);
 
+
+//        printf("MemCopy info:\n");
+//        printf("    unpackElemRecvBufOff: %d\n", unpackElemRecvBufOff);
+//        printf("    unpackElemDataBufOff: %d\n", unpackElemDataBufOff);
+//        printf("    nPackElems: %d\n", nUnpackElems);
+//        printf("    nPackedOuterSlices: %d\n", nPackedOuterSlices);
+//        printf("    nPackedA2AMode2Slices: %d\n", nPackedA2AMode2Slices);
+//        printf("    nPackedMidSlices: %d\n", nPackedMidSlices);
+//        printf("    nPackedA2AMode1Slices: %d\n", nPackedA2AMode1Slices);
+//        printf("    copySliceSize: %d\n", copySliceSize);
         //Now that we have figured out the starting point, begin copying the entire slice from this element
         for(outerSliceNum = 0; outerSliceNum < nPackedOuterSlices; outerSliceNum++){
 
             outerRecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * nMaxPackedMidSlices * nMaxPackedA2AMode2Slices * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
 
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
             for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nPackedA2AMode2Slices; a2aMode2SliceNum++){
 
                 a2aMode2RecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * nMaxPackedMidSlices * a2aMode2SliceNum;
                 a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * (a2aMode2SliceNum * a2aMode2UnpackStride);
 
+//                printf("        a2aMode2SliceNum: %d\n", a2aMode2SliceNum);
+//                printf("        a2aMode2RecvBufOff: %d\n", a2aMode2RecvBufOff);
+//                printf("        a2aMode2DataBufOff: %d\n", a2aMode2DataBufOff);
                 for(midSliceNum = 0; midSliceNum < nPackedMidSlices; midSliceNum++){
                     midRecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * midSliceNum;
                     midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
 
+//                    printf("        midSliceNum: %d\n", midSliceNum);
+//                    printf("        midRecvBufOff: %d\n", midRecvBufOff);
+//                    printf("        midDataBufOff: %d\n", midDataBufOff);
                     for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nPackedA2AMode1Slices; a2aMode1SliceNum++){
                         a2aMode1RecvBufOff = copySliceSize * a2aMode1SliceNum;
                         a2aMode1DataBufOff = copySliceSize * (a2aMode1SliceNum * a2aMode1UnpackStride);
 
+//                        printf("        a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
+//                        printf("        a2aMode1RecvBufOff: %d\n", a2aMode1RecvBufOff);
+//                        printf("        a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
                         //Down to all contiguous slices, so just copy
                         startRecvBuf = unpackElemRecvBufOff + outerRecvBufOff + a2aMode2RecvBufOff + midRecvBufOff + a2aMode1RecvBufOff;
                         startDataBuf = unpackElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
 
+//                        printf("          startRecvBuf: %d\n", startRecvBuf);
+//                        printf("          startDataBuf: %d\n", startDataBuf);
                         MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
 
                     }
@@ -496,6 +617,10 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
             }
         }
     }
+//    printf("dataBuf:");
+//    for(Unsigned i = 0; i < prod(B.LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
 }
 
 #define PROTO(T) \
@@ -503,6 +628,7 @@ void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index,
         template void UnpackPartialRSRecvBuf(const T * const recvBuf, const Index reduceScatterIndex, const DistTensor<T>& A, DistTensor<T>& B); \
         template void UnpackRSRecvBuf(const T * const recvBuf, const Index reduceIndex, const Index scatterIndex, const DistTensor<T>& A, DistTensor<T>& B); \
         template void UnpackAGRecvBuf(const T * const recvBuf, const Index allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B); \
+        template void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes); \
         template void UnpackA2ADoubleIndexRecvBuf(const T * const recvBuf, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A, DistTensor<T>& B);
 
 PROTO(int)

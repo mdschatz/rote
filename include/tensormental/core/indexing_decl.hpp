@@ -36,10 +36,13 @@ std::vector<Unsigned> MaxLengths_(const ObjShape& objShape, const ObjShape& wrap
 Unsigned Shift( Int rank, Unsigned alignment, Unsigned wrap );
 Unsigned Shift_( Int rank, Unsigned alignment, Unsigned wrap );
 
+std::vector<Unsigned> Shifts( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape);
+std::vector<Unsigned> Shifts_( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape);
+
 std::vector<Unsigned> Dimensions2Strides(const ObjShape& objShape);
 
-Unsigned LinearIndex(const Location& loc, const std::vector<Unsigned>& strides);
-Unsigned LinearIndex_(const Location& loc, const std::vector<Unsigned>& strides);
+Unsigned Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides = std::vector<Unsigned>());
+Unsigned Loc2LinearLoc_(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides = std::vector<Unsigned>());
 
 Location LinearLoc2Loc(Unsigned linearLoc, const ObjShape& objShape, const Permutation& permutation = Permutation());
 Location LinearLoc2Loc_(Unsigned linearLoc, const ObjShape& objShape, const Permutation& permutation = Permutation());

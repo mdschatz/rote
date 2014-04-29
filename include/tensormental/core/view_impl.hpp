@@ -12,20 +12,406 @@
 
 namespace tmen {
 
-//template<typename T,Distribution U,Distribution V>
-//inline void HandleDiagPath
-//( DistTensor<T,U,V>& A, const DistTensor<T,U,V>& B )
-//{ }
-//
-//template<typename T>
-//inline void HandleDiagPath
-//( DistTensor<T,MD,STAR>& A, const DistTensor<T,MD,STAR>& B )
-//{ A.diagPath_ = B.diagPath_; } 
-//
-//template<typename T>
-//inline void HandleDiagPath
-//( DistTensor<T,STAR,MD>& A, const DistTensor<T,STAR,MD>& B )
-//{ A.diagPath_ = B.diagPath_; } 
+
+//////////////////////////////////////
+// Helper routines for updating views
+//////////////////////////////////////
+template<typename T>
+inline void ViewHelper( Tensor<T>& A, const Tensor<T>& B, bool isLocked){
+#ifndef RELEASE
+    CallStackEntry entry("ViewHelper");
+#endif
+    A.memory_.Empty();
+    A.shape_ = B.shape_;
+    A.indices_ = B.indices_;
+    A.index2modeMap_ = B.index2modeMap_;
+    A.mode2indexMap_ = B.mode2indexMap_;
+    A.ldims_     = B.ldims_;
+    A.strides_     = B.strides_;
+    //A.data_     = B.data_;
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked){
+#ifndef RELEASE
+    CallStackEntry entry("ViewHelper");
+#endif
+    A.Empty();
+    A.grid_ = B.grid_;
+    A.gridView_ = B.gridView_;
+    A.shape_ = B.shape_;
+    A.modeAlignments_ = B.modeAlignments_;
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+    if( A.Participating() )
+    {
+        A.modeShifts_ = B.ModeShifts();
+//        ViewHelper(A.Tensor(), B.LockedTensor(), isLocked);
+//        if(isLocked)
+//            LockedView( A.Tensor(), B.LockedTensor() );
+//        else
+//            View( A.Tensor(), B.Tensor() );
+    }
+    else
+    {
+        std::fill(A.modeShifts_.begin(), A.modeShifts_.end(), 0);
+    }
+}
+
+template<typename T>
+inline void ViewHelper
+( Tensor<T>& A, const Tensor<T>& B,
+  const Location& loc, const ObjShape& shape, bool isLocked )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewHelper");
+    const ObjShape shapeB = B.Shape();
+    Location maxLoc(shape.size());
+    ElemwiseSum(loc, shape, maxLoc);
+
+    if( AnyElemwiseGreaterThan(maxLoc, shapeB) )
+    {
+        Unsigned i;
+        std::ostringstream msg;
+
+        msg << "Trying to view outside of a Tensor: "
+            << "(";
+        if(loc.size() > 0)
+            msg << loc[0];
+        for(i = 1; i < loc.size(); i++)
+            msg << ", " << loc[i];
+        msg << ") up to (";
+        if(loc.size() > 0)
+            msg << maxLoc[0];
+        for(i = 1; i < maxLoc.size(); i++)
+            msg << ", " << maxLoc[i];
+        msg << "of ";
+        if(shapeB.size() > 0)
+            msg << shapeB[0];
+        for(i = 1; i < shapeB.size(); i++)
+            msg << "x " << shapeB[i];
+        msg << " Tensor.";
+        LogicError( msg.str() );
+    }
+#endif
+    A.memory_.Empty();
+    A.shape_ = shape;
+    A.indices_ = B.indices_;
+    A.index2modeMap_ = B.index2modeMap_;
+    A.mode2indexMap_ = B.mode2indexMap_;
+    A.ldims_ = B.ldims_;
+    A.strides_     = B.strides_;
+    if(isLocked){
+        A.viewType_ = LOCKED_VIEW;
+    }else{
+        A.viewType_ = VIEW;
+    }
+}
+
+template<typename T>
+inline void ViewHelper
+( DistTensor<T>& A, const DistTensor<T>& B,
+  const Location& loc, const ObjShape& shape, bool isLocked )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewHelper");
+    B.AssertValidSubtensor( loc, shape );
+#endif
+    A.Empty();
+
+    Unsigned i;
+    const Unsigned order = B.Order();
+    const tmen::Grid& g = B.Grid();
+    const std::vector<Unsigned> modeShifts = B.ModeShifts();
+    const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
+
+    A.grid_ = &g;
+    A.gridView_ = B.gridView_;
+    A.shape_ = shape;
+
+    for(i = 0; i < order; i++)
+        A.modeAlignments_[i] = (B.ModeAlignment(i) + loc[i]) % modeWrapStrides[i];
+
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+
+    if( A.Participating() )
+    {
+        const std::vector<Unsigned> modeRanks = B.GridViewLoc();
+        A.modeShifts_ = Shifts(modeRanks, A.Alignments(), modeWrapStrides);
+
+        const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
+
+        const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
+
+//        ViewHelper(A.Tensor(), B.LockedTensor(), localShapeBehind, localShape, isLocked);
+//        if(isLocked){
+//            LockedView( A.Tensor(), B.LockedTensor(), localShapeBehind, localShape );
+//        }else{
+//            View( A.Tensor(), B.Tensor(), localShapeBehind, localShape );
+//        }
+    }
+    else
+    {
+        std::fill(A.modeShifts_.begin(), A.modeShifts_.end(), 0);
+    }
+}
+
+template<typename T>
+inline void View2x1Helper
+( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index, bool isLocked )
+{
+    Mode indexModeA, indexModeBT, indexModeBB;
+    indexModeA = A.ModeOfIndex(index);
+    indexModeBT = BT.ModeOfIndex(index);
+    indexModeBB = BB.ModeOfIndex(index);
+#ifndef RELEASE
+    CallStackEntry entry("View2x1Helper");
+
+    std::vector<Mode> negFilterBT(1);
+    std::vector<Mode> negFilterBB(1);
+    negFilterBT[0] = indexModeBT;
+    negFilterBB[0] = indexModeBB;
+
+    if( AnyElemwiseNotEqual(NegFilterVector(BT.Shape(), negFilterBT), NegFilterVector(BB.Shape(), negFilterBB)) )
+        LogicError("2x1 must have consistent width to combine");
+    if( BT.LDim(indexModeBT) != BB.LDim(indexModeBB) )
+        LogicError("2x1 must have consistent ldim to combine");
+    if( BB.LockedBuffer() != (BT.LockedBuffer() + BT.Dimension(indexModeBT)*BT.LDim(indexModeBT)) )
+        LogicError("2x1 must have contiguous memory");
+#endif
+    A.memory_.Empty();
+    A.shape_    = BT.shape_;
+    A.shape_[indexModeA] += BB.shape_[indexModeBB];
+    A.indices_  = BT.indices_;
+    A.index2modeMap_ = BT.index2modeMap_;
+    A.mode2indexMap_ = BT.mode2indexMap_;
+    A.ldims_    = BT.ldims_;
+    A.strides_     = BT.strides_;
+//    A.data_     = BT.data_;
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline void View2x1Helper
+(       DistTensor<T>& A,
+        const DistTensor<T>& BT,
+        const DistTensor<T>& BB, Index index, bool isLocked )
+{
+#ifndef RELEASE
+    CallStackEntry entry("View2x1Helper");
+    AssertConforming2x1( BT, BB, index );
+    BT.AssertSameGrid( BB.Grid() );
+#endif
+    const Mode indexModeA = A.ModeOfIndex(index);
+    const Mode indexModeBB = BB.ModeOfIndex(index);
+    A.Empty();
+    A.grid_ = BT.grid_;
+    A.gridView_ = BT.gridView_;
+    A.shape_ = BT.shape_;
+    A.shape_[indexModeA] += BB.shape_[indexModeBB];
+    A.modeAlignments_ = BT.modeAlignments_;
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+    if( A.Participating() )
+    {
+        A.modeShifts_ = BT.modeShifts_;
+//        View2x1Helper(A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index, isLocked);
+//        if(isLocked)
+//            LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index );
+//        else
+//            View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), index );
+    }
+    else
+    {
+        std::fill(A.modeShifts_.begin(), A.modeShifts_.end(), 0);
+    }
+}
+
+template<typename T>
+inline void ViewAsLowerOrderHelper
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices, bool isLocked )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsLowerOrderHelper");
+    B.AssertMergeableIndices(newIndices, oldIndices);
+#endif
+    Unsigned i, j;
+    const Unsigned oldOrder = B.Order();
+    Unsigned newOrder = oldOrder + newIndices.size();
+    for(i = 0; i < oldIndices.size(); i++)
+        newOrder -= oldIndices[i].size();
+    A.memory_.Empty();
+
+
+    //Update the shape, ldims_, strides_, maps_
+    A.indices_.resize(newOrder);
+    A.shape_.resize(newOrder);
+    A.ldims_.resize(newOrder);
+    A.strides_.resize(newOrder);
+    A.index2modeMap_.clear();
+    A.mode2indexMap_.clear();
+
+    Unsigned mergeGroupCounter = 0;
+    Unsigned newMode = 0;
+    for(i = 0; i < oldOrder; i++){
+        //The remaining indices are not merged
+        if(mergeGroupCounter >= oldIndices.size())
+            break;
+        Index oldIndex = B.IndexOfMode(i);
+        Index newIndex = newIndices[i];
+        IndexArray mergeGroup = oldIndices[mergeGroupCounter];
+        //This index is not being merged, copy over the data
+        if(oldIndex != mergeGroup[0]){
+            A.indices_[newMode] = oldIndex;
+            A.shape_[newMode] = B.Dimension(i);
+            A.ldims_[newMode] = B.LDim(i);
+            A.strides_[newMode] = B.LDim(i);
+            A.index2modeMap_[oldIndex] = newMode;
+            A.mode2indexMap_[newMode] = oldIndex;
+        }
+        //This index is being merged, update accordingly
+        else
+        {
+            std::vector<Unsigned> modesToMerge(mergeGroup.size());
+            Unsigned startMode = B.ModeOfIndex(mergeGroup[0]);
+            for(j = 0; j < mergeGroup.size(); j++)
+                modesToMerge[j] = startMode + j;
+            A.shape_[newMode] = prod(FilterVector(B.Shape(), modesToMerge));
+            A.ldims_[newMode] = B.LDim(startMode);
+            A.strides_[newMode] = B.LDim(startMode);
+            A.index2modeMap_[newIndex] = newMode;
+            A.mode2indexMap_[newMode] = newIndex;
+            mergeGroupCounter++;
+            i += mergeGroup.size() - 1;
+        }
+        newMode++;
+    }
+    for(; i < oldOrder; i++){
+        Index oldIndex = B.IndexOfMode(i);
+        A.indices_[newMode] = oldIndex;
+        A.shape_[newMode] = B.Dimension(i);
+        A.ldims_[newMode] = B.LDim(i);
+        A.strides_[newMode] = B.LDim(i);
+        A.index2modeMap_[oldIndex] = newMode;
+        A.mode2indexMap_[newMode] = oldIndex;
+        newMode++;
+    }
+
+
+//    A.data_     = B.data_;
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline void ViewAsHigherOrderHelper
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape,
+  bool isLocked)
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsHigherOrderHelper");
+    B.AssertSplittableIndices(newIndices, oldIndices, newIndicesShape);
+#endif
+    Unsigned i, j;
+    const Unsigned oldOrder = B.Order();
+    Unsigned newOrder = oldOrder - oldIndices.size();
+    for(i = 0; i < newIndices.size(); i++){
+        newOrder += newIndices[i].size();
+    }
+    A.memory_.Empty();
+
+    //Update the shape, ldims_, strides_, maps_
+    A.indices_.resize(newOrder);
+    A.shape_.resize(newOrder);
+    A.ldims_.resize(newOrder);
+    A.strides_.resize(newOrder);
+    A.index2modeMap_.clear();
+    A.mode2indexMap_.clear();
+
+    Unsigned splitIndexCounter = 0;
+    Unsigned newMode = 0;
+    for(i = 0; i < oldOrder; i++){
+        //The remaining indices are unsplit indices;
+        if(splitIndexCounter >= oldIndices.size())
+            break;
+        Index oldIndex = B.IndexOfMode(i);
+        Index indexToSplit = oldIndices[splitIndexCounter];
+        //We are splitting this index
+        if(oldIndex == indexToSplit){
+            IndexArray splitIndices = newIndices[splitIndexCounter];
+            ObjShape splitIndicesShape = newIndicesShape[splitIndexCounter];
+            Unsigned newLDim = B.LDim(B.ModeOfIndex(indexToSplit));
+            for(j = 0; j < splitIndices.size(); j++){
+                Index newIndex = splitIndices[j];
+                Unsigned newIndexDimension = splitIndicesShape[j];
+                A.indices_[newMode] = newIndex;
+                A.shape_[newMode] = newIndexDimension;
+                A.ldims_[newMode] = newLDim;
+                A.strides_[newMode] = newLDim;
+                A.index2modeMap_[newIndex] = newMode;
+                A.mode2indexMap_[newMode] = newIndex;
+
+                //Update counters
+                newLDim *= newIndexDimension;
+                newMode++;
+            }
+        }
+        //Not splitting, so copy over info
+        else{
+            A.indices_[newMode] = oldIndex;
+            A.shape_[newMode] = B.Dimension(i);
+            A.ldims_[newMode] = B.LDim(i);
+            A.strides_[newMode] = B.LDim(i);
+            A.index2modeMap_[B.IndexOfMode(i)] = newMode;
+            A.mode2indexMap_[newMode] = B.IndexOfMode(i);
+            newMode++;
+        }
+
+    }
+    for(; i < oldOrder; i++){
+        Index oldIndex = B.IndexOfMode(i);
+        A.indices_[newMode] = oldIndex;
+        A.shape_[newMode] = B.Dimension(i);
+        A.ldims_[newMode] = B.LDim(i);
+        A.strides_[newMode] = B.LDim(i);
+        A.index2modeMap_[B.IndexOfMode(i)] = newMode;
+        A.mode2indexMap_[newMode] = B.IndexOfMode(i);
+        newMode++;
+    }
+
+//    A.data_     = B.data_;
+    if(isLocked)
+        A.viewType_ = LOCKED_VIEW;
+    else
+        A.viewType_ = VIEW;
+}
+
+////////////////////////////
+// Interface to user
+////////////////////////////
 
 template<typename T>
 inline void View( Tensor<T>& A, Tensor<T>& B )
@@ -33,56 +419,40 @@ inline void View( Tensor<T>& A, Tensor<T>& B )
 #ifndef RELEASE
     CallStackEntry entry("View");
 #endif
-    A.memory_.Empty();
-    A.height_   = B.height_;
-    A.width_    = B.width_;
-    A.ldim_     = B.ldim_;
-    A.data_     = B.data_;
-    A.viewType_ = VIEW;
+    ViewHelper(A, B, false);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
 }
 
 template<typename T>
 inline Tensor<T> View( Tensor<T>& B )
 {
-    Tensor<T> A;
+    Tensor<T> A(B.Order());
     View( A, B );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void View( DistTensor<T,U,V>& A, DistTensor<T,U,V>& B )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("View");
-//#endif
-//    A.Empty();
-//    A.grid_ = B.grid_;
-//    A.height_ = B.Height();
-//    A.width_ = B.Width();
-//    A.colAlignment_ = B.ColAlignment();
-//    A.rowAlignment_ = B.RowAlignment();
-//    HandleDiagPath( A, B );
-//    A.viewType_ = VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = B.ColShift();
-//        A.rowShift_ = B.RowShift();
-//        View( A.Tensor(), B.Tensor() );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> View( DistTensor<T,U,V>& B )
-//{
-//    DistTensor<T,U,V> A(B.Grid());
-//    View( A, B );
-//    return A;
-//}
+template<typename T>
+inline void View( DistTensor<T>& A, DistTensor<T>& B )
+{
+#ifndef RELEASE
+    CallStackEntry entry("View");
+#endif
+    ViewHelper(A, B, false);
+    //Set the data we can't set in helper
+    if(A.Participating() )
+    {
+        View( A.Tensor(), B.Tensor() );
+    }
+}
+
+template<typename T>
+inline DistTensor<T> View( DistTensor<T>& B )
+{
+    DistTensor<T> A(B.Order(), B.Grid());
+    View( A, B );
+    return A;
+}
 
 template<typename T>
 inline void LockedView( Tensor<T>& A, const Tensor<T>& B )
@@ -90,694 +460,332 @@ inline void LockedView( Tensor<T>& A, const Tensor<T>& B )
 #ifndef RELEASE
     CallStackEntry entry("LockedView");
 #endif
-    A.memory_.Empty();
-    A.height_   = B.height_;
-    A.width_    = B.width_;
-    A.ldim_     = B.ldim_;
-    A.data_     = B.data_;
-    A.viewType_ = LOCKED_VIEW;
+    ViewHelper(A, B, true);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
 }
 
 template<typename T>
 inline Tensor<T> LockedView( const Tensor<T>& B )
 {
-    Tensor<T> A;
+    Tensor<T> A(B.Order());
     LockedView( A, B );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void LockedView( DistTensor<T,U,V>& A, const DistTensor<T,U,V>& B )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("LockedView");
-//#endif
-//    A.Empty();
-//    A.grid_ = B.grid_;
-//    A.height_ = B.Height();
-//    A.width_ = B.Width();
-//    A.colAlignment_ = B.ColAlignment();
-//    A.rowAlignment_ = B.RowAlignment();
-//    HandleDiagPath( A, B );
-//    A.viewType_ = LOCKED_VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = B.ColShift();
-//        A.rowShift_ = B.RowShift();
-//        LockedView( A.Tensor(), B.LockedTensor() );
-//    }
-//    else 
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> LockedView( const DistTensor<T,U,V>& B )
-//{
-//    DistTensor<T,U,V> A(B.Grid());
-//    LockedView( A, B );
-//    return A;
-//}
+template<typename T>
+inline void LockedView( DistTensor<T>& A, const DistTensor<T>& B )
+{
+#ifndef RELEASE
+    CallStackEntry entry("LockedView");
+#endif
+    ViewHelper(A, B, true);
+    //Set the data we can't set in helper
+    if(A.Participating()){
+        LockedView(A.Tensor(), B.LockedTensor());
+    }
+
+}
+
+template<typename T>
+inline DistTensor<T> LockedView( const DistTensor<T>& B )
+{
+    DistTensor<T> A(B.Order(), B.Grid());
+    LockedView( A, B );
+    return A;
+}
 
 template<typename T>
 inline void View
 ( Tensor<T>& A, Tensor<T>& B,
-  Int i, Int j, Int height, Int width )
+  const Location& loc, const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry entry("View");
-    if( i < 0 || j < 0 )
-        LogicError("Indices must be non-negative");
-    if( height < 0 || width < 0 )
-        LogicError("Height and width must be non-negative");
-    if( (i+height) > B.Height() || (j+width) > B.Width() )
-    {
-        std::ostringstream msg;
-        msg << "Trying to view outside of a Tensor: "
-            << "(" << i << "," << j << ") up to (" 
-            << i+height-1 << "," << j+width-1 << ") "
-            << "of " << B.Height() << " x " << B.Width() << " Tensor.";
-        LogicError( msg.str() );
-    }
 #endif
-    A.memory_.Empty();
-    A.height_   = height;
-    A.width_    = width;
-    A.ldim_     = B.ldim_;
-    A.data_     = &B.data_[i+j*B.ldim_];
-    A.viewType_ = VIEW;
+    ViewHelper(A, B, loc, shape, false);
+    //Set the data we can't set in helper
+    A.data_ = B.Buffer(loc);
 }
 
 template<typename T>
-inline Tensor<T> View( Tensor<T>& B, Int i, Int j, Int height, Int width )
+inline Tensor<T> View( Tensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    Tensor<T> A;
-    View( A, B, i, j, height, width );
+    Tensor<T> A(B.Order());
+    View( A, B, loc, shape );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void View
-//( DistTensor<T,U,V>& A, DistTensor<T,U,V>& B,
-//  Int i, Int j, Int height, Int width )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("View");
-//    B.AssertValidSubmatrix( i, j, height, width );
-//#endif
-//    A.Empty();
-//
-//    const tmen::Grid& g = B.Grid();
-//    const Int colStride = B.ColStride();
-//    const Int rowStride = B.RowStride();
-//
-//    A.grid_ = &g;
-//    A.height_ = height;
-//    A.width_  = width;
-//
-//    A.colAlignment_ = (B.ColAlignment()+i) % colStride;
-//    A.rowAlignment_ = (B.RowAlignment()+j) % rowStride;
-//    HandleDiagPath( A, B );
-//    A.viewType_ = VIEW;
-//
-//    if( A.Participating() )
-//    {
-//        const Int colRank = B.ColRank();
-//        const Int rowRank = B.RowRank();
-//        A.colShift_ = Shift( colRank, A.ColAlignment(), colStride );
-//        A.rowShift_ = Shift( rowRank, A.RowAlignment(), rowStride );
-//
-//        const Int localHeightBehind = Length(i,B.ColShift(),colStride);
-//        const Int localWidthBehind  = Length(j,B.RowShift(),rowStride);
-//
-//        const Int localHeight = Length( height, A.ColShift(), colStride );
-//        const Int localWidth  = Length( width,  A.RowShift(), rowStride );
-//
-//        View
-//        ( A.Tensor(), B.Tensor(), 
-//          localHeightBehind, localWidthBehind, localHeight, localWidth );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> View
-//( DistTensor<T,U,V>& B, Int i, Int j, Int height, Int width )
-//{
-//    DistTensor<T,U,V> A(B.Grid());
-//    View( A, B, i, j, height, width );
-//    return A;
-//}
+template<typename T>
+inline void View
+( DistTensor<T>& A, DistTensor<T>& B,
+  const Location& loc, const ObjShape& shape )
+{
+#ifndef RELEASE
+    CallStackEntry entry("View");
+#endif
+    ViewHelper(A, B, loc, shape, false);
+    //Set the data we can't set in helper
+    if(A.Participating()){
+        const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
+        const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
+        const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
+
+        View( A.Tensor(), B.Tensor(), localShapeBehind, localShape );
+    }
+}
+
+template<typename T>
+inline DistTensor<T> View
+( DistTensor<T>& B, const Location& loc, const ObjShape& shape )
+{
+    DistTensor<T> A(B.Order(), B.Grid());
+    View( A, B, loc, shape );
+    return A;
+}
 
 template<typename T>
 inline void LockedView
 ( Tensor<T>& A, const Tensor<T>& B,
-  Int i, Int j, Int height, Int width )
+  const Location& loc, const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedView");
-    if( i < 0 || j < 0 )
-        LogicError("Indices must be non-negative");
-    if( height < 0 || width < 0 )
-        LogicError("Height and width must be non-negative");
-    if( (i+height) > B.Height() || (j+width) > B.Width() )
-    {
-        std::ostringstream msg;
-        msg << "Trying to view outside of a Tensor: "
-            << "(" << i << "," << j << ") up to (" 
-            << i+height-1 << "," << j+width-1 << ") "
-            << "of " << B.Height() << " x " << B.Width() << " Tensor.";
-        LogicError( msg.str() );
-    }
 #endif
-    A.memory_.Empty();
-    A.height_   = height;
-    A.width_    = width;
-    A.ldim_     = B.ldim_;
-    A.data_     = &B.data_[i+j*B.ldim_];
-    A.viewType_ = LOCKED_VIEW;
+    ViewHelper(A, B, loc, shape, true);
+    //Set the data we can't set in helper
+    A.data_ = B.LockedBuffer(loc);
 }
 
 template<typename T>
 inline Tensor<T> LockedView
-( const Tensor<T>& B, Int i, Int j, Int height, Int width )
+( const Tensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    Tensor<T> A;
-    LockedView( A, B, i, j, height, width );
+    Tensor<T> A(B.Order());
+    LockedView( A, B, loc, shape );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void LockedView
-//( DistTensor<T,U,V>& A, const DistTensor<T,U,V>& B,
-//  Int i, Int j, Int height, Int width )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("LockedView");
-//    B.AssertValidSubmatrix( i, j, height, width );
-//#endif
-//    A.Empty();
-//
-//    const tmen::Grid& g = B.Grid();
-//    const Int colStride = B.ColStride();
-//    const Int rowStride = B.RowStride();
-//    const Int colRank = B.ColRank();
-//    const Int rowRank = B.RowRank();
-//
-//    A.grid_ = &g;
-//    A.height_ = height;
-//    A.width_  = width;
-//
-//    A.colAlignment_ = (B.ColAlignment()+i) % colStride;
-//    A.rowAlignment_ = (B.RowAlignment()+j) % rowStride;
-//    HandleDiagPath( A, B );
-//    A.viewType_ = LOCKED_VIEW;
-//
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = Shift( colRank, A.ColAlignment(), colStride );
-//        A.rowShift_ = Shift( rowRank, A.RowAlignment(), rowStride );
-//
-//        const Int localHeightBehind = Length(i,B.ColShift(),colStride);
-//        const Int localWidthBehind  = Length(j,B.RowShift(),rowStride);
-//
-//        const Int localHeight = Length( height, A.ColShift(), colStride );
-//        const Int localWidth  = Length( width,  A.RowShift(), rowStride );
-//
-//        LockedView
-//        ( A.Tensor(), B.LockedTensor(), 
-//          localHeightBehind, localWidthBehind, localHeight, localWidth );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> LockedView
-//( const DistTensor<T,U,V>& B, Int i, Int j, Int height, Int width )
-//{
-//    DistTensor<T,U,V> A(B.Grid());
-//    LockedView( A, B, i, j, height, width );
-//    return A;
-//}
-
 template<typename T>
-inline void View1x2
-( Tensor<T>& A,
-  Tensor<T>& BL, Tensor<T>& BR )
+inline void LockedView
+( DistTensor<T>& A, const DistTensor<T>& B,
+  const Location& loc, const ObjShape& shape )
 {
 #ifndef RELEASE
-    CallStackEntry entry("View1x2");
-    if( BL.Height() != BR.Height() )
-        LogicError("1x2 must have consistent height to combine");
-    if( BL.LDim() != BR.LDim() )
-        LogicError("1x2 must have consistent ldims to combine");
-    if( BR.Buffer() != (BL.Buffer()+BL.LDim()*BL.Width()) )
-        LogicError("1x2 must have contiguous memory");
+    CallStackEntry entry("LockedView");
 #endif
-    A.memory_.Empty();
-    A.height_   = BL.height_;
-    A.width_    = BL.width_ + BR.width_;
-    A.ldim_     = BL.ldim_;
-    A.data_     = BL.data_;
-    A.viewType_ = VIEW;
+    ViewHelper(A, B, loc, shape, true);
+    //Set the data we can't set in helper
+    if(A.Participating()){
+        const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
+        const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
+        const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
+
+        LockedView( A.Tensor(), B.LockedTensor(), localShapeBehind, localShape );
+    }
 }
 
 template<typename T>
-inline Tensor<T> View1x2( Tensor<T>& BL, Tensor<T>& BR )
+inline DistTensor<T> LockedView
+( const DistTensor<T>& B, const Location& loc, const ObjShape& shape )
 {
-    Tensor<T> A;
-    View1x2( A, BL, BR );
+    DistTensor<T> A(B.Order(), B.Grid());
+    LockedView( A, B, loc, shape );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void View1x2
-//( DistTensor<T,U,V>& A, DistTensor<T,U,V>& BL, DistTensor<T,U,V>& BR )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("View1x2");
-//    AssertConforming1x2( BL, BR );
-//    BL.AssertSameGrid( BR.Grid() );
-//#endif
-//    A.Empty();
-//    A.grid_ = BL.grid_;
-//    A.height_ = BL.Height();
-//    A.width_ = BL.Width() + BR.Width();
-//    A.colAlignment_ = BL.ColAlignment();
-//    A.rowAlignment_ = BL.RowAlignment();
-//    HandleDiagPath( A, BL );
-//    A.viewType_ = VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = BL.ColShift();
-//        A.rowShift_ = BL.RowShift();
-//        View1x2( A.Tensor(), BL.Tensor(), BR.Tensor() );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> View1x2( DistTensor<T,U,V>& BL, DistTensor<T,U,V>& BR )
-//{
-//    DistTensor<T,U,V> A(BL.Grid());
-//    View1x2( A, BL, BR );
-//    return A;
-//}
-
 template<typename T>
-inline void LockedView1x2
-( Tensor<T>& A, const Tensor<T>& BL, const Tensor<T>& BR )
-{
-#ifndef RELEASE
-    CallStackEntry entry("LockedView1x2");
-    if( BL.Height() != BR.Height() )
-        LogicError("1x2 must have consistent height to combine");
-    if( BL.LDim() != BR.LDim() )
-        LogicError("1x2 must have consistent ldims to combine");
-    if( BR.LockedBuffer() != (BL.LockedBuffer()+BL.LDim()*BL.Width()) )
-        LogicError("1x2 must have contiguous memory");
-#endif
-    A.memory_.Empty();
-    A.height_   = BL.height_;
-    A.width_    = BL.width_ + BR.width_;
-    A.ldim_     = BL.ldim_;
-    A.data_     = BL.data_;
-    A.viewType_ = LOCKED_VIEW;
-}
-
-template<typename T>
-inline Tensor<T> LockedView1x2( const Tensor<T>& BL, const Tensor<T>& BR )
-{
-    Tensor<T> A;
-    LockedView1x2( A, BL, BR );
-    return A;
-}
-
-//template<typename T,Distribution U,Distribution V>
-//inline void LockedView1x2
-//(       DistTensor<T,U,V>& A,
-//  const DistTensor<T,U,V>& BL,
-//  const DistTensor<T,U,V>& BR )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("LockedView1x2");
-//    AssertConforming1x2( BL, BR );
-//    BL.AssertSameGrid( BR.Grid() );
-//#endif
-//    A.Empty();
-//    A.grid_ = BL.grid_;
-//    A.height_ = BL.Height();
-//    A.width_ = BL.Width() + BR.Width();
-//    A.colAlignment_ = BL.ColAlignment();
-//    A.rowAlignment_ = BL.RowAlignment();
-//    HandleDiagPath( A, BL );
-//    A.viewType_ = LOCKED_VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = BL.ColShift();
-//        A.rowShift_ = BL.RowShift();
-//        LockedView1x2( A.Tensor(), BL.LockedTensor(), BR.LockedTensor() );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> LockedView1x2
-//( const DistTensor<T,U,V>& BL, const DistTensor<T,U,V>& BR )
-//{
-//    DistTensor<T,U,V> A(BL.Grid());
-//    LockedView1x2( A, BL, BR );
-//    return A;
-//}
-
-template<typename T>
-inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB )
+inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Index index )
 {
 #ifndef RELEASE
     CallStackEntry entry("View2x1");
-    if( BT.Width() != BB.Width() )
-        LogicError("2x1 must have consistent width to combine");
-    if( BT.LDim() != BB.LDim() )
-        LogicError("2x1 must have consistent ldim to combine");
-    if( BB.Buffer() != (BT.Buffer() + BT.Height()) )
-        LogicError("2x1 must have contiguous memory");
 #endif
-    A.memory_.Empty();
-    A.height_   = BT.height_ + BB.height_;
-    A.width_    = BT.width_;
-    A.ldim_     = BT.ldim_;
-    A.data_     = BT.data_;
-    A.viewType_ = VIEW;
+    View2x1Helper(A, BT, BB, index, false);
+    //Set the data we can't set in helper
+    A.data_ = BT.data_;
 }
 
 template<typename T>
-inline Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB )
+inline Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Index index )
 {
-    Tensor<T> A;
-    View2x1( A, BT, BB );
+    Tensor<T> A(BT.Order());
+    View2x1( A, BT, BB, index );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void View2x1
-//( DistTensor<T,U,V>& A, DistTensor<T,U,V>& BT, DistTensor<T,U,V>& BB )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("View2x1");
-//    AssertConforming2x1( BT, BB );
-//    BT.AssertSameGrid( BB.Grid() );
-//#endif
-//    A.Empty();
-//    A.grid_ = BT.grid_;
-//    A.height_ = BT.Height() + BB.Height();
-//    A.width_ = BT.Width();
-//    A.colAlignment_ = BT.ColAlignment();
-//    A.rowAlignment_ = BT.RowAlignment();
-//    HandleDiagPath( A, BT );
-//    A.viewType_ = LOCKED_VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = BT.ColShift();
-//        A.rowShift_ = BT.RowShift();
-//        View2x1( A.Tensor(), BT.Tensor(), BB.Tensor() );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> View2x1( DistTensor<T,U,V>& BT, DistTensor<T,U,V>& BB )
-//{
-//    DistTensor<T,U,V> A(BT.Grid());
-//    View2x1( A, BT, BB );
-//    return A;
-//}
+template<typename T>
+inline void View2x1
+( DistTensor<T>& A, DistTensor<T>& BT, DistTensor<T>& BB, Index index )
+{
+#ifndef RELEASE
+    CallStackEntry entry("View2x1");
+#endif
+    View2x1Helper(A, BT, BB, index, false);
+    //Set the data we can't set in helper
+    if(A.Participating()){
+        View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), index );
+    }
+}
+
+template<typename T>
+inline DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Index index )
+{
+    DistTensor<T> A(BT.Order(), BT.Grid());
+    View2x1( A, BT, BB, index );
+    return A;
+}
 
 template<typename T>
 inline void LockedView2x1
-( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB )
+( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedView2x1");
-    if( BT.Width() != BB.Width() )
-        LogicError("2x1 must have consistent width to combine");
-    if( BT.LDim() != BB.LDim() )
-        LogicError("2x1 must have consistent ldim to combine");
-    if( BB.LockedBuffer() != (BT.LockedBuffer() + BT.Height()) )
-        LogicError("2x1 must have contiguous memory");
 #endif
-    A.memory_.Empty();
-    A.height_   = BT.height_ + BB.height_;
-    A.width_    = BT.width_;
-    A.ldim_     = BT.ldim_;
-    A.data_     = BT.data_;
-    A.viewType_ = LOCKED_VIEW;
+    View2x1Helper(A, BT, BB, index, true);
+    //Set the data we can't set in helper
+    A.data_ = BT.data_;
 }
 
 template<typename T>
 inline Tensor<T> LockedView2x1
-( const Tensor<T>& BT, const Tensor<T>& BB )
+( const Tensor<T>& BT, const Tensor<T>& BB, Index index )
 {
-    Tensor<T> A;
-    LockedView2x1( A, BT, BB );
+    Tensor<T> A(BT.Order());
+    LockedView2x1( A, BT, BB, index );
     return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void LockedView2x1
-//(       DistTensor<T,U,V>& A,
-//  const DistTensor<T,U,V>& BT,
-//  const DistTensor<T,U,V>& BB )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("LockedView2x1");
-//    AssertConforming2x1( BT, BB );
-//    BT.AssertSameGrid( BB.Grid() );
-//#endif
-//    A.Empty();
-//    A.grid_ = BT.grid_;
-//    A.height_ = BT.Height() + BB.Height();
-//    A.width_ = BT.Width();
-//    A.colAlignment_ = BT.ColAlignment();
-//    A.rowAlignment_ = BT.RowAlignment();
-//    HandleDiagPath( A, BT );
-//    A.viewType_ = LOCKED_VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = BT.ColShift();
-//        A.rowShift_ = BT.RowShift();
-//        LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor() );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> LockedView2x1
-//( const DistTensor<T,U,V>& BT, const DistTensor<T,U,V>& BB )
-//{
-//    DistTensor<T,U,V> A(BT.Grid());
-//    LockedView2x1( A, BT, BB );
-//    return A;
-//}
+template<typename T>
+inline void LockedView2x1
+(       DistTensor<T>& A,
+  const DistTensor<T>& BT,
+  const DistTensor<T>& BB, Index index )
+{
+#ifndef RELEASE
+    CallStackEntry entry("LockedView2x1");
+#endif
+    View2x1Helper(A, BT, BB, index, true);
+    //Set the data we can't set in helper
+    if(A.Participating()){
+        LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index );
+    }
+}
 
 template<typename T>
-inline void View2x2
+inline DistTensor<T> LockedView2x1
+( const DistTensor<T>& BT, const DistTensor<T>& BB, Index index )
+{
+    DistTensor<T> A(BT.Order(), BT.Grid());
+    LockedView2x1( A, BT, BB, index );
+    return A;
+}
+
+template<typename T>
+inline void ViewAsLowerOrder
 ( Tensor<T>& A,
-  Tensor<T>& BTL, Tensor<T>& BTR,
-  Tensor<T>& BBL, Tensor<T>& BBR )
+  Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
 {
 #ifndef RELEASE
-    CallStackEntry entry("View2x2");
-    if( BTL.Width() != BBL.Width()   ||
-        BTR.Width() != BBR.Width()   ||
-        BTL.Height() != BTR.Height() ||
-        BBL.Height() != BBR.Height()   )
-        LogicError("2x2 must conform to combine");
-    if( BTL.LDim() != BTR.LDim() ||
-        BTR.LDim() != BBL.LDim() ||
-        BBL.LDim() != BBR.LDim()   )
-        LogicError("2x2 must have consistent ldims to combine");
-    if( BBL.Buffer() != (BTL.Buffer() + BTL.Height()) ||
-        BBR.Buffer() != (BTR.Buffer() + BTR.Height()) ||
-        BTR.Buffer() != (BTL.Buffer() + BTL.LDim()*BTL.Width()) )
-        LogicError("2x2 must have contiguous memory");
+    CallStackEntry entry("ViewAsLowerOrder");
 #endif
-    A.memory_.Empty();
-    A.height_   = BTL.height_ + BBL.height_;
-    A.width_    = BTL.width_ + BTR.width_;
-    A.ldim_     = BTL.ldim_;
-    A.data_     = BTL.data_;
-    A.viewType_ = VIEW;
+    ViewAsLowerOrderHelper(A, B, newIndices, oldIndices, false);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
 }
 
 template<typename T>
-inline Tensor<T> View2x2
-( Tensor<T>& BTL, Tensor<T>& BTR,
-  Tensor<T>& BBL, Tensor<T>& BBR )
+inline Tensor<T> ViewAsLowerOrder
+( Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
 {
-    Tensor<T> A;
-    View2x2( A, BTL, BTR, BBL, BBR );
-    return A;
+   Tensor<T> A(B.Order());
+   ViewAsLowerOrder(A, B, newIndices, oldIndices);
+   return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void View2x2
-//( DistTensor<T,U,V>& A,
-//  DistTensor<T,U,V>& BTL, DistTensor<T,U,V>& BTR,
-//  DistTensor<T,U,V>& BBL, DistTensor<T,U,V>& BBR )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("View2x2");
-//    AssertConforming2x2( BTL, BTR, BBL, BBR );
-//    BTL.AssertSameGrid( BTR.Grid() );
-//    BTL.AssertSameGrid( BBL.Grid() );
-//    BTL.AssertSameGrid( BBR.Grid() );
-//#endif
-//    A.Empty();
-//    A.grid_ = BTL.grid_;
-//    A.height_ = BTL.Height() + BBL.Height();
-//    A.width_ = BTL.Width() + BTR.Width();
-//    A.colAlignment_ = BTL.ColAlignment();
-//    A.rowAlignment_ = BTL.RowAlignment();
-//    HandleDiagPath( A, BTL );
-//    A.viewType_ = VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = BTL.ColShift();
-//        A.rowShift_ = BTL.RowShift();
-//        View2x2
-//        ( A.Tensor(), BTL.Tensor(), BTR.Tensor(),
-//                      BBL.Tensor(), BBR.Tensor() ); 
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> View2x2
-//( DistTensor<T,U,V>& BTL, DistTensor<T,U,V>& BTR,
-//  DistTensor<T,U,V>& BBL, DistTensor<T,U,V>& BBR )
-//{
-//    DistTensor<T,U,V> A(BTL.Grid());
-//    View2x2( A, BTL, BTR, BBL, BBR );
-//    return A;
-//}
-
 template<typename T>
-inline void LockedView2x2
-(       Tensor<T>& A,
-  const Tensor<T>& BTL,
-  const Tensor<T>& BTR,
-  const Tensor<T>& BBL,
-  const Tensor<T>& BBR )
+inline void LockedViewAsLowerOrder
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
 {
 #ifndef RELEASE
-    CallStackEntry entry("LockedView2x2");
-    if( BTL.Width() != BBL.Width()   ||
-        BTR.Width() != BBR.Width()   ||
-        BTL.Height() != BTR.Height() ||
-        BBL.Height() != BBR.Height()   )
-        LogicError("2x2 must conform to combine");
-    if( BTL.LDim() != BTR.LDim() ||
-        BTR.LDim() != BBL.LDim() ||
-        BBL.LDim() != BBR.LDim()   )
-        LogicError("2x2 must have consistent ldims to combine");
-    if( BBL.LockedBuffer() != (BTL.LockedBuffer() + BTL.Height()) ||
-        BBR.LockedBuffer() != (BTR.LockedBuffer() + BTR.Height()) ||
-        BTR.LockedBuffer() != (BTL.LockedBuffer() + BTL.LDim()*BTL.Width()) )
-        LogicError("2x2 must have contiguous memory");
+    CallStackEntry entry("LockedViewAsLowerOrder");
 #endif
-    A.memory_.Empty();
-    A.height_   = BTL.height_ + BBL.height_;
-    A.width_    = BTL.width_ + BTR.width_;
-    A.ldim_     = BTL.ldim_;
-    A.data_     = BTL.data_;
-    A.viewType_ = LOCKED_VIEW;
+    ViewAsLowerOrderHelper(A, B, newIndices, oldIndices, true);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
 }
 
 template<typename T>
-inline Tensor<T> LockedView2x2
-( const Tensor<T>& BTL, const Tensor<T>& BTR,
-  const Tensor<T>& BBL, const Tensor<T>& BBR )
+inline Tensor<T> LockedViewAsLowerOrder
+( const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
 {
-    Tensor<T> A;
-    LockedView2x2( A, BTL, BTR, BBL, BBR );
-    return A;
+   Tensor<T> A(B.Order());
+   LockedViewAsLowerOrder(A, B, newIndices, oldIndices);
+   return A;
 }
 
-//template<typename T,Distribution U,Distribution V>
-//inline void LockedView2x2
-//(       DistTensor<T,U,V>& A,
-//  const DistTensor<T,U,V>& BTL, const DistTensor<T,U,V>& BTR,
-//  const DistTensor<T,U,V>& BBL, const DistTensor<T,U,V>& BBR )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("LockedView2x2");
-//    AssertConforming2x2( BTL, BTR, BBL, BBR );
-//    BTL.AssertSameGrid( BTR.Grid() );
-//    BTL.AssertSameGrid( BBL.Grid() );
-//    BTL.AssertSameGrid( BBR.Grid() );
-//#endif
-//    A.Empty();
-//    A.grid_ = BTL.grid_;
-//    A.height_ = BTL.Height() + BBL.Height();
-//    A.width_ = BTL.Width() + BTR.Width();
-//    A.colAlignment_ = BTL.ColAlignment();
-//    A.rowAlignment_ = BTL.RowAlignment();
-//    HandleDiagPath( A, BTL );
-//    A.viewType_ = LOCKED_VIEW;
-//    if( A.Participating() )
-//    {
-//        A.colShift_ = BTL.ColShift();
-//        A.rowShift_ = BTL.RowShift();
-//        LockedView2x2
-//        ( A.Tensor(), BTL.LockedTensor(), BTR.LockedTensor(),
-//                      BBL.LockedTensor(), BBR.LockedTensor() );
-//    }
-//    else
-//    {
-//        A.colShift_ = 0;
-//        A.rowShift_ = 0;
-//    }
-//}
-//
-//template<typename T,Distribution U,Distribution V>
-//inline DistTensor<T,U,V> LockedView2x2
-//( const DistTensor<T,U,V>& BTL, const DistTensor<T,U,V>& BTR,
-//  const DistTensor<T,U,V>& BBL, const DistTensor<T,U,V>& BBR )
-//{
-//    DistTensor<T,U,V> A(BTL.Grid());
-//    LockedView2x2( A, BTL, BTR, BBL, BBR );
-//    return A;
-//}
+template<typename T>
+inline void ViewAsHigherOrder
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape)
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsHigherOrder");
+#endif
+    ViewAsHigherOrderHelper(A, B, newIndices, oldIndices, newIndicesShape, false);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
+}
+
+template<typename T>
+inline Tensor<T> ViewAsHigherOrder
+( Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+   Tensor<T> A(B.Order());
+   ViewAsHigherOrder(A, B, newIndices, oldIndices);
+   return A;
+}
+
+template<typename T>
+inline void LockedViewAsHigherOrder
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<IndexArray>& newIndices,
+  const IndexArray& oldIndices,
+  const std::vector<ObjShape>& newIndicesShape)
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsHigherOrder");
+#endif
+    ViewAsHigherOrderHelper(A, B, newIndices, oldIndices, newIndicesShape, true);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
+}
+
+template<typename T>
+inline Tensor<T> LockedViewAsHigherOrder
+( const Tensor<T>& B,
+  const IndexArray& newIndices,
+  const std::vector<IndexArray>& oldIndices )
+{
+   Tensor<T> A(B.Order());
+   LockedViewAsHigherOrder(A, B, newIndices, oldIndices);
+   return A;
+}
 
 } // namespace tmen
 

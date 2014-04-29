@@ -30,12 +30,15 @@ public:
     void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& ldims ) const;
     void AssertValidEntry( const Location& loc ) const;
     void AssertValidIndices() const;
+    void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices ) const;
+    void AssertSplittableIndices( const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const;
     
     //
     // Constructors
     // 
 
     Tensor( bool fixed=false );
+    Tensor( const Unsigned order, bool fixed = false);
     Tensor( const IndexArray& indices, bool fixed=false );
     Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed=false );
     Tensor( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
@@ -189,25 +192,57 @@ private:
     friend class DistTensor;
     friend class AbstractDistTensor<T>;
 
-    friend void View<T>( Tensor<T>& A, Tensor<T>& B );
-//    friend void View<T>
-//    ( Tensor<T>& A, Tensor<T>& B, Int i, Int j, Int height, Int width );
-//    friend void View1x2<T>( Tensor<T>& A, Tensor<T>& BL, Tensor<T>& BR );
-//    friend void View2x1<T>( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB );
-//    friend void View2x2<T>
-//    ( Tensor<T>& A, Tensor<T>& BTL, Tensor<T>& BTR,
-//                    Tensor<T>& BBL, Tensor<T>& BBR );
+    friend void ViewHelper<T>( Tensor<T>& A, const Tensor<T>& B, bool isLocked );
+    friend void ViewHelper<T>
+    ( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape, bool isLocked );
+    friend void View2x1Helper<T>( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index, bool isLocked );
+    friend void ViewAsLowerOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
+                                     const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices, bool isLocked );
+    friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
+                                   const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices,
+                                   const std::vector<ObjShape>& newIndicesShape, bool isLocked );
 
-//    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B );
-//    friend void LockedView<T>
-//    ( Tensor<T>& A, const Tensor<T>& B, Int i, Int j, Int height, Int width );
-//    friend void LockedView1x2<T>
-//    ( Tensor<T>& A, const Tensor<T>& BL, const Tensor<T>& BR );
-//    friend void LockedView2x1<T>
-//    ( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB );
-//    friend void LockedView2x2<T>
-//    ( Tensor<T>& A, const Tensor<T>& BTL, const Tensor<T>& BTR,
-//                    const Tensor<T>& BBL, const Tensor<T>& BBR );
+    friend void View<T>( Tensor<T>& A, Tensor<T>& B);
+    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B);
+    friend void View<T>( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
+    friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape );
+
+    friend void View2x1<T>
+    ( Tensor<T>& A,
+      Tensor<T>& BT,
+      Tensor<T>& BB, Index index );
+    friend void LockedView2x1<T>
+    (       Tensor<T>& A,
+      const Tensor<T>& BT,
+      const Tensor<T>& BB, Index index );
+
+    friend
+    void ViewAsLowerOrder<T>
+    ( Tensor<T>& A,
+      Tensor<T>& B,
+      const IndexArray& newIndices,
+      const std::vector<IndexArray>& oldIndices );
+    friend
+    void LockedViewAsLowerOrder<T>
+    ( Tensor<T>& A,
+      const Tensor<T>& B,
+      const IndexArray& newIndices,
+      const std::vector<IndexArray>& oldIndices );
+
+    friend
+    void ViewAsHigherOrder<T>
+    ( Tensor<T>& A,
+      Tensor<T>& B,
+      const std::vector<IndexArray>& newIndices,
+      const IndexArray& oldIndices,
+      const std::vector<ObjShape>& newIndicesShape );
+    friend
+    void LockedViewAsHigherOrder<T>
+    ( Tensor<T>& A,
+      const Tensor<T>& B,
+      const std::vector<IndexArray>& newIndices,
+      const IndexArray& oldIndices,
+      const std::vector<ObjShape>& newIndicesShape );
 };
 
 } // namespace tmen

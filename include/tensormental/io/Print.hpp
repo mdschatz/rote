@@ -26,15 +26,15 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     CallStackEntry entry("Print");
 #endif
     if( title != "" )
-        os << title << std::endl;
+        os << title << " ";
     
     const Unsigned order = A.Order();
     Location curLoc(order);
     std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
-    bool done = false;
-    while(true){
-
+    bool done = !ElemwiseLessThan(curLoc, A.Shape());
+    while(!done){
+        os << A.Get(curLoc) << " ";
     	//Update
     	curLoc[ptr]++;
     	while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){
@@ -71,9 +71,9 @@ Print
     Location curLoc(order);
     std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
-    bool done = false;
+    bool done = !ElemwiseLessThan(curLoc, A.Shape());
     T u;
-    while(true){
+    while(!done){
     	u = A.Get(curLoc);
 
     	if(A.Grid().LinearRank() == 0){

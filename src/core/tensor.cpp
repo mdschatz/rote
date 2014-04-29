@@ -86,6 +86,80 @@ Tensor<T>::AssertValidIndices() const
     }
 }
 
+template<typename T>
+void
+Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::AssertMergeableIndices");
+#endif
+    Unsigned i, j;
+    if(newIndices.size() != oldIndices.size())
+    {
+        LogicError("Each new Index must be formed from a set of current indices");
+    }
+    for(i = 0; i < oldIndices.size(); i++){
+        IndexArray mergedIndices = oldIndices[i];
+        if(mergedIndices.size() == 0){
+            LogicError("New index must come from merging some indices");
+        }
+        Mode startMode = ModeOfIndex(mergedIndices[0]);
+        for(j = 0; j < mergedIndices.size(); j++){
+            if(std::find(indices_.begin(), indices_.end(), mergedIndices[j]) == indices_.end())
+                LogicError("Attempting to merge an index that this tensor does not represent");
+            if(ModeOfIndex(mergedIndices[j]) != startMode + j)
+                LogicError("Modes to be merged must be contiguously stored");
+        }
+    }
+
+    for(i = 0; i < newIndices.size(); i++){
+        if(std::find(indices_.begin(), indices_.end(), newIndices[i]) != indices_.end())
+            LogicError("Merging indices into an index this tensor already represents");
+    }
+}
+
+template<typename T>
+void
+Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::AssertSplittableIndices");
+#endif
+
+    Unsigned i, j;
+    if(newIndices.size() != oldIndices.size())
+    {
+        LogicError("Each new Index must be formed from a set of current indices");
+    }
+    if(oldIndices.size() != newIndicesShape.size())
+    {
+        LogicError("Each split index must be resized");
+    }
+
+    for(i = 0; i < newIndices.size(); i++){
+        IndexArray newIndexArray = newIndices[i];
+        ObjShape newIndexShape = newIndicesShape[i];
+        Index splitIndex = oldIndices[i];
+        if(std::find(indices_.begin(), indices_.end(), splitIndex) == indices_.end())
+            LogicError("Attempting to split an index this object does not represent");
+
+        Mode splitMode = ModeOfIndex(splitIndex);
+        Unsigned splitIndexDimension = Dimension(splitMode);
+
+        if(newIndexArray.size() != newIndexShape.size())
+            LogicError("Each new index must have an associated dimension");
+
+        if(prod(newIndexShape) != splitIndexDimension)
+            LogicError("New shape must represent same number of locations as index being split");
+
+        for(j = 0; j < newIndexArray.size(); j++){
+            Index newIndex = newIndexArray[j];
+            if(std::find(indices_.begin(), indices_.end(), newIndex) != indices_.end())
+                LogicError("Index already used");
+        }
+    }
+}
+
 //
 // Constructors
 //
@@ -99,8 +173,17 @@ Tensor<T>::Tensor( bool fixed )
 { }
 
 template<typename T>
+Tensor<T>::Tensor( const Unsigned order, bool fixed )
+: indices_(order), shape_(order), strides_(order), ldims_(order),
+  index2modeMap_(), mode2indexMap_(),
+  viewType_( fixed ? OWNER_FIXED : OWNER ),
+  data_(nullptr), memory_()
+{ SetIndexMaps();}
+
+template<typename T>
 Tensor<T>::Tensor( const IndexArray& indices, bool fixed )
 : indices_(indices), shape_(indices.size()), strides_(indices.size()), ldims_(indices.size()),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
 {
@@ -115,6 +198,7 @@ Tensor<T>::Tensor( const IndexArray& indices, bool fixed )
 template<typename T>
 Tensor<T>::Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(indices.size()),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
@@ -134,6 +218,7 @@ template<typename T>
 Tensor<T>::Tensor
 ( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
@@ -154,6 +239,7 @@ template<typename T>
 Tensor<T>::Tensor
 ( const IndexArray& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   data_(buffer), memory_()
 {
@@ -170,6 +256,7 @@ template<typename T>
 Tensor<T>::Tensor
 ( const IndexArray& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
 : indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
+  index2modeMap_(), mode2indexMap_(),
   viewType_( fixed ? VIEW_FIXED: VIEW ),
   data_(buffer), memory_()
 {
@@ -840,18 +927,14 @@ Tensor<T>::operator=( const Tensor<T>& A )
         LogicError
         ("Cannot assign to a view of different dimensions");
 #endif
-//    if( viewType_ == OWNER )
-//        ResizeTo( A.dims_ );
-    //TODO: IMPLEMENT CORRECTLY
-//    const Int height = Height();
-//    const Int width = Width();
-//    const Int ldim = LDim();
-//    const Int ldimOfA = A.LDim();
-//    const T* src = A.LockedBuffer();
-//    T* dst = this->Buffer();
-//    PARALLEL_FOR
-//    for( Int j=0; j<width; ++j )
-//        MemCopy( &dst[j*ldim], &src[j*ldimOfA], height );
+    if( viewType_ == OWNER )
+        ResizeTo( A.shape_ );
+    indices_ = A.indices_;
+    index2modeMap_ = A.index2modeMap_;
+    mode2indexMap_ = A.mode2indexMap_;
+    T* dst = this->Buffer();
+    const T* src = A.LockedBuffer();
+    MemCopy(&dst[0], &src[0], prod(shape_));
     return *this;
 }
 
@@ -862,7 +945,7 @@ Tensor<T>::Empty_()
     std::fill(indices_.begin(), indices_.end(), 0);
     std::fill(shape_.begin(), shape_.end(), 0);
     std::fill(strides_.begin(), strides_.end(), 0);
-    std::fill(ldims_.begin(), shape_.end(), 0);
+    std::fill(ldims_.begin(), ldims_.end(), 0);
 
     viewType_ = (ViewType)( viewType_ & ~LOCKED_VIEW );
 

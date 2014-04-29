@@ -26,7 +26,7 @@ SafeProduct<F>::SafeProduct( Int numEntries )
 namespace distribution_wrapper {
 
 inline std::string 
-TensorDistToString( const TensorDistribution& distribution )
+TensorDistToString( const TensorDistribution& distribution, bool endLine )
 {
     std::stringstream ss;
     ss << "[";
@@ -35,12 +35,14 @@ TensorDistToString( const TensorDistribution& distribution )
 		for(size_t i = 1; i < distribution.size(); i++)
 		  ss << ", " << ModeDistToString_(distribution[i]);
     }
-    ss <<  "]" << std::endl;
+    ss <<  "]";
+    if(endLine)
+        ss << std::endl;
     return ss.str();
 }
 
 inline std::string
-ModeDistToString_( const ModeDistribution& distribution )
+ModeDistToString_( const ModeDistribution& distribution, bool endLine )
 {
     std::stringstream ss;
     ss << "(";
@@ -50,15 +52,15 @@ ModeDistToString_( const ModeDistribution& distribution )
 		  ss << ", " << distribution[i];
     }
     ss <<  ")";
+    if(endLine)
+        ss << std::endl;
     return ss.str();
 }
 
 inline std::string
-ModeDistToString( const ModeDistribution& distribution )
+ModeDistToString( const ModeDistribution& distribution, bool endLine )
 {
-    std::string str = ModeDistToString_(distribution);
-    str += "\n";
-    return str;
+    return ModeDistToString_(distribution, endLine);
 }
 
 //TODO: Figure out how to error check these without C++11
@@ -67,7 +69,6 @@ StringToTensorDist( const std::string& s )
 {
     TensorDistribution distribution;
 
-    printf("%s\n", s.c_str());
     size_t pos, lastPos;
     pos = s.find_first_of("[");
     lastPos = s.find_first_of("]");

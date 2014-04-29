@@ -39,6 +39,15 @@ Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const I
 template<typename T>
 Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
+template<typename T>
+Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes);
+
+template<typename T>
+Int CheckRemoveUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& unitIndices);
+
+template<typename T>
+Int CheckIntroduceUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions);
+
 //template<typename T>
 //int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index index, const ModeArray& rsGridModes);
 
@@ -46,9 +55,6 @@ Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& 
 template<typename T>
 Int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allToAllIndex);
 
-
-template<typename T>
-Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex);
 
 /////////////////
 //Redist routines
@@ -69,6 +75,15 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGa
 template<typename T>
 void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
+template<typename T>
+void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes);
+
+template<typename T>
+void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& unitIndices);
+
+template<typename T>
+void IntroduceUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Unsigned& nIndices);
+
 //template<typename T>
 //void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, const ModeArray& rsGridModes);
 
@@ -76,8 +91,6 @@ void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const s
 template<typename T>
 void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index index);
 
-template<typename T>
-void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index index);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_DECL_HPP

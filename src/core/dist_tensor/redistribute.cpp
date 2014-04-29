@@ -23,7 +23,10 @@ void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index per
 
         Unsigned sendSize, recvSize;
         DeterminePermCommunicateDataSize(B, A, permuteIndex, recvSize, sendSize);
-        const mpi::Comm comm = A.GetCommunicator(permuteIndex);
+
+        //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+        const ModeArray commModes = A.ModeDist(A.ModeOfIndex(permuteIndex));
+        const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
         const int myRank = mpi::CommRank(comm);
 
         Memory<T> auxMemory;
@@ -52,13 +55,13 @@ void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index per
 
         //Determine sendRank
         const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
-        const Unsigned sendRank = LinearIndex(FilterVector(sendLoc, permA), gridSliceStridesA);
+        const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteIndexDistA));
 
         //Determine recvRank
         const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
-        const Unsigned recvLinearLoc = LinearIndex(FilterVector(myLoc, permB), gridSliceStridesB);
+        const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteIndexDistB));
         const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
-        const Unsigned recvRank = LinearIndex(FilterVector(recvLoc, permA), gridSliceStridesA);
+        const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteIndexDistA));
 
         //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
         mpi::SendRecv(sendBuf, sendSize, sendRank,
@@ -74,7 +77,9 @@ void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
 
     Unsigned sendSize, recvSize;
     DeterminePartialRSCommunicateDataSize(B, A, reduceScatterIndex, recvSize, sendSize);
-    const mpi::Comm comm = A.GetCommunicator(reduceScatterIndex);
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    const ModeArray commModes = A.ModeDist(A.ModeOfIndex(reduceScatterIndex));
+    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -97,7 +102,9 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index r
 
     Unsigned sendSize, recvSize;
     DetermineRSCommunicateDataSize(B, A, reduceIndex, recvSize, sendSize);
-    const mpi::Comm comm = A.GetCommunicator(reduceIndex);
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    const ModeArray commModes = A.ModeDist(A.ModeOfIndex(reduceIndex));
+    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -119,7 +126,9 @@ void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGa
 
 	Unsigned sendSize, recvSize;
 	DetermineAGCommunicateDataSize(A, allGatherIndex, recvSize, sendSize);
-	const mpi::Comm comm = A.GetCommunicator(allGatherIndex);
+	//NOTE: Hack for testing.  We actually need to let the user specify the commModes
+	const ModeArray commModes = A.ModeDist(A.ModeOfIndex(allGatherIndex));
+	const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
 
 	Memory<T> auxMemory;
 	T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -168,6 +177,41 @@ void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const s
     UnpackA2ADoubleIndexRecvBuf(recvBuf, a2aIndices, a2aCommGroups, A, B);
 }
 
+template<typename T>
+void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes){
+    if(!CheckLocalRedist(B, A, localIndex, gridRedistModes))
+        LogicError("LocalRedist: Invalid redistribution request");
+
+    //Packing is what is stored in memory
+    UnpackLocalRedist(B, A, localIndex, gridRedistModes);
+}
+
+//NOTE: Assuming everything is correct, this is just a straight memcopy
+template<typename T>
+void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& newIndexPositions){
+    if(!CheckRemoveUnitIndicesRedist(B, A, newIndexPositions))
+        LogicError("RemoveUnitIndicesRedist: Invalid redistribution request");
+
+    const Unsigned order = A.Order();
+    const Location start(order, 0);
+    T* dst = B.Buffer(start);
+    const T* src = A.LockedBuffer(start);
+    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+}
+
+//NOTE: Assuming everything is correct, this is just a straight memcopy
+template<typename T>
+void IntroduceUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions){
+    if(!CheckIntroduceUnitIndicesRedist(B, A, newIndexPositions))
+        LogicError("IntroduceUnitIndicesRedist: Invalid redistribution request");
+
+    const Unsigned order = A.Order();
+    const Location start(order, 0);
+    T* dst = B.Buffer(start);
+    const T* src = A.LockedBuffer(start);
+    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+}
+
 template <typename T>
 void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
 //NOTE: All2All is valid if both distributions are valid
@@ -202,7 +246,12 @@ void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
     template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex); \
-	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups);
+	template void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes); \
+	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \
+	template void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& newIndexPositions); \
+	template void IntroduceUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions); \
+
+
 PROTO(int)
 PROTO(float)
 PROTO(double)

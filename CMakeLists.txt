@@ -469,7 +469,7 @@ if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
   set(TEST_TYPES core)
 
-  set(core_TESTS DistTensor Grids)
+  set(core_TESTS DistTensor Views Grids)
   #set(compute_TESTS Contract)
 
   foreach(TYPE ${TEST_TYPES})

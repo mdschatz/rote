@@ -291,7 +291,6 @@ void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const
 //  printf("MemCopy info:\n");
 //  printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
 //  printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
-//  printf("    agModePackStride: %d\n", agModePackStride);
 //  printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
 //  printf("    copySliceSize: %d\n", copySliceSize);
   for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
@@ -354,26 +353,20 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     ModeArray commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
 
-    ModeArray nonCommModes;
-    for(i = 0; i < g.Order(); i++){
-        if(std::find(commModes.begin(), commModes.end(), i) == commModes.end()){
-            nonCommModes.push_back(i);
-        }
-    }
-
-    Location myGridLoc = g.Loc();
     ObjShape gridShape = g.Shape();
 
-    std::vector<Unsigned> modeLCMs(order);
+    std::vector<Unsigned> wrapLCMs(order);
     for(i = 0; i < order; i++)
-    	modeLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
+    	wrapLCMs[i] = tmen::LCM(gvA.ModeWrapStride(i), gvB.ModeWrapStride(i));
 
+    //Number of entries to skip when packing the specified mode
     std::vector<Unsigned> modePackStrides(order);
     for(i = 0; i < order; i++){
-    	modePackStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
+    	modePackStrides[i] = wrapLCMs[i] / gvA.ModeWrapStride(i);
     }
 
     const ObjShape localShape = A.LocalShape();
+    //The shape we assume each process is packing into
     const ObjShape packLocalShape = MaxLengths(A.Shape(), gvA.Shape());
 
     //Slices of a2aMode1
@@ -406,11 +399,22 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     const Unsigned a2aMode1PackStride = modePackStrides[a2aMode1];
     const Unsigned a2aMode2PackStride = modePackStrides[a2aMode2];
 
+    //The number of times we will pack
+    const Unsigned nPackA2AMode1Slices = Max(1, ((nMaxA2AMode1Slices - 1) / a2aMode1PackStride + 1));
+    const Unsigned nPackA2AMode2Slices = Max(1, ((nMaxA2AMode2Slices - 1) / a2aMode2PackStride + 1));
+
     Location myFirstLoc = A.ModeShifts();
 
     Unsigned packElemNum;
     const Unsigned nPackElems = prod(modePackStrides);
 
+//    printf("MemCopy info:\n");
+//    printf("    nPackElems: %d\n", nPackElems);
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nA2AMode2Slices: %d\n", nMaxA2AMode2Slices);
+//    printf("    nMaxMidSlices: %d\n", nMaxMidSlices);
+//    printf("    nA2AMode1Slices: %d\n", nMaxA2AMode1Slices);
+//    printf("    copySliceSize: %d\n", copySliceSize);
     for(packElemNum = 0; packElemNum < nPackElems; packElemNum++){
     	Location packElemMultiLoc = LinearLoc2Loc(packElemNum, modePackStrides);
 
@@ -427,50 +431,75 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
     	//Determine the Multiloc of the process that owns this element
     	Location owningProcGVB = B.DetermineOwner(startPackElemLoc);
     	Location owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
-    	Unsigned owningProc = LinearIndex(FilterVector(owningProcG, commModes), Dimensions2Strides(FilterVector(gridShape, commModes)));
+    	Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
 
         //Find the local location of the global starting element we are now packing
         Location localLoc = A.Global2LocalIndex(startPackElemLoc);
 
         //Update the corresponding offsets
         packElemSendBufOff = nElemsPerProc * owningProc;
-        packElemDataBufOff = LinearIndex(localLoc, Dimensions2Strides(localShape));
+        packElemDataBufOff = Loc2LinearLoc(localLoc, localShape);
 
+//        printf("        packElemSendBufOff: %d\n", packElemSendBufOff);
+//        printf("        packElemDataBufOff: %d\n", packElemDataBufOff);
         //Now that we have figured out the starting point, begin copying the entire slice from this element
         for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
             if(outerSliceNum >= nLocalOuterSlices)
                 break;
-            outerSendBufOff = copySliceSize * Max(1, (nMaxA2AMode1Slices / a2aMode1PackStride)) * nMaxMidSlices * Max(1, (nMaxA2AMode2Slices / a2aMode2PackStride)) * outerSliceNum;
+            outerSendBufOff = copySliceSize * nPackA2AMode1Slices * nMaxMidSlices * nPackA2AMode2Slices * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
 
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerSendBufOff: %d\n", outerSendBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
             for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nMaxA2AMode2Slices; a2aMode2SliceNum += a2aMode2PackStride){
                 if(a2aMode2SliceNum >= nLocalA2AMode2Slices)
                     break;
-                a2aMode2SendBufOff = copySliceSize * Max(1, (nMaxA2AMode1Slices / a2aMode1PackStride)) * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2PackStride);
+                a2aMode2SendBufOff = copySliceSize * nPackA2AMode1Slices * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2PackStride);
                 a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * a2aMode2SliceNum;
 
+//                printf("        a2aMode2SliceNum: %d\n", a2aMode2SliceNum);
+//                printf("        a2aMode2SendBufOff: %d\n", a2aMode2SendBufOff);
+//                printf("        a2aMode2DataBufOff: %d\n", a2aMode2DataBufOff);
                 for(midSliceNum = 0; midSliceNum < nMaxMidSlices; midSliceNum++){
                     if(midSliceNum >= nLocalMidSlices)
                         break;
-                    midSendBufOff = copySliceSize * Max(1, (nMaxA2AMode1Slices / a2aMode1PackStride)) * midSliceNum;
+                    midSendBufOff = copySliceSize * nPackA2AMode1Slices * midSliceNum;
                     midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
 
+//                    printf("        midSliceNum: %d\n", midSliceNum);
+//                    printf("        midSendBufOff: %d\n", midSendBufOff);
+//                    printf("        midDataBufOff: %d\n", midDataBufOff);
                     for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nMaxA2AMode1Slices; a2aMode1SliceNum += a2aMode1PackStride){
                         if(a2aMode1SliceNum >= nLocalA2AMode1Slices)
                             break;
                         a2aMode1SendBufOff = copySliceSize * (a2aMode1SliceNum / a2aMode1PackStride);
                         a2aMode1DataBufOff = copySliceSize * a2aMode1SliceNum;
 
+//                        printf("        a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
+//                        printf("        a2aMode1SendBufOff: %d\n", a2aMode1SendBufOff);
+//                        printf("        a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
                         //Down to all contiguous slices, so just copy
+
                         startSendBuf = packElemSendBufOff + outerSendBufOff + a2aMode2SendBufOff + midSendBufOff + a2aMode1SendBufOff;
                         startDataBuf = packElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
 
+//                        printf("        startSendBuf: %d\n", startSendBuf);
+//                        printf("        startDataBuf: %d\n", startDataBuf);
                         MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
                     }
                 }
             }
         }
     }
+
+    const ObjShape commGridSlice = FilterVector(B.Grid().Shape(), commModes);
+    const Unsigned nRedistProcs = prod(commGridSlice);
+
+//    printf("packed sendBuf: ");
+//    for(Unsigned i = 0; i < prod(packLocalShape) * nRedistProcs; i++)
+//        printf("%d ", sendBuf[i]);
+//    printf("\n");
 }
 
 #define PROTO(T) \
