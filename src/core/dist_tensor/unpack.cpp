@@ -381,46 +381,46 @@ void UnpackLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index loc
     Unsigned lModeSrcOff, outerSrcOff;
     Unsigned startDstBuf, startSrcBuf;
 
-    printf("srcBuf:");
-    for(Unsigned i = 0; i < prod(localShape); i++){
-        printf(" %d", srcBuf[i]);
-    }
-    printf("\n");
+//    printf("srcBuf:");
+//    for(Unsigned i = 0; i < prod(localShape); i++){
+//        printf(" %d", srcBuf[i]);
+//    }
+//    printf("\n");
 
-    printf("MemCopy info:\n");
-    printf("    elemStartLoc: %d\n", elemStartLoc);
-    printf("    nOuterSlices: %d\n", nOuterSlices);
-    printf("    nLModeSlices: %d\n", nLModeSlices);
-    printf("    copySliceSize: %d\n", copySliceSize);
-    printf("    modeUnpackStride: %d\n", modeUnpackStride);
+//    printf("MemCopy info:\n");
+//    printf("    elemStartLoc: %d\n", elemStartLoc);
+//    printf("    nOuterSlices: %d\n", nOuterSlices);
+//    printf("    nLModeSlices: %d\n", nLModeSlices);
+//    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("    modeUnpackStride: %d\n", modeUnpackStride);
     for(outerSliceNum = 0; outerSliceNum < nOuterSlices; outerSliceNum++){
         //NOTE: FIX THIS, WE NEED TO SEE HOW MANY TIMES WE RUN THROUGH THE lModeSliceNum loop (similar to some other unpack routine)
         outerDstOff = copySliceSize * ((nLModeSlices - elemStartLoc - 1) / modeUnpackStride + 1) * outerSliceNum;
         outerSrcOff = copySliceSize * nLModeSlices * outerSliceNum;
 
-        printf("        outerSliceNum: %d\n", outerSliceNum);
-        printf("        outerDstOff: %d\n", outerDstOff);
-        printf("        outerSrcOff: %d\n", outerSrcOff);
+//        printf("        outerSliceNum: %d\n", outerSliceNum);
+//        printf("        outerDstOff: %d\n", outerDstOff);
+//        printf("        outerSrcOff: %d\n", outerSrcOff);
         for(lModeSliceNum = elemStartLoc; lModeSliceNum < nLModeSlices; lModeSliceNum += modeUnpackStride){
             lModeDstOff = copySliceSize * (lModeSliceNum - elemStartLoc) / modeUnpackStride;
             lModeSrcOff = copySliceSize * lModeSliceNum;
 
-            printf("          lModeSliceNum: %d\n", lModeSliceNum);
-            printf("          lModeDstOff: %d\n", lModeDstOff);
-            printf("          lModeSrcOff: %d\n", lModeSrcOff);
+//            printf("          lModeSliceNum: %d\n", lModeSliceNum);
+//            printf("          lModeDstOff: %d\n", lModeDstOff);
+//            printf("          lModeSrcOff: %d\n", lModeSrcOff);
             startDstBuf = outerDstOff + lModeDstOff;
             startSrcBuf = outerSrcOff + lModeSrcOff;
 
-            printf("          startDstBuf: %d\n", startDstBuf);
-            printf("          startSrcBuf: %d\n", startSrcBuf);
+//            printf("          startDstBuf: %d\n", startDstBuf);
+//            printf("          startSrcBuf: %d\n", startSrcBuf);
             MemCopy(&(dstBuf[startDstBuf]), &(srcBuf[startSrcBuf]), copySliceSize);
         }
     }
-    printf("dstBuf:");
-    for(Unsigned i = 0; i < prod(B.LocalShape()); i++){
-        printf(" %d", dstBuf[i]);
-    }
-    printf("\n");
+//    printf("dstBuf:");
+//    for(Unsigned i = 0; i < prod(B.LocalShape()); i++){
+//        printf(" %d", dstBuf[i]);
+//    }
+//    printf("\n");
 }
 
 template<typename T>
