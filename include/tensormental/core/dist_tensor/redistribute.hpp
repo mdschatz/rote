@@ -34,6 +34,9 @@ template<typename T>
 Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex);
 
 template<typename T>
+Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes);
+
+template<typename T>
 Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
 
 template<typename T>
@@ -68,6 +71,9 @@ void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const 
 
 template<typename T>
 void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex);
+
+template<typename T>
+void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes);
 
 template<typename T>
 void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);

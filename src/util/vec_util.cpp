@@ -165,6 +165,42 @@ std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsi
 }
 
 template<typename T>
+bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2){
+    Unsigned i;
+    Unsigned vec1Len = vec1.size();
+    Unsigned vec2Len = vec2.size();
+
+    if(vec1Len > vec2Len)
+        return false;
+    for(i = 0; i < vec1Len; i++){
+        if(vec1[vec1Len - i] != vec2[vec2Len - i])
+            return false;
+    }
+    return true;
+}
+
+template<typename T>
+bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2){
+    Unsigned i;
+
+    if(vec1.size() > vec2.size())
+        return false;
+    for(i = 0; i < vec1.size(); i++){
+        if(vec1[i] != vec2[i])
+            return false;
+    }
+    return true;
+}
+
+template<typename T>
+std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2){
+    std::vector<T> ret(vec1);
+    ret.insert(ret.end(), vec2.begin(), vec2.end());
+
+    return ret;
+}
+
+template<typename T>
 std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
     if(ref.size() != vec.size())
         LogicError("reference vector and permuted vector are of different sizes");
@@ -197,6 +233,9 @@ std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector
 	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
+	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
     template std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 PROTO(Unsigned)

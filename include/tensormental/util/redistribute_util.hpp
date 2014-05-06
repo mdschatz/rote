@@ -31,6 +31,9 @@ template <typename T>
 void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
+void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes, Unsigned& recvSize, Unsigned& sendSize);
+
+template <typename T>
 void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
