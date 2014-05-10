@@ -254,66 +254,27 @@ inline void ViewAsLowerOrderHelper
 #endif
     Unsigned i, j;
     const Unsigned oldOrder = B.Order();
-    Unsigned newOrder = oldOrder + newIndices.size();
-    for(i = 0; i < oldIndices.size(); i++)
-        newOrder -= oldIndices[i].size();
+    const Unsigned newOrder = newIndices.size();
     A.memory_.Empty();
 
-
     //Update the shape, ldims_, strides_, maps_
-    A.indices_.resize(newOrder);
+    A.indices_ = newIndices;
     A.shape_.resize(newOrder);
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
     A.index2modeMap_.clear();
     A.mode2indexMap_.clear();
-
-    Unsigned mergeGroupCounter = 0;
-    Unsigned newMode = 0;
-    for(i = 0; i < oldOrder; i++){
-        //The remaining indices are not merged
-        if(mergeGroupCounter >= oldIndices.size())
-            break;
-        Index oldIndex = B.IndexOfMode(i);
-        Index newIndex = newIndices[i];
-        IndexArray mergeGroup = oldIndices[mergeGroupCounter];
-        //This index is not being merged, copy over the data
-        if(oldIndex != mergeGroup[0]){
-            A.indices_[newMode] = oldIndex;
-            A.shape_[newMode] = B.Dimension(i);
-            A.ldims_[newMode] = B.LDim(i);
-            A.strides_[newMode] = B.LDim(i);
-            A.index2modeMap_[oldIndex] = newMode;
-            A.mode2indexMap_[newMode] = oldIndex;
-        }
-        //This index is being merged, update accordingly
-        else
-        {
-            std::vector<Unsigned> modesToMerge(mergeGroup.size());
-            Unsigned startMode = B.ModeOfIndex(mergeGroup[0]);
-            for(j = 0; j < mergeGroup.size(); j++)
-                modesToMerge[j] = startMode + j;
-            A.shape_[newMode] = prod(FilterVector(B.Shape(), modesToMerge));
-            A.ldims_[newMode] = B.LDim(startMode);
-            A.strides_[newMode] = B.LDim(startMode);
-            A.index2modeMap_[newIndex] = newMode;
-            A.mode2indexMap_[newMode] = newIndex;
-            mergeGroupCounter++;
-            i += mergeGroup.size() - 1;
-        }
-        newMode++;
+    for(i = 0; i < newOrder; i++){
+        const Index newIndex = newIndices[i];
+        ModeArray oldModes(oldIndices[i].size());
+        for(j = 0; j < oldIndices[i].size(); j++)
+            oldModes[j] = B.ModeOfIndex(oldIndices[i][j]);
+        A.shape_[i] = prod(FilterVector(B.Shape(), oldModes));
+        A.ldims_[i] = B.LDim(B.ModeOfIndex(oldIndices[i][0]));
+        A.strides_[i] = B.LDim(B.ModeOfIndex(oldIndices[i][0]));
+        A.index2modeMap_[newIndex] = i;
+        A.mode2indexMap_[i] = newIndex;
     }
-    for(; i < oldOrder; i++){
-        Index oldIndex = B.IndexOfMode(i);
-        A.indices_[newMode] = oldIndex;
-        A.shape_[newMode] = B.Dimension(i);
-        A.ldims_[newMode] = B.LDim(i);
-        A.strides_[newMode] = B.LDim(i);
-        A.index2modeMap_[oldIndex] = newMode;
-        A.mode2indexMap_[newMode] = oldIndex;
-        newMode++;
-    }
-
 
 //    A.data_     = B.data_;
     if(isLocked)
@@ -337,10 +298,9 @@ inline void ViewAsHigherOrderHelper
 #endif
     Unsigned i, j;
     const Unsigned oldOrder = B.Order();
-    Unsigned newOrder = oldOrder - oldIndices.size();
-    for(i = 0; i < newIndices.size(); i++){
+    Unsigned newOrder = 0;
+    for(i = 0; i < newIndices.size(); i++)
         newOrder += newIndices[i].size();
-    }
     A.memory_.Empty();
 
     //Update the shape, ldims_, strides_, maps_
@@ -350,56 +310,25 @@ inline void ViewAsHigherOrderHelper
     A.strides_.resize(newOrder);
     A.index2modeMap_.clear();
     A.mode2indexMap_.clear();
-
-    Unsigned splitIndexCounter = 0;
-    Unsigned newMode = 0;
-    for(i = 0; i < oldOrder; i++){
-        //The remaining indices are unsplit indices;
-        if(splitIndexCounter >= oldIndices.size())
-            break;
-        Index oldIndex = B.IndexOfMode(i);
-        Index indexToSplit = oldIndices[splitIndexCounter];
-        //We are splitting this index
-        if(oldIndex == indexToSplit){
-            IndexArray splitIndices = newIndices[splitIndexCounter];
-            ObjShape splitIndicesShape = newIndicesShape[splitIndexCounter];
-            Unsigned newLDim = B.LDim(B.ModeOfIndex(indexToSplit));
-            for(j = 0; j < splitIndices.size(); j++){
-                Index newIndex = splitIndices[j];
-                Unsigned newIndexDimension = splitIndicesShape[j];
-                A.indices_[newMode] = newIndex;
-                A.shape_[newMode] = newIndexDimension;
-                A.ldims_[newMode] = newLDim;
-                A.strides_[newMode] = newLDim;
-                A.index2modeMap_[newIndex] = newMode;
-                A.mode2indexMap_[newMode] = newIndex;
-
-                //Update counters
-                newLDim *= newIndexDimension;
-                newMode++;
+    Unsigned modeCount = 0;
+    for(i = 0; i < newIndices.size(); i++){
+        IndexArray newIndexGroup = newIndices[i];
+        ObjShape newIndexGroupShape = newIndicesShape[i];
+        for(j = 0; j < newIndexGroup.size(); j++){
+            Index newIndex = newIndexGroup[j];
+            A.indices_[modeCount] = newIndex;
+            A.shape_[modeCount] = newIndexGroupShape[j];
+            if(i == 0 && j == 0){
+                A.ldims_[modeCount] = 1;
+                A.strides_[modeCount] = 1;
+            }else{
+                A.ldims_[modeCount] = A.shape_[modeCount - 1] * A.ldims_[modeCount - 1];
+                A.ldims_[modeCount] = A.shape_[modeCount - 1] * A.strides_[modeCount - 1];
             }
+            A.index2modeMap_[newIndex] = modeCount;
+            A.mode2indexMap_[modeCount] = newIndex;
+            modeCount++;
         }
-        //Not splitting, so copy over info
-        else{
-            A.indices_[newMode] = oldIndex;
-            A.shape_[newMode] = B.Dimension(i);
-            A.ldims_[newMode] = B.LDim(i);
-            A.strides_[newMode] = B.LDim(i);
-            A.index2modeMap_[B.IndexOfMode(i)] = newMode;
-            A.mode2indexMap_[newMode] = B.IndexOfMode(i);
-            newMode++;
-        }
-
-    }
-    for(; i < oldOrder; i++){
-        Index oldIndex = B.IndexOfMode(i);
-        A.indices_[newMode] = oldIndex;
-        A.shape_[newMode] = B.Dimension(i);
-        A.ldims_[newMode] = B.LDim(i);
-        A.strides_[newMode] = B.LDim(i);
-        A.index2modeMap_[B.IndexOfMode(i)] = newMode;
-        A.mode2indexMap_[newMode] = B.IndexOfMode(i);
-        newMode++;
     }
 
 //    A.data_     = B.data_;

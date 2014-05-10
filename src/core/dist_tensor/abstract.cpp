@@ -400,6 +400,11 @@ AbstractDistTensor<T>::Dimension(Mode mode) const
 { return shape_[mode]; }
 
 template<typename T>
+Unsigned
+AbstractDistTensor<T>::IndexDimension(Index index) const
+{ return Dimension(ModeOfIndex(index)); }
+
+template<typename T>
 ObjShape
 AbstractDistTensor<T>::Shape() const
 { return shape_; }
@@ -535,6 +540,11 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::LocalModeStride(Mode mode) const
 { return tensor_.ModeStride(mode); }
+
+template<typename T>
+std::vector<Unsigned>
+AbstractDistTensor<T>::LDims() const
+{ return tensor_.LDims(); }
 
 template<typename T>
 Unsigned

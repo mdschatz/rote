@@ -98,6 +98,7 @@ Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vecto
     {
         LogicError("Each new Index must be formed from a set of current indices");
     }
+
     for(i = 0; i < oldIndices.size(); i++){
         IndexArray mergedIndices = oldIndices[i];
         if(mergedIndices.size() == 0){
@@ -108,14 +109,14 @@ Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vecto
             if(std::find(indices_.begin(), indices_.end(), mergedIndices[j]) == indices_.end())
                 LogicError("Attempting to merge an index that this tensor does not represent");
             if(ModeOfIndex(mergedIndices[j]) != startMode + j)
-                LogicError("Modes to be merged must be contiguously stored");
+                LogicError("Modes to be merged must be contiguously stored and in order");
         }
     }
 
-    for(i = 0; i < newIndices.size(); i++){
-        if(std::find(indices_.begin(), indices_.end(), newIndices[i]) != indices_.end())
-            LogicError("Merging indices into an index this tensor already represents");
-    }
+//    for(i = 0; i < newIndices.size(); i++){
+//        if(std::find(indices_.begin(), indices_.end(), newIndices[i]) != indices_.end())
+//            LogicError("Merging indices into an index this tensor already represents");
+//    }
 }
 
 template<typename T>
@@ -152,11 +153,11 @@ Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, co
         if(prod(newIndexShape) != splitIndexDimension)
             LogicError("New shape must represent same number of locations as index being split");
 
-        for(j = 0; j < newIndexArray.size(); j++){
-            Index newIndex = newIndexArray[j];
-            if(std::find(indices_.begin(), indices_.end(), newIndex) != indices_.end())
-                LogicError("Index already used");
-        }
+//        for(j = 0; j < newIndexArray.size(); j++){
+//            Index newIndex = newIndexArray[j];
+//            if(std::find(indices_.begin(), indices_.end(), newIndex) != indices_.end())
+//                LogicError("Index already used");
+//        }
     }
 }
 
@@ -368,6 +369,13 @@ Tensor<T>::Dimension(Mode mode) const
 }
 
 template<typename T>
+Unsigned
+Tensor<T>::IndexDimension(Index index) const
+{
+  return Dimension(ModeOfIndex(index));
+}
+
+template<typename T>
 IndexArray
 Tensor<T>::Indices() const
 {
@@ -399,6 +407,13 @@ Index
 Tensor<T>::IndexOfMode(Mode mode) const
 {
     return mode2indexMap_.at(mode);
+}
+
+template<typename T>
+std::vector<Unsigned>
+Tensor<T>::LDims() const
+{
+    return ldims_;
 }
 
 template<typename T>
