@@ -310,7 +310,6 @@ DetermineResultingDistributionPRS(const DistTensor<T>& A, Unsigned rsIndex){
 template<typename T>
 TensorDistribution
 DetermineResultingDistributionA2ADI(const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups){
-    TensorDistribution ret;
 
     const Index a2aIndex1 = a2aIndices.first;
     const Index a2aIndex2 = a2aIndices.second;
@@ -321,16 +320,15 @@ DetermineResultingDistributionA2ADI(const DistTensor<T>& A, const std::pair<Inde
     const ModeArray a2aIndex1CommGroup = commGroups.first;
     const ModeArray a2aIndex2CommGroup = commGroups.second;
 
-    const TensorDistribution ADist = A.TensorDist();
-    ret = ADist;
+    TensorDistribution newDist = A.TensorDist();
 
-    ret[a2aIndex1Mode].erase(ret[a2aIndex1Mode].end() - a2aIndex1CommGroup.size(), ret[a2aIndex1Mode].end());
-    ret[a2aIndex2Mode].erase(ret[a2aIndex2Mode].end() - a2aIndex2CommGroup.size(), ret[a2aIndex2Mode].end());
+    newDist[a2aIndex1Mode].erase(newDist[a2aIndex1Mode].end() - a2aIndex1CommGroup.size(), newDist[a2aIndex1Mode].end());
+    newDist[a2aIndex2Mode].erase(newDist[a2aIndex2Mode].end() - a2aIndex2CommGroup.size(), newDist[a2aIndex2Mode].end());
 
-    ret[a2aIndex1Mode].insert(ret[a2aIndex1Mode].end(), a2aIndex2CommGroup.begin(), a2aIndex2CommGroup.end());
-    ret[a2aIndex2Mode].insert(ret[a2aIndex2Mode].end(), a2aIndex1CommGroup.begin(), a2aIndex1CommGroup.end());
+    newDist[a2aIndex1Mode].insert(newDist[a2aIndex1Mode].end(), a2aIndex2CommGroup.begin(), a2aIndex2CommGroup.end());
+    newDist[a2aIndex2Mode].insert(newDist[a2aIndex2Mode].end(), a2aIndex1CommGroup.begin(), a2aIndex1CommGroup.end());
 
-    return ret;
+    return newDist;
 }
 
 template<typename T>
@@ -530,7 +528,10 @@ DistTensorTest( const Params& args, const Grid& g )
         indices[i] = i;
 
     DistTensor<T> A(args.tensorShape, args.tensorDist, indices, g);
-
+    IndexArray testSet(order);
+    for(i = 0; i < testSet.size(); i++)
+        testSet[i] = indices[order - 1 -i];
+    A.SetIndices(testSet);
     Set(A);
 
     std::vector<AGTest> agTests = CreateAGTests(A, args);

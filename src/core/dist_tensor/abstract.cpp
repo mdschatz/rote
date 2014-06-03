@@ -415,6 +415,11 @@ AbstractDistTensor<T>::Indices() const
 { return this->tensor_.Indices(); }
 
 template<typename T>
+void
+AbstractDistTensor<T>::SetIndices(const IndexArray& newIndices)
+{ return this->tensor_.SetIndices(newIndices); }
+
+template<typename T>
 Mode
 AbstractDistTensor<T>::ModeOfIndex(Index index) const
 { return tensor_.ModeOfIndex(index); }

@@ -318,6 +318,9 @@ Tensor<T>::SetIndexMaps()
     Unsigned i;
     const Unsigned order = this->Order();
 
+    index2modeMap_.clear();
+    mode2indexMap_.clear();
+
     for(i = 0; i < order; i++){
         index2modeMap_[indices_[i]] = i;
         mode2indexMap_[i] = indices_[i];
@@ -375,6 +378,18 @@ Tensor<T>::Indices() const
 }
 
 template<typename T>
+void
+Tensor<T>::SetIndices(const IndexArray& newIndices)
+{
+#ifndef RELEASE
+    if(newIndices.size() != Order())
+        LogicError("SetIndices: new index set must be same order as object");
+#endif
+    indices_ = newIndices;
+    SetIndexMaps();
+}
+
+template<typename T>
 Unsigned
 Tensor<T>::ModeStride(Mode mode) const
 {
@@ -391,7 +406,7 @@ template<typename T>
 Mode
 Tensor<T>::ModeOfIndex(Index index) const
 {
-    return index2modeMap_.at(index);;
+    return index2modeMap_.at(index);
 }
 
 template<typename T>

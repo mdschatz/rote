@@ -46,6 +46,7 @@ public:
     Unsigned LocalDimension(Mode mode) const;
     Unsigned LocalModeStride(Mode mode) const;
     IndexArray Indices() const;
+    void SetIndices(const IndexArray& newIndices);
     Index IndexOfMode(Mode mode) const;
     Mode ModeOfIndex(Index index) const;
 

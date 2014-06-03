@@ -70,6 +70,7 @@ public:
     ObjShape Shape() const;
     Unsigned Dimension(Mode mode) const;
     IndexArray Indices() const;
+    void SetIndices(const IndexArray& newIndices);
     Unsigned ModeStride(Mode mode) const;
 
     Mode ModeOfIndex(Index index) const;
