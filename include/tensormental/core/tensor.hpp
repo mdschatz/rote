@@ -69,12 +69,14 @@ public:
     Unsigned Order() const;
     ObjShape Shape() const;
     Unsigned Dimension(Mode mode) const;
+    Unsigned IndexDimension(Index index) const;
     IndexArray Indices() const;
     Unsigned ModeStride(Mode mode) const;
 
     Mode ModeOfIndex(Index index) const;
     Index IndexOfMode(Mode mode) const;
 
+    std::vector<Unsigned> LDims() const;
     Unsigned LDim(Mode mode) const;
     Unsigned MemorySize() const;
 

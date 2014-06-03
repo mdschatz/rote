@@ -467,10 +467,10 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 # Build the test drivers if necessary
 if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
-  set(TEST_TYPES core)
+  set(TEST_TYPES core btas)
 
   set(core_TESTS DistTensor Views Grids)
-  #set(compute_TESTS Contract)
+  set(btas_TESTS Contract)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")

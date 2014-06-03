@@ -120,6 +120,41 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index r
 }
 
 template <typename T>
+void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes ){
+    if(!CheckAllGatherRedist(B, A, allGatherIndex, redistModes))
+        LogicError("AllGatherRedist: Invalid redistribution request");
+
+    //NOTE: Fix to handle strides in Tensor data
+    if(redistModes.size() == 0){
+        const Location start(A.Order(), 0);
+        T* dst = B.Buffer(start);
+        const T* src = A.LockedBuffer(start);
+        MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+        return;
+    }
+    Unsigned sendSize, recvSize;
+    DetermineAGCommunicateDataSize(A, allGatherIndex, redistModes, recvSize, sendSize);
+
+    const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
+    PackAGSendBuf(A, allGatherIndex, sendBuf, redistModes);
+
+    //printf("Allgathering %d elements\n", sendSize);
+    mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
+
+    UnpackAGRecvBuf(recvBuf, allGatherIndex, redistModes, A, B);
+    //Print(B.LockedTensor(), "A's local tensor after allgathering:");
+}
+
+template <typename T>
 void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex){
 	if(!CheckAllGatherRedist(B, A, allGatherIndex))
 		LogicError("AllGatherRedist: Invalid redistribution request");
@@ -245,6 +280,7 @@ void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A){
     template void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex); \
     template void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex); \
     template void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
+    template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes ); \
 	template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex); \
 	template void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes); \
 	template void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \

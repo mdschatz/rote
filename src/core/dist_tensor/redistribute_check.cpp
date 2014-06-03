@@ -172,7 +172,33 @@ Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, con
 }
 
 template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index allGatherIndex){
+Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes){
+    if(A.Order() != B.Order()){
+        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
+    }
+
+    Unsigned AOrder = A.Order();
+    IndexArray AIndices = A.Indices();
+    IndexArray BIndices = B.Indices();
+    ModeDistribution allGatherDistA = A.IndexDist(allGatherIndex);
+    ModeDistribution allGatherDistB = B.IndexDist(allGatherIndex);
+
+    std::vector<bool> foundIndices(AOrder, 0);
+    for(int i = 0; i < AOrder; i++){
+        if(std::find(BIndices.begin(), BIndices.end(), AIndices[i]) != BIndices.end())
+            foundIndices[i] = true;
+    }
+
+    const ModeDistribution check = ConcatenateVectors(allGatherDistB, redistModes);
+    if(AnyElemwiseNotEqual(check, allGatherDistA)){
+        LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
+    }
+
+    return true;
+}
+
+template<typename T>
+Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex){
 	if(A.Order() != B.Order()){
 		LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
 	}
@@ -202,7 +228,7 @@ Int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const I
 }
 
 template <typename T>
-Int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index rsIndex, const ModeArray& rsGridModes){
+Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index rsIndex, const ModeArray& rsGridModes){
 	LogicError("CheckPartialReduceScatterRedist: Not implemented");
 	//if(AnyElemwiseNotEqual(A.Indices(), B.Indices()))
 	//	LogicError("CheckPartialReduceScatterRedist: Invalid redistribution request");
@@ -212,7 +238,7 @@ Int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>&
 
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
-Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
+Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
     if(A.Order() != B.Order())
         LogicError("CheckAllToAllDoubleIndexRedist: Objects being redistributed must be of same order");
 
@@ -341,9 +367,10 @@ Int CheckIntroduceUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>&
 #define PROTO(T) \
         template Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex); \
         template Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex); \
-		template Int CheckReduceScatterRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index reduceIndex, const Index scatterIndex); \
-		template Int CheckAllGatherRedist(const DistTensor<T>& A, const DistTensor<T>& B, const Index allGatherIndex); \
-		template Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& A, const DistTensor<T>& B, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups); \
+		template Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex); \
+		template Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes); \
+		template Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex); \
+		template Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups); \
 		template Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes); \
 		template Int CheckRemoveUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& unitIndices); \
 		template Int CheckIntroduceUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions); \

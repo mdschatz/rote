@@ -259,6 +259,74 @@ void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index r
 }
 
 template <typename T>
+void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf, const ModeArray& redistModes)
+{
+  const Location start(A.Order(), 0);
+  const T* dataBuf = A.LockedBuffer(start);
+
+  const Mode agModeA = A.ModeOfIndex(allGatherIndex);
+
+  const tmen::GridView gvA = A.GridView();
+
+  //Shape of the local tensor we are packing
+  const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+  const ObjShape localShapeA = A.LocalShape();
+
+  //Calculate number of outer slices to pack
+  const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, agModeA + 1));
+  const Unsigned nLocalOuterSlices = prod(localShapeA, agModeA + 1);
+
+  //Calculate number of agMode slices to pack
+  const Unsigned nMaxAGModeSlices = maxLocalShapeA[agModeA];
+  const Unsigned nLocalAGModeSlices = localShapeA[agModeA];
+
+  const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, agModeA));
+  const Unsigned copySliceSize = prod(localShapeA, 0, agModeA);
+
+  Unsigned outerSliceNum, agModeSliceNum; //Which slice of which wrap of which process are we packing
+  Unsigned outerSendBufOff, agModeSendBufOff;
+  Unsigned outerDataBufOff, agModeDataBufOff;
+  Unsigned startSendBuf, startDataBuf;
+
+  printf("MemCopy info:\n");
+  printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+  printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+  printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+  printf("    copySliceSize: %d\n", copySliceSize);
+  for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+      if(outerSliceNum >= nLocalOuterSlices)
+          break;
+      outerSendBufOff = maxCopySliceSize * nMaxAGModeSlices * outerSliceNum;
+      outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
+
+      printf("        outerSliceNum: %d\n", outerSliceNum);
+      printf("        outerSendBufOff: %d\n", outerSendBufOff);
+      printf("        outerDataBufOff: %d\n", outerDataBufOff);
+
+      for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum++){
+          if(agModeSliceNum >= nLocalAGModeSlices)
+              break;
+          agModeSendBufOff = maxCopySliceSize * agModeSliceNum;
+          agModeDataBufOff = copySliceSize * agModeSliceNum;
+
+          printf("          agModeSliceNum: %d\n", agModeSliceNum);
+          printf("          agModeSendBufOff: %d\n", agModeSendBufOff);
+          printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+          startSendBuf = outerSendBufOff + agModeSendBufOff;
+          startDataBuf = outerDataBufOff + agModeDataBufOff;
+
+          printf("          startSendBuf: %d\n", startSendBuf);
+          printf("          startDataBuf: %d\n", startDataBuf);
+          MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
+      }
+  }
+  printf("packed sendBuf: ");
+  for(Unsigned i = 0; i < prod(maxLocalShapeA); i++)
+      printf("%d ", sendBuf[i]);
+  printf("\n");
+}
+
+template <typename T>
 void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf)
 {
   const Location start(A.Order(), 0);
@@ -506,6 +574,7 @@ void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, c
         template void PackPermutationSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, T * const sendBuf); \
 		template void PackPartialRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, T * const sendBuf); \
         template void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex, T * const sendBuf); \
+        template void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf, const ModeArray& redistModes); \
         template void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf); \
         template void PackA2ADoubleIndexSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf);
 
