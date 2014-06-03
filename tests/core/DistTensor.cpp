@@ -29,7 +29,7 @@ typedef struct Arguments{
 } Params;
 
 typedef std::pair< Index, ModeDistribution> PTest;
-typedef std::pair< Index, TensorDistribution> AGTest;
+typedef std::pair< std::pair<Index, ModeArray>, TensorDistribution> AGTest;
 typedef std::pair< Index, ModeDistribution> LTest;
 typedef std::pair< Index, TensorDistribution> PRSTest;
 typedef std::pair< std::pair<Index, Index>, TensorDistribution> RSTest;
@@ -117,7 +117,7 @@ void
 TestPRedist( DistTensor<T>& A, Index pIndex, const ModeDistribution& resDist )
 {
 #ifndef RELEASE
-    CallStackEntry entry("TestAGRedist");
+    CallStackEntry entry("TestPRedist");
 #endif
     //const int order = A.Order();
     const Grid& g = A.Grid();
@@ -133,7 +133,7 @@ TestPRedist( DistTensor<T>& A, Index pIndex, const ModeDistribution& resDist )
 
 template<typename T>
 void
-TestAGRedist( DistTensor<T>& A, Index agIndex, const TensorDistribution& resDist )
+TestAGRedist( DistTensor<T>& A, Index agIndex, const ModeArray& redistModes, const TensorDistribution& resDist )
 {
 #ifndef RELEASE
     CallStackEntry entry("TestAGRedist");
@@ -142,7 +142,7 @@ TestAGRedist( DistTensor<T>& A, Index agIndex, const TensorDistribution& resDist
     const Grid& g = A.Grid();
 
     DistTensor<T> B(A.Shape(), resDist, A.Indices(), g);
-    AllGatherRedist(B, A, agIndex);
+    AllGatherRedist(B, A, agIndex, redistModes);
     Print(B, "B after ag redist");
 }
 
@@ -268,11 +268,11 @@ Set(DistTensor<T>& A)
 
 template<typename T>
 TensorDistribution
-DetermineResultingDistributionAG(const DistTensor<T>& A, Index agIndex){
-    TensorDistribution ret;
+DetermineResultingDistributionAG(const DistTensor<T>& A, Index agIndex, const ModeArray& redistModes){
     const TensorDistribution ADist = A.TensorDist();
-    ret = ADist;
-    ret[A.ModeOfIndex(agIndex)].clear();
+    TensorDistribution ret(ADist);
+    const Mode agMode = A.ModeOfIndex(agIndex);
+    ret[agMode].erase(ret[agMode].begin() + ret[agMode].size() - redistModes.size(), ret[agMode].end());
     return ret;
 }
 
@@ -355,7 +355,7 @@ CreatePTests(const DistTensor<T>& A, const Params& args){
 template<typename T>
 std::vector<AGTest >
 CreateAGTests(const DistTensor<T>& A, const Params& args){
-    Unsigned i;
+    Unsigned i, j;
     std::vector<AGTest > ret;
 
     const Unsigned order = A.Order();
@@ -366,8 +366,14 @@ CreateAGTests(const DistTensor<T>& A, const Params& args){
         if(distA[i].size() == 0)
             continue;
         const Index indexToRedist = indices[i];
-        AGTest test(indexToRedist, DetermineResultingDistributionAG(A, indexToRedist));
-        ret.push_back(test);
+        const ModeDistribution indexDist = A.IndexDist(indexToRedist);
+        for(j = 0; j < indexDist.size(); j++){
+            const ModeArray suffix(indexDist.begin() + indexDist.size() - j, indexDist.end());
+            std::pair<Index, ModeArray> testPair(indexToRedist, suffix);
+            TensorDistribution resDist = DetermineResultingDistributionAG(A, indexToRedist, suffix);
+            AGTest test(testPair, resDist);
+            ret.push_back(test);
+        }
     }
 
 //    AGTest test(1, DetermineResultingDistributionAG(A, 1));
@@ -541,29 +547,30 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<PTest> pTests = CreatePTests(A, args);
     std::vector<A2ADITest> a2aTests = CreateA2ADITests(A, args);
 
-//    if(commRank == 0){
-//        printf("Performing AllGather tests\n");
-//    }
-//    for(i = 0; i < agTests.size(); i++){
-//        AGTest thisTest = agTests[i];
-//        Index agIndex = thisTest.first;
-//        TensorDistribution resDist = thisTest.second;
-//        if(commRank == 0){
-//            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
-//        }
-//        TestAGRedist(A, agIndex, resDist);
-//    }
-
     if(commRank == 0){
-        printf("Performing Local redist tests\n");
+        printf("Performing AllGather tests\n");
     }
-    for(i = 0; i < lTests.size(); i++){
-        LTest thisTest = lTests[i];
-        Index lIndex = thisTest.first;
-        ModeDistribution resDist = thisTest.second;
+    for(i = 0; i < agTests.size(); i++){
+        AGTest thisTest = agTests[i];
+        Index agIndex = thisTest.first.first;
+        ModeArray redistModes = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+        if(commRank == 0){
+            printf("Allgathering index %d with resulting distribution %s\n", agIndex, (tmen::TensorDistToString(resDist)).c_str());
+        }
+        TestAGRedist(A, agIndex, redistModes, resDist);
+    }
 
-        TestLRedist(A, lIndex, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing Local redist tests\n");
+//    }
+//    for(i = 0; i < lTests.size(); i++){
+//        LTest thisTest = lTests[i];
+//        Index lIndex = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
+//
+//        TestLRedist(A, lIndex, resDist);
+//    }
 
 //    if(commRank == 0){
 //        printf("Performing PartialReduceScatter tests\n");

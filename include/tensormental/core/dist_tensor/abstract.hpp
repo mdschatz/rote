@@ -41,6 +41,7 @@ public:
 
     Unsigned Order() const;
     Unsigned Dimension(Mode mode) const;
+    Unsigned IndexDimension(Index index) const;
     ObjShape Shape() const;
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
@@ -55,6 +56,7 @@ public:
     ModeDistribution IndexDist(Index index) const;
 
 
+    std::vector<Unsigned> LDims() const;
     Unsigned LDim(Mode mode) const;
     size_t AllocatedMemory() const;
 

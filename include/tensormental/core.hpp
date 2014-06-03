@@ -86,7 +86,7 @@
 #include "tensormental/core/environment_decl.hpp"
 #include "tensormental/core/indexing_decl.hpp"
 
-//#include "tensormental/core/imports/blas.hpp"
+#include "tensormental/core/imports/blas.hpp"
 //#include "tensormental/core/imports/lapack.hpp"
 #include "tensormental/core/imports/flame.hpp"
 //#include "tensormental/core/imports/pmrrr.hpp"

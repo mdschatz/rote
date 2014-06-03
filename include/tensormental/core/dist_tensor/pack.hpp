@@ -35,6 +35,9 @@ template <typename T>
 void PackRSSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex, T * const sendBuf);
 
 template <typename T>
+void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf, const ModeArray& redistModes);
+
+template <typename T>
 void PackAGSendBuf(const DistTensor<T>& A, const Index allGatherIndex, T * const sendBuf);
 
 template <typename T>
@@ -53,6 +56,9 @@ void UnpackPartialRSRecvBuf(const T * const recvBuf, const Index reduceScatterIn
 template <typename T>
 void UnpackRSRecvBuf(const T* const recvBuf, const Index reduceIndex,
         const Index scatterIndex, const DistTensor<T>& A, DistTensor<T>& B);
+
+template <typename T>
+void UnpackAGRecvBuf(const T * const recvBuf, const Index allGatherIndex, const ModeArray& redistModes, const DistTensor<T>& A, DistTensor<T>& B);
 
 template <typename T>
 void UnpackAGRecvBuf(const T * const recvBuf, const Index allGatherIndex, const DistTensor<T>& A, DistTensor<T>& B);
