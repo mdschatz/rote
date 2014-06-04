@@ -60,10 +60,10 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
     const IndexArray indicesC = C.Indices();
 
     //Determine the permutations for each Tensor
-    const IndexArray permA(DeterminePermutation(indicesA, ConcatenateVectors(contractIndices[0], contractIndices[1])));
-    const IndexArray permB(DeterminePermutation(indicesB, ConcatenateVectors(contractIndices[1], contractIndices[2])));
-    const IndexArray permC(DeterminePermutation(indicesC, ConcatenateVectors(contractIndices[0], contractIndices[2])));
-    const IndexArray invPermC(DeterminePermutation(ConcatenateVectors(contractIndices[0], contractIndices[2]), indicesC));
+    const std::vector<Unsigned> permA(DeterminePermutation(indicesA, ConcatenateVectors(contractIndices[0], contractIndices[1])));
+    const std::vector<Unsigned> permB(DeterminePermutation(indicesB, ConcatenateVectors(contractIndices[1], contractIndices[2])));
+    const std::vector<Unsigned> permC(DeterminePermutation(indicesC, ConcatenateVectors(contractIndices[0], contractIndices[2])));
+    const std::vector<Unsigned> invPermC(DeterminePermutation(ConcatenateVectors(contractIndices[0], contractIndices[2]), indicesC));
 
     Tensor<T> PA(FilterVector(indicesA, permA), FilterVector(A.Shape(), permA));
     Tensor<T> PB(FilterVector(indicesB, permB), FilterVector(B.Shape(), permB));

@@ -201,10 +201,10 @@ std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<
 }
 
 template<typename T>
-std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
+Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
     if(ref.size() != vec.size())
         LogicError("reference vector and permuted vector are of different sizes");
-    std::vector<T> ret(ref.size());
+    Permutation ret(ref.size());
     typename std::vector<T>::const_iterator begin = ref.begin();
     typename std::vector<T>::const_iterator end = ref.end();
 
@@ -236,11 +236,12 @@ std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector
 	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-    template std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
+    template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 PROTO(Unsigned)
 PROTO(Int)
 PROTO(float)
 PROTO(double)
+PROTO(char)
 
 }

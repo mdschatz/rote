@@ -71,7 +71,7 @@ template<typename T>
 std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
-std::vector<T> DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
+Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 } // namespace tmen
 

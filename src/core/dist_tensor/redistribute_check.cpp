@@ -218,7 +218,7 @@ Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const I
 	}
 
 	//Check that redist modes are assigned properly on input and output
-	ModeDistribution::iterator allGatherIndexLocA = std::find(AIndices.begin(), AIndices.end(), allGatherIndex);
+	IndexArray::iterator allGatherIndexLocA = std::find(AIndices.begin(), AIndices.end(), allGatherIndex);
 
 	ModeDistribution AAllGatherIndexDist = A.ModeDist(*allGatherIndexLocA);
 	if(AAllGatherIndexDist.size() != 0)

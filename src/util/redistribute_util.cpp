@@ -5,7 +5,7 @@ namespace tmen{
 
 //NOTE: B is the output DistTensor, A is the input (consistency among the redistribution routines
 template <typename T>
-void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Unsigned permuteIndex, Unsigned& recvSize, Unsigned& sendSize){
+void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, Unsigned& recvSize, Unsigned& sendSize){
     if(!B.Participating())
         return;
 

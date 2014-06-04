@@ -21,7 +21,7 @@ typedef unsigned char byte;
 typedef int Int;
 typedef unsigned Unsigned;
 
-typedef Unsigned Index;
+typedef char Index;
 typedef Unsigned Mode;
 typedef std::vector<Index> IndexArray;
 typedef std::vector<Mode> ModeArray;

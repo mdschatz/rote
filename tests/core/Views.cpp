@@ -390,7 +390,7 @@ DistTensorTest( const Params& args, const Grid& g )
     const Unsigned order = args.tensorShape.size();
     IndexArray indices(order);
     for(i = 0 ; i < indices.size(); i++)
-        indices[i] = i;
+        indices[i] = 'a' + i;
 
     DistTensor<T> A(args.tensorShape, args.tensorDist, indices, g);
 
