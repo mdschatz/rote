@@ -11,7 +11,7 @@
 using namespace tmen;
 
 void Usage(){
-    std::cout << "./TTT <gridOrder> <gridDim0> <gridDim1> ... <ten1Order> <ten1Dim0> <ten1Dim1> ... <ten1Ind1> <ten1Ind2> ... <ten2Order> <ten2Dim0> <ten2Dim1> ... <ten2Ind1> <ten2Ind2> ... \"<tensorDist>\"\n";
+    std::cout << "./Contract <gridOrder> <gridDim0> <gridDim1> ... <ten1Order> <ten1Dim0> <ten1Dim1> ... <ten1Ind1> <ten1Ind2> ... <ten2Order> <ten2Dim0> <ten2Dim1> ... <ten2Ind1> <ten2Ind2> ... \"<tensorDist>\"\n";
     std::cout << "<gridOrder>  : order of the grid ( >0 )\n";
     std::cout << "<gridDimK>   : dimension of mode-K of grid\n";
     std::cout << "<tenIOrder>  : order of the tensor I ( >0 )\n";
