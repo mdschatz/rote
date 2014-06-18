@@ -23,22 +23,22 @@ namespace tmen {
 template<typename T>
 void PartitionUp
 ( TEN& A, TEN& AT,
-        TEN& AB, Index index, Unsigned dimensionAB=Blocksize() );
+        TEN& AB, Mode mode, Unsigned dimensionAB=Blocksize() );
 
 template<typename T>
 void PartitionUp
 ( DTEN& A, DTEN& AT,
-           DTEN& AB, Index index, Unsigned dimensionAB=Blocksize() );
+           DTEN& AB, Mode mode, Unsigned dimensionAB=Blocksize() );
 
 template<typename T>
 void LockedPartitionUp
 ( const TEN& A, TEN& AT,
-                TEN& AB, Index index, Unsigned dimensionAB=Blocksize() );
+                TEN& AB, Mode mode, Unsigned dimensionAB=Blocksize() );
 
 template<typename T>
 void LockedPartitionUp
 ( const DTEN& A, DTEN& AT,
-                 DTEN& AB, Index index, Unsigned dimensionAB=Blocksize() );
+                 DTEN& AB, Mode mode, Unsigned dimensionAB=Blocksize() );
 
 //
 // PartitionDown
@@ -47,22 +47,22 @@ void LockedPartitionUp
 template<typename T>
 void PartitionDown
 ( TEN& A, TEN& AT,
-          TEN& AB, Index index, Unsigned dimensionAT=Blocksize() );
+          TEN& AB, Mode mode, Unsigned dimensionAT=Blocksize() );
 
 template<typename T>
 void PartitionDown
 ( DTEN& A, DTEN& AT,
-           DTEN& AB, Index index, Unsigned dimensionAT=Blocksize() );
+           DTEN& AB, Mode mode, Unsigned dimensionAT=Blocksize() );
 
 template<typename T>
 void LockedPartitionDown
 ( const TEN& A, TEN& AT,
-                TEN& AB, Index index, Unsigned dimensionAT=Blocksize() );
+                TEN& AB, Mode mode, Unsigned dimensionAT=Blocksize() );
 
 template<typename T>
 void LockedPartitionDown
 ( const DTEN& A, DTEN& AT,
-                 DTEN& AB, Index index, Unsigned dimensionAT=Blocksize() );
+                 DTEN& AB, Mode mode, Unsigned dimensionAT=Blocksize() );
 
 #undef DTEN
 #undef TEN

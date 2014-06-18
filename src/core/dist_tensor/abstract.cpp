@@ -69,25 +69,6 @@ AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDi
 }
 
 template<typename T>
-AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& grid )
-: shape_(shape),
-  dist_(dist),
-
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
-
-  tensor_(indices),
-
-  grid_(&grid),
-  gridView_(grid_, dist_),
-
-  viewType_(OWNER),
-  auxMemory_()
-{
-}
-
-template<typename T>
 AbstractDistTensor<T>::~AbstractDistTensor() 
 { }
 
@@ -209,20 +190,20 @@ AbstractDistTensor<T>::AssertSameSize( const ObjShape& shape ) const
 
 template<typename T>
 void
-AbstractDistTensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
+AbstractDistTensor<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
 {
-    tensor_.AssertMergeableIndices(newIndices, oldIndices);
+    tensor_.AssertMergeableModes(oldModes);
 }
 
 template<typename T>
 void
 AssertConforming2x1
-( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index )
+( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Mode mode )
 {
     std::vector<Mode> negFilterAT(1);
     std::vector<Mode> negFilterAB(1);
-    negFilterAT[0] = AT.ModeOfIndex(index);
-    negFilterAB[0] = AB.ModeOfIndex(index);
+    negFilterAT[0] = mode;
+    negFilterAB[0] = mode;
 
     if( AnyElemwiseNotEqual(NegFilterVector(AT.Shape(), negFilterAT), NegFilterVector(AB.Shape(), negFilterAB)) )
     {
@@ -400,11 +381,6 @@ AbstractDistTensor<T>::Dimension(Mode mode) const
 { return shape_[mode]; }
 
 template<typename T>
-Unsigned
-AbstractDistTensor<T>::IndexDimension(Index index) const
-{ return Dimension(ModeOfIndex(index)); }
-
-template<typename T>
 ObjShape
 AbstractDistTensor<T>::Shape() const
 { return shape_; }
@@ -413,26 +389,6 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::Order() const
 { return shape_.size(); }
-
-template<typename T>
-IndexArray
-AbstractDistTensor<T>::Indices() const
-{ return this->tensor_.Indices(); }
-
-template<typename T>
-void
-AbstractDistTensor<T>::SetIndices(const IndexArray& newIndices)
-{ return this->tensor_.SetIndices(newIndices); }
-
-template<typename T>
-Mode
-AbstractDistTensor<T>::ModeOfIndex(Index index) const
-{ return tensor_.ModeOfIndex(index); }
-
-template<typename T>
-Index
-AbstractDistTensor<T>::IndexOfMode(Mode mode) const
-{ return tensor_.IndexOfMode(mode); }
 
 template<typename T>
 TensorDistribution
@@ -449,16 +405,6 @@ AbstractDistTensor<T>::ModeDist(Mode mode) const
 	if(mode < 0 || mode >= tensor_.Order())
 		LogicError("0 <= mode < object order must be true");
 	return dist_[mode];
-}
-
-template<typename T>
-ModeDistribution
-AbstractDistTensor<T>::IndexDist(Index index) const
-{
-    const Mode mode = this->ModeOfIndex(index);
-    if(mode < 0 || mode >= tensor_.Order())
-        LogicError("Requested distribution of invalid index");
-    return dist_[mode];
 }
 
 template<typename T>
@@ -602,10 +548,9 @@ ObjShape AbstractDistTensor<T>::GridViewShape() const
 //TODO: Differentiate between index and mode
 template<typename T>
 mpi::Comm
-AbstractDistTensor<T>::GetCommunicator(Index index) const
+AbstractDistTensor<T>::GetCommunicator(Mode mode) const
 {
 	mpi::Comm comm;
-	const Mode mode = this->ModeOfIndex(index);
 	ObjShape gridViewSliceShape = this->GridViewShape();
 	Location gridViewSliceLoc = this->GridViewLoc();
 	const Unsigned commKey = gridViewSliceLoc[mode];
@@ -891,7 +836,7 @@ PROTO(Complex<double>);
 
 
 #define CONFORMING(T) \
-  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index ); \
+  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Mode mode ); \
 
 CONFORMING(Int);
 #ifndef DISABLE_FLOAT

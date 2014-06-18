@@ -25,13 +25,13 @@ inline void
 SlidePartitionUp
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index )
+  TEN& AB, TEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlidePartitionUp [Tensor]");
 #endif
     View( AT, A0 );
-    View2x1( AB, A1, A2, index );
+    View2x1( AB, A1, A2, mode );
 }
 
 template<typename T>
@@ -39,13 +39,13 @@ inline void
 SlidePartitionUp
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index )
+  DTEN& AB, DTEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlidePartitionUp [DistTensor]");
 #endif
     View( AT, A0 );
-    View2x1( AB, A1, A2, index );
+    View2x1( AB, A1, A2, mode );
 }
 
 template<typename T>
@@ -53,13 +53,13 @@ inline void
 SlideLockedPartitionUp
 ( TEN& AT, const TEN& A0,
          const TEN& A1,
-  TEN& AB, const TEN& A2, Index index )
+  TEN& AB, const TEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlideLockedPartitionUp [Tensor]");
 #endif
     LockedView( AT, A0 );
-    LockedView2x1( AB, A1, A2, index );
+    LockedView2x1( AB, A1, A2, mode );
 }
 
 template<typename T>
@@ -67,13 +67,13 @@ inline void
 SlideLockedPartitionUp
 ( DTEN& AT, const DTEN& A0,
           const DTEN& A1,
-  DTEN& AB, const DTEN& A2, Index index )
+  DTEN& AB, const DTEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlideLockedPartitionUp [DistTensor]");
 #endif
     LockedView( AT, A0 );
-    LockedView2x1( AB, A1, A2, index );
+    LockedView2x1( AB, A1, A2, mode );
 }
 
 //
@@ -85,12 +85,12 @@ inline void
 SlidePartitionDown
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index )
+  TEN& AB, TEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlidePartitionDown [Tensor]");
 #endif
-    View2x1( AT, A0, A1, index );
+    View2x1( AT, A0, A1, mode );
     View( AB, A2 );
 }
 
@@ -99,12 +99,12 @@ inline void
 SlidePartitionDown
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index )
+  DTEN& AB, DTEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlidePartitionDown [DistTensor]");
 #endif
-    View2x1( AT, A0, A1, index );
+    View2x1( AT, A0, A1, mode );
     View( AB, A2 );
 }
 
@@ -113,12 +113,12 @@ inline void
 SlideLockedPartitionDown
 ( TEN& AT, const TEN& A0,
          const TEN& A1,
-  TEN& AB, const TEN& A2, Index index )
+  TEN& AB, const TEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlideLockedPartitionDown [Tensor]");
 #endif
-    LockedView2x1( AT, A0, A1, index );
+    LockedView2x1( AT, A0, A1, mode );
     LockedView( AB, A2 );
 }
 
@@ -127,12 +127,12 @@ inline void
 SlideLockedPartitionDown
 ( DTEN& AT, const DTEN& A0,
           const DTEN& A1,
-  DTEN& AB, const DTEN& A2, Index index )
+  DTEN& AB, const DTEN& A2, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("SlideLockedPartitionDown [DistTensor]");
 #endif
-    LockedView2x1( AT, A0, A1, index );
+    LockedView2x1( AT, A0, A1, mode );
     LockedView( AB, A2 );
 }
 

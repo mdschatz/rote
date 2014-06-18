@@ -25,38 +25,38 @@ namespace tmen{
 /////////////////
 
 template<typename T>
-Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex);
+Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode);
 
 template<typename T>
-Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex);
+Int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceScatterMode);
 
 template<typename T>
-Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex);
+Int CheckReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
 
 template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes);
+Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes);
 
 template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
+Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode);
 
 template<typename T>
-Int CheckAllToAllDoubleIndexRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& allToAllIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
+Int CheckAllToAllDoubleModeRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 template<typename T>
-Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes);
+Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
 
 template<typename T>
-Int CheckRemoveUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& unitIndices);
+Int CheckRemoveUnitModesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& unitModes);
 
 template<typename T>
-Int CheckIntroduceUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newIndexPositions);
+Int CheckIntroduceUnitModesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& newModePositions);
 
 //template<typename T>
-//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index index, const ModeArray& rsGridModes);
+//int CheckPartialReduceScatterRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode mode, const ModeArray& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
-Int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Index allToAllIndex);
+Int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allToAllMode);
 
 
 /////////////////
@@ -64,38 +64,38 @@ Int CheckAllToAllRedist(const DistTensor<T>& B, const DistTensor<T>& A, const In
 /////////////////
 
 template<typename T>
-void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex);
+void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode);
 
 template<typename T>
-void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex);
+void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceScatterMode);
 
 template<typename T>
-void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, const Index scatterIndex);
+void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
 
 template<typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes);
+void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes);
 
 template<typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index allGatherIndex);
+void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode);
 
 template<typename T>
-void AllToAllDoubleIndexRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
+void AllToAllDoubleModeRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
 
 template<typename T>
-void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index localIndex, const ModeArray& gridRedistModes);
+void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
 
 template<typename T>
-void RemoveUnitIndicesRedist(DistTensor<T>& B, const DistTensor<T>& A, const IndexArray& unitIndices);
+void RemoveUnitModesRedist(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& unitModes);
 
 template<typename T>
-void IntroduceUnitIndicesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Unsigned& nIndices);
+void IntroduceUnitModesRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newModePositions);
 
 //template<typename T>
-//void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, const ModeArray& rsGridModes);
+//void PartialReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceScatterMode, const ModeArray& rsGridModes);
 
 //TODO: Not entirely correct definition
 template<typename T>
-void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const Index index);
+void AllToAllRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode mode);
 
 
 }

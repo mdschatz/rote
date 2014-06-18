@@ -15,7 +15,7 @@ namespace tmen {
 
 #ifndef RELEASE
     template<typename T>
-    void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index);
+    void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Mode mode);
 #endif
 
 template<typename T> 
@@ -32,7 +32,8 @@ public:
     ( const Location& loc, const ObjShape& shape ) const;
     void AssertSameGrid( const tmen::Grid& grid ) const;
     void AssertSameSize( const ObjShape& shape ) const;
-    void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const;
+    //TODO: REMOVE THIS
+    void AssertMergeableModes(const std::vector<ModeArray>& oldModes) const;
 #endif // ifndef RELEASE
 
     //
@@ -41,19 +42,13 @@ public:
 
     Unsigned Order() const;
     Unsigned Dimension(Mode mode) const;
-    Unsigned IndexDimension(Index index) const;
     ObjShape Shape() const;
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
     Unsigned LocalModeStride(Mode mode) const;
-    IndexArray Indices() const;
-    void SetIndices(const IndexArray& newIndices);
-    Index IndexOfMode(Mode mode) const;
-    Mode ModeOfIndex(Index index) const;
 
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Mode mode) const;
-    ModeDistribution IndexDist(Index index) const;
 
 
     std::vector<Unsigned> LDims() const;
@@ -118,7 +113,7 @@ public:
     //
     Location GridViewLoc() const;
     ObjShape GridViewShape() const;
-    mpi::Comm GetCommunicator(Index index) const;
+    mpi::Comm GetCommunicator(Mode mode) const;
     mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
     void Empty();
     void EmptyData();
@@ -175,6 +170,7 @@ public:
     // Utilities
     //
     
+    virtual void ResizeTo( const DistTensor<T>& B) = 0;
     virtual void ResizeTo( const ObjShape& shape ) = 0;
     virtual void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims ) = 0;
 
@@ -202,9 +198,7 @@ protected:
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
     AbstractDistTensor( const Unsigned order, const tmen::Grid& g );
-    //NOTE: Decide whether to remove the following constructor (should we allow creating a tensor without supplying the indices?)
     AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g );
-    AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g );
 
     void SetShifts();
     void SetModeShift(Mode mode);
@@ -231,7 +225,7 @@ protected:
       const Location& loc, const ObjShape& shape, bool isLocked );
     template<typename S>
     friend void View2x1Helper
-    ( DistTensor<S>& A, const DistTensor<S>& BT, const DistTensor<S>& BB, Index index, bool isLocked );
+    ( DistTensor<S>& A, const DistTensor<S>& BT, const DistTensor<S>& BB, Mode mode, bool isLocked );
 
     template<typename S>
     friend class DistTensor;

@@ -22,22 +22,22 @@
 namespace tmen{
 
 template <typename T>
-void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index permuteIndex, Unsigned& recvSize, Unsigned& sendSize);
+void DeterminePermCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceScatterIndex, Unsigned& recvSize, Unsigned& sendSize);
+void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceScatterMode, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Index reduceIndex, Unsigned& recvSize, Unsigned& sendSize);
+void DetermineRSCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, const ModeArray& redistModes, Unsigned& recvSize, Unsigned& sendSize);
+void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Index allGatherIndex, Unsigned& recvSize, Unsigned& sendSize);
+void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Mode allGatherMode, Unsigned& recvSize, Unsigned& sendSize);
 
 template <typename T>
-void DetermineA2ADoubleIndexCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Index, Index>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
+void DetermineA2ADoubleModeCommunicateDataSize(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
 
 }
 #endif // ifndef TMEN_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP

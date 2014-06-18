@@ -72,51 +72,51 @@ template<typename T>
 DistTensor<T> LockedView( const DistTensor<T>& B, const Location& loc, const ObjShape& shape );
 
 //
-// View two index-ly connected tensors
+// View two mode-ly connected tensors
 //
 
 template<typename T>
 void View2x1Helper
 (       Tensor<T>& A,
   const Tensor<T>& BT,
-  const Tensor<T>& BB, Index index, bool isLocked );
+  const Tensor<T>& BB, Mode mode, bool isLocked );
 
 template<typename T>
 void View2x1Helper
 (       DistTensor<T>& A,
   const DistTensor<T>& BT,
-  const DistTensor<T>& BB, Index index, bool isLocked );
+  const DistTensor<T>& BB, Mode mode, bool isLocked );
 
 template<typename T>
 void View2x1
 ( Tensor<T>& A,
   Tensor<T>& BT,
-  Tensor<T>& BB, Index index );
+  Tensor<T>& BB, Mode mode );
 template<typename T>
-Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Index index );
+Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Mode mode );
 template<typename T>
 void View2x1
 ( DistTensor<T>& A,
   DistTensor<T>& BT,
-  DistTensor<T>& BB, Index index );
+  DistTensor<T>& BB, Mode mode );
 template<typename T>
-DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Index index );
+DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Mode mode );
 
 template<typename T>
 void LockedView2x1
 (       Tensor<T>& A,
   const Tensor<T>& BT,
-  const Tensor<T>& BB, Index index );
+  const Tensor<T>& BB, Mode mode );
 template<typename T>
-Tensor<T> LockedView2x1( const Tensor<T>& BT, const Tensor<T>& BB, Index index );
+Tensor<T> LockedView2x1( const Tensor<T>& BT, const Tensor<T>& BB, Mode mode );
 template<typename T>
 void LockedView2x1
 (       DistTensor<T>& A,
   const DistTensor<T>& BT,
-  const DistTensor<T>& BB, Index index );
+  const DistTensor<T>& BB, Mode mode );
 template<typename T>
 DistTensor<T> LockedView2x1
-( const DistTensor<T>& BT, const DistTensor<T>& BB, Index index );
+( const DistTensor<T>& BT, const DistTensor<T>& BB, Mode mode );
 
 //
 // View object as lower order object
@@ -126,34 +126,29 @@ template<typename T>
 void ViewAsLowerOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices, bool isLocked );
+  const std::vector<ModeArray>& oldModes, bool isLocked );
 
 template<typename T>
 void ViewAsLowerOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
+  const std::vector<ModeArray>& oldModes );
 
 template<typename T>
 Tensor<T> ViewAsLowerOrder
 ( Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
+  const std::vector<ModeArray>& oldModes );
 
 template<typename T>
 void LockedViewAsLowerOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
+  const std::vector<ModeArray>& oldModes );
 
 template<typename T>
 Tensor<T> LockedViewAsLowerOrder
 ( const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices );
+  const std::vector<ModeArray>& oldModes );
 
 //
 // View as higher order object
@@ -163,39 +158,34 @@ template<typename T>
 void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape, bool isLocked );
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newModesShape, bool isLocked );
 
 template<typename T>
 void ViewAsHigherOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape );
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newModesShape );
 
 template<typename T>
 Tensor<T> ViewAsHigherOrder
 ( Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape );
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newModesShape );
 
 template<typename T>
 void LockedViewAsHigherOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape );
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newModesShape );
 
 template<typename T>
 Tensor<T> LockedViewAsHigherOrder
 ( const Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape );
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newModesShape );
 
 } // namespace tmen
 

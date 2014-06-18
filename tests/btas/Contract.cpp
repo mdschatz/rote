@@ -33,7 +33,7 @@ typedef struct Arguments{
   //TensorDistribution tensorDist;
 } Params;
 
-typedef std::pair< IndexArray, ObjShape> LocalTest;
+typedef std::pair< ModeArray, ObjShape> LocalTest;
 
 void ProcessInput(int argc,  char** const argv, Params& args){
     Unsigned i;
@@ -204,30 +204,33 @@ Set(Tensor<T>& A)
 
 template<typename T>
 std::vector<LocalTest>
-CreateLocalTests(const Tensor<T>& A, const Tensor<T>& B, const IndexArray& CIndices)
+CreateLocalTests(const Tensor<T>& A, const Tensor<T>& B, const IndexArray& AIndices, const IndexArray& BIndices, const IndexArray& CIndices)
 {
 #ifndef RELEASE
     CallStackEntry entry("CreateLocalTests");
 #endif
-    Unsigned i;
+    Unsigned i, j;
     std::vector<LocalTest> ret;
-    IndexArray testIndices(CIndices);
-    std::sort(testIndices.begin(), testIndices.end());
+    ModeArray testModes(CIndices.size());
+    for(i = 0; i < CIndices.size(); i++)
+        testModes[i] = i;
 
     do{
-        ObjShape shapeC(testIndices.size());
-        for(i = 0; i < testIndices.size(); i++){
-            IndexArray AIndices = A.Indices();
-            if(std::find(AIndices.begin(), AIndices.end(), testIndices[i]) != AIndices.end()){
-                shapeC[i] = A.Dimension(A.ModeOfIndex(testIndices[i]));
-            }else{
-                shapeC[i] = B.Dimension(B.ModeOfIndex(testIndices[i]));
+        ObjShape shapeC(testModes.size());
+        for(i = 0; i < testModes.size(); i++){
+            for(j = 0; j < AIndices.size(); j++){
+                if(AIndices[j] == CIndices[i])
+                    shapeC[i] = A.Dimension(j);
+            }
+            for(j = 0; j < BIndices.size(); j++){
+                if(BIndices[j] == CIndices[i])
+                    shapeC[i] = B.Dimension(j);
             }
         }
-        LocalTest test(testIndices, shapeC);
+        LocalTest test(testModes, shapeC);
         ret.push_back(test);
 
-    }while(std::next_permutation(testIndices.begin(), testIndices.end()));
+    }while(std::next_permutation(testModes.begin(), testModes.end()));
     return ret;
 }
 
@@ -241,13 +244,13 @@ LocalContractTest( const Params& args )
     Unsigned i, j;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
 
-    Tensor<T> A(args.ten1Indices, args.ten1Shape);
-    Tensor<T> B(args.ten2Indices, args.ten2Shape);
+    Tensor<T> A(args.ten1Shape);
+    Tensor<T> B(args.ten2Shape);
     Set(A);
     Set(B);
 
-    IndexArray AIndices = A.Indices();
-    IndexArray BIndices = B.Indices();
+    IndexArray AIndices = args.ten1Indices;
+    IndexArray BIndices = args.ten2Indices;
     IndexArray CIndices;
 
     for(i = 0; i < AIndices.size(); i++){
@@ -261,40 +264,40 @@ LocalContractTest( const Params& args )
             CIndices.push_back(index);
     }
 
-    std::vector<LocalTest> localTests = CreateLocalTests(A, B, CIndices);
+    std::vector<LocalTest> localTests = CreateLocalTests(A, B, AIndices, BIndices, CIndices);
 
     for(i = 0; i < localTests.size(); i++){
         LocalTest localTest = localTests[i];
-        IndexArray indices = localTest.first;
+        std::vector<IndexArray> indices(3);
+        indices[0] = AIndices;
+        indices[1] = BIndices;
+        indices[2] = CIndices;
         ObjShape testShape = localTest.second;
-        Tensor<T> C(indices, testShape);
+        Tensor<T> C(testShape);
         MemZero(C.Buffer(), prod(C.Shape()));
         if(commRank == 0){
-            IndexArray indicesA = A.Indices();
-            IndexArray indicesB = B.Indices();
-            IndexArray indicesC = C.Indices();
 
             ObjShape shapeA = A.Shape();
             ObjShape shapeB = B.Shape();
             ObjShape shapeC = C.Shape();
             printf("Performing LocalTest:\n");
-            printf("A[%d", indicesA[0]);
-            for(j = 1; j < indicesA.size(); j++)
-                printf(" %d", indicesA[j]);
+            printf("A[%d", AIndices[0]);
+            for(j = 1; j < AIndices.size(); j++)
+                printf(" %d", AIndices[j]);
             printf("] of size: [%d", shapeA[0]);
             for(j = 1; j < shapeA.size(); j++)
                 printf(" %d", shapeA[j]);
             printf("]\n");
-            printf("B[%d", indicesB[0]);
-            for(j = 1; j < indicesB.size(); j++)
-                printf(" %d", indicesB[j]);
+            printf("B[%d", BIndices[0]);
+            for(j = 1; j < BIndices.size(); j++)
+                printf(" %d", BIndices[j]);
             printf("] of size: [%d", shapeB[0]);
             for(j = 1; j < shapeB.size(); j++)
                 printf(" %d", shapeB[j]);
             printf("]\n");
-            printf("C[%d", indicesC[0]);
-            for(j = 1; j < indicesC.size(); j++)
-                printf(" %d", indicesC[j]);
+            printf("C[%d", CIndices[0]);
+            for(j = 1; j < CIndices.size(); j++)
+                printf(" %d", CIndices[j]);
             printf("] of size: [%d", shapeC[0]);
             for(j = 1; j < shapeC.size(); j++)
                 printf(" %d", shapeC[j]);
@@ -303,7 +306,7 @@ LocalContractTest( const Params& args )
         Print(A, "A");
         Print(B, "B");
         Print(C, "PreC");
-        LocalContract(T(1), A, B, T(1), C);
+        LocalContract(T(1), A, B, T(1), C, indices);
         Print(C, "PostC");
     }
 }
@@ -312,7 +315,6 @@ int
 main( int argc, char* argv[] )
 {
     Initialize( argc, argv );
-    Unsigned i;
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
     const Int commSize = mpi::CommSize( comm );

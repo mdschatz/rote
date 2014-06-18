@@ -29,9 +29,8 @@ public:
     void AssertValidDimensions( const ObjShape& shape ) const;
     void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& ldims ) const;
     void AssertValidEntry( const Location& loc ) const;
-    void AssertValidIndices() const;
-    void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices ) const;
-    void AssertSplittableIndices( const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const;
+    void AssertMergeableModes( const std::vector<ModeArray>& oldModes ) const;
+    void AssertSplittableModes( const ModeArray& oldModes, const std::vector<ObjShape>& newShape) const;
     
     //
     // Constructors
@@ -39,12 +38,11 @@ public:
 
     Tensor( bool fixed=false );
     Tensor( const Unsigned order, bool fixed = false);
-    Tensor( const IndexArray& indices, bool fixed=false );
-    Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed=false );
-    Tensor( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
+    Tensor( const ObjShape& shape, bool fixed=false );
+    Tensor( const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor
-    ( const IndexArray& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
-    Tensor( const IndexArray& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
+    ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
+    Tensor( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor( const Tensor<T>& A );
 
     // Move constructor
@@ -69,13 +67,7 @@ public:
     Unsigned Order() const;
     ObjShape Shape() const;
     Unsigned Dimension(Mode mode) const;
-    Unsigned IndexDimension(Index index) const;
-    IndexArray Indices() const;
-    void SetIndices(const IndexArray& newIndices);
     Unsigned ModeStride(Mode mode) const;
-
-    Mode ModeOfIndex(Index index) const;
-    Index IndexOfMode(Mode mode) const;
 
     std::vector<Unsigned> LDims() const;
     Unsigned LDim(Mode mode) const;
@@ -158,15 +150,9 @@ public:
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
 private:
-    IndexArray indices_;
     ObjShape shape_;
     std::vector<Unsigned> strides_;
     std::vector<Unsigned> ldims_;
-
-    //Index<->Mode maps
-    //NOTE: Move this information to separate class
-    std::map<Index, Mode> index2modeMap_;
-    std::map<Mode, Index> mode2indexMap_;
 
     ViewType viewType_;
 
@@ -179,10 +165,10 @@ private:
     T& Set_( const Location& loc );
 
     void SetLDims(const ObjShape& shape);
-    void SetIndexMaps();
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
+    void ResizeTo( const Tensor<T>& A);
     void ResizeTo_( const ObjShape& shape );
     void ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims );
     void Control_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
@@ -198,12 +184,11 @@ private:
     friend void ViewHelper<T>( Tensor<T>& A, const Tensor<T>& B, bool isLocked );
     friend void ViewHelper<T>
     ( Tensor<T>& A, const Tensor<T>& B, const Location& loc, const ObjShape& shape, bool isLocked );
-    friend void View2x1Helper<T>( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index, bool isLocked );
+    friend void View2x1Helper<T>( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Mode mode, bool isLocked );
     friend void ViewAsLowerOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
-                                     const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices, bool isLocked );
+                                   const std::vector<ModeArray>& oldModes, bool isLocked );
     friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
-                                   const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices,
-                                   const std::vector<ObjShape>& newIndicesShape, bool isLocked );
+                                   const ModeArray& oldModes, const std::vector<ObjShape>& newShape, bool isLocked );
 
     friend void View<T>( Tensor<T>& A, Tensor<T>& B);
     friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B);
@@ -213,39 +198,35 @@ private:
     friend void View2x1<T>
     ( Tensor<T>& A,
       Tensor<T>& BT,
-      Tensor<T>& BB, Index index );
+      Tensor<T>& BB, Mode mode );
     friend void LockedView2x1<T>
     (       Tensor<T>& A,
       const Tensor<T>& BT,
-      const Tensor<T>& BB, Index index );
+      const Tensor<T>& BB, Mode mode );
 
     friend
     void ViewAsLowerOrder<T>
     ( Tensor<T>& A,
       Tensor<T>& B,
-      const IndexArray& newIndices,
-      const std::vector<IndexArray>& oldIndices );
+      const std::vector<ModeArray>& oldModes );
     friend
     void LockedViewAsLowerOrder<T>
     ( Tensor<T>& A,
       const Tensor<T>& B,
-      const IndexArray& newIndices,
-      const std::vector<IndexArray>& oldIndices );
+      const std::vector<ModeArray>& oldModes );
 
     friend
     void ViewAsHigherOrder<T>
     ( Tensor<T>& A,
       Tensor<T>& B,
-      const std::vector<IndexArray>& newIndices,
-      const IndexArray& oldIndices,
-      const std::vector<ObjShape>& newIndicesShape );
+      const ModeArray& oldModes,
+      const std::vector<ObjShape>& newShape );
     friend
     void LockedViewAsHigherOrder<T>
     ( Tensor<T>& A,
       const Tensor<T>& B,
-      const std::vector<IndexArray>& newIndices,
-      const IndexArray& oldIndices,
-      const std::vector<ObjShape>& newIndicesShape );
+      const ModeArray& oldModes,
+      const std::vector<ObjShape>& newShape );
 };
 
 } // namespace tmen
