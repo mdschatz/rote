@@ -402,8 +402,11 @@ template<typename T>
 ModeDistribution
 AbstractDistTensor<T>::ModeDist(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ModeDist");
 	if(mode < 0 || mode >= tensor_.Order())
 		LogicError("0 <= mode < object order must be true");
+#endif
 	return dist_[mode];
 }
 
@@ -421,9 +424,12 @@ template<typename T>
 bool
 AbstractDistTensor<T>::ConstrainedModeAlignment(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ConstrainedModeAlignment");
     const Unsigned order = this->Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
+#endif
     return constrainedModeAlignments_[mode];
 }
 
@@ -437,9 +443,12 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::ModeAlignment(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ModeAlignment");
     const Unsigned order = this->Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
+#endif
     return modeAlignments_[mode];
 }
 
@@ -447,9 +456,12 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::ModeShift(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ModeShift");
     const Unsigned order = this->Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
+#endif
     return modeShifts_[mode];
 }
 
