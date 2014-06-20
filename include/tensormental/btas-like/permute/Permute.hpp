@@ -19,7 +19,7 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     Unsigned i;
     Unsigned order = A.Order();
     Location curLoc(order, 0);
-    bool done = false;
+
 
     Permutation invperm(order);
     for(i = 0; i < order; i++)
@@ -36,6 +36,8 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     Unsigned linLocDst = 0;
     Unsigned linLocSrc = 0;
     Unsigned updatePtr = 0;
+    bool done = !ElemwiseLessThan(curLoc,shapeA);
+
 
 //    printf("shapeA: [%d", shapeA[0]);
 //    for(i = 1; i < order; i++)
