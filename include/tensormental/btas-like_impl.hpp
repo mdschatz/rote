@@ -13,5 +13,6 @@
 #include "./btas-like/level3.hpp"
 #include "./btas-like/contract_impl.hpp"
 #include "./btas-like/permute_impl.hpp"
+#include "./btas-like/reduce_impl.hpp"
 
 #endif // ifndef TMEN_BTAS_IMPL_HPP

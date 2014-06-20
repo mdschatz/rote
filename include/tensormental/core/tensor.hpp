@@ -81,6 +81,14 @@ public:
     const T* LockedBuffer( const Location& loc ) const;
 
     //
+    // Unit mode info
+    //
+
+    void RemoveUnitModes(const ModeArray& modes);
+    void RemoveUnitMode(const Mode& mode);
+    void IntroduceUnitMode(const Unsigned& modePosition);
+
+    //
     // Entry manipulation
     //
 

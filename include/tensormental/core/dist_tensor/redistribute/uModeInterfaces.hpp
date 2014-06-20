@@ -24,20 +24,31 @@ namespace tmen{
 //Check routines
 /////////////////
 template<typename T>
-Int CheckRemoveUnitModesCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& unitModes);
+Int CheckRemoveUnitModesCommRedist(const DistTensor<T>& B, const ModeArray& unitModes);
 
 template<typename T>
-Int CheckIntroduceUnitModesCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& newModePositions);
+Int CheckRemoveUnitModeCommRedist(const DistTensor<T>& B, const Mode& unitMode);
 
+template<typename T>
+Int CheckIntroduceUnitModesCommRedist(const DistTensor<T>& B, const ModeArray& newModePositions);
+
+template<typename T>
+Int CheckIntroduceUnitModeCommRedist(const DistTensor<T>& B, const Mode& newModePosition);
 
 /////////////////
 //Redist routines
 /////////////////
 template<typename T>
-void RemoveUnitModesCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& unitModes);
+void RemoveUnitModesCommRedist(DistTensor<T>& B, const ModeArray& unitModes);
 
 template<typename T>
-void IntroduceUnitModesCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::vector<Unsigned>& newModePositions);
+void RemoveUnitModeCommRedist(DistTensor<T>& B, const Mode& unitMode);
+
+template<typename T>
+void IntroduceUnitModesCommRedist(const DistTensor<T>& B, const std::vector<Unsigned>& newModePositions);
+
+template<typename T>
+void IntroduceUnitModeCommRedist(const DistTensor<T>& B, const Unsigned& newModePosition);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_UMODEINTERFACES_HPP

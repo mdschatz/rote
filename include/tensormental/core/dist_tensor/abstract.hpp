@@ -58,11 +58,21 @@ public:
     const tmen::Grid& Grid() const;
     const tmen::GridView GridView() const;
 
+          T* Buffer();
           T* Buffer( const Location& loc );
+    const T* LockedBuffer() const;
     const T* LockedBuffer( const Location& loc ) const;
+
 
           tmen::Tensor<T>& Tensor();
     const tmen::Tensor<T>& LockedTensor() const;
+
+    //
+    // Unit modes
+    //
+    void RemoveUnitModes(const ModeArray& modes);
+    void RemoveUnitMode(const Mode& mode);
+    void IntroduceUnitMode(const Unsigned& modePosition);
 
     //
     // Alignments

@@ -279,7 +279,7 @@ inline void ViewAsHigherOrderHelper
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
     Unsigned modeCount = 0;
-    for(i = 0; i < newOrder; i++){
+    for(i = 0; i < newShape.size(); i++){
         ObjShape newModeGroupShape = newShape[i];
         for(j = 0; j < newModeGroupShape.size(); j++){
             A.shape_[modeCount] = newModeGroupShape[j];

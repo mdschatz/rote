@@ -390,6 +390,49 @@ Tensor<T>::LockedBuffer( const Location& loc ) const
 }
 
 //
+// Unit mode info
+//
+
+template<typename T>
+void
+Tensor<T>::RemoveUnitModes(const ModeArray& modes){
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::LockedBuffer");
+#endif
+    Unsigned i;
+    ModeArray sorted = modes;
+    std::sort(sorted.begin(), sorted.end());
+    for(i = sorted.size() - 1; i < sorted.size(); i--){
+        shape_.erase(shape_.begin() + sorted[i]);
+        strides_.erase(strides_.begin() + sorted[i]);
+        ldims_.erase(ldims_.begin() + sorted[i]);
+    }
+}
+
+template<typename T>
+void
+Tensor<T>::RemoveUnitMode(const Mode& mode){
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::RemoveUnitMode");
+#endif
+    shape_.erase(shape_.begin() + mode);
+    strides_.erase(strides_.begin() + mode);
+    ldims_.erase(ldims_.begin() + mode);
+}
+
+template<typename T>
+void
+Tensor<T>::IntroduceUnitMode(const Unsigned& modePosition)
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::IntroduceUnitMode");
+#endif
+    shape_.insert(shape_.begin() + modePosition, 1);
+    strides_.insert(strides_.begin() + modePosition, strides_[modePosition]);
+    ldims_.insert(ldims_.begin() + modePosition, ldims_[modePosition]);
+}
+
+//
 // Entry manipulation
 //
 

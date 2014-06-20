@@ -196,9 +196,10 @@ TestRSRedist(DistTensor<T>& A, Mode rMode, Mode sMode, const TensorDistribution&
     const GridView gv = A.GridView();
 
     ObjShape BShape = A.Shape();
-    BShape.erase(BShape.begin() + rMode);
+    BShape[rMode] = 1;
     DistTensor<T> B(BShape, resDist, g);
 
+    Print(A, "A before rs redist");
     if(commRank == 0){
         printf("Reducing mode %d and scattering mode %d: %s <-- %s\n", rMode, sMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
@@ -213,7 +214,7 @@ void
 TestPRSRedist(DistTensor<T>& A, Mode rsMode, const TensorDistribution& resDist)
 {
 #ifndef RELEASE
-    CallStackEntry entry("TestRSRedist");
+    CallStackEntry entry("TestPRSRedist");
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
@@ -310,7 +311,7 @@ DetermineResultingDistributionRS(const DistTensor<T>& A, Mode rMode, Mode sMode)
     ModeDistribution& sModeDist = ret[sMode];
     ModeDistribution& rModeDist = ret[rMode];
     sModeDist.insert(sModeDist.end(), rModeDist.begin(), rModeDist.end());
-    ret.erase(ret.begin() + rMode);
+    ret[rMode].clear();
     return ret;
 }
 
@@ -458,8 +459,6 @@ CreateRSTests(const DistTensor<T>& A, const Params& args){
             const Mode rMode = i;
             const Mode sMode = j;
 
-            if(A.Dimension(rMode) > gv.Dimension(rMode))
-                continue;
             std::pair<Mode, Mode> redistModes(i, j);
             RSTest test(redistModes, DetermineResultingDistributionRS(A, rMode, sMode));
             ret.push_back(test);

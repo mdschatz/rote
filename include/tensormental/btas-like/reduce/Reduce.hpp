@@ -21,7 +21,7 @@ namespace tmen{
 ////////////////////////////////////
 
 template <typename T>
-void LocalReduce(const Tensor<T>& A, const Tensor<T>& B, const ModeArray& reduceModes){
+void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes){
 #ifndef RELEASE
     CallStackEntry("LocalReduce");
     if(reduceModes.size() > A.Order())
@@ -31,6 +31,8 @@ void LocalReduce(const Tensor<T>& A, const Tensor<T>& B, const ModeArray& reduce
         if(reduceModes[i] >= A.Order())
             LogicError("LocalReduce: Supplied mode is out of range");
 #endif
+    T* BBuf = B.Buffer();
+    MemZero(&(BBuf[0]), prod(B.Shape()));
     Unsigned i, j;
     const Unsigned order = A.Order();
 
@@ -47,69 +49,104 @@ void LocalReduce(const Tensor<T>& A, const Tensor<T>& B, const ModeArray& reduce
         origOrder[i] = i;
 
      //Determine the permutations for each Tensor
-     const std::vector<Unsigned> permA(reduceOrder);
-     const std::vector<Unsigned> permB(reduceOrder);
-     const std::vector<Unsigned> invPermB(DeterminePermutation(reduceOrder, origOrder));
+     const std::vector<Unsigned> perm(reduceOrder);
+     const std::vector<Unsigned> invPerm(DeterminePermutation(reduceOrder, origOrder));
 
-     Tensor<T> PA(FilterVector(A.Shape(), permA));
-     Tensor<T> PB(FilterVector(B.Shape(), permB));
+     Tensor<T> PA(FilterVector(A.Shape(), perm));
+     Tensor<T> PB(FilterVector(B.Shape(), perm));
      Tensor<T> MPA, MPB;
 
-     //Permute A, B, C
-     printf("\n\nPermuting A: [%d", permA[0]);
-     for(i = 1; i < permA.size(); i++)
-         printf(" %d", permA[i]);
+     //Permute A, B
+     printf("\n\nPermuting A: [%d", perm[0]);
+     for(i = 1; i < perm.size(); i++)
+         printf(" %d", perm[i]);
      printf("]\n");
-     Permute(PA, A, permA);
+     Permute(PA, A, perm);
 
-     printf("\n\nPermuting B: [%d", permB[0]);
-     for(i = 1; i < permB.size(); i++)
-         printf(" %d", permB[i]);
+     printf("\n\nPermuting B: [%d", perm[0]);
+     for(i = 1; i < perm.size(); i++)
+         printf(" %d", perm[i]);
      printf("]\n");
-     Permute(PB, B, permB);
+     Permute(PB, B, perm);
 
      //View as matrices
+     ModeArray mergeModes0(reduceModes.size());
+     for(i = 0; i < mergeModes0.size(); i++)
+         mergeModes0[i] = i;
+
+     ModeArray mergeModes1(nonReduceModes.size());
+     for(i = 0; i < mergeModes1.size(); i++)
+         mergeModes1[i] = mergeModes0.size() + i;
+
      std::vector<ModeArray> MPAOldModes(2);
-     MPAOldModes[0] = reduceModes;
-     MPAOldModes[1] = contractModes[1];
+     MPAOldModes[0] = mergeModes0;
+     MPAOldModes[1] = mergeModes1;
 
      std::vector<ModeArray> MPBOldModes(2);
-     MPBOldModes[0] = contractModes[1];
-     MPBOldModes[1] = contractModes[2];
+     MPBOldModes[0] = mergeModes0;
+     MPBOldModes[1] = mergeModes1;
 
 
      ViewAsLowerOrder(MPA, PA, MPAOldModes );
 
      Print(PB, "PB");
      ViewAsLowerOrder(MPB, PB, MPBOldModes );
-     ViewAsLowerOrder(MPC, PC, MPCOldModes );
 
      Print(MPA, "MPA");
      Print(MPB, "MPB");
-     Print(MPC, "MPC");
-     Gemm(alpha, MPA, MPB, beta, MPC);
-     Print(MPC, "PostMult");
-     //View as tensor
 
-     std::vector<ObjShape> newShape(MPCOldModes.size());
-     for(i = 0; i < newShape.size(); i++){
-         ModeArray oldModes(MPCOldModes[i].size());
-         for(j = 0; j < MPCOldModes[i].size(); j++){
-             oldModes[j] = MPCOldModes[i][j];
+     const T* MPAData = MPA.LockedBuffer();
+     T* MPBData = MPB.Buffer();
+     for(i = 0; i < MPA.Dimension(1); i++){
+         for(j = 0; j < MPA.Dimension(0); j++){
+             printf("MPBDataptr: %d, MPADataptr: %d\n", i, j + i*MPA.Dimension(0));
+             MPBData[i] += MPAData[j + i*MPA.Dimension(0)];
          }
-         newShape[i] = FilterVector(PC.Shape(), oldModes);
      }
-     ModeArray MPCModes(2);
-     MPCModes[0] = 0;
-     MPCModes[1] = 1;
-     ViewAsHigherOrder(PC, MPC, MPCModes, newShape);
+
+     Print(MPB, "MPB after reduce");
+     //View as tensor
+     ModeArray MPBModes(2);
+     MPBModes[0] = 0;
+     MPBModes[1] = 1;
+
+     std::vector<ObjShape> PBShape(2);
+     PBShape[0] = FilterVector(PB.Shape(), reduceModes);
+     PBShape[1] = FilterVector(PB.Shape(), nonReduceModes);
+
+     //ViewAsHigherOrder(PB, MPB, MPBModes, PBShape);
+     Print(PB, "PB after higher order view");
 
      //Permute back the data
-     printf("\n\nPermuting PC: [%d", invPermC[0]);
-     for(i = 1; i < invPermC.size(); i++)
-         printf(" %d", invPermC[i]);
+     printf("\n\nPermuting PB: [%d", invPerm[0]);
+     for(i = 1; i < invPerm.size(); i++)
+         printf(" %d", invPerm[i]);
      printf("]\n");
-     Permute(C, PC, invPermC);
+     Permute(B, PB, invPerm);
+     Print(B, "B after final permute");
+}
+
+template <typename T>
+void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
+    ModeArray modeArr(1);
+    modeArr[0] = reduceMode;
+    LocalReduce(B, A, modeArr);
+}
+
+////////////////////////////////////
+// Global routines
+////////////////////////////////////
+
+template <typename T>
+void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes){
+    LocalReduce(B.Tensor(), A.LockedTensor(), reduceModes);
+}
+
+template <typename T>
+void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMode){
+    ModeArray modeArr(1);
+    modeArr[0] = reduceMode;
+    LocalReduce(B, A, modeArr);
 }
 
 } // namespace tmen

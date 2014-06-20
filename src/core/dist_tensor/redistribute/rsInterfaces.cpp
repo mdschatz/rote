@@ -94,8 +94,28 @@ void ReduceScatterRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode re
     if(!CheckReduceScatterRedist(B, A, reduceMode, scatterMode))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
 
-    //LocalReduce(B, reduceMode);
-    ReduceScatterCommRedist(B, A, reduceMode, scatterMode);
+    ObjShape tmpShape = A.Shape();
+    tmpShape[reduceMode] = A.GridView().Dimension(reduceMode);
+    DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
+
+    TensorDistribution dist = A.TensorDist();
+    dist[scatterMode] = ConcatenateVectors(dist[scatterMode], dist[reduceMode]);
+    ModeDistribution blank(0);
+    dist[reduceMode] = blank;
+    ObjShape tmp2Shape = A.Shape();
+    tmp2Shape[reduceMode] = 1;
+    DistTensor<T> tmp2(tmp2Shape, dist, A.Grid());
+
+    LocalReduce(tmp, A, reduceMode);
+    Print(tmp, "tmp after local reduce");
+    ReduceScatterCommRedist(tmp2, tmp, reduceMode, scatterMode);
+    Print(tmp2, "tmp2 after global reduce");
+
+    //B.RemoveUnitMode(reduceMode);
+    T* BBuf = B.Buffer();
+    const T* tmp2Buf = tmp2.LockedBuffer();
+    MemCopy(&(BBuf[0]), &(tmp2Buf[0]), prod(B.LocalShape()));
+    Print(B, "B after full reduce");
 }
 
 #define PROTO(T) \
