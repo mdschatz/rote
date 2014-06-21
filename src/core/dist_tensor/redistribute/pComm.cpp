@@ -15,12 +15,12 @@ namespace tmen{
 
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
-Int CheckPermutationCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
+Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     Unsigned i;
     const tmen::GridView gvA = A.GridView();
 
     const Unsigned AOrder = A.Order();
-    const Unsigned BOrder = B.Order();
+    const Unsigned BOrder = this->Order();
 
     //Test order retained
     if(BOrder != AOrder){
@@ -29,17 +29,17 @@ Int CheckPermutationCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, c
 
     //Test dimension has been resized correctly
     //NOTE: Uses fancy way of performing Ceil() on integer division
-    if(B.Dimension(permuteMode) != A.Dimension(permuteMode))
+    if(this->Dimension(permuteMode) != A.Dimension(permuteMode))
         LogicError("CheckPartialReduceScatterRedist: Permutation retains the same dimension of indices");
 
     //Make sure all indices are distributed similarly
     for(i = 0; i < BOrder; i++){
         Mode mode = i;
         if(mode == permuteMode){
-            if(!EqualUnderPermutation(B.ModeDist(mode), A.ModeDist(mode)))
+            if(!EqualUnderPermutation(this->ModeDist(mode), A.ModeDist(mode)))
                 LogicError("CheckPermutationRedist: Distribution of permuted mode does not involve same modes of grid as input");
         }else{
-            if(AnyElemwiseNotEqual(B.ModeDist(mode), A.ModeDist(mode)))
+            if(AnyElemwiseNotEqual(this->ModeDist(mode), A.ModeDist(mode)))
                 LogicError("CheckPartialReduceScatterRedist: All modes must be distributed similarly");
         }
     }
@@ -48,12 +48,12 @@ Int CheckPermutationCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, c
 }
 
 template <typename T>
-void PermutationCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    if(!CheckPermutationCommRedist(B, A, permuteMode, redistModes))
+void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
+    if(!this->CheckPermutationCommRedist(A, permuteMode, redistModes))
             LogicError("PermutationRedist: Invalid redistribution request");
 
         Unsigned sendSize, recvSize;
-        DeterminePermCommunicateDataSize(B, A, permuteMode, recvSize, sendSize);
+        DeterminePermCommunicateDataSize(A, permuteMode, recvSize, sendSize);
 
         const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
         const int myRank = mpi::CommRank(comm);
@@ -64,13 +64,13 @@ void PermutationCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize]);
 
-        PackPermutationCommSendBuf(B, A, permuteMode, sendBuf);
+        PackPermutationCommSendBuf(A, permuteMode, sendBuf);
 
         const GridView gvA = A.GridView();
-        const GridView gvB = B.GridView();
+        const GridView gvB = this->GridView();
 
         const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
-        const ModeDistribution permuteModeDistB = B.ModeDist(permuteMode);
+        const ModeDistribution permuteModeDistB = this->ModeDist(permuteMode);
 
         ModeDistribution gridModesUsed(permuteModeDistB);
         std::sort(gridModesUsed.begin(), gridModesUsed.end());
@@ -96,15 +96,14 @@ void PermutationCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode 
         mpi::SendRecv(sendBuf, sendSize, sendRank,
                       recvBuf, recvSize, recvRank, comm);
 
-        UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A, B);
+        UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
 }
 
 //NOTE: This should just be a direct memcopy. But sticking to the same structured code as all other collectives
 template <typename T>
-void PackPermutationCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Mode pMode, T * const sendBuf)
+void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode pMode, T * const sendBuf)
 {
-    const Location start(A.Order(), 0);
-    const T* dataBuf = A.LockedBuffer(start);
+    const T* dataBuf = A.LockedBuffer();
 
     const tmen::GridView gvA = A.GridView();
 
@@ -147,18 +146,17 @@ void PackPermutationCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, 
 }
 
 template <typename T>
-void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, const DistTensor<T>& A, DistTensor<T>& B)
+void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, const DistTensor<T>& A)
 {
-        const Location start(B.Order(), 0);
-        T* dataBuf = B.Buffer(start);
+        T* dataBuf = this->Buffer();
 
         const tmen::GridView gvA = A.GridView();
-        const tmen::GridView gvB = B.GridView();
+        const tmen::GridView gvB = this->GridView();
 
         const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-        const ObjShape maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+        const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
 
-        const ObjShape localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
+        const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
         //Number of outer slices to unpack
         const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, pMode + 1));
@@ -170,7 +168,7 @@ void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, con
 
         //Variables for calculating elements to copy
         const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, pMode));
-        const Unsigned copySliceSize = B.LocalModeStride(pMode);
+        const Unsigned copySliceSize = this->LocalModeStride(pMode);
 
         //Loop iteration vars
         Unsigned outerSliceNum, pModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" Unsigned offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
@@ -200,13 +198,15 @@ void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, con
 }
 
 #define PROTO(T) \
-        template Int CheckPermutationCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void PermutationCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void PackPermutationCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf); \
-        template void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A, DistTensor<T>& B);
+        template Int  DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
+        template void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
+        template void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf); \
+        template void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<float>)
+PROTO(Complex<double>)
 
 } //namespace tmen

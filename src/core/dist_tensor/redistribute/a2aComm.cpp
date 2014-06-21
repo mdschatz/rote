@@ -15,22 +15,22 @@ namespace tmen{
 
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
-Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& allToAllModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
-    if(A.Order() != B.Order())
+Int DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& allToAllModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
+    if(A.Order() != this->Order())
         LogicError("CheckAllToAllDoubleModeRedist: Objects being redistributed must be of same order");
     Unsigned i;
     for(i = 0; i < A.Order(); i++){
         if(i != allToAllModes.first && i != allToAllModes.second){
-            if(B.ModeDist(i) != A.ModeDist(i))
-                LogicError("CheckAlLToAllDoubleModeRedist: Non-redist modes must have same distribution");
+            if(this->ModeDist(i) != A.ModeDist(i))
+                LogicError("CheckAllToAllDoubleModeRedist: Non-redist modes must have same distribution");
         }
     }
     return 1;
 }
 
 template <typename T>
-void AllToAllDoubleModeCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
-    if(!CheckAllToAllDoubleModeRedist(B, A, a2aModes, a2aCommGroups))
+void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
+    if(!this->CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
         LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
     Unsigned sendSize, recvSize;
@@ -40,7 +40,7 @@ void AllToAllDoubleModeCommRedist(DistTensor<T>& B, const DistTensor<T>& A, cons
     std::sort(commModes.begin(), commModes.end());
 
     const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
-    DetermineA2ADoubleModeCommunicateDataSize(B, A, a2aModes, a2aCommGroups, recvSize, sendSize);
+    DetermineA2ADoubleModeCommunicateDataSize(A, a2aModes, a2aCommGroups, recvSize, sendSize);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -51,22 +51,21 @@ void AllToAllDoubleModeCommRedist(DistTensor<T>& B, const DistTensor<T>& A, cons
 
     Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
 
-    PackA2ADoubleModeCommSendBuf(B, A, a2aModes, a2aCommGroups, sendBuf);
+    PackA2ADoubleModeCommSendBuf(A, a2aModes, a2aCommGroups, sendBuf);
 
     mpi::AllToAll(sendBuf, sendSize/nRedistProcs, recvBuf, recvSize/nRedistProcs, comm);
 
-    UnpackA2ADoubleModeCommRecvBuf(recvBuf, a2aModes, a2aCommGroups, A, B);
+    UnpackA2ADoubleModeCommRecvBuf(recvBuf, a2aModes, a2aCommGroups, A);
 }
 
 template <typename T>
-void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf){
+void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf){
     Unsigned i;
     const Unsigned order = A.Order();
-    const Location start(order, 0);
-    const T* dataBuf = A.LockedBuffer(start);
+    const T* dataBuf = A.LockedBuffer();
 
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
+    const tmen::GridView gvB = this->GridView();
 
     const tmen::Grid& g = A.Grid();
 
@@ -161,7 +160,7 @@ void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A
             continue;
 
         //Determine the Multiloc of the process that owns this element
-        Location owningProcGVB = B.DetermineOwner(startPackElemLoc);
+        Location owningProcGVB = this->DetermineOwner(startPackElemLoc);
         Location owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
         Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
 
@@ -225,7 +224,7 @@ void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A
         }
     }
 
-    const ObjShape commGridSlice = FilterVector(B.Grid().Shape(), commModes);
+    const ObjShape commGridSlice = FilterVector(this->Grid().Shape(), commModes);
     //const Unsigned nRedistProcs = prod(commGridSlice);
 
 //    printf("packed sendBuf: ");
@@ -235,14 +234,13 @@ void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A
 }
 
 template<typename T>
-void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A, DistTensor<T>& B){
+void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A){
     Unsigned i;
     const Unsigned order = A.Order();
-    const Location  start(order, 0);
-    T* dataBuf = B.Buffer(start);
+    T* dataBuf = this->Buffer();
 
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
+    const tmen::GridView gvB = this->GridView();
 
     const tmen::Grid& g = A.Grid();
 
@@ -268,7 +266,7 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
         }
     }
 
-    ObjShape tensorShape = B.Shape();
+    ObjShape tensorShape = this->Shape();
     Location myGridLoc = g.Loc();
     ObjShape gridShape = g.Shape();
 
@@ -285,7 +283,7 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
     for(Unsigned i = 0; i < order; i++)
         modePackStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
 
-    const ObjShape localShape = B.LocalShape();
+    const ObjShape localShape = this->LocalShape();
     ObjShape packedLocalShape = MaxLengths(A.Shape(), gvA.Shape());
 
     //Slices of a2aMode1
@@ -297,7 +295,7 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
     //Slices of a2aMode2
     const Unsigned nLocalA2AMode2Slices = localShape[a2aMode2];
 
-    const Unsigned copySliceSize = B.LocalModeStride(a2aMode1);
+    const Unsigned copySliceSize = this->LocalModeStride(a2aMode1);
     const Unsigned nElemsPerProc = prod(packedLocalShape);
 
     //Various counters used to offset in data arrays
@@ -313,7 +311,7 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
     const Unsigned a2aMode1PackStride = modePackStrides[a2aMode1];
     const Unsigned a2aMode2PackStride = modePackStrides[a2aMode2];
 
-    Location myFirstLoc = B.ModeShifts();
+    Location myFirstLoc = this->ModeShifts();
 
     Unsigned unpackElemNum;
     const Unsigned nUnpackElems = prod(modeUnpackStrides);
@@ -328,7 +326,7 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
         }
 
         //If we run over the edge, don't try to unpack the global element
-        if(AnyElemwiseGreaterThanEqualTo(startUnpackElemLoc, B.Shape()))
+        if(AnyElemwiseGreaterThanEqualTo(startUnpackElemLoc, this->Shape()))
             continue;
 
         //Determine the Multiloc of the process that sent this element
@@ -337,10 +335,10 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
         Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
 
         //Find the local location of the global starting element we are now unpacking
-        Location localLoc = B.Global2LocalIndex(startUnpackElemLoc);
+        Location localLoc = this->Global2LocalIndex(startUnpackElemLoc);
 
         //Now that we know the local loc of the element to unpack, we know how many iterations of unpacking to perform per mode
-        const ObjShape tensorShape = B.Shape();
+        const ObjShape tensorShape = this->Shape();
         const ObjShape gvAShape = gvA.Shape();
 
         const ObjShape outerSliceShape(tensorShape.begin() + a2aMode2 + 1, tensorShape.end());
@@ -436,13 +434,15 @@ void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mod
 
 
 #define PROTO(T) \
-        template Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups); \
-        template void AllToAllDoubleModeCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \
-        template void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf); \
-        template void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A, DistTensor<T>& B);
+        template Int  DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups); \
+        template void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \
+        template void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf); \
+        template void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<double>)
+PROTO(Complex<float>)
 
 } //namespace tmen

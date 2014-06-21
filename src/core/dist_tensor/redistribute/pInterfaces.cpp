@@ -15,12 +15,12 @@ namespace tmen{
 
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
-Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
+Int DistTensor<T>::CheckPermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     Unsigned i;
     const tmen::GridView gvA = A.GridView();
 
     const Unsigned AOrder = A.Order();
-    const Unsigned BOrder = B.Order();
+    const Unsigned BOrder = this->Order();
 
     //Test order retained
     if(BOrder != AOrder){
@@ -29,17 +29,17 @@ Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const
 
     //Test dimension has been resized correctly
     //NOTE: Uses fancy way of performing Ceil() on integer division
-    if(B.Dimension(permuteMode) != A.Dimension(permuteMode))
+    if(this->Dimension(permuteMode) != A.Dimension(permuteMode))
         LogicError("CheckPartialReduceScatterRedist: Permutation retains the same dimension of indices");
 
     //Make sure all indices are distributed similarly
     for(i = 0; i < BOrder; i++){
         Mode mode = i;
         if(mode == permuteMode){
-            if(!EqualUnderPermutation(B.ModeDist(mode), A.ModeDist(mode)))
+            if(!EqualUnderPermutation(this->ModeDist(mode), A.ModeDist(mode)))
                 LogicError("CheckPermutationRedist: Distribution of permuted mode does not involve same modes of grid as input");
         }else{
-            if(AnyElemwiseNotEqual(B.ModeDist(mode), A.ModeDist(mode)))
+            if(AnyElemwiseNotEqual(this->ModeDist(mode), A.ModeDist(mode)))
                 LogicError("CheckPartialReduceScatterRedist: All modes must be distributed similarly");
         }
     }
@@ -48,19 +48,21 @@ Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const
 }
 
 template <typename T>
-void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    if(!CheckPermutationRedist(B, A, permuteMode, redistModes))
+void DistTensor<T>::PermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
+    if(!CheckPermutationRedist(A, permuteMode, redistModes))
             LogicError("PermutationRedist: Invalid redistribution request");
 
-    PermutationCommRedist(B, A, permuteMode, redistModes);
+    PermutationCommRedist(A, permuteMode, redistModes);
 }
 
 #define PROTO(T) \
-        template Int CheckPermutationRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void PermutationRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+        template Int  DistTensor<T>::CheckPermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
+        template void DistTensor<T>::PermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<float>)
+PROTO(Complex<double>)
 
 } //namespace tmen

@@ -14,15 +14,14 @@
 namespace tmen{
 
 template<typename T>
-Int CheckLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(A.Order() != B.Order())
+Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
+    if(A.Order() != this->Order())
         LogicError("CheckLocalRedist: Objects being redistributed must be of same order");
 
     Unsigned i, j;
     TensorDistribution distA = A.TensorDist();
-    TensorDistribution distB = B.TensorDist();
     ModeDistribution localModeDistA = A.ModeDist(localMode);
-    ModeDistribution localModeDistB = B.ModeDist(localMode);
+    ModeDistribution localModeDistB = this->ModeDist(localMode);
 
     if(localModeDistB.size() != localModeDistA.size() + gridRedistModes.size())
         LogicError("CheckLocalReist: Input object cannot be redistributed to output object");
@@ -53,31 +52,30 @@ Int CheckLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode lo
 }
 
 template<typename T>
-void LocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(!CheckLocalRedist(B, A, localMode, gridRedistModes))
+void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
+    if(!this->CheckLocalRedist(A, localMode, gridRedistModes))
         LogicError("LocalRedist: Invalid redistribution request");
 
     //Packing is what is stored in memory
-    UnpackLocalCommRedist(B, A, localMode, gridRedistModes);
+    UnpackLocalCommRedist(A, localMode, gridRedistModes);
 }
 
 template <typename T>
-void UnpackLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode lMode, const ModeArray& gridRedistModes)
+void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMode, const ModeArray& gridRedistModes)
 {
     const Unsigned order = A.Order();
-    const Location start(order, 0);
-    T* dstBuf = B.Buffer(start);
-    const T* srcBuf = A.LockedBuffer(start);
+    T* dstBuf = this->Buffer();
+    const T* srcBuf = A.LockedBuffer();
 
 
 
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
+    const tmen::GridView gvB = this->GridView();
 
     const tmen::Grid& g = A.Grid();
 
     ModeDistribution lModeDistA = A.ModeDist(lMode);
-    ModeDistribution lModeDistB = B.ModeDist(lMode);
+    ModeDistribution lModeDistB = this->ModeDist(lMode);
 
     ModeArray commModes(lModeDistB.begin() + lModeDistA.size(), lModeDistB.end());
 
@@ -102,7 +100,7 @@ void UnpackLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode 
     //Size of slice to copy
     const ObjShape copySliceShape(localShape.begin(), localShape.begin() + lMode);
     //NOTE: This is based on modeA, different from all other unpacks
-    const Unsigned copySliceSize = B.LocalModeStride(lMode);
+    const Unsigned copySliceSize = this->LocalModeStride(lMode);
 
     //Where we start copying
     const Unsigned elemStartLoc = myCommLinLoc;
@@ -148,19 +146,21 @@ void UnpackLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode 
         }
     }
 //    printf("dstBuf:");
-//    for(Unsigned i = 0; i < prod(B.LocalShape()); i++){
+//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
 //        printf(" %d", dstBuf[i]);
 //    }
 //    printf("\n");
 }
 
 #define PROTO(T) \
-        template Int CheckLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
-        template void LocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
-        template void UnpackLocalCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+        template Int  DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
+        template void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
+        template void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<float>)
+PROTO(Complex<double>)
 
 } //namespace tmen

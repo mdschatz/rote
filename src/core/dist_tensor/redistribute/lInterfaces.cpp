@@ -14,15 +14,14 @@
 namespace tmen{
 
 template<typename T>
-Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(A.Order() != B.Order())
+Int DistTensor<T>::CheckLocalRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
+    if(A.Order() != this->Order())
         LogicError("CheckLocalRedist: Objects being redistributed must be of same order");
 
     Unsigned i, j;
     TensorDistribution distA = A.TensorDist();
-    TensorDistribution distB = B.TensorDist();
     ModeDistribution localModeDistA = A.ModeDist(localMode);
-    ModeDistribution localModeDistB = B.ModeDist(localMode);
+    ModeDistribution localModeDistB = this->ModeDist(localMode);
 
     if(localModeDistB.size() != localModeDistA.size() + gridRedistModes.size())
         LogicError("CheckLocalReist: Input object cannot be redistributed to output object");
@@ -53,19 +52,21 @@ Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localM
 }
 
 template<typename T>
-void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(!CheckLocalRedist(B, A, localMode, gridRedistModes))
+void DistTensor<T>::LocalRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
+    if(!this->CheckLocalRedist(A, localMode, gridRedistModes))
         LogicError("LocalRedist: Invalid redistribution request");
 
-    LocalCommRedist(B, A, localMode, gridRedistModes);
+    LocalCommRedist(A, localMode, gridRedistModes);
 }
 
 #define PROTO(T) \
-        template Int CheckLocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
-        template void LocalRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+        template Int  DistTensor<T>::CheckLocalRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
+        template void DistTensor<T>::LocalRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<float>)
+PROTO(Complex<double>)
 
 } //namespace tmen

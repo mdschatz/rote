@@ -132,7 +132,7 @@ TestPRedist( DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist )
     if(commRank == 0){
         printf("Permuting mode %d: %s <-- %s\n", pMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
-    PermutationRedist(B, A, pMode, resDist);
+    B.PermutationRedist(A, pMode, resDist);
     Print(B, "B after permute redist");
 }
 
@@ -180,7 +180,7 @@ TestLRedist( DistTensor<T>& A, Mode lMode, const ModeDistribution& resDist )
 
     Print(A, "A before local redist");
     ModeArray gridRedistModes(resDist.begin() + lModeDist.size(), resDist.end());
-    LocalRedist(B, A, lMode, gridRedistModes);
+    B.LocalRedist(A, lMode, gridRedistModes);
     Print(B, "B after local redist");
 }
 
@@ -204,7 +204,7 @@ TestRSRedist(DistTensor<T>& A, Mode rMode, Mode sMode, const TensorDistribution&
         printf("Reducing mode %d and scattering mode %d: %s <-- %s\n", rMode, sMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    ReduceScatterRedist(B, A, rMode, sMode);
+    B.ReduceScatterRedist(A, rMode, sMode);
 
     Print(B, "B after rs redist");
 }
@@ -229,7 +229,7 @@ TestPRSRedist(DistTensor<T>& A, Mode rsMode, const TensorDistribution& resDist)
         printf("Partially reducing mode %d: %s <-- %s\n", rsMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    PartialReduceScatterRedist(B, A, rsMode);
+    B.PartialReduceScatterRedist(A, rsMode);
 
     Print(B, "B after prs redist");
 }
@@ -249,7 +249,7 @@ TestA2ADMRedist(DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const s
         printf("All-to-alling modes %d and %d: %s <-- %s\n", a2aModes.first, a2aModes.second, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    AllToAllDoubleModeRedist(B, A, a2aModes, commGroups);
+    B.AllToAllDoubleModeRedist(A, a2aModes, commGroups);
 
     Print(B, "B after a2a redist");
 }
@@ -554,63 +554,63 @@ DistTensorTest( const Params& args, const Grid& g )
         TestAGRedist(A, agMode, redistModes, resDist);
     }
 
-//    if(commRank == 0){
-//        printf("Performing Local redist tests\n");
-//    }
-//    for(i = 0; i < lTests.size(); i++){
-//        LTest thisTest = lTests[i];
-//        Mode lMode = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
-//
-//        TestLRedist(A, lMode, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing Local redist tests\n");
+    }
+    for(i = 0; i < lTests.size(); i++){
+        LTest thisTest = lTests[i];
+        Mode lMode = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
 
-//    if(commRank == 0){
-//        printf("Performing PartialReduceScatter tests\n");
-//    }
-//    for(i = 0; i < prsTests.size(); i++){
-//        PRSTest thisTest = prsTests[i];
-//        Mode rsMode = thisTest.first;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestPRSRedist(A, rsMode, resDist);
-//    }
+        TestLRedist(A, lMode, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing PartialReduceScatter tests\n");
+    }
+    for(i = 0; i < prsTests.size(); i++){
+        PRSTest thisTest = prsTests[i];
+        Mode rsMode = thisTest.first;
+        TensorDistribution resDist = thisTest.second;
+
+        TestPRSRedist(A, rsMode, resDist);
+    }
 
 
-//    if(commRank == 0){
-//        printf("Performing ReduceScatter tests\n");
-//    }
-//    for(i = 0; i < rsTests.size(); i++){
-//        RSTest thisTest = rsTests[i];
-//        Mode rMode = thisTest.first.first;
-//        Mode sMode = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestRSRedist(A, rMode, sMode, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing ReduceScatter tests\n");
+    }
+    for(i = 0; i < rsTests.size(); i++){
+        RSTest thisTest = rsTests[i];
+        Mode rMode = thisTest.first.first;
+        Mode sMode = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
 
-//    if(commRank == 0){
-//        printf("Performing Permutation tests\n");
-//    }
-//    for(i = 0; i < pTests.size(); i++){
-//        PTest thisTest = pTests[i];
-//        Mode pMode = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
-//
-//        TestPRedist(A, pMode, resDist);
-//    }
+        TestRSRedist(A, rMode, sMode, resDist);
+    }
 
-//    if(commRank == 0){
-//        printf("Performing All-to-all (double index) tests\n");
-//    }
-//    for(i = 0; i < a2aTests.size(); i++){
-//        A2ADMTest thisTest = a2aTests[i];
-//        std::pair<Mode, Mode> a2aModes = thisTest.first.first;
-//        std::pair<ModeArray, ModeArray > commGroups = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestA2ADMRedist(A, a2aModes, commGroups, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing Permutation tests\n");
+    }
+    for(i = 0; i < pTests.size(); i++){
+        PTest thisTest = pTests[i];
+        Mode pMode = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
+
+        TestPRedist(A, pMode, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing All-to-all (double index) tests\n");
+    }
+    for(i = 0; i < a2aTests.size(); i++){
+        A2ADMTest thisTest = a2aTests[i];
+        std::pair<Mode, Mode> a2aModes = thisTest.first.first;
+        std::pair<ModeArray, ModeArray > commGroups = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestA2ADMRedist(A, a2aModes, commGroups, resDist);
+    }
 }
 
 int 

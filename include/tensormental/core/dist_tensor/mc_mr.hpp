@@ -78,8 +78,10 @@ public:
     virtual tmen::DistData DistData() const;
 
     //
-    // Collective routines
+    // Allgather workhorse routines
     //
+    virtual void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes, Unsigned& recvSize, Unsigned& sendSize);
+    virtual void DetermineAGCommunicateDataSize(const DistTensor<T>& A, const Mode allGatherMode, Unsigned& recvSize, Unsigned& sendSize);
     virtual Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
     virtual void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
     virtual void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
@@ -91,6 +93,82 @@ public:
     virtual Int CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
     virtual Int CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode);
     virtual void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
+
+    //
+    // All-to-all workhorse routines
+    //
+    virtual void DetermineA2ADoubleModeCommunicateDataSize(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommModes, Unsigned& recvSize, Unsigned& sendSize);
+    virtual Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
+    virtual void AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
+    virtual void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf);
+    virtual void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A);
+
+    //
+    // All-to-all interface routines
+    //
+    virtual Int CheckAllToAllDoubleModeRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
+    virtual void AllToAllDoubleModeRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
+
+    //
+    // Local redist workhorse routines
+    //
+    virtual Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+    virtual void LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+    virtual void UnpackLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+
+    //
+    // Local redist interface routines
+    //
+    virtual Int CheckLocalRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+    virtual void LocalRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+
+    //
+    // Point-to-point workhorse routines
+    //
+    virtual void DeterminePermCommunicateDataSize(const DistTensor<T>& A, const Mode permuteMode, Unsigned& recvSize, Unsigned& sendSize);
+    virtual Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    virtual void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    virtual void PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf);
+    virtual void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
+
+    //
+    // Point-to-point interface routines
+    //
+    virtual Int CheckPermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    virtual void PermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+
+    //
+    // Reduce-scatter workhorse routines
+    //
+    virtual void DeterminePartialRSCommunicateDataSize(const DistTensor<T>& A, const Mode reduceScatterMode, Unsigned& recvSize, Unsigned& sendSize);
+    virtual void DetermineRSCommunicateDataSize(const DistTensor<T>& A, const Mode reduceMode, Unsigned& recvSize, Unsigned& sendSize);
+    virtual Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
+    virtual void ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
+    virtual void PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf);
+    virtual void UnpackRSCommRecvBuf(const T* const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A);
+
+    //
+    // Reduce-scatter interface routines
+    //
+    virtual Int CheckPartialReduceScatterRedist(const DistTensor<T>& A, const Mode reduceScatterMode);
+    virtual Int CheckReduceScatterRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
+    virtual void PartialReduceScatterRedist(const DistTensor<T>& A, const Mode reduceScatterMode);
+    virtual void ReduceScatterRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
+
+    //
+    //Unit mode intro/remove routines
+    //
+    virtual Int  CheckRemoveUnitModesRedist(const ModeArray& unitModes);
+    virtual Int  CheckRemoveUnitModeRedist(const Mode& unitMode);
+    virtual Int  CheckIntroduceUnitModesRedist(const ModeArray& newModePositions);
+    virtual Int  CheckIntroduceUnitModeRedist(const Mode& newModePosition);
+    virtual void RemoveUnitModesRedist(const ModeArray& unitModes);
+    virtual void RemoveUnitModeRedist(const Mode& unitMode);
+    virtual void IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions);
+    virtual void IntroduceUnitModeRedist(const Unsigned& newModePosition);
+
+
+
 
     //
     // Routines needed for indexing

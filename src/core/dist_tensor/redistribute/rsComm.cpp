@@ -16,7 +16,7 @@ namespace tmen{
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
-Int CheckReduceScatterCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
+Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
 //    Unsigned i;
 //    const tmen::GridView gvA = A.GridView();
 //
@@ -53,12 +53,12 @@ Int CheckReduceScatterCommRedist(const DistTensor<T>& B, const DistTensor<T>& A,
 }
 
 template <typename T>
-void ReduceScatterCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
-    if(!CheckReduceScatterRedist(B, A, reduceMode, scatterMode))
+void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
+    if(!this->CheckReduceScatterRedist(A, reduceMode, scatterMode))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
 
     Unsigned sendSize, recvSize;
-    DetermineRSCommunicateDataSize(B, A, reduceMode, recvSize, sendSize);
+    this->DetermineRSCommunicateDataSize(A, reduceMode, recvSize, sendSize);
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     const ModeArray commModes = A.ModeDist(reduceMode);
     const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
@@ -69,18 +69,17 @@ void ReduceScatterCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mod
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    PackRSCommSendBuf(B, A, reduceMode, scatterMode, sendBuf);
+    PackRSCommSendBuf(A, reduceMode, scatterMode, sendBuf);
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
-    UnpackRSCommRecvBuf(recvBuf, reduceMode, scatterMode, A, B);
+    UnpackRSCommRecvBuf(recvBuf, reduceMode, scatterMode, A);
 }
 
 template <typename T>
-void PackRSCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Mode rMode, const Mode sMode, T * const sendBuf)
+void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, const Mode sMode, T * const sendBuf)
 {
-    const Location start(A.Order(), 0);
-    const T* dataBuf = A.LockedBuffer(start);
+    const T* dataBuf = A.LockedBuffer();
 
     printf("dataBuf: ");
     for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
@@ -89,7 +88,7 @@ void PackRSCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Mod
     printf("\n");
 
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
+    const tmen::GridView gvB = this->GridView();
 
     const Unsigned nRedistProcs = gvA.Dimension(rMode);
 
@@ -169,16 +168,15 @@ void PackRSCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Mod
 }
 
 template <typename T>
-void UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode sMode, const DistTensor<T>& A, DistTensor<T>& B)
+void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode sMode, const DistTensor<T>& A)
 {
-    const Location start(B.Order(), 0);
-    T* dataBuf = B.Buffer(start);
+    T* dataBuf = this->Buffer();
 
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
+    const tmen::GridView gvB = this->GridView();
 
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const ObjShape maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
 
     const Unsigned maxRecvElem = prod(maxLocalShapeA) / (gvA.Shape()[rMode]);
     printf("maxRecvElem: %d\n", maxRecvElem);
@@ -188,7 +186,7 @@ void UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode s
     }
     printf("\n");
 
-    const ObjShape localShapeB = B.LocalShape();         //Shape of the local tensor we are packing
+    const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
     //Number of outer slices to unpack
     const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, sMode + 1));
@@ -202,7 +200,7 @@ void UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode s
 
     //Variables for calculating elements to copy
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, sMode));
-    const Unsigned copySliceSize = B.LocalModeStride(sMode);
+    const Unsigned copySliceSize = this->LocalModeStride(sMode);
 
     //Loop iteration vars
     Unsigned outerSliceNum, sModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
@@ -242,19 +240,21 @@ void UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode s
     }
 
     printf("dataBuf:");
-    for(Unsigned i = 0; i < prod(B.LocalShape()); i++)
+    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
         printf(" %d", dataBuf[i]);
     printf("\n");
 }
 
 #define PROTO(T) \
-        template Int CheckReduceScatterCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
-        template void ReduceScatterCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
-        template void PackRSCommSendBuf(const DistTensor<T>& B, const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf); \
-        template void UnpackRSCommRecvBuf(const T * const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A, DistTensor<T>& B);
+        template Int  DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
+        template void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
+        template void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf); \
+        template void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<float>)
+PROTO(Complex<double>)
 
 } //namespace tmen

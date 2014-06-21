@@ -15,33 +15,33 @@ namespace tmen{
 
 //TODO: Make sure these checks are correct (look at LDim, strides, distributions, etc).
 template <typename T>
-Int CheckRemoveUnitModesRedist(const DistTensor<T>& B, const ModeArray& unitModes){
+Int DistTensor<T>::CheckRemoveUnitModesRedist(const ModeArray& unitModes){
     return 1;
 }
 
 template <typename T>
-Int CheckRemoveUnitModeRedist(const DistTensor<T>& B, const Mode& unitMode){
+Int DistTensor<T>::CheckRemoveUnitModeRedist(const Mode& unitMode){
     ModeArray modeArr(1);
     modeArr[0] = unitMode;
-    CheckRemoveUnitModesRedist(B, modeArr);
+    CheckRemoveUnitModesRedist(modeArr);
 }
 
 template <typename T>
-Int CheckIntroduceUnitModesRedist(const DistTensor<T>& B, const std::vector<Unsigned>& newModePositions){
+Int DistTensor<T>::CheckIntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions){
 
     return 1;
 }
 
 template <typename T>
-Int CheckIntroduceUnitModeRedist(const DistTensor<T>& B, const Unsigned& newModePosition){
+Int DistTensor<T>::CheckIntroduceUnitModeRedist(const Unsigned& newModePosition){
     std::vector<Unsigned> modeArr(1);
     modeArr[0] = newModePosition;
-    CheckIntroduceUnitModesRedist(B, modeArr);
+    CheckIntroduceUnitModesRedist(modeArr);
 }
 
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>
-void RemoveUnitModesRedist(DistTensor<T>& B, const ModeArray& unitModes){
+void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
 //    if(!CheckRemoveUnitModesRedist(B, unitModes))
 //        LogicError("RemoveUnitModesRedist: Invalid redistribution request");
 //
@@ -58,7 +58,7 @@ void RemoveUnitModesRedist(DistTensor<T>& B, const ModeArray& unitModes){
 }
 
 template<typename T>
-void RemoveUnitModeRedist(DistTensor<T>& B, const Mode& unitMode){
+void DistTensor<T>::RemoveUnitModeRedist(const Mode& unitMode){
 //    ModeArray modeArr(1);
 //    modeArr[0] = unitMode;
 //    RemoveUnitModesRedist(B, A, modeArr);
@@ -66,7 +66,7 @@ void RemoveUnitModeRedist(DistTensor<T>& B, const Mode& unitMode){
 
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>
-void IntroduceUnitModesRedist(DistTensor<T>& B, const std::vector<Unsigned>& newModePositions){
+void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions){
 //    if(!CheckIntroduceUnitModesRedist(B, A, newModePositions))
 //        LogicError("IntroduceUnitModesRedist: Invalid redistribution request");
 //
@@ -78,22 +78,25 @@ void IntroduceUnitModesRedist(DistTensor<T>& B, const std::vector<Unsigned>& new
 }
 
 template<typename T>
-void IntroduceUnitModeRedist(DistTensor<T>& B, const Unsigned& newModePosition){
+void DistTensor<T>::IntroduceUnitModeRedist(const Unsigned& newModePosition){
 //    ModeArray modeArr(1);
 //    modeArr[0] = newModePosition;
 //    IntroduceUnitModesRedist(B, A, modeArr);
 }
+
 #define PROTO(T) \
-        template Int CheckRemoveUnitModesRedist(const DistTensor<T>& B, const ModeArray& unitModes); \
-        template Int CheckRemoveUnitModeRedist(const DistTensor<T>& B, const Mode& unitMode); \
-        template Int CheckIntroduceUnitModesRedist(const DistTensor<T>& B, const std::vector<Unsigned>& newModePositions); \
-        template Int CheckIntroduceUnitModeRedist(const DistTensor<T>& B, const Unsigned& newModePosition); \
-        template void RemoveUnitModesRedist(DistTensor<T>& B, const ModeArray& unitModes); \
-        template void RemoveUnitModeRedist(DistTensor<T>& B, const Mode& unitMode); \
-        template void IntroduceUnitModesRedist(DistTensor<T>& B, const std::vector<Unsigned>& newModePositions); \
-        template void IntroduceUnitModeRedist(DistTensor<T>& B, const Unsigned& newModePosition);
+        template Int  DistTensor<T>::CheckRemoveUnitModesRedist(const ModeArray& unitModes); \
+        template Int  DistTensor<T>::CheckRemoveUnitModeRedist(const Mode& unitMode); \
+        template Int  DistTensor<T>::CheckIntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions); \
+        template Int  DistTensor<T>::CheckIntroduceUnitModeRedist(const Unsigned& newModePosition); \
+        template void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes); \
+        template void DistTensor<T>::RemoveUnitModeRedist(const Mode& unitMode); \
+        template void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions); \
+        template void DistTensor<T>::IntroduceUnitModeRedist(const Unsigned& newModePosition);
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<float>)
+PROTO(Complex<double>)
 } //namespace tmen
