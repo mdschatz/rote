@@ -100,4 +100,6 @@ void DetermineA2ADoubleModeCommunicateDataSize(const DistTensor<T>& B, const Dis
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<double>)
+PROTO(Complex<float>)
 }

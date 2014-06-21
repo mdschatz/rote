@@ -23,21 +23,11 @@ namespace tmen{
 ////////////////
 //Check routines
 ////////////////
-template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes);
+//template<typename T>
+//Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
 
-template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode);
-
-/////////////////
-//Redist routines
-/////////////////
-template<typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes);
-
-template<typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode);
-
+//template<typename T>
+//Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_AGINTERFACES_HPP

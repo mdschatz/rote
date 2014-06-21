@@ -9,30 +9,15 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "tensormental.hpp"
+//#include "/tensormental/mc_mr.hpp"
 #include <algorithm>
 
 namespace tmen{
 
 template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes){
-    if(A.Order() != B.Order()){
-        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
-    }
-
-    ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
-    ModeDistribution allGatherDistB = B.ModeDist(allGatherMode);
-
-    const ModeDistribution check = ConcatenateVectors(allGatherDistB, redistModes);
-    if(AnyElemwiseNotEqual(check, allGatherDistA)){
-        LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
-    }
-
-    return true;
-}
-
-template<typename T>
-Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode){
-    if(A.Order() != B.Order()){
+Int
+DistTensor<T>::CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode){
+    if(A.Order() != this->Order()){
         LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
     }
 
@@ -43,32 +28,41 @@ Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const M
     return true;
 }
 
-template <typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes ){
-    if(!CheckAllGatherRedist(B, A, allGatherMode, redistModes))
-        LogicError("AllGatherRedist: Invalid redistribution request");
+template<typename T>
+Int
+DistTensor<T>::CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes){
+    if(A.Order() != this->Order()){
+        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
+    }
 
-    AllGatherCommRedist(B, A, allGatherMode, redistModes);
+    ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
+
+    const ModeDistribution check = ConcatenateVectors(this->ModeDist(allGatherMode), redistModes);
+    if(AnyElemwiseNotEqual(check, allGatherDistA)){
+        LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
+    }
+
+    return true;
 }
 
 template <typename T>
-void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode){
-    if(!CheckAllGatherRedist(B, A, allGatherMode))
-        LogicError("AllGatherRedist: Invalid redistribution request");
+void
+DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
+//    if(!CheckAllGatherRedist(B, A, allGatherMode, redistModes))
+//        LogicError("AllGatherRedist: Invalid redistribution request");
 
-    ModeDistribution modeDist = A.ModeDist(allGatherMode);
-
-    AllGatherCommRedist(B, A, allGatherMode, modeDist);
+    AllGatherCommRedist(A, allGatherMode, redistModes);
 }
 
 #define PROTO(T) \
-        template Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes); \
-        template Int CheckAllGatherRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode); \
-        template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes ); \
-        template void AllGatherRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode);
+        template Int DistTensor<T>::CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode); \
+        template Int DistTensor<T>::CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes); \
+        template void DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes );
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<double>)
+PROTO(Complex<float>)
 
 } //namespace tmen

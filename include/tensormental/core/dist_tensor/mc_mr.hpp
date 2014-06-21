@@ -80,6 +80,17 @@ public:
     //
     // Collective routines
     //
+    virtual Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
+    virtual void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
+    virtual void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
+    virtual void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
+
+    //
+    // Allgather interface routines
+    //
+    virtual Int CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
+    virtual Int CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode);
+    virtual void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
 
     //
     // Routines needed for indexing

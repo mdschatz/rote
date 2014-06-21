@@ -23,26 +23,26 @@ namespace tmen{
 /////////////////
 //Check routine
 /////////////////
-template<typename T>
-Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes);
+//template<typename T>
+//Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
 
 /////////////////
 //Redist routine
 /////////////////
-template<typename T>
-void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes);
+//template<typename T>
+//void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
 
 /////////////////
 //Pack routine
 /////////////////
-template <typename T>
-void PackAGCommSendBuf(const DistTensor<T>& A, const Mode allGatherMode, T * const sendBuf, const ModeArray& redistModes);
+//template <typename T>
+//void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
 
 /////////////////
 //Unpack routine
 /////////////////
-template <typename T>
-void UnpackCommAGRecvBuf(const T * const recvBuf, const Mode allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A, DistTensor<T>& B);
+//template <typename T>
+//void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A, DistTensor<T>& B);
 
 }
 #endif // ifndef TMEN_CORE_DISTTENSOR_REDISTRIBUTE_AGCOMM_HPP

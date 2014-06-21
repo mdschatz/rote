@@ -14,15 +14,15 @@
 namespace tmen{
 
 template<typename T>
-Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes){
-    if(A.Order() != B.Order()){
+Int
+DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes){
+    if(A.Order() != this->Order()){
         LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
     }
 
     ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
-    ModeDistribution allGatherDistB = B.ModeDist(allGatherMode);
 
-    const ModeDistribution check = ConcatenateVectors(allGatherDistB, redistModes);
+    const ModeDistribution check = ConcatenateVectors(this->ModeDist(allGatherMode), redistModes);
     if(AnyElemwiseNotEqual(check, allGatherDistA)){
         LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
     }
@@ -30,23 +30,27 @@ Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, con
     return true;
 }
 
-template <typename T>
-void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes ){
-    if(!CheckAllGatherRedist(B, A, allGatherMode, redistModes))
+template<typename T>
+void
+DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, const ModeArray& gridModes){
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::AllGatherCommRedist");
+    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
         LogicError("AllGatherRedist: Invalid redistribution request");
+#endif
+    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
 
     //NOTE: Fix to handle strides in Tensor data
-    if(redistModes.size() == 0){
-        const Location start(A.Order(), 0);
-        T* dst = B.Buffer(start);
-        const T* src = A.LockedBuffer(start);
+    if(gridModes.size() == 0){
+        T* dst = this->Buffer();
+        const T* src = A.LockedBuffer();
         MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
         return;
     }
     Unsigned sendSize, recvSize;
-    DetermineAGCommunicateDataSize(A, allGatherMode, redistModes, recvSize, sendSize);
+    DetermineAGCommunicateDataSize(A, agMode, gridModes, recvSize, sendSize);
 
-    const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
+    const mpi::Comm comm = A.GetCommunicatorForModes(gridModes);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -56,17 +60,69 @@ void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode al
     T* recvBuf = &(auxBuf[sendSize]);
 
     //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
-    PackAGCommSendBuf(A, allGatherMode, sendBuf, redistModes);
+    PackAGCommSendBuf(A, agMode, sendBuf, gridModes);
 
     //printf("Allgathering %d elements\n", sendSize);
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
-    UnpackAGCommRecvBuf(recvBuf, allGatherMode, redistModes, A, B);
+    UnpackAGCommRecvBuf(recvBuf, agMode, gridModes, A);
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
+//template<typename T>
+//Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes){
+//    if(A.Order() != B.Order()){
+//        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
+//    }
+//
+//    ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
+//    ModeDistribution allGatherDistB = B.ModeDist(allGatherMode);
+//
+//    const ModeDistribution check = ConcatenateVectors(allGatherDistB, redistModes);
+//    if(AnyElemwiseNotEqual(check, allGatherDistA)){
+//        LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
+//    }
+//
+//    return true;
+//}
+
+//template <typename T>
+//void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
+//    if(!CheckAllGatherRedist(B, A, allGatherMode, redistModes))
+//        LogicError("AllGatherRedist: Invalid redistribution request");
+//
+//    //NOTE: Fix to handle strides in Tensor data
+//    if(redistModes.size() == 0){
+//        const Location start(A.Order(), 0);
+//        T* dst = B.Buffer(start);
+//        const T* src = A.LockedBuffer(start);
+//        MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+//        return;
+//    }
+//    Unsigned sendSize, recvSize;
+//    DetermineAGCommunicateDataSize(A, allGatherMode, redistModes, recvSize, sendSize);
+//
+//    const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
+//
+//    Memory<T> auxMemory;
+//    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+//    MemZero(&(auxBuf[0]), sendSize + recvSize);
+//
+//    T* sendBuf = &(auxBuf[0]);
+//    T* recvBuf = &(auxBuf[sendSize]);
+//
+//    //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
+//    PackAGCommSendBuf(A, allGatherMode, sendBuf, redistModes);
+//
+//    //printf("Allgathering %d elements\n", sendSize);
+//    mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
+//
+//    UnpackAGCommRecvBuf(recvBuf, allGatherMode, redistModes, A, B);
+//    //Print(B.LockedTensor(), "A's local tensor after allgathering:");
+//}
+
 template <typename T>
-void PackAGCommSendBuf(const DistTensor<T>& A, const Mode agMode, T * const sendBuf, const ModeArray& redistModes)
+void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode, T * const sendBuf, const ModeArray& redistModes)
 {
   const Location start(A.Order(), 0);
   const T* dataBuf = A.LockedBuffer(start);
@@ -132,20 +188,19 @@ void PackAGCommSendBuf(const DistTensor<T>& A, const Mode agMode, T * const send
 }
 
 template <typename T>
-void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode agMode, const ModeArray& redistModes, const DistTensor<T>& A, DistTensor<T>& B)
+void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agMode, const ModeArray& redistModes, const DistTensor<T>& A)
 {
-    const Location start(B.Order(), 0);
-    T* dataBuf = B.Buffer(start);
+    T* dataBuf = this->Buffer();
 
     const tmen::Grid& g = A.Grid();
     const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = B.GridView();
+    const tmen::GridView gvB = this->GridView();
 
     const ObjShape commShape = FilterVector(g.Shape(), redistModes);
     const Unsigned nRedistProcs = prod(commShape);
 
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const ObjShape maxLocalShapeB = MaxLengths(B.Shape(), gvB.Shape());
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
 
     printf("recvBuf:");
     for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
@@ -153,7 +208,7 @@ void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode agMode, const ModeA
     }
     printf("\n");
 
-    const ObjShape localShapeB = B.LocalShape();
+    const ObjShape localShapeB = this->LocalShape();
 
     //Number of outer slices to unpack
     const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, agMode + 1));
@@ -166,7 +221,7 @@ void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode agMode, const ModeA
 
     //Variables for calculating elements to copy
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, agMode));
-    const Unsigned copySliceSize = B.LocalModeStride(agMode);
+    const Unsigned copySliceSize = this->LocalModeStride(agMode);
 
     //Number of processes we have to unpack from
     const Unsigned nElemSlices = nRedistProcs;
@@ -222,19 +277,26 @@ void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode agMode, const ModeA
         }
     }
     printf("dataBuf:");
-    for(Unsigned i = 0; i < prod(B.LocalShape()); i++)
+    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
         printf(" %d", dataBuf[i]);
     printf("\n");
 }
 
 #define PROTO(T) \
-        template Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes); \
-        template void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode allGatherMode, const ModeArray& redistModes ); \
-        template void PackAGCommSendBuf(const DistTensor<T>& A, const Mode allGatherMode, T * const sendBuf, const ModeArray& redistModes); \
-        template void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A, DistTensor<T>& B);
+        template void DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, const ModeArray& gridModes); \
+        template Int  DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes); \
+        template void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes); \
+        template void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
+
+//template Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
+//template void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes );
+
 
 
 PROTO(int)
 PROTO(float)
 PROTO(double)
+PROTO(Complex<double>)
+PROTO(Complex<float>)
+
 } //namespace tmen

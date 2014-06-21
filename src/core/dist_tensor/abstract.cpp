@@ -833,6 +833,112 @@ BASE(T)
 AbstractDistTensor<T>::GetImagPart( const Location& loc ) const
 { return ImagPart(Get(loc)); }
 
+//
+// Redist routines
+//
+
+//template<typename T>
+//void
+//AbstractDistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode agMode, const ModeArray& redistModes, const DistTensor<T>& A)
+//{
+//#ifndef RELEASE
+//    CallStackEntry entry("AbstractDistTensor::UnpackAGCommRecvBuf");
+//#endif
+//
+//    T* dataBuf = Buffer();
+//
+//    const tmen::Grid& g = A.Grid();
+//    const tmen::GridView gvA = A.GridView();
+//    const tmen::GridView gvB = GridView();
+//
+//    const ObjShape commShape = FilterVector(g.Shape(), redistModes);
+//    const Unsigned nRedistProcs = prod(commShape);
+//
+//    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+//    const ObjShape maxLocalShapeB = MaxLengths(Shape(), gvB.Shape());
+//
+//    printf("recvBuf:");
+//    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
+//        printf(" %d", recvBuf[i]);
+//    }
+//    printf("\n");
+//
+//    const ObjShape localShapeB = LocalShape();
+//
+//    //Number of outer slices to unpack
+//    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, agMode + 1));
+//    const Unsigned nLocalOuterSlices = prod(localShapeB, agMode + 1);
+//
+//    //Loop packing bounds variables
+//    const Unsigned nMaxAGModeSlices = maxLocalShapeB[agMode];
+//    const Unsigned nLocalAGModeSlices = localShapeB[agMode];
+//    const Unsigned agModeUnpackStride = nRedistProcs;
+//
+//    //Variables for calculating elements to copy
+//    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, agMode));
+//    const Unsigned copySliceSize = LocalModeStride(agMode);
+//
+//    //Number of processes we have to unpack from
+//    const Unsigned nElemSlices = nRedistProcs;
+//
+//    //Loop iteration vars
+//    Unsigned outerSliceNum, agModeSliceNum, elemSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+//    Unsigned elemRecvBufOff, elemDataBufOff;
+//    Unsigned outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
+//    Unsigned agModeRecvBufOff, agModeDataBufOff;  //Offsets used to index into dataBuf array
+//    Unsigned startRecvBuf, startDataBuf;
+//
+//    printf("MemCopy info:\n");
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+//    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
+//    for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
+//        elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
+//        elemDataBufOff = copySliceSize * elemSliceNum;
+//
+//        printf("      elemSliceNum: %d\n", elemSliceNum);
+//        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
+//        printf("      elemDataBufOff: %d\n", elemDataBufOff);
+//        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+//            if(outerSliceNum >= nLocalOuterSlices)
+//                break;
+//            //NOTE: the weird Max() function ensures we increment the recvBuf correctly
+//            //e.g. we need to ensure that we jump over all slices packed by the pack routine.  Which should be maxLocalShapeA[agModeA];
+//            //For consistency, kept same structure as in PackPartialRSSendBuf
+//            outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxAGModeSlices - 1) / agModeUnpackStride + 1) * outerSliceNum;
+//            outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
+//
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//            for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum += agModeUnpackStride){
+//                if(agModeSliceNum + elemSliceNum >= nLocalAGModeSlices)
+//                    break;
+//                agModeRecvBufOff = maxCopySliceSize * (agModeSliceNum / agModeUnpackStride);
+//                agModeDataBufOff = copySliceSize * agModeSliceNum;
+//
+//                printf("          agModeSliceNum: %d\n", agModeSliceNum);
+//                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
+//                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+//                startRecvBuf = elemRecvBufOff + outerRecvBufOff + agModeRecvBufOff;
+//                startDataBuf = elemDataBufOff + outerDataBufOff + agModeDataBufOff;
+//
+//                printf("          startRecvBuf: %d\n", startRecvBuf);
+//                printf("          startDataBuf: %d\n", startDataBuf);
+//                MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
+//            }
+//        }
+//    }
+//    printf("dataBuf:");
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
+//}
+
+
+
 
 //TODO: Figure out how to extend this
 template<typename T>

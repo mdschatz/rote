@@ -11,6 +11,8 @@
 #define TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
 
 #include <vector>
+#include "tensormental/core/dist_tensor/redistribute/agComm.hpp"
+
 namespace tmen {
 
 #ifndef RELEASE
@@ -183,6 +185,21 @@ public:
     virtual void ResizeTo( const DistTensor<T>& B) = 0;
     virtual void ResizeTo( const ObjShape& shape ) = 0;
     virtual void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims ) = 0;
+
+    //
+    // Allgather workhorse routines
+    //
+    virtual Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes) = 0;
+    virtual void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes) = 0;
+    virtual void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes) = 0;
+    virtual void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A) = 0;
+
+    //
+    // Allgather interface routines
+    //
+    virtual Int CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes) = 0;
+    virtual Int CheckAllGatherRedist(const DistTensor<T>& A, const Mode& allGatherMode) = 0;
+    virtual void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes) = 0;
 
 protected:
 
