@@ -13,32 +13,6 @@
 
 namespace tmen{
 
-//TODO: Make sure these checks are correct (look at LDim, strides, distributions, etc).
-template <typename T>
-Int DistTensor<T>::CheckRemoveUnitModesRedist(const ModeArray& unitModes){
-    return 1;
-}
-
-template <typename T>
-Int DistTensor<T>::CheckRemoveUnitModeRedist(const Mode& unitMode){
-    ModeArray modeArr(1);
-    modeArr[0] = unitMode;
-    CheckRemoveUnitModesRedist(modeArr);
-}
-
-template <typename T>
-Int DistTensor<T>::CheckIntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions){
-
-    return 1;
-}
-
-template <typename T>
-Int DistTensor<T>::CheckIntroduceUnitModeRedist(const Unsigned& newModePosition){
-    std::vector<Unsigned> modeArr(1);
-    modeArr[0] = newModePosition;
-    CheckIntroduceUnitModesRedist(modeArr);
-}
-
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>
 void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
@@ -85,10 +59,6 @@ void DistTensor<T>::IntroduceUnitModeRedist(const Unsigned& newModePosition){
 }
 
 #define PROTO(T) \
-        template Int  DistTensor<T>::CheckRemoveUnitModesRedist(const ModeArray& unitModes); \
-        template Int  DistTensor<T>::CheckRemoveUnitModeRedist(const Mode& unitMode); \
-        template Int  DistTensor<T>::CheckIntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions); \
-        template Int  DistTensor<T>::CheckIntroduceUnitModeRedist(const Unsigned& newModePosition); \
         template void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes); \
         template void DistTensor<T>::RemoveUnitModeRedist(const Mode& unitMode); \
         template void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions); \

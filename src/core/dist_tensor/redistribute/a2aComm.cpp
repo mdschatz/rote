@@ -32,15 +32,23 @@ template <typename T>
 void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
     if(!this->CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
         LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
-
+    if(!A.Participating())
+        return;
     Unsigned sendSize, recvSize;
 
+    //Determine buffer sizes for communication
+    //NOTE: Swap to concatenate vectors
     ModeArray commModes = a2aCommGroups.first;
     commModes.insert(commModes.end(), a2aCommGroups.second.begin(), a2aCommGroups.second.end());
     std::sort(commModes.begin(), commModes.end());
 
+    const Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
+    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GridView().Shape());
+
+    sendSize = prod(maxLocalShape) * nRedistProcs;
+    recvSize = sendSize;
+
     const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
-    DetermineA2ADoubleModeCommunicateDataSize(A, a2aModes, a2aCommGroups, recvSize, sendSize);
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -48,8 +56,6 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
 
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
-
-    Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
 
     PackA2ADoubleModeCommSendBuf(A, a2aModes, a2aCommGroups, sendBuf);
 

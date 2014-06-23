@@ -13,51 +13,14 @@
 
 namespace tmen{
 
-//TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
-Int DistTensor<T>::CheckPermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    Unsigned i;
-    const tmen::GridView gvA = A.GridView();
-
-    const Unsigned AOrder = A.Order();
-    const Unsigned BOrder = this->Order();
-
-    //Test order retained
-    if(BOrder != AOrder){
-        LogicError("CheckPermutationRedist: Permutation retains the same order of objects");
-    }
-
-    //Test dimension has been resized correctly
-    //NOTE: Uses fancy way of performing Ceil() on integer division
-    if(this->Dimension(permuteMode) != A.Dimension(permuteMode))
-        LogicError("CheckPartialReduceScatterRedist: Permutation retains the same dimension of indices");
-
-    //Make sure all indices are distributed similarly
-    for(i = 0; i < BOrder; i++){
-        Mode mode = i;
-        if(mode == permuteMode){
-            if(!EqualUnderPermutation(this->ModeDist(mode), A.ModeDist(mode)))
-                LogicError("CheckPermutationRedist: Distribution of permuted mode does not involve same modes of grid as input");
-        }else{
-            if(AnyElemwiseNotEqual(this->ModeDist(mode), A.ModeDist(mode)))
-                LogicError("CheckPartialReduceScatterRedist: All modes must be distributed similarly");
-        }
-    }
-    return 1;
-
-}
-
-template <typename T>
-void DistTensor<T>::PermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    if(!CheckPermutationRedist(A, permuteMode, redistModes))
-            LogicError("PermutationRedist: Invalid redistribution request");
-
+void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
+    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
     PermutationCommRedist(A, permuteMode, redistModes);
 }
 
 #define PROTO(T) \
-        template Int  DistTensor<T>::CheckPermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PermutationRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+        template void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
 
 PROTO(int)
 PROTO(float)

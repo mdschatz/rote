@@ -38,7 +38,8 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     if(!CheckAllGatherCommRedist(A, agMode, gridModes))
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
-    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
+    if(!A.Participating())
+        return;
 
     //NOTE: Fix to handle strides in Tensor data
     if(gridModes.size() == 0){
@@ -48,7 +49,13 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
         return;
     }
     Unsigned sendSize, recvSize;
-    DetermineAGCommunicateDataSize(A, agMode, gridModes, recvSize, sendSize);
+
+    //Determine buffer sizes for communication
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+
+    sendSize = prod(maxLocalShapeA);
+    recvSize = sendSize * nRedistProcs;
 
     const mpi::Comm comm = A.GetCommunicatorForModes(gridModes);
 

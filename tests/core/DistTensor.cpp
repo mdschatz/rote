@@ -132,7 +132,7 @@ TestPRedist( DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist )
     if(commRank == 0){
         printf("Permuting mode %d: %s <-- %s\n", pMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
-    B.PermutationRedist(A, pMode, resDist);
+    B.PermutationRedistFrom(A, pMode, resDist);
     Print(B, "B after permute redist");
 }
 
@@ -180,7 +180,7 @@ TestLRedist( DistTensor<T>& A, Mode lMode, const ModeDistribution& resDist )
 
     Print(A, "A before local redist");
     ModeArray gridRedistModes(resDist.begin() + lModeDist.size(), resDist.end());
-    B.LocalRedist(A, lMode, gridRedistModes);
+    B.LocalRedistFrom(A, lMode, gridRedistModes);
     Print(B, "B after local redist");
 }
 
@@ -204,7 +204,7 @@ TestRSRedist(DistTensor<T>& A, Mode rMode, Mode sMode, const TensorDistribution&
         printf("Reducing mode %d and scattering mode %d: %s <-- %s\n", rMode, sMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    B.ReduceScatterRedist(A, rMode, sMode);
+    B.ReduceScatterRedistFrom(A, rMode, sMode);
 
     Print(B, "B after rs redist");
 }
@@ -229,7 +229,7 @@ TestPRSRedist(DistTensor<T>& A, Mode rsMode, const TensorDistribution& resDist)
         printf("Partially reducing mode %d: %s <-- %s\n", rsMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    B.PartialReduceScatterRedist(A, rsMode);
+    B.PartialReduceScatterRedistFrom(A, rsMode);
 
     Print(B, "B after prs redist");
 }
@@ -249,7 +249,7 @@ TestA2ADMRedist(DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const s
         printf("All-to-alling modes %d and %d: %s <-- %s\n", a2aModes.first, a2aModes.second, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    B.AllToAllDoubleModeRedist(A, a2aModes, commGroups);
+    B.AllToAllDoubleModeRedistFrom(A, a2aModes, commGroups);
 
     Print(B, "B after a2a redist");
 }

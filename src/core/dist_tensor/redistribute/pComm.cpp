@@ -51,52 +51,59 @@ template <typename T>
 void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     if(!this->CheckPermutationCommRedist(A, permuteMode, redistModes))
             LogicError("PermutationRedist: Invalid redistribution request");
+    if(!this->Participating())
+        return;
 
-        Unsigned sendSize, recvSize;
-        DeterminePermCommunicateDataSize(A, permuteMode, recvSize, sendSize);
+    Unsigned sendSize, recvSize;
 
-        const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
-        const int myRank = mpi::CommRank(comm);
+    //Determine buffer sizes for communication
+    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), this->GridView().Shape());
+    recvSize = prod(maxLocalShapeB);
+    sendSize = recvSize;
 
-        Memory<T> auxMemory;
-        T* auxBuf = auxMemory.Require(sendSize + recvSize);
-        MemZero(&(auxBuf[0]), sendSize + recvSize);
-        T* sendBuf = &(auxBuf[0]);
-        T* recvBuf = &(auxBuf[sendSize]);
+    const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
+    const int myRank = mpi::CommRank(comm);
 
-        PackPermutationCommSendBuf(A, permuteMode, sendBuf);
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
 
-        const GridView gvA = A.GridView();
-        const GridView gvB = this->GridView();
+    PackPermutationCommSendBuf(A, permuteMode, sendBuf);
 
-        const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
-        const ModeDistribution permuteModeDistB = this->ModeDist(permuteMode);
+    const GridView gvA = A.GridView();
+    const GridView gvB = this->GridView();
 
-        ModeDistribution gridModesUsed(permuteModeDistB);
-        std::sort(gridModesUsed.begin(), gridModesUsed.end());
+    const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
+    const ModeDistribution permuteModeDistB = this->ModeDist(permuteMode);
 
-        const ObjShape gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
-        const std::vector<Unsigned> gridSliceStridesA = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteModeDistA));
-        const std::vector<Unsigned> gridSliceStridesB = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteModeDistB));
+    ModeDistribution gridModesUsed(permuteModeDistB);
+    std::sort(gridModesUsed.begin(), gridModesUsed.end());
 
-        const std::vector<Unsigned> permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
-        const std::vector<Unsigned> permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
+    const ObjShape gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
+    const std::vector<Unsigned> gridSliceStridesA = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteModeDistA));
+    const std::vector<Unsigned> gridSliceStridesB = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteModeDistB));
 
-        //Determine sendRank
-        const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
-        const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
+    const std::vector<Unsigned> permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
+    const std::vector<Unsigned> permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
 
-        //Determine recvRank
-        const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
-        const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteModeDistB));
-        const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
-        const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
+    //Determine sendRank
+    const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
+    const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
 
-        //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
-        mpi::SendRecv(sendBuf, sendSize, sendRank,
-                      recvBuf, recvSize, recvRank, comm);
+    //Determine recvRank
+    const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
+    const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteModeDistB));
+    const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
+    const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
 
-        UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
+    //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
+    mpi::SendRecv(sendBuf, sendSize, sendRank,
+                  recvBuf, recvSize, recvRank, comm);
+
+    UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
 }
 
 //NOTE: This should just be a direct memcopy. But sticking to the same structured code as all other collectives

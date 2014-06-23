@@ -54,11 +54,19 @@ Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mo
 
 template <typename T>
 void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
-    if(!this->CheckReduceScatterRedist(A, reduceMode, scatterMode))
+    if(!this->CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
-
+    if(!this->Participating())
+        return;
     Unsigned sendSize, recvSize;
-    this->DetermineRSCommunicateDataSize(A, reduceMode, recvSize, sendSize);
+
+    //Determine buffer sizes for communication
+    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(reduceMode));
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), A.ModeDist(reduceMode))));
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+    recvSize = prod(maxLocalShapeA);
+    sendSize = recvSize * nRedistProcs;
+
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     const ModeArray commModes = A.ModeDist(reduceMode);
     const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
