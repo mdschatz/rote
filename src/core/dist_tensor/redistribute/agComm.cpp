@@ -240,19 +240,19 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     Unsigned agModeRecvBufOff, agModeDataBufOff;  //Offsets used to index into dataBuf array
     Unsigned startRecvBuf, startDataBuf;
 
-    printf("MemCopy info:\n");
-    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
-    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-    printf("    copySliceSize: %d\n", copySliceSize);
-    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
+//    printf("MemCopy info:\n");
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+//    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
     for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
         elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
         elemDataBufOff = copySliceSize * elemSliceNum;
 
-        printf("      elemSliceNum: %d\n", elemSliceNum);
-        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
-        printf("      elemDataBufOff: %d\n", elemDataBufOff);
+//        printf("      elemSliceNum: %d\n", elemSliceNum);
+//        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
+//        printf("      elemDataBufOff: %d\n", elemDataBufOff);
         for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
             if(outerSliceNum >= nLocalOuterSlices)
                 break;
@@ -262,31 +262,31 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
             outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxAGModeSlices - 1) / agModeUnpackStride + 1) * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
 
-            printf("        outerSliceNum: %d\n", outerSliceNum);
-            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
             for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum += agModeUnpackStride){
                 if(agModeSliceNum + elemSliceNum >= nLocalAGModeSlices)
                     break;
                 agModeRecvBufOff = maxCopySliceSize * (agModeSliceNum / agModeUnpackStride);
                 agModeDataBufOff = copySliceSize * agModeSliceNum;
 
-                printf("          agModeSliceNum: %d\n", agModeSliceNum);
-                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
-                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+//                printf("          agModeSliceNum: %d\n", agModeSliceNum);
+//                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
+//                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
                 startRecvBuf = elemRecvBufOff + outerRecvBufOff + agModeRecvBufOff;
                 startDataBuf = elemDataBufOff + outerDataBufOff + agModeDataBufOff;
 
-                printf("          startRecvBuf: %d\n", startRecvBuf);
-                printf("          startDataBuf: %d\n", startDataBuf);
+//                printf("          startRecvBuf: %d\n", startRecvBuf);
+//                printf("          startDataBuf: %d\n", startDataBuf);
                 MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
             }
         }
     }
-    printf("dataBuf:");
-    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
-        printf(" %d", dataBuf[i]);
-    printf("\n");
+//    printf("dataBuf:");
+//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
 }
 
 #define PROTO(T) \
