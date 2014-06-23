@@ -11,11 +11,12 @@
 #define TMEN_CORE_DISTTENSOR_ABSTRACT_DECL_HPP
 
 #include <vector>
+
 namespace tmen {
 
 #ifndef RELEASE
     template<typename T>
-    void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index);
+    void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Mode mode);
 #endif
 
 template<typename T> 
@@ -32,7 +33,8 @@ public:
     ( const Location& loc, const ObjShape& shape ) const;
     void AssertSameGrid( const tmen::Grid& grid ) const;
     void AssertSameSize( const ObjShape& shape ) const;
-    void AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const;
+    //TODO: REMOVE THIS
+    void AssertMergeableModes(const std::vector<ModeArray>& oldModes) const;
 #endif // ifndef RELEASE
 
     //
@@ -41,19 +43,13 @@ public:
 
     Unsigned Order() const;
     Unsigned Dimension(Mode mode) const;
-    Unsigned IndexDimension(Index index) const;
     ObjShape Shape() const;
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
     Unsigned LocalModeStride(Mode mode) const;
-    IndexArray Indices() const;
-    void SetIndices(const IndexArray& newIndices);
-    Index IndexOfMode(Mode mode) const;
-    Mode ModeOfIndex(Index index) const;
 
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Mode mode) const;
-    ModeDistribution IndexDist(Index index) const;
 
 
     std::vector<Unsigned> LDims() const;
@@ -63,11 +59,21 @@ public:
     const tmen::Grid& Grid() const;
     const tmen::GridView GridView() const;
 
+          T* Buffer();
           T* Buffer( const Location& loc );
+    const T* LockedBuffer() const;
     const T* LockedBuffer( const Location& loc ) const;
+
 
           tmen::Tensor<T>& Tensor();
     const tmen::Tensor<T>& LockedTensor() const;
+
+    //
+    // Unit modes
+    //
+    void RemoveUnitModes(const ModeArray& modes);
+    void RemoveUnitMode(const Mode& mode);
+    void IntroduceUnitMode(const Unsigned& modePosition);
 
     //
     // Alignments
@@ -118,7 +124,7 @@ public:
     //
     Location GridViewLoc() const;
     ObjShape GridViewShape() const;
-    mpi::Comm GetCommunicator(Index index) const;
+    mpi::Comm GetCommunicator(Mode mode) const;
     mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
     void Empty();
     void EmptyData();
@@ -175,8 +181,83 @@ public:
     // Utilities
     //
     
+    virtual void ResizeTo( const DistTensor<T>& B) = 0;
     virtual void ResizeTo( const ObjShape& shape ) = 0;
     virtual void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims ) = 0;
+
+    //
+    // Allgather workhorse routines
+    //
+    virtual Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes) = 0;
+    virtual void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes) = 0;
+    virtual void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes) = 0;
+    virtual void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A) = 0;
+
+    //
+    // Allgather interface routines
+    //
+    virtual void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes) = 0;
+
+    //
+    // All-to-all workhorse routines
+    //
+    virtual Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups) = 0;
+    virtual void AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups) = 0;
+    virtual void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf) = 0;
+    virtual void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A) = 0;
+
+
+    //
+    // All-to-all interface routines
+    //
+    virtual void AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups) = 0;
+
+    //
+    // Local redist workhorse routines
+    //
+    virtual Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes) = 0;
+    virtual void LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes) = 0;
+    virtual void UnpackLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes) = 0;
+
+    //
+    // Local redist interface routines
+    //
+    virtual void LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes) = 0;
+
+    //
+    // Point-to-point workhorse routines
+    //
+    virtual Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes) = 0;
+    virtual void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes) = 0;
+    virtual void PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf) = 0;
+    virtual void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A) = 0;
+
+    //
+    // Point-to-point interface routines
+    //
+    virtual void PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes) = 0;
+
+    //
+    // Reduce-scatter workhorse routines
+    //
+    virtual Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode) = 0;
+    virtual void ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode) = 0;
+    virtual void PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf) = 0;
+    virtual void UnpackRSCommRecvBuf(const T* const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A) = 0;
+
+    //
+    // Reduce-scatter interface routines
+    //
+    virtual void PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode) = 0;
+    virtual void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode) = 0;
+
+    //
+    //Unit mode intro/remove routines
+    //
+    virtual void RemoveUnitModesRedist(const ModeArray& unitModes) = 0;
+    virtual void RemoveUnitModeRedist(const Mode& unitMode) = 0;
+    virtual void IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions) = 0;
+    virtual void IntroduceUnitModeRedist(const Unsigned& newModePosition) = 0;
 
 protected:
 
@@ -202,9 +283,7 @@ protected:
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
     AbstractDistTensor( const Unsigned order, const tmen::Grid& g );
-    //NOTE: Decide whether to remove the following constructor (should we allow creating a tensor without supplying the indices?)
     AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g );
-    AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& g );
 
     void SetShifts();
     void SetModeShift(Mode mode);
@@ -231,7 +310,7 @@ protected:
       const Location& loc, const ObjShape& shape, bool isLocked );
     template<typename S>
     friend void View2x1Helper
-    ( DistTensor<S>& A, const DistTensor<S>& BT, const DistTensor<S>& BB, Index index, bool isLocked );
+    ( DistTensor<S>& A, const DistTensor<S>& BT, const DistTensor<S>& BB, Mode mode, bool isLocked );
 
     template<typename S>
     friend class DistTensor;

@@ -24,25 +24,25 @@ template<typename T>
 void RepartitionUp
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index, Unsigned bsize=Blocksize() );
+  TEN& AB, TEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 template<typename T>
 void RepartitionUp
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index, Unsigned bsize=Blocksize() );
+  DTEN& AB, DTEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 template<typename T>
 void LockedRepartitionUp
 ( const TEN& AT, TEN& A0,
                TEN& A1,
-  const TEN& AB, TEN& A2, Index index, Unsigned bsize=Blocksize() );
+  const TEN& AB, TEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 template<typename T>
 void LockedRepartitionUp
 ( const DTEN& AT, DTEN& A0,
                 DTEN& A1,
-  const DTEN& AB, DTEN& A2, Index index, Unsigned bsize=Blocksize() );
+  const DTEN& AB, DTEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 //
 // RepartitionDown
@@ -52,25 +52,25 @@ template<typename T>
 void RepartitionDown
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index, Unsigned bsize=Blocksize() );
+  TEN& AB, TEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 template<typename T>
 void RepartitionDown
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index, Unsigned bsize=Blocksize() );
+  DTEN& AB, DTEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 template<typename T>
 void LockedRepartitionDown
 ( const TEN& AT, TEN& A0,
                TEN& A1,
-  const TEN& AB, TEN& A2, Index index, Unsigned bsize=Blocksize() );
+  const TEN& AB, TEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 template<typename T>
 void LockedRepartitionDown
 ( const DTEN& AT, DTEN& A0,
                 DTEN& A1,
-  const DTEN& AB, DTEN& A2, Index index, Unsigned bsize=Blocksize() );
+  const DTEN& AB, DTEN& A2, Mode mode, Unsigned bsize=Blocksize() );
 
 #undef DTEN
 #undef TEN

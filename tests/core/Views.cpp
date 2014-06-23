@@ -156,17 +156,15 @@ TestConstViews(DistTensor<T>& A){
     const Unsigned order = A.Order();
     Location start(order);
     std::fill(start.begin(), start.end(), 0);
-    const IndexArray indices = A.Indices();
     const ObjShape shape = A.Shape();
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
 
     for(i = 0; i < order; i++){
-        Index index = indices[i];
-        Mode mode = A.ModeOfIndex(index);
-        printf("Iterating over index: %d\n", index);
+        Mode mode = i;
+        printf("Iterating over mode: %d\n", mode);
 
-        LockedPartitionDown(A, AT, AB, index, 0);
+        LockedPartitionDown(A, AT, AB, mode, 0);
 
         Unsigned count = 0;
         while(AT.Dimension(mode) < A.Dimension(mode)){
@@ -174,7 +172,7 @@ TestConstViews(DistTensor<T>& A){
             LockedRepartitionDown(AT,   A0,
                                   A1,
                            /**/  /**/
-                            AB,   A2, index, 1);
+                            AB,   A2, mode, 1);
             /////////////////////////////////
             PrintView("A0", A0);
             PrintView("A1", A1);
@@ -184,7 +182,7 @@ TestConstViews(DistTensor<T>& A){
             SlideLockedPartitionDown(AT,  A0,
                                     A1,
                               /**/ /**/
-                               AB,  A2, index);
+                               AB,  A2, mode);
         }
     }
 
@@ -193,53 +191,46 @@ TestConstViews(DistTensor<T>& A){
     ATensor = A.Tensor();
     Tensor<T> ALO(order), AHO(order);
     //View as lower order object
-    std::vector<Index> newIndex(1);
-    newIndex[0] = 100;
     Unsigned startMode, nMergeModes;
     for(startMode = 0; startMode < order; startMode++){
         for(nMergeModes = 2; startMode + nMergeModes <= order; nMergeModes++){
-            std::vector<IndexArray> oldIndices(1);
-            IndexArray indicesToMerge(nMergeModes);
+            std::vector<ModeArray> oldModes(1);
+            ModeArray modesToMerge(nMergeModes);
             for(i = 0; i < nMergeModes; i++){
-                indicesToMerge[i] = ATensor.IndexOfMode(startMode + i);
+                modesToMerge[i] = startMode + i;
             }
-            oldIndices[0] = indicesToMerge;
-            printf("Merging indices (%d", indicesToMerge[0]);
+            oldModes[0] = modesToMerge;
+            printf("Merging modes (%d", modesToMerge[0]);
             for(i = 1; i < nMergeModes; i++)
-                printf(" %d", indicesToMerge[i]);
+                printf(" %d", modesToMerge[i]);
             printf(") of dimension (%d", ATensor.Dimension(startMode));
             for(i = 1; i < nMergeModes; i++)
                 printf(" %d", ATensor.Dimension(startMode + i));
             printf(")\n");
-            LockedViewAsLowerOrder(ALO, ATensor, newIndex, oldIndices);
+            LockedViewAsLowerOrder(ALO, ATensor, oldModes);
             PrintLocalView(ALO);
         }
     }
 
     //Try to view as higher order object
     ObjShape ATensorShape = ATensor.Shape();
-    //See if we can split any index into two
-    std::vector<IndexArray> newIndices(1);
-    IndexArray splitIndices(2);
-    splitIndices[0] = 100;
-    splitIndices[1] = 101;
-    newIndices[0] = splitIndices;
+    //See if we can split any mode into two
     for(i = 0; i < order; i++){
-        Unsigned indexDim = ATensorShape[i];
-        for(j = 2; j < indexDim; j++){
-            if(indexDim % j == 0){
-                Index indexToSplit = ATensor.IndexOfMode(i);
-                Unsigned newIndex1Dim = indexDim / j;
-                Unsigned newIndex2Dim = j;
-                IndexArray oldIndices(1);
-                oldIndices[0] = indexToSplit;
+        Unsigned modeDim = ATensorShape[i];
+        for(j = 2; j < modeDim; j++){
+            if(modeDim % j == 0){
+                Mode modeToSplit = i;
+                Unsigned newMode1Dim = modeDim / j;
+                Unsigned newMode2Dim = j;
+                ModeArray oldModes(1);
+                oldModes[0] = modeToSplit;
                 std::vector<ObjShape> splitShape(1);
                 ObjShape newShape(2);
-                newShape[0] = newIndex1Dim;
-                newShape[1] = newIndex2Dim;
+                newShape[0] = newMode1Dim;
+                newShape[1] = newMode2Dim;
                 splitShape[0] = newShape;
-                printf("Splitting index %d of dimension %d into shape (%d, %d)\n", indexToSplit, ATensor.Dimension(ATensor.ModeOfIndex(indexToSplit)), newIndex1Dim, newIndex2Dim);
-                LockedViewAsHigherOrder(AHO, ATensor, newIndices, oldIndices, splitShape);
+                printf("Splitting mode %d of dimension %d into shape (%d, %d)\n", modeToSplit, ATensor.Dimension(modeToSplit), newMode1Dim, newMode2Dim);
+                LockedViewAsHigherOrder(AHO, ATensor, oldModes, splitShape);
                 PrintLocalView(AHO);
             }
         }
@@ -257,17 +248,15 @@ TestNonConstViews(DistTensor<T>& A){
     const Unsigned order = A.Order();
     Location start(order);
     std::fill(start.begin(), start.end(), 0);
-    const IndexArray indices = A.Indices();
     const ObjShape shape = A.Shape();
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
 
     for(i = 0; i < order; i++){
-        Index index = indices[i];
-        Mode mode = A.ModeOfIndex(index);
-        printf("Iterating over index: %d\n", index);
+        Mode mode = i;
+        printf("Iterating over mode: %d\n", mode);
 
-        PartitionDown(A, AT, AB, index, 0);
+        PartitionDown(A, AT, AB, mode, 0);
 
         Unsigned count = 0;
         while(AT.Dimension(mode) < A.Dimension(mode)){
@@ -275,7 +264,7 @@ TestNonConstViews(DistTensor<T>& A){
             RepartitionDown(AT,   A0,
                                   A1,
                            /**/  /**/
-                            AB,   A2, index, 1);
+                            AB,   A2, mode, 1);
             /////////////////////////////////
             PrintView("A0", A0);
             PrintView("A1", A1);
@@ -285,7 +274,7 @@ TestNonConstViews(DistTensor<T>& A){
             SlidePartitionDown(AT,  A0,
                                     A1,
                               /**/ /**/
-                               AB,  A2, index);
+                               AB,  A2, mode);
         }
     }
 
@@ -293,26 +282,23 @@ TestNonConstViews(DistTensor<T>& A){
     Tensor<T> ATensor(order);
     ATensor = A.Tensor();
     Tensor<T> ALO(order), AHO(order);
-    //View as lower order object
-    std::vector<Index> newIndex(1);
-    newIndex[0] = 100;
     Unsigned startMode, nMergeModes;
     for(startMode = 0; startMode < order; startMode++){
         for(nMergeModes = 2; startMode + nMergeModes <= order; nMergeModes++){
-            std::vector<IndexArray> oldIndices(1);
-            IndexArray indicesToMerge(nMergeModes);
+            std::vector<ModeArray> oldModes(1);
+            ModeArray modesToMerge(nMergeModes);
             for(i = 0; i < nMergeModes; i++){
-                indicesToMerge[i] = ATensor.IndexOfMode(startMode + i);
+                modesToMerge[i] = startMode + i;
             }
-            oldIndices[0] = indicesToMerge;
-            printf("Merging indices (%d", indicesToMerge[0]);
+            oldModes[0] = modesToMerge;
+            printf("Merging modes (%d", modesToMerge[0]);
             for(i = 1; i < nMergeModes; i++)
-                printf(" %d", indicesToMerge[i]);
+                printf(" %d", modesToMerge[i]);
             printf(") of dimension (%d", ATensor.Dimension(startMode));
             for(i = 1; i < nMergeModes; i++)
                 printf(" %d", ATensor.Dimension(startMode + i));
             printf(")\n");
-            ViewAsLowerOrder(ALO, ATensor, newIndex, oldIndices);
+            ViewAsLowerOrder(ALO, ATensor, oldModes);
             PrintLocalView(ALO);
         }
     }
@@ -320,27 +306,22 @@ TestNonConstViews(DistTensor<T>& A){
     //Try to view as higher order object
     ObjShape ATensorShape = ATensor.Shape();
     //See if we can split any index into two
-    std::vector<IndexArray> newIndices(1);
-    IndexArray splitIndices(2);
-    splitIndices[0] = 100;
-    splitIndices[1] = 101;
-    newIndices[0] = splitIndices;
     for(i = 0; i < order; i++){
-        Unsigned indexDim = ATensorShape[i];
-        for(j = 2; j < indexDim; j++){
-            if(indexDim % j == 0){
-                Index indexToSplit = ATensor.IndexOfMode(i);
-                Unsigned newIndex1Dim = indexDim / j;
-                Unsigned newIndex2Dim = j;
-                IndexArray oldIndices(1);
-                oldIndices[0] = indexToSplit;
+        Unsigned modeDim = ATensorShape[i];
+        for(j = 2; j < modeDim; j++){
+            if(modeDim % j == 0){
+                Mode modeToSplit = i;
+                Unsigned newMode1Dim = modeDim / j;
+                Unsigned newMode2Dim = j;
+                ModeArray oldModes(1);
+                oldModes[0] = modeToSplit;
                 std::vector<ObjShape> splitShape(1);
                 ObjShape newShape(2);
-                newShape[0] = newIndex1Dim;
-                newShape[1] = newIndex2Dim;
+                newShape[0] = newMode1Dim;
+                newShape[1] = newMode2Dim;
                 splitShape[0] = newShape;
-                printf("Splitting index %d of dimension %d into shape (%d, %d)\n", indexToSplit, ATensor.Dimension(ATensor.ModeOfIndex(indexToSplit)), newIndex1Dim, newIndex2Dim);
-                ViewAsHigherOrder(AHO, ATensor, newIndices, oldIndices, splitShape);
+                printf("Splitting mode %d of dimension %d into shape (%d, %d)\n", modeToSplit, ATensor.Dimension(modeToSplit), newMode1Dim, newMode2Dim);
+                ViewAsHigherOrder(AHO, ATensor, oldModes, splitShape);
                 PrintLocalView(AHO);
             }
         }
@@ -385,14 +366,9 @@ DistTensorTest( const Params& args, const Grid& g )
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
 #endif
-    Unsigned i;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    const Unsigned order = args.tensorShape.size();
-    IndexArray indices(order);
-    for(i = 0 ; i < indices.size(); i++)
-        indices[i] = 'a' + i;
 
-    DistTensor<T> A(args.tensorShape, args.tensorDist, indices, g);
+    DistTensor<T> A(args.tensorShape, args.tensorDist, g);
 
     Set(A);
 

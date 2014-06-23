@@ -69,25 +69,6 @@ AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDi
 }
 
 template<typename T>
-AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& grid )
-: shape_(shape),
-  dist_(dist),
-
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
-
-  tensor_(indices),
-
-  grid_(&grid),
-  gridView_(grid_, dist_),
-
-  viewType_(OWNER),
-  auxMemory_()
-{
-}
-
-template<typename T>
 AbstractDistTensor<T>::~AbstractDistTensor() 
 { }
 
@@ -209,20 +190,20 @@ AbstractDistTensor<T>::AssertSameSize( const ObjShape& shape ) const
 
 template<typename T>
 void
-AbstractDistTensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
+AbstractDistTensor<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
 {
-    tensor_.AssertMergeableIndices(newIndices, oldIndices);
+    tensor_.AssertMergeableModes(oldModes);
 }
 
 template<typename T>
 void
 AssertConforming2x1
-( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index )
+( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Mode mode )
 {
     std::vector<Mode> negFilterAT(1);
     std::vector<Mode> negFilterAB(1);
-    negFilterAT[0] = AT.ModeOfIndex(index);
-    negFilterAB[0] = AB.ModeOfIndex(index);
+    negFilterAT[0] = mode;
+    negFilterAB[0] = mode;
 
     if( AnyElemwiseNotEqual(NegFilterVector(AT.Shape(), negFilterAT), NegFilterVector(AB.Shape(), negFilterAB)) )
     {
@@ -400,11 +381,6 @@ AbstractDistTensor<T>::Dimension(Mode mode) const
 { return shape_[mode]; }
 
 template<typename T>
-Unsigned
-AbstractDistTensor<T>::IndexDimension(Index index) const
-{ return Dimension(ModeOfIndex(index)); }
-
-template<typename T>
 ObjShape
 AbstractDistTensor<T>::Shape() const
 { return shape_; }
@@ -413,26 +389,6 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::Order() const
 { return shape_.size(); }
-
-template<typename T>
-IndexArray
-AbstractDistTensor<T>::Indices() const
-{ return this->tensor_.Indices(); }
-
-template<typename T>
-void
-AbstractDistTensor<T>::SetIndices(const IndexArray& newIndices)
-{ return this->tensor_.SetIndices(newIndices); }
-
-template<typename T>
-Mode
-AbstractDistTensor<T>::ModeOfIndex(Index index) const
-{ return tensor_.ModeOfIndex(index); }
-
-template<typename T>
-Index
-AbstractDistTensor<T>::IndexOfMode(Mode mode) const
-{ return tensor_.IndexOfMode(mode); }
 
 template<typename T>
 TensorDistribution
@@ -446,19 +402,12 @@ template<typename T>
 ModeDistribution
 AbstractDistTensor<T>::ModeDist(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ModeDist");
 	if(mode < 0 || mode >= tensor_.Order())
 		LogicError("0 <= mode < object order must be true");
+#endif
 	return dist_[mode];
-}
-
-template<typename T>
-ModeDistribution
-AbstractDistTensor<T>::IndexDist(Index index) const
-{
-    const Mode mode = this->ModeOfIndex(index);
-    if(mode < 0 || mode >= tensor_.Order())
-        LogicError("Requested distribution of invalid index");
-    return dist_[mode];
 }
 
 template<typename T>
@@ -475,9 +424,12 @@ template<typename T>
 bool
 AbstractDistTensor<T>::ConstrainedModeAlignment(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ConstrainedModeAlignment");
     const Unsigned order = this->Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
+#endif
     return constrainedModeAlignments_[mode];
 }
 
@@ -491,9 +443,12 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::ModeAlignment(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ModeAlignment");
     const Unsigned order = this->Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
+#endif
     return modeAlignments_[mode];
 }
 
@@ -501,9 +456,12 @@ template<typename T>
 Unsigned
 AbstractDistTensor<T>::ModeShift(Mode mode) const
 {
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::ModeShift");
     const Unsigned order = this->Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
+#endif
     return modeShifts_[mode];
 }
 
@@ -573,8 +531,18 @@ AbstractDistTensor<T>::UpdateLocal( const Location& loc, T alpha )
 
 template<typename T>
 T*
+AbstractDistTensor<T>::Buffer()
+{ return tensor_.Buffer(); }
+
+template<typename T>
+T*
 AbstractDistTensor<T>::Buffer( const Location& loc )
 { return tensor_.Buffer(loc); }
+
+template<typename T>
+const T*
+AbstractDistTensor<T>::LockedBuffer( ) const
+{ return tensor_.LockedBuffer(); }
 
 template<typename T>
 const T*
@@ -592,6 +560,62 @@ AbstractDistTensor<T>::LockedTensor() const
 { return tensor_; }
 
 template<typename T>
+void
+AbstractDistTensor<T>::RemoveUnitModes(const ModeArray& modes)
+{
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::RemoveUnitModes");
+#endif
+    Unsigned i;
+    ModeArray sorted = modes;
+    std::sort(sorted.begin(), sorted.end());
+    for(i = sorted.size() - 1; i < sorted.size(); i--){
+        shape_.erase(shape_.begin() + sorted[i]);
+        dist_.erase(dist_.begin() + sorted[i]);
+        constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + sorted[i]);
+        modeAlignments_.erase(modeAlignments_.begin() + sorted[i]);
+        modeShifts_.erase(modeShifts_.begin() + sorted[i]);
+    }
+    tensor_.RemoveUnitModes(sorted);
+    gridView_.RemoveUnitModes(sorted);
+}
+
+template<typename T>
+void
+AbstractDistTensor<T>::RemoveUnitMode(const Mode& mode)
+{
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::RemoveUnitMode");
+#endif
+    shape_.erase(shape_.begin() + mode);
+    dist_.erase(dist_.begin() + mode);
+    constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + mode);
+    modeAlignments_.erase(modeAlignments_.begin() + mode);
+    modeShifts_.erase(modeShifts_.begin() + mode);
+
+    tensor_.RemoveUnitMode(mode);
+    gridView_.RemoveUnitMode(mode);
+}
+
+template<typename T>
+void
+AbstractDistTensor<T>::IntroduceUnitMode(const Mode& mode)
+{
+#ifndef RELEASE
+    CallStackEntry cse("AbstractDistTensor::IntroduceUnitMode");
+#endif
+    shape_.insert(shape_.begin() + mode, 1);
+    ModeDistribution newDist(0);
+    dist_.insert(dist_.begin() + mode, newDist);
+    constrainedModeAlignments_.insert(constrainedModeAlignments_.begin() + mode, true);
+    modeAlignments_.insert(modeAlignments_.begin() + mode, 0);
+    modeShifts_.insert(modeShifts_.begin() + mode, 0);
+
+    tensor_.IntroduceUnitMode(mode);
+    gridView_.IntroduceUnitMode(mode);
+}
+
+template<typename T>
 Location AbstractDistTensor<T>::GridViewLoc() const
 { return gridView_.Loc(); }
 
@@ -602,10 +626,9 @@ ObjShape AbstractDistTensor<T>::GridViewShape() const
 //TODO: Differentiate between index and mode
 template<typename T>
 mpi::Comm
-AbstractDistTensor<T>::GetCommunicator(Index index) const
+AbstractDistTensor<T>::GetCommunicator(Mode mode) const
 {
 	mpi::Comm comm;
-	const Mode mode = this->ModeOfIndex(index);
 	ObjShape gridViewSliceShape = this->GridViewShape();
 	Location gridViewSliceLoc = this->GridViewLoc();
 	const Unsigned commKey = gridViewSliceLoc[mode];
@@ -810,6 +833,112 @@ BASE(T)
 AbstractDistTensor<T>::GetImagPart( const Location& loc ) const
 { return ImagPart(Get(loc)); }
 
+//
+// Redist routines
+//
+
+//template<typename T>
+//void
+//AbstractDistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode agMode, const ModeArray& redistModes, const DistTensor<T>& A)
+//{
+//#ifndef RELEASE
+//    CallStackEntry entry("AbstractDistTensor::UnpackAGCommRecvBuf");
+//#endif
+//
+//    T* dataBuf = Buffer();
+//
+//    const tmen::Grid& g = A.Grid();
+//    const tmen::GridView gvA = A.GridView();
+//    const tmen::GridView gvB = GridView();
+//
+//    const ObjShape commShape = FilterVector(g.Shape(), redistModes);
+//    const Unsigned nRedistProcs = prod(commShape);
+//
+//    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+//    const ObjShape maxLocalShapeB = MaxLengths(Shape(), gvB.Shape());
+//
+//    printf("recvBuf:");
+//    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
+//        printf(" %d", recvBuf[i]);
+//    }
+//    printf("\n");
+//
+//    const ObjShape localShapeB = LocalShape();
+//
+//    //Number of outer slices to unpack
+//    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, agMode + 1));
+//    const Unsigned nLocalOuterSlices = prod(localShapeB, agMode + 1);
+//
+//    //Loop packing bounds variables
+//    const Unsigned nMaxAGModeSlices = maxLocalShapeB[agMode];
+//    const Unsigned nLocalAGModeSlices = localShapeB[agMode];
+//    const Unsigned agModeUnpackStride = nRedistProcs;
+//
+//    //Variables for calculating elements to copy
+//    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, agMode));
+//    const Unsigned copySliceSize = LocalModeStride(agMode);
+//
+//    //Number of processes we have to unpack from
+//    const Unsigned nElemSlices = nRedistProcs;
+//
+//    //Loop iteration vars
+//    Unsigned outerSliceNum, agModeSliceNum, elemSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
+//    Unsigned elemRecvBufOff, elemDataBufOff;
+//    Unsigned outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
+//    Unsigned agModeRecvBufOff, agModeDataBufOff;  //Offsets used to index into dataBuf array
+//    Unsigned startRecvBuf, startDataBuf;
+//
+//    printf("MemCopy info:\n");
+//    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+//    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//    printf("    copySliceSize: %d\n", copySliceSize);
+//    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
+//    for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
+//        elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
+//        elemDataBufOff = copySliceSize * elemSliceNum;
+//
+//        printf("      elemSliceNum: %d\n", elemSliceNum);
+//        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);
+//        printf("      elemDataBufOff: %d\n", elemDataBufOff);
+//        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
+//            if(outerSliceNum >= nLocalOuterSlices)
+//                break;
+//            //NOTE: the weird Max() function ensures we increment the recvBuf correctly
+//            //e.g. we need to ensure that we jump over all slices packed by the pack routine.  Which should be maxLocalShapeA[agModeA];
+//            //For consistency, kept same structure as in PackPartialRSSendBuf
+//            outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxAGModeSlices - 1) / agModeUnpackStride + 1) * outerSliceNum;
+//            outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
+//
+//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//            for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum += agModeUnpackStride){
+//                if(agModeSliceNum + elemSliceNum >= nLocalAGModeSlices)
+//                    break;
+//                agModeRecvBufOff = maxCopySliceSize * (agModeSliceNum / agModeUnpackStride);
+//                agModeDataBufOff = copySliceSize * agModeSliceNum;
+//
+//                printf("          agModeSliceNum: %d\n", agModeSliceNum);
+//                printf("          agModeRecvBufOff: %d\n", agModeRecvBufOff);
+//                printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+//                startRecvBuf = elemRecvBufOff + outerRecvBufOff + agModeRecvBufOff;
+//                startDataBuf = elemDataBufOff + outerDataBufOff + agModeDataBufOff;
+//
+//                printf("          startRecvBuf: %d\n", startRecvBuf);
+//                printf("          startDataBuf: %d\n", startDataBuf);
+//                MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
+//            }
+//        }
+//    }
+//    printf("dataBuf:");
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
+//        printf(" %d", dataBuf[i]);
+//    printf("\n");
+//}
+
+
+
 
 //TODO: Figure out how to extend this
 template<typename T>
@@ -891,7 +1020,7 @@ PROTO(Complex<double>);
 
 
 #define CONFORMING(T) \
-  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Index index ); \
+  template void AssertConforming2x1( const AbstractDistTensor<T>& AT, const AbstractDistTensor<T>& AB, Mode mode ); \
 
 CONFORMING(Int);
 #ifndef DISABLE_FLOAT

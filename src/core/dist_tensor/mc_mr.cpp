@@ -34,21 +34,9 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const tmen::Grid& grid )
-: AbstractDistTensor<T>(shape, dist, indices, grid)
-{
-	if(shape.size() != dist.size())
-		LogicError("Error: Distribution must be of same order as object");
-
-	this->SetShifts();
-	this->ResizeTo( shape );
-}
-
-template<typename T>
-DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, indices, g)
+: AbstractDistTensor<T>(shape, dist, g)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
@@ -58,9 +46,9 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const std::vector<Unsigned>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, indices, g)
+: AbstractDistTensor<T>(shape, dist, g)
 { 
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
@@ -70,9 +58,9 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, indices, g)
+: AbstractDistTensor<T>(shape, dist, g)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
@@ -83,9 +71,9 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor
-( const ObjShape& shape, const TensorDistribution& dist, const IndexArray& indices, const std::vector<Unsigned>& modeAlignments,
+( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
-: AbstractDistTensor<T>(shape, dist, indices, g)
+: AbstractDistTensor<T>(shape, dist, g)
 {
 	if(shape.size() != dist.size())
 		LogicError("Error: Distribution must be of same order as object");
@@ -317,6 +305,16 @@ DistTensor<T>::LockedAttach
         this->matrix_.LockedAttach_( localHeight, localWidth, buffer, ldim );
     }
 */
+}
+
+template<typename T>
+void DistTensor<T>::ResizeTo( const DistTensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry entry("[MC,MR]::ResizeTo");
+    this->AssertNotLocked();
+#endif
+    ResizeTo(A.Shape());
 }
 
 //TODO: FIX Participating

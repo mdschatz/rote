@@ -24,48 +24,48 @@ template<typename T>
 inline void
 PartitionUp
 ( TEN& A, TEN& AT,
-        TEN& AB, Index index, Unsigned dimensionAB )
+        TEN& AB, Mode mode, Unsigned dimensionAB )
 {
 #ifndef RELEASE
     CallStackEntry entry("PartitionUp [Tensor]");
 #endif
-    PartitionDown( A, AT, AB, A.Dimension(A.ModeOfIndex(index))-dimensionAB );
+    PartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
 template<typename T>
 inline void
 PartitionUp
 ( DTEN& A, DTEN& AT,
-         DTEN& AB, Index index, Unsigned dimensionAB )
+         DTEN& AB, Mode mode, Unsigned dimensionAB )
 {
 #ifndef RELEASE
     CallStackEntry entry("PartitionUp [DistTensor]");
 #endif
-    PartitionDown( A, AT, AB, A.Dimension(A.ModeOfIndex(index))-dimensionAB );
+    PartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
 template<typename T>
 inline void
 LockedPartitionUp
 ( const TEN& A, TEN& AT,
-              TEN& AB, Index index, Unsigned dimensionAB )
+              TEN& AB, Mode mode, Unsigned dimensionAB )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedPartitionUp [Tensor]");
 #endif
-    LockedPartitionDown( A, AT, AB, A.Dimension(A.ModeOfIndex(index))-dimensionAB );
+    LockedPartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
 template<typename T>
 inline void
 LockedPartitionUp
 ( const DTEN& A, DTEN& AT,
-               DTEN& AB, Index index, Unsigned dimensionAB )
+               DTEN& AB, Mode mode, Unsigned dimensionAB )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedPartitionUp [DistTensor]");
 #endif
-    LockedPartitionDown( A, AT, AB, A.Dimension(A.ModeOfIndex(index))-dimensionAB );
+    LockedPartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
 //
@@ -76,24 +76,23 @@ template<typename T>
 inline void
 PartitionDown
 ( TEN& A, TEN& AT,
-        TEN& AB, Index index, Unsigned dimensionAT )
+        TEN& AB, Mode mode, Unsigned dimensionAT )
 {
 #ifndef RELEASE
     CallStackEntry entry("PartitionDown [Tensor]");
 #endif
-    const Mode indexModeA = A.ModeOfIndex(index);
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
-    dimensionAT = Max(Min(dimensionAT,A.Dimension(indexModeA)),0);
-    const Unsigned dimensionAB = A.Dimension(indexModeA)-dimensionAT;
+    dimensionAT = Max(Min(dimensionAT,A.Dimension(mode)),0);
+    const Unsigned dimensionAB = A.Dimension(mode)-dimensionAT;
 
-    viewShape[indexModeA] = dimensionAT;
+    viewShape[mode] = dimensionAT;
     std::fill(viewLoc.begin(), viewLoc.end(), 0);
     View( AT, A, viewLoc, viewShape );
 
-    viewLoc[indexModeA] = dimensionAT;
-    viewShape[indexModeA] = dimensionAB;
+    viewLoc[mode] = dimensionAT;
+    viewShape[mode] = dimensionAB;
     View( AB, A, viewLoc, viewShape );
 }
 
@@ -101,24 +100,23 @@ template<typename T>
 inline void
 PartitionDown
 ( DTEN& A, DTEN& AT,
-         DTEN& AB, Index index, Unsigned dimensionAT )
+         DTEN& AB, Mode mode, Unsigned dimensionAT )
 {
 #ifndef RELEASE
     CallStackEntry entry("PartitionDown [DistTensor]");
 #endif
-    const Mode indexModeA = A.ModeOfIndex(index);
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
-    dimensionAT = Max(Min(dimensionAT,A.Dimension(indexModeA)),0);
-    const Unsigned dimensionAB = A.Dimension(indexModeA) - dimensionAT;
+    dimensionAT = Max(Min(dimensionAT,A.Dimension(mode)),0);
+    const Unsigned dimensionAB = A.Dimension(mode) - dimensionAT;
 
-    viewShape[indexModeA] = dimensionAT;
+    viewShape[mode] = dimensionAT;
     std::fill(viewLoc.begin(), viewLoc.end(), 0);
     View( AT, A, viewLoc, viewShape );
 
-    viewLoc[indexModeA] = dimensionAT;
-    viewShape[indexModeA] = dimensionAB;
+    viewLoc[mode] = dimensionAT;
+    viewShape[mode] = dimensionAB;
     View( AB, A, viewLoc, viewShape );
 }
 
@@ -126,24 +124,23 @@ template<typename T>
 inline void
 LockedPartitionDown
 ( const TEN& A, TEN& AT,
-              TEN& AB, Index index, Unsigned dimensionAT )
+              TEN& AB, Mode mode, Unsigned dimensionAT )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedPartitionDown [Tensor]");
 #endif
-    const Mode indexModeA = A.ModeOfIndex(index);
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
-    dimensionAT = Max(Min(dimensionAT,A.Dimension(indexModeA)),0);
-    const Unsigned dimensionAB = A.Dimension(indexModeA)-dimensionAT;
+    dimensionAT = Max(Min(dimensionAT,A.Dimension(mode)),0);
+    const Unsigned dimensionAB = A.Dimension(mode)-dimensionAT;
 
-    viewShape[indexModeA] = dimensionAT;
+    viewShape[mode] = dimensionAT;
     std::fill(viewLoc.begin(), viewLoc.end(), 0);
     LockedView( AT, A, viewLoc, viewShape );
 
-    viewLoc[indexModeA] = dimensionAT;
-    viewShape[indexModeA] = dimensionAB;
+    viewLoc[mode] = dimensionAT;
+    viewShape[mode] = dimensionAB;
     LockedView( AB, A, viewLoc, viewShape );
 }
 
@@ -151,24 +148,23 @@ template<typename T>
 inline void
 LockedPartitionDown
 ( const DTEN& A, DTEN& AT,
-               DTEN& AB, Index index, Unsigned dimensionAT )
+               DTEN& AB, Mode mode, Unsigned dimensionAT )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedPartitionDown [DistTensor]");
 #endif
-    const Mode indexModeA = A.ModeOfIndex(index);
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
-    dimensionAT = Max(Min(dimensionAT,A.Dimension(indexModeA)),0);
-    const Unsigned dimensionAB = A.Dimension(indexModeA)-dimensionAT;
+    dimensionAT = Max(Min(dimensionAT,A.Dimension(mode)),0);
+    const Unsigned dimensionAB = A.Dimension(mode)-dimensionAT;
 
-    viewShape[indexModeA] = dimensionAT;
+    viewShape[mode] = dimensionAT;
     std::fill(viewLoc.begin(), viewLoc.end(), 0);
     LockedView( AT, A, viewLoc, viewShape );
 
-    viewLoc[indexModeA] = dimensionAT;
-    viewShape[indexModeA] = dimensionAB;
+    viewLoc[mode] = dimensionAT;
+    viewShape[mode] = dimensionAB;
     LockedView( AB, A, viewLoc, viewShape );
 }
 

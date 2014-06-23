@@ -49,6 +49,10 @@ public:
     Unsigned LinearRank() const;
     void SetMyGridViewLoc();
 
+    void RemoveUnitModes(const ModeArray& modes);
+    void RemoveUnitMode(const Mode& mode);
+    void IntroduceUnitMode(const Unsigned& modePosition);
+
 private:
     TensorDistribution dist_;
     ModeArray boundModes_;

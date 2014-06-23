@@ -17,23 +17,23 @@ namespace tmen{
 ///////////////////////
 
 template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tensor<T>& C);
+void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tensor<T>& C, const std::vector<IndexArray>& indices);
 
 ///////////////////////
 // Distributed routines
 ///////////////////////
 
 template <typename T>
-void Contract(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C);
+void Contract(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
 
 template <typename T>
-void ContractStatA(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C);
+void ContractStatA(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
 
 template <typename T>
-void ContractStatB(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C);
+void ContractStatB(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
 
 template <typename T>
-void ContractStatC(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C);
+void ContractStatC(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
 
 } // namespace tmen
 

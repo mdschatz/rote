@@ -73,91 +73,34 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
 
 template<typename T>
 void
-Tensor<T>::AssertValidIndices() const
+Tensor<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertValidIndices");
-#endif
-    std::set<Unsigned> uniques(indices_.begin(), indices_.end());
-    const Unsigned order = this->Order();
-
-    if(uniques.size() != order){
-        LogicError("Indices of a tensor must all be unique and number of same order as tensor");
-    }
-}
-
-template<typename T>
-void
-Tensor<T>::AssertMergeableIndices(const IndexArray& newIndices, const std::vector<IndexArray>& oldIndices) const
-{
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertMergeableIndices");
+    CallStackEntry cse("Tensor::AssertMergeableModes");
 #endif
     Unsigned i, j;
-    if(newIndices.size() != oldIndices.size())
-    {
-        LogicError("Each new Index must be formed from a set of current indices");
-    }
-
-    for(i = 0; i < oldIndices.size(); i++){
-        IndexArray mergedIndices = oldIndices[i];
-        if(mergedIndices.size() == 0){
-            LogicError("New index must come from merging some indices");
-        }
-        Mode startMode = ModeOfIndex(mergedIndices[0]);
-        for(j = 0; j < mergedIndices.size(); j++){
-            if(std::find(indices_.begin(), indices_.end(), mergedIndices[j]) == indices_.end())
-                LogicError("Attempting to merge an index that this tensor does not represent");
-            if(ModeOfIndex(mergedIndices[j]) != startMode + j)
-                LogicError("Modes to be merged must be contiguously stored and in order");
+    for(i = 0; i < oldModes.size(); i++){
+        for(j = 0; j < oldModes[i].size(); j++){
+            if(oldModes[i][j] >= Order())
+                LogicError("Specified mode out of range");
         }
     }
-
-//    for(i = 0; i < newIndices.size(); i++){
-//        if(std::find(indices_.begin(), indices_.end(), newIndices[i]) != indices_.end())
-//            LogicError("Merging indices into an index this tensor already represents");
-//    }
 }
 
 template<typename T>
 void
-Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, const IndexArray& oldIndices, const std::vector<ObjShape>& newIndicesShape) const
+Tensor<T>::AssertSplittableModes(const ModeArray& oldModes, const std::vector<ObjShape>& newShape) const
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertSplittableIndices");
 #endif
 
-    Unsigned i, j;
-    if(newIndices.size() != oldIndices.size())
-    {
-        LogicError("Each new Index must be formed from a set of current indices");
-    }
-    if(oldIndices.size() != newIndicesShape.size())
-    {
-        LogicError("Each split index must be resized");
-    }
+    Unsigned i;
 
-    for(i = 0; i < newIndices.size(); i++){
-        IndexArray newIndexArray = newIndices[i];
-        ObjShape newIndexShape = newIndicesShape[i];
-        Index splitIndex = oldIndices[i];
-        if(std::find(indices_.begin(), indices_.end(), splitIndex) == indices_.end())
-            LogicError("Attempting to split an index this object does not represent");
-
-        Mode splitMode = ModeOfIndex(splitIndex);
-        Unsigned splitIndexDimension = Dimension(splitMode);
-
-        if(newIndexArray.size() != newIndexShape.size())
-            LogicError("Each new index must have an associated dimension");
-
-        if(prod(newIndexShape) != splitIndexDimension)
-            LogicError("New shape must represent same number of locations as index being split");
-
-//        for(j = 0; j < newIndexArray.size(); j++){
-//            Index newIndex = newIndexArray[j];
-//            if(std::find(indices_.begin(), indices_.end(), newIndex) != indices_.end())
-//                LogicError("Index already used");
-//        }
+    for(i = 0; i < oldModes.size(); i++){
+        if(prod(newShape[i]) != Dimension(oldModes[i])){
+            LogicError("newShape dimensions must be splittable from old mode dimension");
+        }
     }
 }
 
@@ -167,49 +110,30 @@ Tensor<T>::AssertSplittableIndices(const std::vector<IndexArray>& newIndices, co
 
 template<typename T>
 Tensor<T>::Tensor( bool fixed )
-: indices_(), shape_(), strides_(), ldims_(),
-  index2modeMap_(), mode2indexMap_(),
+: shape_(), strides_(), ldims_(),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
 { }
 
 template<typename T>
 Tensor<T>::Tensor( const Unsigned order, bool fixed )
-: indices_(order), shape_(order), strides_(order), ldims_(order),
-  index2modeMap_(), mode2indexMap_(),
+: shape_(order), strides_(order), ldims_(order),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
-{ SetIndexMaps();}
-
-template<typename T>
-Tensor<T>::Tensor( const IndexArray& indices, bool fixed )
-: indices_(indices), shape_(indices.size()), strides_(indices.size()), ldims_(indices.size()),
-  index2modeMap_(), mode2indexMap_(),
-  viewType_( fixed ? OWNER_FIXED : OWNER ),
-  data_(nullptr), memory_()
-{
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor");
-    AssertValidIndices();
-#endif
-    SetIndexMaps();
-}
+{ }
 
 //TODO: Check for valid set of indices
 template<typename T>
-Tensor<T>::Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed )
-: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(indices.size()),
-  index2modeMap_(), mode2indexMap_(),
+Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
+: shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(shape.size()),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape );
-    AssertValidIndices();
 #endif
     const Unsigned order = this->Order();
     SetLDims(shape_);
-    SetIndexMaps();
     memory_.Require( prod(ldims_) * shape_[order-1] );
     data_ = memory_.Buffer();
 }
@@ -217,18 +141,16 @@ Tensor<T>::Tensor( const IndexArray& indices, const ObjShape& shape, bool fixed 
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
-( const IndexArray& indices, const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
-: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)),
-  index2modeMap_(), mode2indexMap_(),
+( const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
+: shape_(shape), strides_(Dimensions2Strides(shape)),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-    AssertValidIndices();
+
 #endif
     const Unsigned order = this->Order();
-    SetIndexMaps();
     SetLDims(shape);
     memory_.Require( prod(ldims_) * shape_[order-1] );
 
@@ -238,41 +160,34 @@ Tensor<T>::Tensor
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
-( const IndexArray& indices, const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
-: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
-  index2modeMap_(), mode2indexMap_(),
+( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
+: shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
   viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   data_(buffer), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-    AssertValidIndices();
 #endif
-    SetIndexMaps();
 }
 
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
-( const IndexArray& indices, const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
-: indices_(indices), shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
-  index2modeMap_(), mode2indexMap_(),
+( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed )
+: shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
   viewType_( fixed ? VIEW_FIXED: VIEW ),
   data_(buffer), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-    AssertValidIndices();
 #endif
-    SetIndexMaps();
 }
 
 template<typename T>
 Tensor<T>::Tensor( const Tensor<T>& A )
-: indices_(), shape_(), strides_(), ldims_(),
-  index2modeMap_(), mode2indexMap_(),
+: shape_(), strides_(), ldims_(),
   viewType_( OWNER ),
   data_(nullptr), memory_()
 {
@@ -289,13 +204,10 @@ template<typename T>
 void
 Tensor<T>::Swap( Tensor<T>& A )
 {
-    std::swap( indices_, A.indices_);
     std::swap( shape_, A.shape_ );
     std::swap( strides_, A.strides_ );
     std::swap( ldims_, A.ldims_ );
     std::swap( viewType_, A.viewType_ );
-    std::swap( index2modeMap_, A.index2modeMap_ );
-    std::swap( mode2indexMap_, A.mode2indexMap_ );
     std::swap( data_, A.data_ );
     memory_.Swap( A.memory_ );
 }
@@ -311,22 +223,6 @@ Tensor<T>::~Tensor()
 //
 // Basic information
 //
-
-template<typename T>
-void
-Tensor<T>::SetIndexMaps()
-{
-    Unsigned i;
-    const Unsigned order = this->Order();
-
-    index2modeMap_.clear();
-    mode2indexMap_.clear();
-
-    for(i = 0; i < order; i++){
-        index2modeMap_[indices_[i]] = i;
-        mode2indexMap_[i] = indices_[i];
-    }
-}
 
 template<typename T>
 void
@@ -373,32 +269,6 @@ Tensor<T>::Dimension(Mode mode) const
 
 template<typename T>
 Unsigned
-Tensor<T>::IndexDimension(Index index) const
-{
-  return Dimension(ModeOfIndex(index));
-}
-
-template<typename T>
-IndexArray
-Tensor<T>::Indices() const
-{
-    return indices_;
-}
-
-template<typename T>
-void
-Tensor<T>::SetIndices(const IndexArray& newIndices)
-{
-#ifndef RELEASE
-    if(newIndices.size() != Order())
-        LogicError("SetIndices: new index set must be same order as object");
-#endif
-    indices_ = newIndices;
-    SetIndexMaps();
-}
-
-template<typename T>
-Unsigned
 Tensor<T>::ModeStride(Mode mode) const
 {
     const Unsigned order = this->Order();
@@ -408,20 +278,6 @@ Tensor<T>::ModeStride(Mode mode) const
     }
 
     return strides_[mode];
-}
-
-template<typename T>
-Mode
-Tensor<T>::ModeOfIndex(Index index) const
-{
-    return index2modeMap_.at(index);
-}
-
-template<typename T>
-Index
-Tensor<T>::IndexOfMode(Mode mode) const
-{
-    return mode2indexMap_.at(mode);
 }
 
 template<typename T>
@@ -531,6 +387,49 @@ Tensor<T>::LockedBuffer( const Location& loc ) const
 #endif
     Unsigned linearOffset = LinearOffset(loc);
     return &data_[linearOffset];
+}
+
+//
+// Unit mode info
+//
+
+template<typename T>
+void
+Tensor<T>::RemoveUnitModes(const ModeArray& modes){
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::LockedBuffer");
+#endif
+    Unsigned i;
+    ModeArray sorted = modes;
+    std::sort(sorted.begin(), sorted.end());
+    for(i = sorted.size() - 1; i < sorted.size(); i--){
+        shape_.erase(shape_.begin() + sorted[i]);
+        strides_.erase(strides_.begin() + sorted[i]);
+        ldims_.erase(ldims_.begin() + sorted[i]);
+    }
+}
+
+template<typename T>
+void
+Tensor<T>::RemoveUnitMode(const Mode& mode){
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::RemoveUnitMode");
+#endif
+    shape_.erase(shape_.begin() + mode);
+    strides_.erase(strides_.begin() + mode);
+    ldims_.erase(ldims_.begin() + mode);
+}
+
+template<typename T>
+void
+Tensor<T>::IntroduceUnitMode(const Unsigned& modePosition)
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::IntroduceUnitMode");
+#endif
+    shape_.insert(shape_.begin() + modePosition, 1);
+    strides_.insert(strides_.begin() + modePosition, strides_[modePosition]);
+    ldims_.insert(ldims_.begin() + modePosition, ldims_[modePosition]);
 }
 
 //
@@ -958,10 +857,7 @@ Tensor<T>::operator=( const Tensor<T>& A )
         ("Cannot assign to a view of different dimensions");
 #endif
     if( viewType_ == OWNER )
-        ResizeTo( A.shape_ );
-    indices_ = A.indices_;
-    index2modeMap_ = A.index2modeMap_;
-    mode2indexMap_ = A.mode2indexMap_;
+        ResizeTo( A );
     T* dst = this->Buffer();
     const T* src = A.LockedBuffer();
     MemCopy(&dst[0], &src[0], prod(shape_));
@@ -972,7 +868,6 @@ template<typename T>
 void
 Tensor<T>::Empty_()
 {
-    std::fill(indices_.begin(), indices_.end(), 0);
     std::fill(shape_.begin(), shape_.end(), 0);
     std::fill(strides_.begin(), strides_.end(), 0);
     std::fill(ldims_.begin(), ldims_.end(), 0);
@@ -1020,6 +915,22 @@ Tensor<T>::ResizeTo_( const ObjShape& shape )
 //        memory_.Require( ldims_ * width );
 //        data_ = memory_.Buffer();
 //    }
+}
+
+template<typename T>
+void
+Tensor<T>::ResizeTo( const Tensor<T>& A )
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::ResizeTo(Tensor)");
+    AssertValidDimensions( A.Shape() );
+
+    if ( FixedSize() && AnyElemwiseNotEqual(A.shape_, shape_) )
+        LogicError("Cannot change the size of this tensor");
+    if ( Viewing() && AnyElemwiseNotEqual(A.shape_, shape_) )
+        LogicError("Cannot increase the size of this tensor");
+#endif
+    ResizeTo(A.shape_);
 }
 
 template<typename T>

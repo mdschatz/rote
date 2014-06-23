@@ -24,25 +24,25 @@ template<typename T>
 void SlidePartitionUp
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index );
+  TEN& AB, TEN& A2, Mode mode );
 
 template<typename T>
 void SlidePartitionUp
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index );
+  DTEN& AB, DTEN& A2, Mode mode );
 
 template<typename T>
 void SlideLockedPartitionUp
 ( TEN& AT, const TEN& A0,
          const TEN& A1,
-  TEN& AB, const TEN& A2, Index index );
+  TEN& AB, const TEN& A2, Mode mode );
 
 template<typename T>
 void SlideLockedPartitionUp
 ( DTEN& AT, const DTEN& A0,
           const DTEN& A1,
-  DTEN& AB, const DTEN& A2, Index index );
+  DTEN& AB, const DTEN& A2, Mode mode );
 
 //
 // SlidePartitionDown
@@ -52,25 +52,25 @@ template<typename T>
 void SlidePartitionDown
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index );
+  TEN& AB, TEN& A2, Mode mode );
 
 template<typename T>
 void SlidePartitionDown
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index );
+  DTEN& AB, DTEN& A2, Mode mode );
 
 template<typename T>
 void SlideLockedPartitionDown
 ( TEN& AT, const TEN& A0,
          const TEN& A1,
-  TEN& AB, const TEN& A2, Index index );
+  TEN& AB, const TEN& A2, Mode mode );
 
 template<typename T>
 void SlideLockedPartitionDown
 ( DTEN& AT, const DTEN& A0,
           const DTEN& A1,
-  DTEN& AB, const DTEN& A2, Index index );
+  DTEN& AB, const DTEN& A2, Mode mode );
 
 #undef DTEN
 #undef TEN

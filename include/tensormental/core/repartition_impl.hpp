@@ -25,12 +25,12 @@ inline void
 RepartitionUp
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index, Unsigned A1Dimension )
+  TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("RepartitionUp [Tensor]");
 #endif
-    PartitionUp( AT, A0, A1, index, A1Dimension );
+    PartitionUp( AT, A0, A1, mode, A1Dimension );
     View( A2, AB );
 }
 
@@ -39,12 +39,12 @@ inline void
 RepartitionUp
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index, Unsigned A1Dimension )
+  DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("RepartitionUp [DistTensor]");
 #endif
-    PartitionUp( AT, A0, A1, index, A1Dimension );
+    PartitionUp( AT, A0, A1, mode, A1Dimension );
     View( A2, AB );
 }
 
@@ -53,12 +53,12 @@ inline void
 LockedRepartitionUp
 ( const TEN& AT, TEN& A0,
                TEN& A1,
-  const TEN& AB, TEN& A2, Index index, Unsigned A1Dimension )
+  const TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("LockedRepartitionUp [Tensor]");
 #endif
-    LockedPartitionUp( AT, A0, A1, index, A1Dimension );
+    LockedPartitionUp( AT, A0, A1, mode, A1Dimension );
     LockedView( A2, AB );
 }
 
@@ -67,12 +67,12 @@ inline void
 LockedRepartitionUp
 ( const DTEN& AT, DTEN& A0,
                 DTEN& A1,
-  const DTEN& AB, DTEN& A2, Index index, Unsigned A1Dimension )
+  const DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("LockedRepartitionUp [DistTensor]");
 #endif
-    LockedPartitionUp( AT, A0, A1, index, A1Dimension );
+    LockedPartitionUp( AT, A0, A1, mode, A1Dimension );
     LockedView( A2, AB );
 }
 
@@ -85,13 +85,13 @@ inline void
 RepartitionDown
 ( TEN& AT, TEN& A0,
          TEN& A1,
-  TEN& AB, TEN& A2, Index index, Unsigned A1Dimension )
+  TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("RepartitionDown [Tensor]");
 #endif
     View( A0, AT );
-    PartitionDown( AB, A1, A2, index, A1Dimension );
+    PartitionDown( AB, A1, A2, mode, A1Dimension );
 }
 
 template<typename T>
@@ -99,13 +99,13 @@ inline void
 RepartitionDown
 ( DTEN& AT, DTEN& A0,
           DTEN& A1,
-  DTEN& AB, DTEN& A2, Index index, Unsigned A1Dimension )
+  DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("RepartitionDown [DistTensor]");
 #endif
     View( A0, AT );
-    PartitionDown( AB, A1, A2, index, A1Dimension );
+    PartitionDown( AB, A1, A2, mode, A1Dimension );
 }
 
 template<typename T>
@@ -113,13 +113,13 @@ inline void
 LockedRepartitionDown
 ( const TEN& AT, TEN& A0,
                TEN& A1,
-  const TEN& AB, TEN& A2, Index index, Unsigned A1Dimension )
+  const TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("LockedRepartitionDown [Tensor]");
 #endif
     LockedView( A0, AT );
-    LockedPartitionDown( AB, A1, A2, index, A1Dimension );
+    LockedPartitionDown( AB, A1, A2, mode, A1Dimension );
 }
 
 template<typename T>
@@ -127,13 +127,13 @@ inline void
 LockedRepartitionDown
 ( const DTEN& AT, DTEN& A0,
                 DTEN& A1,
-  const DTEN& AB, DTEN& A2, Index index, Unsigned A1Dimension )
+  const DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
 #ifndef RELEASE
     CallStackEntry cse("LockedRepartitionDown [DistTensor]");
 #endif
     LockedView( A0, AT );
-    LockedPartitionDown( AB, A1, A2, index, A1Dimension );
+    LockedPartitionDown( AB, A1, A2, mode, A1Dimension );
 }
 
 #undef DTEN

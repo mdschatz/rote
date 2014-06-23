@@ -93,7 +93,6 @@
 
 // Implement the intertwined parts of the library
 //#include "tensormental/core/timer_impl.hpp"
-#include "tensormental/util/redistribute_util.hpp"
 #include "tensormental/core/memory_impl.hpp"
 #include "tensormental/core/complex_impl.hpp"
 #include "tensormental/core/types_impl.hpp"

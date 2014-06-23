@@ -23,9 +23,6 @@ inline void ViewHelper( Tensor<T>& A, const Tensor<T>& B, bool isLocked){
 #endif
     A.memory_.Empty();
     A.shape_ = B.shape_;
-    A.indices_ = B.indices_;
-    A.index2modeMap_ = B.index2modeMap_;
-    A.mode2indexMap_ = B.mode2indexMap_;
     A.ldims_     = B.ldims_;
     A.strides_     = B.strides_;
     //A.data_     = B.data_;
@@ -102,9 +99,6 @@ inline void ViewHelper
 #endif
     A.memory_.Empty();
     A.shape_ = shape;
-    A.indices_ = B.indices_;
-    A.index2modeMap_ = B.index2modeMap_;
-    A.mode2indexMap_ = B.mode2indexMap_;
     A.ldims_ = B.ldims_;
     A.strides_     = B.strides_;
     if(isLocked){
@@ -167,33 +161,24 @@ inline void ViewHelper
 
 template<typename T>
 inline void View2x1Helper
-( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index, bool isLocked )
+( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Mode mode, bool isLocked )
 {
-    Mode indexModeA, indexModeBT, indexModeBB;
-    indexModeA = A.ModeOfIndex(index);
-    indexModeBT = BT.ModeOfIndex(index);
-    indexModeBB = BB.ModeOfIndex(index);
 #ifndef RELEASE
     CallStackEntry entry("View2x1Helper");
 
-    std::vector<Mode> negFilterBT(1);
-    std::vector<Mode> negFilterBB(1);
-    negFilterBT[0] = indexModeBT;
-    negFilterBB[0] = indexModeBB;
+    std::vector<Mode> negFilter(1);
+    negFilter[0] = mode;
 
-    if( AnyElemwiseNotEqual(NegFilterVector(BT.Shape(), negFilterBT), NegFilterVector(BB.Shape(), negFilterBB)) )
+    if( AnyElemwiseNotEqual(NegFilterVector(BT.Shape(), negFilter), NegFilterVector(BB.Shape(), negFilter)) )
         LogicError("2x1 must have consistent width to combine");
-    if( BT.LDim(indexModeBT) != BB.LDim(indexModeBB) )
+    if( BT.LDim(mode) != BB.LDim(mode) )
         LogicError("2x1 must have consistent ldim to combine");
-    if( BB.LockedBuffer() != (BT.LockedBuffer() + BT.Dimension(indexModeBT)*BT.LDim(indexModeBT)) )
+    if( BB.LockedBuffer() != (BT.LockedBuffer() + BT.Dimension(mode)*BT.LDim(mode)) )
         LogicError("2x1 must have contiguous memory");
 #endif
     A.memory_.Empty();
     A.shape_    = BT.shape_;
-    A.shape_[indexModeA] += BB.shape_[indexModeBB];
-    A.indices_  = BT.indices_;
-    A.index2modeMap_ = BT.index2modeMap_;
-    A.mode2indexMap_ = BT.mode2indexMap_;
+    A.shape_[mode] += BB.shape_[mode];
     A.ldims_    = BT.ldims_;
     A.strides_     = BT.strides_;
 //    A.data_     = BT.data_;
@@ -207,20 +192,18 @@ template<typename T>
 inline void View2x1Helper
 (       DistTensor<T>& A,
         const DistTensor<T>& BT,
-        const DistTensor<T>& BB, Index index, bool isLocked )
+        const DistTensor<T>& BB, Mode mode, bool isLocked )
 {
 #ifndef RELEASE
     CallStackEntry entry("View2x1Helper");
-    AssertConforming2x1( BT, BB, index );
+    AssertConforming2x1( BT, BB, mode );
     BT.AssertSameGrid( BB.Grid() );
 #endif
-    const Mode indexModeA = A.ModeOfIndex(index);
-    const Mode indexModeBB = BB.ModeOfIndex(index);
     A.Empty();
     A.grid_ = BT.grid_;
     A.gridView_ = BT.gridView_;
     A.shape_ = BT.shape_;
-    A.shape_[indexModeA] += BB.shape_[indexModeBB];
+    A.shape_[mode] += BB.shape_[mode];
     A.modeAlignments_ = BT.modeAlignments_;
     if(isLocked)
         A.viewType_ = LOCKED_VIEW;
@@ -229,11 +212,11 @@ inline void View2x1Helper
     if( A.Participating() )
     {
         A.modeShifts_ = BT.modeShifts_;
-//        View2x1Helper(A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index, isLocked);
+//        View2x1Helper(A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), mode, isLocked);
 //        if(isLocked)
-//            LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index );
+//            LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), mode );
 //        else
-//            View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), index );
+//            View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), mode );
     }
     else
     {
@@ -245,35 +228,25 @@ template<typename T>
 inline void ViewAsLowerOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices, bool isLocked )
+  const std::vector<ModeArray>& oldModes, bool isLocked )
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsLowerOrderHelper");
-    B.AssertMergeableIndices(newIndices, oldIndices);
+    B.AssertMergeableModes(oldModes);
 #endif
-    Unsigned i, j;
-    const Unsigned oldOrder = B.Order();
-    const Unsigned newOrder = newIndices.size();
+    Unsigned i;
+    const Unsigned newOrder = oldModes.size();
     A.memory_.Empty();
 
     //Update the shape, ldims_, strides_, maps_
-    A.indices_ = newIndices;
     A.shape_.resize(newOrder);
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
-    A.index2modeMap_.clear();
-    A.mode2indexMap_.clear();
     for(i = 0; i < newOrder; i++){
-        const Index newIndex = newIndices[i];
-        ModeArray oldModes(oldIndices[i].size());
-        for(j = 0; j < oldIndices[i].size(); j++)
-            oldModes[j] = B.ModeOfIndex(oldIndices[i][j]);
-        A.shape_[i] = prod(FilterVector(B.Shape(), oldModes));
-        A.ldims_[i] = B.LDim(B.ModeOfIndex(oldIndices[i][0]));
-        A.strides_[i] = B.LDim(B.ModeOfIndex(oldIndices[i][0]));
-        A.index2modeMap_[newIndex] = i;
-        A.mode2indexMap_[i] = newIndex;
+        ModeArray modesToMerge = oldModes[i];
+        A.shape_[i] = prod(FilterVector(B.Shape(), modesToMerge));
+        A.ldims_[i] = B.LDim(modesToMerge[0]);
+        A.strides_[i] = B.LDim(modesToMerge[0]);
     }
 
 //    A.data_     = B.data_;
@@ -287,37 +260,29 @@ template<typename T>
 inline void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape,
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newShape,
   bool isLocked)
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrderHelper");
-    B.AssertSplittableIndices(newIndices, oldIndices, newIndicesShape);
+    B.AssertSplittableModes(oldModes, newShape);
 #endif
     Unsigned i, j;
-    const Unsigned oldOrder = B.Order();
     Unsigned newOrder = 0;
-    for(i = 0; i < newIndices.size(); i++)
-        newOrder += newIndices[i].size();
+    for(i = 0; i < newShape.size(); i++)
+        newOrder += newShape[i].size();
     A.memory_.Empty();
 
     //Update the shape, ldims_, strides_, maps_
-    A.indices_.resize(newOrder);
     A.shape_.resize(newOrder);
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
-    A.index2modeMap_.clear();
-    A.mode2indexMap_.clear();
     Unsigned modeCount = 0;
-    for(i = 0; i < newIndices.size(); i++){
-        IndexArray newIndexGroup = newIndices[i];
-        ObjShape newIndexGroupShape = newIndicesShape[i];
-        for(j = 0; j < newIndexGroup.size(); j++){
-            Index newIndex = newIndexGroup[j];
-            A.indices_[modeCount] = newIndex;
-            A.shape_[modeCount] = newIndexGroupShape[j];
+    for(i = 0; i < newShape.size(); i++){
+        ObjShape newModeGroupShape = newShape[i];
+        for(j = 0; j < newModeGroupShape.size(); j++){
+            A.shape_[modeCount] = newModeGroupShape[j];
             if(i == 0 && j == 0){
                 A.ldims_[modeCount] = 1;
                 A.strides_[modeCount] = 1;
@@ -325,8 +290,6 @@ inline void ViewAsHigherOrderHelper
                 A.ldims_[modeCount] = A.shape_[modeCount - 1] * A.ldims_[modeCount - 1];
                 A.ldims_[modeCount] = A.shape_[modeCount - 1] * A.strides_[modeCount - 1];
             }
-            A.index2modeMap_[newIndex] = modeCount;
-            A.mode2indexMap_[modeCount] = newIndex;
             modeCount++;
         }
     }
@@ -524,64 +487,64 @@ inline DistTensor<T> LockedView
 }
 
 template<typename T>
-inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Index index )
+inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("View2x1");
 #endif
-    View2x1Helper(A, BT, BB, index, false);
+    View2x1Helper(A, BT, BB, mode, false);
     //Set the data we can't set in helper
     A.data_ = BT.data_;
 }
 
 template<typename T>
-inline Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Index index )
+inline Tensor<T> View2x1( Tensor<T>& BT, Tensor<T>& BB, Mode mode )
 {
     Tensor<T> A(BT.Order());
-    View2x1( A, BT, BB, index );
+    View2x1( A, BT, BB, mode );
     return A;
 }
 
 template<typename T>
 inline void View2x1
-( DistTensor<T>& A, DistTensor<T>& BT, DistTensor<T>& BB, Index index )
+( DistTensor<T>& A, DistTensor<T>& BT, DistTensor<T>& BB, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("View2x1");
 #endif
-    View2x1Helper(A, BT, BB, index, false);
+    View2x1Helper(A, BT, BB, mode, false);
     //Set the data we can't set in helper
     if(A.Participating()){
-        View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), index );
+        View2x1( A.Tensor(), BT.Tensor(), BB.Tensor(), mode );
     }
 }
 
 template<typename T>
-inline DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Index index )
+inline DistTensor<T> View2x1( DistTensor<T>& BT, DistTensor<T>& BB, Mode mode )
 {
     DistTensor<T> A(BT.Order(), BT.Grid());
-    View2x1( A, BT, BB, index );
+    View2x1( A, BT, BB, mode );
     return A;
 }
 
 template<typename T>
 inline void LockedView2x1
-( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Index index )
+( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedView2x1");
 #endif
-    View2x1Helper(A, BT, BB, index, true);
+    View2x1Helper(A, BT, BB, mode, true);
     //Set the data we can't set in helper
     A.data_ = BT.data_;
 }
 
 template<typename T>
 inline Tensor<T> LockedView2x1
-( const Tensor<T>& BT, const Tensor<T>& BB, Index index )
+( const Tensor<T>& BT, const Tensor<T>& BB, Mode mode )
 {
     Tensor<T> A(BT.Order());
-    LockedView2x1( A, BT, BB, index );
+    LockedView2x1( A, BT, BB, mode );
     return A;
 }
 
@@ -589,24 +552,24 @@ template<typename T>
 inline void LockedView2x1
 (       DistTensor<T>& A,
   const DistTensor<T>& BT,
-  const DistTensor<T>& BB, Index index )
+  const DistTensor<T>& BB, Mode mode )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedView2x1");
 #endif
-    View2x1Helper(A, BT, BB, index, true);
+    View2x1Helper(A, BT, BB, mode, true);
     //Set the data we can't set in helper
     if(A.Participating()){
-        LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), index );
+        LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), mode );
     }
 }
 
 template<typename T>
 inline DistTensor<T> LockedView2x1
-( const DistTensor<T>& BT, const DistTensor<T>& BB, Index index )
+( const DistTensor<T>& BT, const DistTensor<T>& BB, Mode mode )
 {
     DistTensor<T> A(BT.Order(), BT.Grid());
-    LockedView2x1( A, BT, BB, index );
+    LockedView2x1( A, BT, BB, mode );
     return A;
 }
 
@@ -614,13 +577,12 @@ template<typename T>
 inline void ViewAsLowerOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices )
+  const std::vector<ModeArray>& oldModes )
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsLowerOrder");
 #endif
-    ViewAsLowerOrderHelper(A, B, newIndices, oldIndices, false);
+    ViewAsLowerOrderHelper(A, B, oldModes, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -628,11 +590,10 @@ inline void ViewAsLowerOrder
 template<typename T>
 inline Tensor<T> ViewAsLowerOrder
 ( Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices )
+  const std::vector<ModeArray>& oldModes )
 {
    Tensor<T> A(B.Order());
-   ViewAsLowerOrder(A, B, newIndices, oldIndices);
+   ViewAsLowerOrder(A, B, oldModes);
    return A;
 }
 
@@ -640,13 +601,12 @@ template<typename T>
 inline void LockedViewAsLowerOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices )
+  const std::vector<ModeArray>& oldModes )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedViewAsLowerOrder");
 #endif
-    ViewAsLowerOrderHelper(A, B, newIndices, oldIndices, true);
+    ViewAsLowerOrderHelper(A, B, oldModes, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -654,11 +614,10 @@ inline void LockedViewAsLowerOrder
 template<typename T>
 inline Tensor<T> LockedViewAsLowerOrder
 ( const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices )
+  const std::vector<ModeArray>& oldModes )
 {
    Tensor<T> A(B.Order());
-   LockedViewAsLowerOrder(A, B, newIndices, oldIndices);
+   LockedViewAsLowerOrder(A, B, oldModes);
    return A;
 }
 
@@ -666,14 +625,13 @@ template<typename T>
 inline void ViewAsHigherOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape)
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newShape)
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
-    ViewAsHigherOrderHelper(A, B, newIndices, oldIndices, newIndicesShape, false);
+    ViewAsHigherOrderHelper(A, B, oldModes, newShape, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -681,11 +639,10 @@ inline void ViewAsHigherOrder
 template<typename T>
 inline Tensor<T> ViewAsHigherOrder
 ( Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices )
+  const std::vector<ModeArray>& oldModes )
 {
    Tensor<T> A(B.Order());
-   ViewAsHigherOrder(A, B, newIndices, oldIndices);
+   ViewAsHigherOrder(A, B, oldModes);
    return A;
 }
 
@@ -693,14 +650,13 @@ template<typename T>
 inline void LockedViewAsHigherOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<IndexArray>& newIndices,
-  const IndexArray& oldIndices,
-  const std::vector<ObjShape>& newIndicesShape)
+  const ModeArray& oldModes,
+  const std::vector<ObjShape>& newShape)
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
-    ViewAsHigherOrderHelper(A, B, newIndices, oldIndices, newIndicesShape, true);
+    ViewAsHigherOrderHelper(A, B, oldModes, newShape, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -708,11 +664,10 @@ inline void LockedViewAsHigherOrder
 template<typename T>
 inline Tensor<T> LockedViewAsHigherOrder
 ( const Tensor<T>& B,
-  const IndexArray& newIndices,
-  const std::vector<IndexArray>& oldIndices )
+  const std::vector<ModeArray>& oldModes )
 {
    Tensor<T> A(B.Order());
-   LockedViewAsHigherOrder(A, B, newIndices, oldIndices);
+   LockedViewAsHigherOrder(A, B, oldModes);
    return A;
 }
 
