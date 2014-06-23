@@ -156,20 +156,20 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   Unsigned outerDataBufOff, agModeDataBufOff;
   Unsigned startSendBuf, startDataBuf;
 
-  printf("MemCopy info:\n");
-  printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-  printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
-  printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-  printf("    copySliceSize: %d\n", copySliceSize);
+//  printf("MemCopy info:\n");
+//  printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//  printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
+//  printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
+//  printf("    copySliceSize: %d\n", copySliceSize);
   for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
       if(outerSliceNum >= nLocalOuterSlices)
           break;
       outerSendBufOff = maxCopySliceSize * nMaxAGModeSlices * outerSliceNum;
       outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
 
-      printf("        outerSliceNum: %d\n", outerSliceNum);
-      printf("        outerSendBufOff: %d\n", outerSendBufOff);
-      printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//      printf("        outerSliceNum: %d\n", outerSliceNum);
+//      printf("        outerSendBufOff: %d\n", outerSendBufOff);
+//      printf("        outerDataBufOff: %d\n", outerDataBufOff);
 
       for(agModeSliceNum = 0; agModeSliceNum < nMaxAGModeSlices; agModeSliceNum++){
           if(agModeSliceNum >= nLocalAGModeSlices)
@@ -177,21 +177,21 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
           agModeSendBufOff = maxCopySliceSize * agModeSliceNum;
           agModeDataBufOff = copySliceSize * agModeSliceNum;
 
-          printf("          agModeSliceNum: %d\n", agModeSliceNum);
-          printf("          agModeSendBufOff: %d\n", agModeSendBufOff);
-          printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
+//          printf("          agModeSliceNum: %d\n", agModeSliceNum);
+//          printf("          agModeSendBufOff: %d\n", agModeSendBufOff);
+//          printf("          agModeDataBufOff: %d\n", agModeDataBufOff);
           startSendBuf = outerSendBufOff + agModeSendBufOff;
           startDataBuf = outerDataBufOff + agModeDataBufOff;
 
-          printf("          startSendBuf: %d\n", startSendBuf);
-          printf("          startDataBuf: %d\n", startDataBuf);
+//          printf("          startSendBuf: %d\n", startSendBuf);
+//          printf("          startDataBuf: %d\n", startDataBuf);
           MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
       }
   }
-  printf("packed sendBuf: ");
-  for(Unsigned i = 0; i < prod(maxLocalShapeA); i++)
-      printf("%d ", sendBuf[i]);
-  printf("\n");
+//  printf("packed sendBuf: ");
+//  for(Unsigned i = 0; i < prod(maxLocalShapeA); i++)
+//      printf("%d ", sendBuf[i]);
+//  printf("\n");
 }
 
 template <typename T>

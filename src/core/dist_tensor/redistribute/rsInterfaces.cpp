@@ -34,15 +34,15 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode r
     DistTensor<T> tmp2(tmp2Shape, dist, A.Grid());
 
     LocalReduce(tmp, A, reduceMode);
-    Print(tmp, "tmp after local reduce");
+//    Print(tmp, "tmp after local reduce");
     tmp2.ReduceScatterCommRedist(tmp, reduceMode, scatterMode);
-    Print(tmp2, "tmp2 after global reduce");
+//    Print(tmp2, "tmp2 after global reduce");
 
     //B.RemoveUnitMode(reduceMode);
     T* BBuf = this->Buffer();
     const T* tmp2Buf = tmp2.LockedBuffer();
     MemCopy(&(BBuf[0]), &(tmp2Buf[0]), prod(this->LocalShape()));
-    Print(*this, "B after full reduce");
+//    Print(*this, "B after full reduce");
 }
 
 #define PROTO(T) \
