@@ -50,6 +50,25 @@ AbstractDistTensor<T>::AbstractDistTensor( const Unsigned order, const tmen::Gri
 }
 
 template<typename T>
+AbstractDistTensor<T>::AbstractDistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
+: shape_(dist.size(), 0),
+  dist_(dist),
+
+  constrainedModeAlignments_(dist_.size(), 0),
+  modeAlignments_(dist_.size(), 0),
+  modeShifts_(dist_.size(), 0),
+
+  tensor_(dist_.size(), false),
+
+  grid_(&grid),
+  gridView_(grid_, dist_),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+}
+
+template<typename T>
 AbstractDistTensor<T>::AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : shape_(shape),
   dist_(dist),

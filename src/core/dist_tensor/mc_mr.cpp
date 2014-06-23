@@ -21,6 +21,11 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 { this->SetShifts(); }
 
 template<typename T>
+DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
+: AbstractDistTensor<T>(dist, grid)
+{ this->SetShifts(); }
+
+template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
 : AbstractDistTensor<T>(shape, dist, grid)

@@ -283,6 +283,7 @@ protected:
     // Build around a particular grid
     AbstractDistTensor( const tmen::Grid& g );
     AbstractDistTensor( const Unsigned order, const tmen::Grid& g );
+    AbstractDistTensor( const TensorDistribution& dist, const tmen::Grid& g );
     AbstractDistTensor( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g );
 
     void SetShifts();
