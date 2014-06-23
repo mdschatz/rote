@@ -148,6 +148,16 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
     Permute(C, PC, invPermC);
 }
 
+template <typename T>
+void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
+
+    std::vector<IndexArray> indices;
+    indices.push_back(indicesA);
+    indices.push_back(indicesB);
+    indices.push_back(indicesC);
+    LocalContract(alpha, A, B, beta, C, indices);
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_BTAS_CONTRACT_HPP
