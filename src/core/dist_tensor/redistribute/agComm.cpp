@@ -52,7 +52,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().Shape());
 
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
@@ -134,7 +134,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   const Location start(A.Order(), 0);
   const T* dataBuf = A.LockedBuffer(start);
 
-  const tmen::GridView gvA = A.GridView();
+  const tmen::GridView gvA = A.GetGridView();
 
   //Shape of the local tensor we are packing
   const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
@@ -200,8 +200,8 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     T* dataBuf = this->Buffer();
 
     const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = this->GridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     const ObjShape commShape = FilterVector(g.Shape(), redistModes);
     const Unsigned nRedistProcs = prod(commShape);

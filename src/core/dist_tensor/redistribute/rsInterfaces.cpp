@@ -22,7 +22,7 @@ void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
     ObjShape tmpShape = A.Shape();
-    tmpShape[reduceMode] = A.GridView().Dimension(reduceMode);
+    tmpShape[reduceMode] = A.GetGridView().Dimension(reduceMode);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
 
     TensorDistribution dist = A.TensorDist();

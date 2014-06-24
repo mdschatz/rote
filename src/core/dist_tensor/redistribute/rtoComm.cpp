@@ -18,7 +18,7 @@ namespace tmen{
 template <typename T>
 Int DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode){
 //    Unsigned i;
-//    const tmen::GridView gvA = A.GridView();
+//    const tmen::GridView gvA = A.GetGridView();
 //
 //  //Test elimination of mode
 //  const Unsigned AOrder = A.Order();
@@ -63,7 +63,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(reduceMode));
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), A.ModeDist(reduceMode))));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GridView().Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().Shape());
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
 
@@ -95,8 +95,8 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
     }
     printf("\n");
 
-    const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = this->GridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     const Unsigned nRedistProcs = gvA.Dimension(rMode);
 
@@ -171,8 +171,8 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
 {
     T* dataBuf = this->Buffer();
 
-    const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = this->GridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     //Only unpack if we are the root (everyone else gets nothing)
     if(gvB.ModeLoc(rMode) == 0){

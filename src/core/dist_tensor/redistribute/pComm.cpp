@@ -17,7 +17,7 @@ namespace tmen{
 template <typename T>
 Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     Unsigned i;
-    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvA = A.GetGridView();
 
     const Unsigned AOrder = A.Order();
     const Unsigned BOrder = this->Order();
@@ -58,7 +58,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), this->GridView().Shape());
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), GetGridView().Shape());
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize;
 
@@ -73,8 +73,8 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     PackPermutationCommSendBuf(A, permuteMode, sendBuf);
 
-    const GridView gvA = A.GridView();
-    const GridView gvB = this->GridView();
+    const GridView gvA = A.GetGridView();
+    const GridView gvB = GetGridView();
 
     const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
     const ModeDistribution permuteModeDistB = this->ModeDist(permuteMode);
@@ -112,7 +112,7 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
 {
     const T* dataBuf = A.LockedBuffer();
 
-    const tmen::GridView gvA = A.GridView();
+    const tmen::GridView gvA = A.GetGridView();
 
     //Shape of the local tensor we are packing
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
@@ -157,8 +157,8 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
 {
         T* dataBuf = this->Buffer();
 
-        const tmen::GridView gvA = A.GridView();
-        const tmen::GridView gvB = this->GridView();
+        const tmen::GridView gvA = A.GetGridView();
+        const tmen::GridView gvB = GetGridView();
 
         const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
         const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());

@@ -24,7 +24,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
     this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
 
     ObjShape tmpShape = A.Shape();
-    tmpShape[rMode] = A.GridView().Dimension(rMode);
+    tmpShape[rMode] = A.GetGridView().Dimension(rMode);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
 
     LocalReduce(tmp, A, rMode);

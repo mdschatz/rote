@@ -193,7 +193,7 @@ TestRSRedist(DistTensor<T>& A, Mode rMode, Mode sMode, const TensorDistribution&
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
-    const GridView gv = A.GridView();
+    const GridView gv = A.GetGridView();
 
     ObjShape BShape = A.Shape();
     BShape[rMode] = 1;
@@ -218,7 +218,7 @@ TestPRSRedist(DistTensor<T>& A, Mode rsMode, const TensorDistribution& resDist)
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
-    const GridView gv = A.GridView();
+    const GridView gv = A.GetGridView();
 
     ObjShape BShape = A.Shape();
     BShape[rsMode] = Max(1, tmen::MaxLength(A.Dimension(rsMode), gv.Dimension(rsMode)));
@@ -397,7 +397,7 @@ std::vector<LTest>
 CreateLTests(const DistTensor<T>& A, const Params& args){
     Unsigned i, j, k;
     std::vector<LTest> ret;
-    const tmen::GridView& gv = A.GridView();
+    const tmen::GridView& gv = A.GetGridView();
 
     const TensorDistribution tDist = A.TensorDist();
     ModeArray freeModes = gv.FreeModes();
@@ -450,7 +450,7 @@ CreateRSTests(const DistTensor<T>& A, const Params& args){
 
     const Unsigned order = A.Order();
 
-    const GridView gv = A.GridView();
+    const GridView gv = A.GetGridView();
 
     for(i = 0; i < order; i++){
         for(j = 0; j < order; j++){

@@ -24,7 +24,6 @@ struct DistData
 };
 } // namespace tmen
 
-#include "tensormental/core/dist_tensor/abstract.hpp"
-#include "tensormental/core/dist_tensor/mc_mr.hpp"
+#include "tensormental/core/dist_tensor/dist_tensor.hpp"
 
 #endif // ifndef TMEN_CORE_DISTTENSOR_HPP
