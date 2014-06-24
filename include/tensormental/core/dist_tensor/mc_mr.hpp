@@ -146,6 +146,20 @@ public:
     virtual void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
 
     //
+    // Reduce-to-one workhorse routines
+    //
+    virtual Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
+    virtual void ReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
+    virtual void PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf);
+    virtual void UnpackRTOCommRecvBuf(const T* const recvBuf, const Mode rMode, const DistTensor<T>& A);
+
+    //
+    // Reduce-to-one interface routines
+    //
+    virtual void PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
+    virtual void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
+
+    //
     //Unit mode intro/remove routines
     //
     virtual void RemoveUnitModesRedist(const ModeArray& unitModes);

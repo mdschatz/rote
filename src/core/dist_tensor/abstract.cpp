@@ -577,62 +577,62 @@ template<typename T>
 const tmen::Tensor<T>&
 AbstractDistTensor<T>::LockedTensor() const
 { return tensor_; }
-
-template<typename T>
-void
-AbstractDistTensor<T>::RemoveUnitModes(const ModeArray& modes)
-{
-#ifndef RELEASE
-    CallStackEntry cse("AbstractDistTensor::RemoveUnitModes");
-#endif
-    Unsigned i;
-    ModeArray sorted = modes;
-    std::sort(sorted.begin(), sorted.end());
-    for(i = sorted.size() - 1; i < sorted.size(); i--){
-        shape_.erase(shape_.begin() + sorted[i]);
-        dist_.erase(dist_.begin() + sorted[i]);
-        constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + sorted[i]);
-        modeAlignments_.erase(modeAlignments_.begin() + sorted[i]);
-        modeShifts_.erase(modeShifts_.begin() + sorted[i]);
-    }
-    tensor_.RemoveUnitModes(sorted);
-    gridView_.RemoveUnitModes(sorted);
-}
-
-template<typename T>
-void
-AbstractDistTensor<T>::RemoveUnitMode(const Mode& mode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("AbstractDistTensor::RemoveUnitMode");
-#endif
-    shape_.erase(shape_.begin() + mode);
-    dist_.erase(dist_.begin() + mode);
-    constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + mode);
-    modeAlignments_.erase(modeAlignments_.begin() + mode);
-    modeShifts_.erase(modeShifts_.begin() + mode);
-
-    tensor_.RemoveUnitMode(mode);
-    gridView_.RemoveUnitMode(mode);
-}
-
-template<typename T>
-void
-AbstractDistTensor<T>::IntroduceUnitMode(const Mode& mode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("AbstractDistTensor::IntroduceUnitMode");
-#endif
-    shape_.insert(shape_.begin() + mode, 1);
-    ModeDistribution newDist(0);
-    dist_.insert(dist_.begin() + mode, newDist);
-    constrainedModeAlignments_.insert(constrainedModeAlignments_.begin() + mode, true);
-    modeAlignments_.insert(modeAlignments_.begin() + mode, 0);
-    modeShifts_.insert(modeShifts_.begin() + mode, 0);
-
-    tensor_.IntroduceUnitMode(mode);
-    gridView_.IntroduceUnitMode(mode);
-}
+//
+//template<typename T>
+//void
+//AbstractDistTensor<T>::RemoveUnitModes(const ModeArray& modes)
+//{
+//#ifndef RELEASE
+//    CallStackEntry cse("AbstractDistTensor::RemoveUnitModes");
+//#endif
+//    Unsigned i;
+//    ModeArray sorted = modes;
+//    std::sort(sorted.begin(), sorted.end());
+//    for(i = sorted.size() - 1; i < sorted.size(); i--){
+//        shape_.erase(shape_.begin() + sorted[i]);
+//        dist_.erase(dist_.begin() + sorted[i]);
+//        constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + sorted[i]);
+//        modeAlignments_.erase(modeAlignments_.begin() + sorted[i]);
+//        modeShifts_.erase(modeShifts_.begin() + sorted[i]);
+//    }
+//    tensor_.RemoveUnitModes(sorted);
+//    //gridView_.RemoveUnitModes(sorted);
+//}
+//
+//template<typename T>
+//void
+//AbstractDistTensor<T>::RemoveUnitMode(const Mode& mode)
+//{
+//#ifndef RELEASE
+//    CallStackEntry cse("AbstractDistTensor::RemoveUnitMode");
+//#endif
+//    shape_.erase(shape_.begin() + mode);
+//    dist_.erase(dist_.begin() + mode);
+//    constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + mode);
+//    modeAlignments_.erase(modeAlignments_.begin() + mode);
+//    modeShifts_.erase(modeShifts_.begin() + mode);
+//
+//    tensor_.RemoveUnitMode(mode);
+//    //gridView_.RemoveUnitMode(mode);
+//}
+//
+//template<typename T>
+//void
+//AbstractDistTensor<T>::IntroduceUnitMode(const Mode& mode)
+//{
+//#ifndef RELEASE
+//    CallStackEntry cse("AbstractDistTensor::IntroduceUnitMode");
+//#endif
+//    shape_.insert(shape_.begin() + mode, 1);
+//    ModeDistribution newDist(0);
+//    dist_.insert(dist_.begin() + mode, newDist);
+//    constrainedModeAlignments_.insert(constrainedModeAlignments_.begin() + mode, true);
+//    modeAlignments_.insert(modeAlignments_.begin() + mode, 0);
+//    modeShifts_.insert(modeShifts_.begin() + mode, 0);
+//
+//    tensor_.IntroduceUnitMode(mode);
+//    //gridView_.IntroduceUnitMode(mode);
+//}
 
 template<typename T>
 Location AbstractDistTensor<T>::GridViewLoc() const

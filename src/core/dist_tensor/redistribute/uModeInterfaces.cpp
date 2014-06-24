@@ -16,26 +16,19 @@ namespace tmen{
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>
 void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
-//    if(!CheckRemoveUnitModesRedist(B, unitModes))
-//        LogicError("RemoveUnitModesRedist: Invalid redistribution request");
-//
-//    Unsigned i;
-//    std::sort(unitModes.begin(), unitModes.end());
-//    for(i = unitModes.size() - 1; i >= 0; i--){
-//        B.shape_.
-//    }
-//
-//    const Location start(order, 0);
-//    T* dst = B.Buffer(start);
-//    const T* src = A.LockedBuffer(start);
-//    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+    Unsigned i;
+    ModeArray sorted = unitModes;
+    std::sort(sorted.begin(), sorted.end());
+    for(i = sorted.size() - 1; i >= 0; i--){
+        this->shape_.erase(this->shape_.begin() + sorted[i]);
+    }
 }
 
 template<typename T>
 void DistTensor<T>::RemoveUnitModeRedist(const Mode& unitMode){
-//    ModeArray modeArr(1);
-//    modeArr[0] = unitMode;
-//    RemoveUnitModesRedist(B, A, modeArr);
+    ModeArray modeArr(1);
+    modeArr[0] = unitMode;
+    RemoveUnitModesRedist(modeArr);
 }
 
 //NOTE: Assuming everything is correct, this is just a straight memcopy

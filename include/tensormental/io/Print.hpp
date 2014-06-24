@@ -101,6 +101,41 @@ Print
     }
 }
 
+template<typename T>
+inline void
+PrintVector
+( const std::vector<T>& vec, std::string title="", std::ostream& os = std::cout){
+    os << title << ":";
+
+    Unsigned i;
+    for(i = 0; i < vec.size(); i++)
+        os << " " << vec[i];
+    os << std::endl;
+}
+
+template<typename T>
+inline void
+PrintData
+( const Tensor<T>& A, std::string title="", std::ostream& os = std::cout){
+    os << title << std::endl;
+    PrintVector(A.Shape(), "    shape", os);
+}
+
+template<typename T>
+inline void
+PrintData
+( const DistTensor<T>& A, std::string title="", std::ostream& os = std::cout){
+    if( A.Grid().LinearRank() == 0 && title != "" ){
+        os << title << std::endl;
+
+        PrintVector(A.Shape(), "shape", os);
+        os << tmen::TensorDistToString(A.TensorDist()) << std::endl;
+        PrintVector(A.Alignments(), "alignments", os);
+        PrintVector(A.Shifts(), "shifts", os);
+        PrintData(A.Tensor(), "tensor data", os);
+    }
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_IO_PRINT_HPP

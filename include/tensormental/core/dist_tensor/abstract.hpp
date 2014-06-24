@@ -71,9 +71,9 @@ public:
     //
     // Unit modes
     //
-    void RemoveUnitModes(const ModeArray& modes);
-    void RemoveUnitMode(const Mode& mode);
-    void IntroduceUnitMode(const Unsigned& modePosition);
+//    void RemoveUnitModes(const ModeArray& modes);
+//    void RemoveUnitMode(const Mode& mode);
+//    void IntroduceUnitMode(const Unsigned& modePosition);
 
     //
     // Alignments
@@ -206,7 +206,6 @@ public:
     virtual void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf) = 0;
     virtual void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A) = 0;
 
-
     //
     // All-to-all interface routines
     //
@@ -250,6 +249,20 @@ public:
     //
     virtual void PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode) = 0;
     virtual void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode) = 0;
+
+    //
+    // Reduce-to-one workhorse routines
+    //
+    virtual Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode) = 0;
+    virtual void ReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode) = 0;
+    virtual void PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf) = 0;
+    virtual void UnpackRTOCommRecvBuf(const T* const recvBuf, const Mode rMode, const DistTensor<T>& A) = 0;
+
+    //
+    // Reduce-to-one interface routines
+    //
+    virtual void PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode) = 0;
+    virtual void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode) = 0;
 
     //
     //Unit mode intro/remove routines

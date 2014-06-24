@@ -15,7 +15,7 @@ namespace tmen{
 
 template<typename T>
 void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-
+    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
     LocalCommRedist(A, localMode, gridRedistModes);
 }
 
