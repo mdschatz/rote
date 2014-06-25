@@ -19,9 +19,14 @@ void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
     Unsigned i;
     ModeArray sorted = unitModes;
     std::sort(sorted.begin(), sorted.end());
-    for(i = sorted.size() - 1; i >= 0; i--){
+    for(i = sorted.size() - 1; i < sorted.size(); i--){
         this->shape_.erase(this->shape_.begin() + sorted[i]);
+        this->constrainedModeAlignments_.erase(this->constrainedModeAlignments_.begin() + sorted[i]);
+        this->modeAlignments_.erase(this->modeAlignments_.begin() + sorted[i]);
+        this->modeShifts_.erase(this->modeShifts_.begin() + sorted[i]);
     }
+    this->tensor_.RemoveUnitModes(unitModes);
+    this->gridView_.RemoveUnitModes(unitModes);
 }
 
 template<typename T>

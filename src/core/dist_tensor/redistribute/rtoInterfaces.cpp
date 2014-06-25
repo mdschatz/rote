@@ -21,19 +21,25 @@ void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const M
 
 template <typename T>
 void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode){
-    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
-
     ObjShape tmpShape = A.Shape();
     tmpShape[rMode] = A.GetGridView().Dimension(rMode);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
 
+    printf("pre lreduce\n");
     LocalReduce(tmp, A, rMode);
 
-    this->shape_[rMode] = 1;
+    ObjShape tmp2Shape = A.Shape();
+    tmp2Shape[rMode] = 1;
+    DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), A.Grid());
 
-    this->ReduceToOneCommRedist(tmp, rMode);
+    printf("pre rto\n");
+    tmp2.ReduceToOneCommRedist(tmp, rMode);
+    printf("pre copy\n");
+    T* thisBuf = this->Buffer();
+    const T* tmp2Buf = tmp2.LockedBuffer();
 
-    this->RemoveUnitModeRedist(rMode);
+    MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
+    PrintData(*this, "this");
 }
 
 #define PROTO(T) \

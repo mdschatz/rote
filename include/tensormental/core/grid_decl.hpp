@@ -21,7 +21,7 @@ namespace tmen {
 class Grid
 {
 public:
-    explicit Grid( mpi::Comm comm, Unsigned order, const ObjShape& shape );
+    explicit Grid( mpi::Comm comm, const ObjShape& shape );
     ~Grid();
 
     // Simple interface (simpler version of distributed-based interface)
@@ -49,7 +49,6 @@ public:
     static int FindFactor( int p );
 
 private:
-    Unsigned order_;
     ObjShape shape_;
     Unsigned size_;
     Unsigned linearRank_;

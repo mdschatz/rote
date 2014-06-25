@@ -131,8 +131,8 @@ PrintData
         PrintVector(A.Shape(), "shape", os);
         os << tmen::TensorDistToString(A.TensorDist()) << std::endl;
         PrintVector(A.Alignments(), "alignments", os);
-        PrintVector(A.Shifts(), "shifts", os);
-        PrintData(A.Tensor(), "tensor data", os);
+        PrintVector(A.ModeShifts(), "shifts", os);
+        PrintData(A.LockedTensor(), "tensor data", os);
     }
 }
 

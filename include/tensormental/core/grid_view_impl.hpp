@@ -246,7 +246,19 @@ bool
 GridView::IsUnused(Mode mode) const
 { return std::find(unusedModes_.begin(), unusedModes_.end(), mode) != unusedModes_.end(); }
 
-
+inline
+void
+GridView::RemoveUnitModes(const ModeArray& unitModes)
+{
+    Unsigned i;
+    ModeArray sorted = unitModes;
+    std::sort(sorted.begin(), sorted.end());
+    for(i = sorted.size() - 1; i < sorted.size(); i--){
+        this->shape_.erase(this->shape_.begin() + sorted[i]);
+        this->loc_.erase(this->loc_.begin() + sorted[i]);
+        this->dist_.erase(this->dist_.begin() + sorted[i]);
+    }
+}
 //
 // Comparison functions
 //

@@ -244,6 +244,8 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
         for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
             printf(" %d", dataBuf[i]);
         printf("\n");
+    }else{
+        MemZero(&(dataBuf[0]), prod(this->LocalShape()));
     }
 }
 

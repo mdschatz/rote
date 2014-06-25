@@ -20,13 +20,14 @@ inline void
 Grid::SetMyGridLoc( )
 {
   Unsigned i;
-  std::vector<Unsigned> stride(order_);
+  const Unsigned order = Order();
+  std::vector<Unsigned> stride(order);
   stride[0] = 1;
-  for(i = 1; i < order_; i++)
+  for(i = 1; i < order; i++)
     stride[i] = stride[i-1]*shape_[i-1];
 
   Unsigned gridSliceSize = size_;
-  for(i = order_ - 1; i < order_; i--){
+  for(i = order - 1; i < order; i--){
     if(stride[i] > linearRank_)
       gridLoc_[i] = 0;
     else
@@ -35,14 +36,14 @@ Grid::SetMyGridLoc( )
   }
 
   Unsigned remainingRank = linearRank_;
-  for(; i < order_ ; i--){
+  for(; i < order ; i--){
     gridLoc_[i] = remainingRank / stride[i];
     remainingRank -= gridLoc_[i] * stride[i];
   }
 }
 
 inline
-Grid::Grid( mpi::Comm comm, Unsigned order, const ObjShape& shape )
+Grid::Grid( mpi::Comm comm, const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry entry("Grid::Grid");
@@ -51,9 +52,8 @@ Grid::Grid( mpi::Comm comm, Unsigned order, const ObjShape& shape )
 
     mpi::CommDup(comm, owningComm_);
 
-    order_ = order;
     shape_ = shape;
-    gridLoc_.resize(order_);
+    gridLoc_.resize(shape_.size());
     size_ = mpi::CommSize( comm );
     linearRank_ = mpi::CommRank( comm );
 
@@ -67,13 +67,14 @@ Grid::SetUpGrid()
 #ifndef RELEASE
     CallStackEntry entry("Grid::SetUpGrid");
 #endif
+    const Unsigned order = Order();
     int i;
     if( size_ != prod(shape_))
     {
         std::ostringstream msg;
         msg << "Number of processes must match grid size:\n"
             << "  size=" << size_ << ", dimension=[" << shape_[0];
-        for(i = 1; i < order_; i++)
+        for(i = 1; i < order; i++)
           msg << ", " << shape_[i];
         msg << "]";
         LogicError( msg.str() );
@@ -82,16 +83,16 @@ Grid::SetUpGrid()
     if( inGrid_ )
     {
         // Create a cartesian communicator
-        int shape[order_];
-        int periods[order_];
+        int shape[order];
+        int periods[order];
 
-        for(i = 0; i < order_; i++){
+        for(i = 0; i < order; i++){
           shape[i] = shape_[i];
           periods[i] = true;
         }
         bool reorder = false;
         mpi::CartCreate
-        ( owningComm_, order_, shape, periods, reorder, cartComm_ );
+        ( owningComm_, order, shape, periods, reorder, cartComm_ );
     }
 }
 
@@ -132,7 +133,7 @@ Grid::LinearRank() const
 
 inline Unsigned
 Grid::Order() const
-{ return order_; }
+{ return shape_.size(); }
 
 inline Unsigned
 Grid::Size() const
@@ -148,10 +149,11 @@ inline
 Unsigned
 Grid::Dimension(Mode mode) const
 { 
-  if (mode >= order_){
+  Unsigned order = Order();
+  if (mode >= order){
     std::ostringstream msg;
     msg << "Dimension must be of valid mode:\n"
-        << "  order=" << order_ << ", requested mode=" << mode;
+        << "  order=" << order << ", requested mode=" << mode;
     LogicError( msg.str() );
   }
   return shape_[mode];

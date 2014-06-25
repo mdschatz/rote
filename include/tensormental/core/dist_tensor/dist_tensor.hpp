@@ -187,6 +187,7 @@ public:
     //
 
     virtual Unsigned ModeStride(Mode mode) const;
+    virtual std::vector<Unsigned> ModeStrides() const;
     virtual Unsigned ModeRank(Mode mode) const;
     virtual tmen::DistData DistData() const;
 

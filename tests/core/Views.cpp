@@ -418,7 +418,7 @@ main( int argc, char* argv[] )
             printf("] tensor\n");
         }
 
-        const Grid g( comm, args.gridOrder, args.gridShape );
+        const Grid g( comm, args.gridShape );
 
         DistTensorTest<int>( args, g );
 

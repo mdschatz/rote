@@ -87,7 +87,7 @@ main( int argc, char* argv[] )
 	for(int i = 1; i < args.order; i++)
 		printf(", %d", args.gridShape[i]);
 	printf("]\n");
-	const Grid grid( comm, args.order, args.gridShape );
+	const Grid grid( comm, args.gridShape );
     }
     catch( std::exception& e ) { ReportException(e); }
 

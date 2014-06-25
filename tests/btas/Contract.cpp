@@ -331,7 +331,7 @@ main( int argc, char* argv[] )
             throw ArgException();
         }
 
-        const Grid g( comm, args.gridOrder, args.gridShape );
+        const Grid g( comm, args.gridShape );
 
         if( commRank == 0 )
         {
