@@ -67,10 +67,8 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     T* dstBuf = this->Buffer();
     const T* srcBuf = A.LockedBuffer();
 
-
-
-    const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = this->GridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     const tmen::Grid& g = A.Grid();
 

@@ -7,21 +7,36 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_CORE_DISTTENSOR_MC_MR_DECL_HPP
-#define TMEN_CORE_DISTTENSOR_MC_MR_DECL_HPP
+#ifndef TMEN_CORE_DISTTENSOR_DECL_HPP
+#define TMEN_CORE_DISTTENSOR_DECL_HPP
 
+#include<vector>
 namespace tmen {
 
-// Partial specialization to A[MC,MR].
-//
-// The columns of these matrices will be distributed among columns of the
-// process grid, and the rows will be distributed among rows of the process
-// grid.
+#ifndef RELEASE
+    template<typename T>
+    void AssertConforming2x1( const DistTensor<T>& AT, const DistTensor<T>& AB, Mode mode);
+#endif
 
 template<typename T>
-class DistTensor : public AbstractDistTensor<T>
+class DistTensor
 {
 public:
+
+#ifndef RELEASE
+    void AssertNotLocked() const;
+    void AssertNotStoringData() const;
+    void AssertValidEntry( const Location& loc ) const;
+    void AssertValidSubtensor
+    ( const Location& loc, const ObjShape& shape ) const;
+    void AssertSameGrid( const tmen::Grid& grid ) const;
+    void AssertSameSize( const ObjShape& shape ) const;
+    //TODO: REMOVE THIS
+    void AssertMergeableModes(const std::vector<ModeArray>& oldModes) const;
+#endif // ifndef RELEASE
+
+    //Constructors
+
     // Create a 0 distributed tensor
     DistTensor( const tmen::Grid& g=DefaultGrid() );
 
@@ -68,6 +83,101 @@ public:
 
     const DistTensor<T>& operator=( const DistTensor<T>& A );
     
+
+    Unsigned Order() const;
+    Unsigned Dimension(Mode mode) const;
+    ObjShape Shape() const;
+    ObjShape LocalShape() const;
+    Unsigned LocalDimension(Mode mode) const;
+    Unsigned LocalModeStride(Mode mode) const;
+
+    TensorDistribution TensorDist() const;
+    ModeDistribution ModeDist(Mode mode) const;
+
+
+    std::vector<Unsigned> LDims() const;
+    Unsigned LDim(Mode mode) const;
+    size_t AllocatedMemory() const;
+
+    const tmen::Grid& Grid() const;
+    const tmen::GridView GetGridView() const;
+
+          T* Buffer();
+          T* Buffer( const Location& loc );
+    const T* LockedBuffer() const;
+    const T* LockedBuffer( const Location& loc ) const;
+
+
+          tmen::Tensor<T>& Tensor();
+    const tmen::Tensor<T>& LockedTensor() const;
+
+    //
+    // Entry manipulation
+    //
+    virtual Location DetermineOwner(const Location& loc) const;
+    virtual Location Global2LocalIndex(const Location& loc) const;
+
+    //
+    // Alignments
+    //
+
+    void FreeAlignments();
+    bool ConstrainedModeAlignment(Mode mode) const;
+    std::vector<Unsigned> Alignments() const;
+    Unsigned ModeAlignment(Mode mode) const;
+    Unsigned ModeShift(Mode mode) const;
+    std::vector<Unsigned> ModeShifts() const;
+
+    void Align( const std::vector<Unsigned>& modeAlign );
+    void AlignMode( Mode mode, Unsigned align );
+
+    //
+    // Local entry manipulation
+    //
+
+    T GetLocal( const Location& loc ) const;
+    void SetLocal( const Location& loc, T alpha );
+    void UpdateLocal( const Location& loc, T alpha );
+
+    //
+    // Though the following routines are meant for complex data, all but two
+    // logically apply to real data.
+    //
+
+    BASE(T) GetRealPart( const Location& loc ) const;
+    BASE(T) GetImagPart( const Location& loc ) const;
+    BASE(T) GetLocalRealPart( const Location& loc ) const;
+    BASE(T) GetLocalImagPart( const Location& loc ) const;
+    void SetLocalRealPart( const Location& loc, BASE(T) alpha );
+    void UpdateLocalRealPart( const Location& loc, BASE(T) alpha );
+    // Only valid for complex data
+    void SetLocalImagPart( const Location& loc, BASE(T) alpha );
+    void UpdateLocalImagPart( const Location& loc, BASE(T) alpha );
+
+    //
+    // Viewing
+    //
+
+    bool Viewing() const;
+    bool Locked()  const;
+
+    //
+    // Utilities
+    //
+    Location GridViewLoc() const;
+    ObjShape GridViewShape() const;
+    mpi::Comm GetCommunicator(Mode mode) const;
+    mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
+    void Empty();
+    void EmptyData();
+    void SetGrid( const tmen::Grid& grid );
+
+    virtual void Swap( DistTensor<T>& A );
+
+    virtual bool Participating() const;
+
+    virtual void MakeConsistent();
+
     //------------------------------------------------------------------------//
     // Overrides of AbstractDistTensor                                        //
     //------------------------------------------------------------------------//
@@ -77,6 +187,7 @@ public:
     //
 
     virtual Unsigned ModeStride(Mode mode) const;
+    virtual std::vector<Unsigned> ModeStrides() const;
     virtual Unsigned ModeRank(Mode mode) const;
     virtual tmen::DistData DistData() const;
 
@@ -146,6 +257,20 @@ public:
     virtual void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
 
     //
+    // Reduce-to-one workhorse routines
+    //
+    virtual Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
+    virtual void ReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
+    virtual void PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf);
+    virtual void UnpackRTOCommRecvBuf(const T* const recvBuf, const Mode rMode, const DistTensor<T>& A);
+
+    //
+    // Reduce-to-one interface routines
+    //
+    virtual void PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
+    virtual void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
+
+    //
     //Unit mode intro/remove routines
     //
     virtual void RemoveUnitModesRedist(const ModeArray& unitModes);
@@ -167,9 +292,9 @@ public:
 
     // Distribution alignment
     virtual void AlignWith( const tmen::DistData& data );
-    virtual void AlignWith( const AbstractDistTensor<T>& A );
+    virtual void AlignWith( const DistTensor<T>& A );
     virtual void AlignModeWith( Mode mode, const tmen::DistData& data );
-    virtual void AlignModeWith( Mode mode, const AbstractDistTensor<T>& A );
+    virtual void AlignModeWith( Mode mode, const DistTensor<T>& A );
 
     //
     // Though the following routines are meant for complex data, all but two
@@ -240,14 +365,66 @@ public:
     void SetImagPartOfDiagonal
     ( const DistTensor<BASE(T)>& d, Int offset=0 );
 
+protected:
+    //Distributed information
+    ObjShape shape_;
+    TensorDistribution dist_;
+
+    //Wrapping information
+    std::vector<bool> constrainedModeAlignments_;
+    std::vector<Unsigned> modeAlignments_;
+    std::vector<Unsigned> modeShifts_;
+
+    //Local information
+    tmen::Tensor<T> tensor_;
+
+    //Grid information
+    const tmen::Grid* grid_;
+    tmen::GridView gridView_;
+
+    ViewType viewType_;
+    Memory<T> auxMemory_;
+
 private:
     void CopyFromDifferentGrid( const DistTensor<T>& A );
+
+    void SetShifts();
+    void SetModeShift(Mode mode);
+    void SetGrid();
+
+    void ComplainIfReal() const;
+
+    void SetAlignmentsAndResize
+    ( const std::vector<Unsigned>& aligns, const ObjShape& shape );
+    void ForceAlignmentsAndResize
+    ( const std::vector<Unsigned>& aligns, const ObjShape& shape );
+
+    void SetModeAlignmentAndResize
+    ( Mode mode, Unsigned align, const ObjShape& shape );
+    void ForceModeAlignmentAndResize
+    ( Mode mode, Unsigned align, const ObjShape& shape );
+
 #ifndef SWIG
     template<typename S>
     friend class DistTensor;
+
+    template<typename S>
+    friend void ViewHelper( DistTensor<S>& A, const DistTensor<S>& B, bool isLocked );
+    template<typename S>
+    friend void ViewHelper
+    ( DistTensor<S>& A, const DistTensor<S>& B,
+      const Location& loc, const ObjShape& shape, bool isLocked );
+    template<typename S>
+    friend void View2x1Helper
+    ( DistTensor<S>& A, const DistTensor<S>& BT, const DistTensor<S>& BB, Mode mode, bool isLocked );
+
+    template<typename S>
+    friend class DistTensor;
+//    template<typename S,Distribution U,Distribution V>
+//    friend class DistTensor;
 #endif // ifndef SWIG
 };
 
 } // namespace tmen
 
-#endif // ifndef TMEN_CORE_DISTTENSOR_MC_MR_DECL_HPP
+#endif // ifndef TMEN_CORE_DISTTENSOR_DECL_HPP

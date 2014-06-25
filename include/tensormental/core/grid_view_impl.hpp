@@ -107,6 +107,18 @@ GridView::SetupGridView(const ModeArray& unusedModes)
 }
 
 inline
+void
+GridView::AddFreeMode(const Mode& freeMode)
+{
+#ifndef RELEASE
+    CallStackEntry cse("GridView::AddFreeMode");
+#endif
+    freeModes_.push_back(freeMode);
+    boundModes_.erase(std::find(boundModes_.begin(), boundModes_.end(), freeMode));
+    unusedModes_.erase(std::find(boundModes_.begin(), boundModes_.end(), freeMode));
+}
+
+inline
 GridView::~GridView()
 {
 }
@@ -236,46 +248,17 @@ GridView::IsUnused(Mode mode) const
 
 inline
 void
-GridView::RemoveUnitModes(const ModeArray& modes)
+GridView::RemoveUnitModes(const ModeArray& unitModes)
 {
-#ifndef RELEASE
-    CallStackEntry cse("GridView::RemoveUnitModes");
-#endif
     Unsigned i;
-    ModeArray sorted = modes;
+    ModeArray sorted = unitModes;
     std::sort(sorted.begin(), sorted.end());
     for(i = sorted.size() - 1; i < sorted.size(); i--){
-        shape_.erase(shape_.begin() + sorted[i]);
-        dist_.erase(dist_.begin() + sorted[i]);
-        loc_.erase(loc_.begin() + sorted[i]);
+        this->shape_.erase(this->shape_.begin() + sorted[i]);
+        this->loc_.erase(this->loc_.begin() + sorted[i]);
+        this->dist_.erase(this->dist_.begin() + sorted[i]);
     }
 }
-
-inline
-void
-GridView::RemoveUnitMode(const Mode& mode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("GridView::RemoveUnitMode");
-#endif
-    shape_.erase(shape_.begin() + mode);
-    dist_.erase(dist_.begin() + mode);
-    loc_.erase(loc_.begin() + mode);
-}
-
-inline
-void
-GridView::IntroduceUnitMode(const Mode& mode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("GridView::IntroduceUnitMode");
-#endif
-    shape_.insert(shape_.begin() + mode, 1);
-    ModeDistribution newDist;
-    dist_.insert(dist_.begin() + mode, newDist);
-    loc_.insert(loc_.begin() + mode, 0);
-}
-
 //
 // Comparison functions
 //

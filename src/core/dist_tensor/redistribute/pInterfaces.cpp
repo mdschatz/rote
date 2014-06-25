@@ -15,7 +15,7 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
+    this->ResizeTo(A);
     PermutationCommRedist(A, permuteMode, redistModes);
 }
 

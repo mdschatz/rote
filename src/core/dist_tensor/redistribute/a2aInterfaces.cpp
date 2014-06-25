@@ -15,7 +15,7 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
-    this->SetAlignmentsAndResize(A.Alignments(), A.Shape());
+    this->ResizeTo(A);
     this->AllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups);
 }
 

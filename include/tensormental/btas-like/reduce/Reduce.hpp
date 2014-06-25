@@ -57,16 +57,16 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
      Tensor<T> MPA, MPB;
 
      //Permute A, B
-     printf("\n\nPermuting A: [%d", perm[0]);
-     for(i = 1; i < perm.size(); i++)
-         printf(" %d", perm[i]);
-     printf("]\n");
+//     printf("\n\nPermuting A: [%d", perm[0]);
+//     for(i = 1; i < perm.size(); i++)
+//         printf(" %d", perm[i]);
+//     printf("]\n");
      Permute(PA, A, perm);
 
-     printf("\n\nPermuting B: [%d", perm[0]);
-     for(i = 1; i < perm.size(); i++)
-         printf(" %d", perm[i]);
-     printf("]\n");
+//     printf("\n\nPermuting B: [%d", perm[0]);
+//     for(i = 1; i < perm.size(); i++)
+//         printf(" %d", perm[i]);
+//     printf("]\n");
      Permute(PB, B, perm);
 
      //View as matrices
@@ -89,22 +89,22 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
 
      ViewAsLowerOrder(MPA, PA, MPAOldModes );
 
-     Print(PB, "PB");
+//     Print(PB, "PB");
      ViewAsLowerOrder(MPB, PB, MPBOldModes );
 
-     Print(MPA, "MPA");
-     Print(MPB, "MPB");
+//     Print(MPA, "MPA");
+//     Print(MPB, "MPB");
 
      const T* MPAData = MPA.LockedBuffer();
      T* MPBData = MPB.Buffer();
      for(i = 0; i < MPA.Dimension(1); i++){
          for(j = 0; j < MPA.Dimension(0); j++){
-             printf("MPBDataptr: %d, MPADataptr: %d\n", i, j + i*MPA.Dimension(0));
+//             printf("MPBDataptr: %d, MPADataptr: %d\n", i, j + i*MPA.Dimension(0));
              MPBData[i] += MPAData[j + i*MPA.Dimension(0)];
          }
      }
 
-     Print(MPB, "MPB after reduce");
+//     Print(MPB, "MPB after reduce");
      //View as tensor
      ModeArray MPBModes(2);
      MPBModes[0] = 0;
@@ -115,15 +115,15 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
      PBShape[1] = FilterVector(PB.Shape(), nonReduceModes);
 
      //ViewAsHigherOrder(PB, MPB, MPBModes, PBShape);
-     Print(PB, "PB after higher order view");
+//     Print(PB, "PB after higher order view");
 
      //Permute back the data
-     printf("\n\nPermuting PB: [%d", invPerm[0]);
-     for(i = 1; i < invPerm.size(); i++)
-         printf(" %d", invPerm[i]);
-     printf("]\n");
+//     printf("\n\nPermuting PB: [%d", invPerm[0]);
+//     for(i = 1; i < invPerm.size(); i++)
+//         printf(" %d", invPerm[i]);
+//     printf("]\n");
      Permute(B, PB, invPerm);
-     Print(B, "B after final permute");
+//     Print(B, "B after final permute");
 }
 
 template <typename T>

@@ -43,7 +43,7 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
     std::sort(commModes.begin(), commModes.end());
 
     const Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
-    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GridView().Shape());
+    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GetGridView().Shape());
 
     sendSize = prod(maxLocalShape) * nRedistProcs;
     recvSize = sendSize;
@@ -70,8 +70,8 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
 
-    const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = this->GridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     const tmen::Grid& g = A.Grid();
 
@@ -245,8 +245,8 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     const Unsigned order = A.Order();
     T* dataBuf = this->Buffer();
 
-    const tmen::GridView gvA = A.GridView();
-    const tmen::GridView gvB = this->GridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     const tmen::Grid& g = A.Grid();
 

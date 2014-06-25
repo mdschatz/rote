@@ -42,6 +42,7 @@ public:
     ModeArray FreeModes() const;
     ModeArray UnusedModes() const;
 
+    void AddFreeMode(const Mode& mode);
     bool IsBound(Mode mode) const;
     bool IsFree(Mode mode) const;
     bool IsUnused(Mode mode) const;
@@ -49,10 +50,7 @@ public:
     Unsigned LinearRank() const;
     void SetMyGridViewLoc();
 
-    void RemoveUnitModes(const ModeArray& modes);
-    void RemoveUnitMode(const Mode& mode);
-    void IntroduceUnitMode(const Unsigned& modePosition);
-
+    void RemoveUnitModes(const ModeArray& unitModes);
 private:
     TensorDistribution dist_;
     ModeArray boundModes_;
