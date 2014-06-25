@@ -35,47 +35,51 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
         LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
 
     //Check conformal modes
-    for(Unsigned i = 0; i < indA.size(); i++){
-        Index index = indA[i];
-        //Check A,B
-        for(Unsigned j = 0; j < indB.size(); j++){
-            if(indB[j] == index){
-                if(A.Dimension(i) != B.Dimension(j))
-                    LogicError("LocalContract: Modes assigned same indices must be conformal");
-            }
-        }
-        //Check A,C
-        for(Unsigned j = 0; j < indC.size(); j++){
-            if(indC[j] == index){
-                if(A.Dimension(i) != C.Dimension(j))
-                    LogicError("LocalContract: Modes assigned same indices must be conformal");
-            }
-        }
-    }
-    for(Unsigned i = 0; i < indB.size(); i++){
-        Index index = indB[i];
-        //Check B,C
-        for(Unsigned j = 0; j < indC.size(); j++){
-            if(indC[j] == index){
-                if(B.Dimension(i) != C.Dimension(j))
-                    LogicError("LocalContract: Modes assigned same indices must be conformal");
-            }
-        }
-    }
+//    for(Unsigned i = 0; i < indA.size(); i++){
+//        Index index = indA[i];
+//        //Check A,B
+//        for(Unsigned j = 0; j < indB.size(); j++){
+//            if(indB[j] == index){
+//                if(A.Dimension(i) != B.Dimension(j))
+//                    LogicError("LocalContract: Modes assigned same indices must be conformal");
+//            }
+//        }
+//        //Check A,C
+//        for(Unsigned j = 0; j < indC.size(); j++){
+//            if(indC[j] == index){
+//                if(A.Dimension(i) != C.Dimension(j))
+//                    LogicError("LocalContract: Modes assigned same indices must be conformal");
+//            }
+//        }
+//    }
+//    for(Unsigned i = 0; i < indB.size(); i++){
+//        Index index = indB[i];
+//        //Check B,C
+//        for(Unsigned j = 0; j < indC.size(); j++){
+//            if(indC[j] == index){
+//                if(B.Dimension(i) != C.Dimension(j))
+//                    LogicError("LocalContract: Modes assigned same indices must be conformal");
+//            }
+//        }
+//    }
 #endif
     Unsigned i, j;
-    const std::vector<ModeArray> contractModes(DetermineContractModes(A, B, C, indices));
+    const std::vector<ModeArray> contractPerms(DetermineContractModes(A, B, C, indices));
 
+    Unsigned nIndicesContract = 0;
+    for(i = 0; i < indices[0].size(); i++)
+        if(std::find(indices[1].begin(), indices[1].end(), indices[0][i]) != indices[1].end())
+            nIndicesContract++;
     //TODO: Implement invPerm routine to get the invPermC variable (only reason I form CModes)
     ModeArray CModes(C.Order());
     for(i = 0; i < C.Order(); i++)
         CModes[i] = i;
 
     //Determine the permutations for each Tensor
-    const std::vector<Unsigned> permA(ConcatenateVectors(contractModes[0], contractModes[1]));
-    const std::vector<Unsigned> permB(ConcatenateVectors(contractModes[1], contractModes[2]));
-    const std::vector<Unsigned> permC(ConcatenateVectors(contractModes[0], contractModes[2]));
-    const std::vector<Unsigned> invPermC(DeterminePermutation(ConcatenateVectors(contractModes[0], contractModes[2]), CModes));
+    const std::vector<Unsigned> permA = contractPerms[0];
+    const std::vector<Unsigned> permB = contractPerms[1];
+    const std::vector<Unsigned> permC = contractPerms[2];
+    const std::vector<Unsigned> invPermC = DeterminePermutation(permC, CModes);
 
     Tensor<T> PA(FilterVector(A.Shape(), permA));
     Tensor<T> PB(FilterVector(B.Shape(), permB));
@@ -103,16 +107,17 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 
     //View as matrices
     std::vector<ModeArray> MPAOldModes(2);
-    MPAOldModes[0] = contractModes[0];
-    MPAOldModes[1] = contractModes[1];
+    MPAOldModes[0].insert(MPAOldModes[0].end(), permA.begin(), permA.begin() + nIndicesContract);
+    MPAOldModes[1].insert(MPAOldModes[1].end(), permA.begin() + nIndicesContract, permA.end());
 
     std::vector<ModeArray> MPBOldModes(2);
-    MPBOldModes[0] = contractModes[1];
-    MPBOldModes[1] = contractModes[2];
+    MPBOldModes[0].insert(MPBOldModes[0].end(), permB.begin(), permB.begin() + nIndicesContract);
+    MPBOldModes[1].insert(MPBOldModes[1].end(), permB.begin() + nIndicesContract, permB.end());
+
     
     std::vector<ModeArray> MPCOldModes(2);
-    MPCOldModes[0] = contractModes[0];
-    MPCOldModes[1] = contractModes[2];
+    MPCOldModes[0].insert(MPCOldModes[0].end(), permC.begin(), permC.begin() + (permA.size() - nIndicesContract));
+    MPCOldModes[1].insert(MPCOldModes[1].end(), permC.begin() + (permA.size() - nIndicesContract), permC.end());
 
     ViewAsLowerOrder(MPA, PA, MPAOldModes );
 

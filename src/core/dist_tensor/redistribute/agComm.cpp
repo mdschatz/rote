@@ -131,8 +131,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
 template <typename T>
 void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode, T * const sendBuf, const ModeArray& redistModes)
 {
-  const Location start(A.Order(), 0);
-  const T* dataBuf = A.LockedBuffer(start);
+  const T* dataBuf = A.LockedBuffer();
 
   const tmen::GridView gvA = A.GetGridView();
 
@@ -209,11 +208,11 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
     const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
 
-    printf("recvBuf:");
-    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
-        printf(" %d", recvBuf[i]);
-    }
-    printf("\n");
+//    printf("recvBuf:");
+//    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){
+//        printf(" %d", recvBuf[i]);
+//    }
+//    printf("\n");
 
     const ObjShape localShapeB = this->LocalShape();
 
