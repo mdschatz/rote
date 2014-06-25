@@ -25,21 +25,18 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
     tmpShape[rMode] = A.GetGridView().Dimension(rMode);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
 
-    printf("pre lreduce\n");
     LocalReduce(tmp, A, rMode);
 
     ObjShape tmp2Shape = A.Shape();
     tmp2Shape[rMode] = 1;
     DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), A.Grid());
 
-    printf("pre rto\n");
     tmp2.ReduceToOneCommRedist(tmp, rMode);
-    printf("pre copy\n");
+
     T* thisBuf = this->Buffer();
     const T* tmp2Buf = tmp2.LockedBuffer();
 
     MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
-    PrintData(*this, "this");
 }
 
 #define PROTO(T) \

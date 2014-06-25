@@ -214,8 +214,6 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
     this->shape_ = shape;
     SetShifts();
     if(this->Participating()){
-        PrintVector(shape, "shape");
-        PrintData(*this, "this");
         this->tensor_.ResizeTo(Lengths(shape, this->modeShifts_, this->gridView_.Shape()));
     }
 }
@@ -230,8 +228,6 @@ DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldi
 #endif
     this->shape_ = shape;
     if(this->Participating()){
-        PrintVector(shape, "shape");
-        PrintData(*this, "this");
         this->tensor_.ResizeTo(Lengths(shape, this->ModeShifts(), this->ModeStrides()), ldims);
     }
 }
