@@ -27,9 +27,9 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
     this->AssertValidEntry( loc );
 #endif
     const tmen::GridView gv = GetGridView();
-    Location ownerLoc(gv.Order());
+    Location ownerLoc(gv.ParticipatingOrder());
 
-    for(Int i = 0; i < gv.Order(); i++){
+    for(Int i = 0; i < gv.ParticipatingOrder(); i++){
         ownerLoc[i] = (loc[i] + this->ModeAlignment(i)) % this->ModeStride(i);
     }
     return ownerLoc;
@@ -66,7 +66,7 @@ DistTensor<T>::GetCommunicator(Mode mode) const
     gridViewSliceLoc.erase(gridViewSliceLoc.begin() + mode);
     const Unsigned commColor = Loc2LinearLoc(gridViewSliceLoc, gridViewSliceShape);
 
-    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
     return comm;
 }
 
@@ -78,6 +78,8 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
     const Location gridLoc = grid_->Loc();
     const ObjShape gridShape = grid_->Shape();
 
+    PrintData(*this, "getting comm");
+    PrintVector(gridLoc, "gridLoc");
     ObjShape gridSliceShape = FilterVector(gridShape, commModes);
     ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
     Location gridSliceLoc = FilterVector(gridLoc, commModes);
@@ -86,8 +88,41 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
     const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
 
-    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
     return comm;
+}
+
+template<typename T>
+void
+DistTensor<T>::SetParticipatingComm()
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::GetParticipatingComm");
+#endif
+    ModeArray commModes = ConcatenateVectors(gridView_.FreeModes(), gridView_.BoundModes());
+    std::sort(commModes.begin(), commModes.end());
+
+    mpi::Comm comm;
+    const Location gridLoc = grid_->Loc();
+    const ObjShape gridShape = grid_->Shape();
+
+    std::cout << tmen::TensorDistToString(dist_) << std::endl;
+    PrintData(*this, "getting comm");
+    PrintVector(commModes, "commModes");
+    PrintVector(gridLoc, "gridLoc");
+    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
+    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
+    Location gridSliceLoc = FilterVector(gridLoc, commModes);
+    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
+
+    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
+    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
+
+    std::cout << "commKey: " << commKey << std::endl;
+    std::cout << "commColor: " << commColor << std::endl;
+
+    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+    participatingComm_ = comm;
 }
 
 #define PROTO(T) template class DistTensor<T>

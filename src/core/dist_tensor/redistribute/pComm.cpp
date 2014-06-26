@@ -51,14 +51,14 @@ template <typename T>
 void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     if(!this->CheckPermutationCommRedist(A, permuteMode, redistModes))
             LogicError("PermutationRedist: Invalid redistribution request");
-    if(!this->Participating())
+    if(!A.Participating())
         return;
 
     Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), GetGridView().Shape());
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), GetGridView().ParticipatingShape());
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize;
 
@@ -103,6 +103,8 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     mpi::SendRecv(sendBuf, sendSize, sendRank,
                   recvBuf, recvSize, recvRank, comm);
 
+    if(!(this->Participating()))
+        return;
     UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
 }
 
@@ -115,7 +117,7 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
     const tmen::GridView gvA = A.GetGridView();
 
     //Shape of the local tensor we are packing
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
     const ObjShape localShapeA = A.LocalShape();
 
     //Calculate number of outer slices to pack
@@ -160,8 +162,8 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
         const tmen::GridView gvA = A.GetGridView();
         const tmen::GridView gvB = GetGridView();
 
-        const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-        const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
+        const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
+        const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
 
         const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 

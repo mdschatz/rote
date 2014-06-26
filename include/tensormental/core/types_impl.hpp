@@ -32,10 +32,11 @@ TensorDistToString( const TensorDistribution& distribution, bool endLine )
     ss << "[";
     if(distribution.size() >= 1){
     	ss << ModeDistToString_(distribution[0]);
-		for(size_t i = 1; i < distribution.size(); i++)
+		for(size_t i = 1; i < distribution.size()-1; i++)
 		  ss << ", " << ModeDistToString_(distribution[i]);
     }
-    ss <<  "]";
+    ss <<  "]|";
+    ss << ModeDistToString_(distribution[distribution.size()-1]);
     if(endLine)
         ss << std::endl;
     return ss.str();
@@ -68,18 +69,27 @@ inline TensorDistribution
 StringToTensorDist( const std::string& s )
 {
     TensorDistribution distribution;
+    ModeArray ignoreModes;
 
-    size_t pos, lastPos;
+    size_t pos, lastPos, breakPos;
+    breakPos = s.find_first_of("|");
     pos = s.find_first_of("[");
     lastPos = s.find_first_of("]");
-    if(pos != 0 || lastPos != s.size() - 1)
-    	LogicError("Malformed tensor distribution string");
+//    if(pos != 0 || lastPos != s.size() - 1)
+//        LogicError("Malformed tensor distribution string");
     pos = s.find_first_of("(", pos);
-    while(pos != std::string::npos){
-    	lastPos = s.find_first_of(")", pos);
-    	distribution.push_back(StringToModeDist(s.substr(pos, lastPos - pos + 1)));
-    	pos = s.find_first_of("(", lastPos + 1);
+    while(pos < breakPos){
+        lastPos = s.find_first_of(")", pos);
+        distribution.push_back(StringToModeDist(s.substr(pos, lastPos - pos + 1)));
+        pos = s.find_first_of("(", lastPos + 1);
     }
+
+    if(breakPos != std::string::npos){
+        //Break found, ignore modes
+        ignoreModes = StringToModeDist(s.substr(breakPos+1, s.length() - breakPos + 1));
+    }
+    distribution.push_back(ignoreModes);
+
     return distribution;
 }
 

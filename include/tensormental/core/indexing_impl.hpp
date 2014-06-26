@@ -352,7 +352,7 @@ inline
 Unsigned
 GridViewLoc2GridLinearLoc(const Location& gridViewLoc, const GridView& gridView)
 {
-	if(gridViewLoc.size() != gridView.Order())
+	if(gridViewLoc.size() != gridView.ParticipatingOrder())
 		LogicError("Supplied loc must be same order as gridView");
 	return GridViewLoc2GridLinearLoc_(gridViewLoc, gridView);
 }
@@ -362,8 +362,11 @@ inline
 Unsigned
 GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView)
 {
+#ifndef RELEASE
+    CallStackEntry entry("GridViewloc2GridLinearLoc");
+#endif
 
-	const Unsigned gvOrder = gridView.Order();
+	const Unsigned gvOrder = gridView.ParticipatingOrder();
 	const TensorDistribution tensorDist = gridView.Distribution();
 
 	const tmen::Grid* grid = gridView.Grid();
@@ -388,7 +391,7 @@ inline
 Location
 GridViewLoc2GridLoc(const Location& gridViewLoc, const GridView& gridView)
 {
-    if(gridViewLoc.size() != gridView.Order())
+    if(gridViewLoc.size() != gridView.ParticipatingOrder())
         LogicError("Supplied loc must be same order as gridView");
     return GridViewLoc2GridLoc_(gridViewLoc, gridView);
 }
@@ -399,7 +402,7 @@ Location
 GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
 {
 
-    const Unsigned gvOrder = gridView.Order();
+    const Unsigned gvOrder = gridView.ParticipatingOrder();
     const TensorDistribution tensorDist = gridView.Distribution();
 
     const tmen::Grid* grid = gridView.Grid();

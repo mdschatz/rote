@@ -141,7 +141,7 @@ template<typename T>
 std::vector<Unsigned>
 DistTensor<T>::ModeStrides() const
 {
-    return this->gridView_.ModeWrapStrides();
+    return this->gridView_.ParticipatingModeWrapStrides();
 }
 
 template<typename T>
@@ -151,16 +151,16 @@ DistTensor<T>::ModeRank(Mode mode) const
 
 template<typename T>
 Location DistTensor<T>::GridViewLoc() const
-{ return gridView_.Loc(); }
+{ return gridView_.ParticipatingLoc(); }
 
 template<typename T>
 ObjShape DistTensor<T>::GridViewShape() const
-{ return gridView_.Shape(); }
+{ return gridView_.ParticipatingShape(); }
 
 template<typename T>
 bool
 DistTensor<T>::Participating() const
-{ return grid_->InGrid(); }
+{ return gridView_.Participating(); }
 
 ///////////////////////////////
 // Tensor pass-through
@@ -199,7 +199,13 @@ DistTensor<T>::LDims() const
 template<typename T>
 T
 DistTensor<T>::GetLocal( const Location& loc ) const
-{ return tensor_.Get(loc); }
+{
+#ifndef RELEASE
+    CallStackEntry entry("[MC,MR]::GetLocal");
+    this->AssertValidEntry( loc );
+#endif
+    return tensor_.Get(loc);
+}
 
 template<typename T>
 T*
@@ -248,15 +254,17 @@ DistTensor<T>::Get( const Location& loc ) const
     const Location owningProc = this->DetermineOwner(loc);
 
     const tmen::GridView& gv = GetGridView();
-
+    Location gvLoc = gv.ParticipatingLoc();
     T u;
-    if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
-        const Location localLoc = this->Global2LocalIndex(loc);
-        u = this->GetLocal(localLoc);
+    if(Participating()){
+        if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
+            const Location localLoc = this->Global2LocalIndex(loc);
+            u = this->GetLocal(localLoc);
+        }
+        const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
+        mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
     }
 
-    const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
-    mpi::Broadcast( u, ownerLinearLoc, mpi::COMM_WORLD);
     return u;
 }
 

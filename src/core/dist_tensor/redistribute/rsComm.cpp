@@ -56,14 +56,14 @@ template <typename T>
 void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
     if(!this->CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
-    if(!this->Participating())
+    if(!A.Participating())
         return;
     Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(reduceMode));
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), A.ModeDist(reduceMode))));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
     recvSize = prod(maxLocalShapeA);
     sendSize = recvSize * nRedistProcs;
 
@@ -81,6 +81,8 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
+    if(!(this->Participating()))
+        return;
     UnpackRSCommRecvBuf(recvBuf, reduceMode, scatterMode, A);
 }
 
@@ -101,7 +103,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     const Unsigned nRedistProcs = gvA.Dimension(rMode);
 
     //Shape of the local tensor we are packing
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
     const ObjShape localShapeA = A.LocalShape();
 
     //Calculate number of outer slices to pack
@@ -183,10 +185,10 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
 
-    const Unsigned maxRecvElem = prod(maxLocalShapeA) / (gvA.Shape()[rMode]);
+    const Unsigned maxRecvElem = prod(maxLocalShapeA) / (gvA.ParticipatingShape()[rMode]);
 //    printf("maxRecvElem: %d\n", maxRecvElem);
 //    printf("recvBuf:");
 //    for(Unsigned i = 0; i < maxRecvElem; i++){

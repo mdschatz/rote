@@ -26,7 +26,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); }
+{ this->SetShifts(); this->SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
@@ -44,7 +44,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); }
+{ this->SetShifts(); this->SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
@@ -62,7 +62,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& gri
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); }
+{ this->SetShifts(); this->SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor
@@ -82,11 +82,12 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() != dist.size())
+    if(shape.size() + 1 != dist.size())
         LogicError("Error: Distribution must be of same order as object");
 
     this->SetShifts();
     this->ResizeTo( shape );
+    this->SetParticipatingComm();
 }
 
 template<typename T>
@@ -108,10 +109,11 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() != dist.size())
+    if(shape.size() + 1 != dist.size())
         LogicError("Error: Distribution must be of same order as object");
     this->Align( modeAlignments );
     this->ResizeTo( shape );
+    this->SetParticipatingComm();
 }
 
 template<typename T>
@@ -133,10 +135,11 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() != dist.size())
+    if(shape.size() + 1 != dist.size())
         LogicError("Error: Distribution must be of same order as object");
     this->Align( modeAlignments );
     this->ResizeTo( shape, ldims );
+    this->SetParticipatingComm();
 }
 
 template<typename T>
@@ -158,11 +161,12 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() != dist.size())
+    if(shape.size() + 1 != dist.size())
         LogicError("Error: Distribution must be of same order as object");
 
     this->LockedAttach
     ( shape, modeAlignments, buffer, ldims, g );
+    this->SetParticipatingComm();
 }
 
 template<typename T>
@@ -184,11 +188,12 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() != dist.size())
+    if(shape.size() + 1 != dist.size())
         LogicError("Error: Distribution must be of same order as object");
 
     this->Attach
     ( shape, modeAlignments, buffer, ldims, g );
+    this->SetParticipatingComm();
 }
 
 template<typename T>
@@ -216,6 +221,7 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
         *this = A;
     else
         LogicError("Tried to construct [MC,MR] with itself");
+    this->SetParticipatingComm();
 }
 
 template<typename T>

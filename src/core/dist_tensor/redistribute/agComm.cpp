@@ -52,7 +52,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
 
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
@@ -72,6 +72,8 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     //printf("Allgathering %d elements\n", sendSize);
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
+    if(!(this->Participating()))
+        return;
     UnpackAGCommRecvBuf(recvBuf, agMode, gridModes, A);
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
@@ -136,7 +138,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   const tmen::GridView gvA = A.GetGridView();
 
   //Shape of the local tensor we are packing
-  const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
+  const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
   const ObjShape localShapeA = A.LocalShape();
 
   //Calculate number of outer slices to pack
@@ -205,8 +207,8 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     const ObjShape commShape = FilterVector(g.Shape(), redistModes);
     const Unsigned nRedistProcs = prod(commShape);
 
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.Shape());
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.Shape());
+    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
+    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
 
 //    printf("recvBuf:");
 //    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++){

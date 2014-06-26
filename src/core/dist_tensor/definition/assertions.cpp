@@ -31,6 +31,9 @@ template<typename T>
 void
 DistTensor<T>::AssertValidEntry( const Location& loc ) const
 {
+#ifndef RELEASE
+    CallStackEntry entry("[MC,MR]::AssertValidEntry");
+#endif
     const Unsigned order = this->Order();
     if(loc.size() != order )
     {

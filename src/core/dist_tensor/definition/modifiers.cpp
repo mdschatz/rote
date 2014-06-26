@@ -214,7 +214,7 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
     this->shape_ = shape;
     SetShifts();
     if(this->Participating()){
-        this->tensor_.ResizeTo(Lengths(shape, this->modeShifts_, this->gridView_.Shape()));
+        this->tensor_.ResizeTo(Lengths(shape, this->modeShifts_, this->gridView_.ParticipatingShape()));
     }
 }
 
@@ -240,10 +240,12 @@ DistTensor<T>::Set( const Location& loc, T u )
     CallStackEntry entry("DistTensor::Set");
     this->AssertValidEntry( loc );
 #endif
+    if(!Participating())
+        return;
     const Location owningProc = this->DetermineOwner(loc);
     const GridView gv = GetGridView();
 
-    if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
+    if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
         const Location localLoc = this->Global2LocalIndex(loc);
         this->SetLocal(localLoc, u);
     }
@@ -260,7 +262,7 @@ DistTensor<T>::Update( const Location& loc, T u )
 #endif
     const GridView gv = GetGridView();
     const Location owningProc = this->DetermineOwner(loc);
-    if(!AnyElemwiseNotEqual(gv.Loc(), owningProc)){
+    if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
         const Location localLoc = this->Global2LocalIndex(loc);
         this->UpdateLocal(localLoc, u);
     }

@@ -55,7 +55,8 @@ template<typename T>
 void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
     if(!this->CheckLocalCommRedist(A, localMode, gridRedistModes))
         LogicError("LocalRedist: Invalid redistribution request");
-
+    if(!(this->Participating()))
+        return;
     //Packing is what is stored in memory
     UnpackLocalCommRedist(A, localMode, gridRedistModes);
 }

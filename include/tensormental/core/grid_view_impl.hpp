@@ -47,7 +47,7 @@ void
 GridView::SetGridModeTypes(const ModeArray& unusedModes)
 {
     const Unsigned gridOrder = grid_->Order();
-    const Unsigned order = dist_.size();
+    const Unsigned order = dist_.size()-1;
     Unsigned i;
     Unsigned j;
     for(i = 0; i < order; i++){
@@ -69,7 +69,7 @@ GridView::SetGridModeTypes(const ModeArray& unusedModes)
 }
 
 inline
-GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution, const ModeArray& unusedModes )
+GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution )
 : dist_(distribution),
   shape_(distribution.size()),
   loc_(distribution.size()),
@@ -80,7 +80,7 @@ GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distributi
     CallStackEntry entry("GridView::GridView");
 #endif
 
-    SetupGridView(unusedModes);
+    SetupGridView(distribution[distribution.size() - 1]);
 }
 
 inline
@@ -92,7 +92,7 @@ GridView::SetupGridView(const ModeArray& unusedModes)
 #endif
     Unsigned i;
     Unsigned j;
-    const Unsigned order = this->Order();
+    const Unsigned order = this->ParticipatingOrder();
 
     for(i = 0; i < order; i++){
     	ModeDistribution modeDist = dist_[i];
@@ -125,9 +125,17 @@ GridView::~GridView()
 
 inline
 Location
+GridView::ParticipatingLoc() const
+{
+    Location ret(loc_.begin(), loc_.end()-1);
+	return ret;
+}
+
+inline
+Location
 GridView::Loc() const
 {
-	return loc_;
+    return loc_;
 }
 
 inline
@@ -143,7 +151,7 @@ GridView::LinearRank() const
 {
 	Unsigned i;
 	Unsigned linearRank = 0;
-	const Unsigned order = this->Order();
+	const Unsigned order = this->ParticipatingOrder();
 	linearRank += this->ModeLoc(0);
 	for(i = 1; i < order; i++){
 		linearRank += this->ModeLoc(i) * this->Dimension(i-1);
@@ -153,14 +161,22 @@ GridView::LinearRank() const
 
 inline
 Unsigned
-GridView::Order() const
-{ return shape_.size(); }
+GridView::ParticipatingOrder() const
+{ return shape_.size() - 1; }
 
 inline
 ObjShape
-GridView::Shape() const
+GridView::ParticipatingShape() const
 {
-	return shape_;
+    ObjShape ret(shape_.begin(), shape_.end()-1);
+	return ret;
+}
+
+inline
+std::vector<Unsigned>
+GridView::ParticipatingModeWrapStrides() const
+{
+    return ParticipatingShape();
 }
 
 inline
@@ -174,7 +190,7 @@ inline
 Unsigned
 GridView::ModeWrapStride(Mode mode) const
 {
-    const Unsigned order = this->Order();
+    const Unsigned order = this->ParticipatingOrder();
     if (mode >= order){
         std::ostringstream msg;
         msg << "Requested stride must be of valid mode:\n"
@@ -202,7 +218,7 @@ inline
 Unsigned
 GridView::Dimension(Mode mode) const
 {
-  const Unsigned order = this->Order();
+  const Unsigned order = this->ParticipatingOrder();
   if (mode >= order){
     std::ostringstream msg;
     msg << "Dimension must be of valid mode:\n"
@@ -259,6 +275,17 @@ GridView::RemoveUnitModes(const ModeArray& unitModes)
         this->dist_.erase(this->dist_.begin() + sorted[i]);
     }
 }
+
+inline
+bool
+GridView::Participating() const
+{
+#ifndef RELEASE
+    CallStackEntry cse("GridView::Participating");
+#endif
+    return loc_[this->ParticipatingOrder()] == 0;
+}
+
 //
 // Comparison functions
 //

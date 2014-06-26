@@ -43,7 +43,7 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
     std::sort(commModes.begin(), commModes.end());
 
     const Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
-    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GetGridView().Shape());
+    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
 
     sendSize = prod(maxLocalShape) * nRedistProcs;
     recvSize = sendSize;
@@ -61,6 +61,8 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
 
     mpi::AllToAll(sendBuf, sendSize/nRedistProcs, recvBuf, recvSize/nRedistProcs, comm);
 
+    if(!(this->Participating()))
+        return;
     UnpackA2ADoubleModeCommRecvBuf(recvBuf, a2aModes, a2aCommGroups, A);
 }
 
@@ -104,7 +106,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
 
     const ObjShape localShape = A.LocalShape();
     //The shape we assume each process is packing into
-    const ObjShape packLocalShape = MaxLengths(A.Shape(), gvA.Shape());
+    const ObjShape packLocalShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
 
     //Slices of a2aMode1
     const Unsigned nMaxA2AMode1Slices = packLocalShape[a2aMode1];
@@ -290,7 +292,7 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
         modePackStrides[i] = modeLCMs[i] / gvA.ModeWrapStride(i);
 
     const ObjShape localShape = this->LocalShape();
-    ObjShape packedLocalShape = MaxLengths(A.Shape(), gvA.Shape());
+    ObjShape packedLocalShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
 
     //Slices of a2aMode1
     const Unsigned nLocalA2AMode1Slices = localShape[a2aMode1];
@@ -345,7 +347,7 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
 
         //Now that we know the local loc of the element to unpack, we know how many iterations of unpacking to perform per mode
         const ObjShape tensorShape = this->Shape();
-        const ObjShape gvAShape = gvA.Shape();
+        const ObjShape gvAShape = gvA.ParticipatingShape();
 
         const ObjShape outerSliceShape(tensorShape.begin() + a2aMode2 + 1, tensorShape.end());
         const Location outerSliceMultiLoc(startUnpackElemLoc.begin() + a2aMode2 + 1, startUnpackElemLoc.end());

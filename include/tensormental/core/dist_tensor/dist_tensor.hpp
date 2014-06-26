@@ -168,6 +168,7 @@ public:
     ObjShape GridViewShape() const;
     mpi::Comm GetCommunicator(Mode mode) const;
     mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
+    void SetParticipatingComm();
     void Empty();
     void EmptyData();
     void SetGrid( const tmen::Grid& grid );
@@ -381,6 +382,7 @@ protected:
     //Grid information
     const tmen::Grid* grid_;
     tmen::GridView gridView_;
+    mpi::Comm participatingComm_;
 
     ViewType viewType_;
     Memory<T> auxMemory_;

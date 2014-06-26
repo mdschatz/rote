@@ -23,17 +23,20 @@ namespace tmen {
 class GridView
 {
 public:
-    explicit GridView( const tmen::Grid* g, const TensorDistribution& dist, const ModeArray& unusedModes=ModeArray() );
+    explicit GridView( const tmen::Grid* g, const TensorDistribution& dist );
     ~GridView();
 
     // Simple interface (simpler version of distributed-based interface)
-    Unsigned Order() const;
-    ObjShape Shape() const;
+    Unsigned ParticipatingOrder() const;
+    ObjShape ParticipatingShape() const;
     Unsigned Dimension(Mode mode) const;
+    Location ParticipatingLoc() const;
     Location Loc() const;
+    Location ParticipatingGridLoc() const;
     Location GridLoc() const;
     Unsigned ModeLoc(Mode mode) const;
     Unsigned ModeWrapStride(Mode mode) const;
+    std::vector<Unsigned> ParticipatingModeWrapStrides() const;
     std::vector<Unsigned> ModeWrapStrides() const;
     TensorDistribution Distribution() const;
     const tmen::Grid* Grid() const;
@@ -51,6 +54,9 @@ public:
     void SetMyGridViewLoc();
 
     void RemoveUnitModes(const ModeArray& unitModes);
+
+    bool Participating() const;
+
 private:
     TensorDistribution dist_;
     ModeArray boundModes_;

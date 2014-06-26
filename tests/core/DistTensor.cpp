@@ -106,7 +106,7 @@ void ProcessInput(int argc,  char** const argv, Params& args){
     args.tensorDist = tmen::StringToTensorDist(tensorDist);
 
 
-    if(args.tensorDist.size() != args.tensorShape.size()){
+    if(args.tensorDist.size() != args.tensorShape.size() + 1){
         std::cerr << "Tensor distribution must be of same order as tensor\n";
         Usage();
         throw ArgException();
