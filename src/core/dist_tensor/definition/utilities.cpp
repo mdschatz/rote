@@ -78,8 +78,6 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
     const Location gridLoc = grid_->Loc();
     const ObjShape gridShape = grid_->Shape();
 
-    PrintData(*this, "getting comm");
-    PrintVector(gridLoc, "gridLoc");
     ObjShape gridSliceShape = FilterVector(gridShape, commModes);
     ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
     Location gridSliceLoc = FilterVector(gridLoc, commModes);
@@ -106,10 +104,6 @@ DistTensor<T>::SetParticipatingComm()
     const Location gridLoc = grid_->Loc();
     const ObjShape gridShape = grid_->Shape();
 
-    std::cout << tmen::TensorDistToString(dist_) << std::endl;
-    PrintData(*this, "getting comm");
-    PrintVector(commModes, "commModes");
-    PrintVector(gridLoc, "gridLoc");
     ObjShape gridSliceShape = FilterVector(gridShape, commModes);
     ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
     Location gridSliceLoc = FilterVector(gridLoc, commModes);
@@ -117,9 +111,6 @@ DistTensor<T>::SetParticipatingComm()
 
     const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
-
-    std::cout << "commKey: " << commKey << std::endl;
-    std::cout << "commColor: " << commColor << std::endl;
 
     mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
     participatingComm_ = comm;
