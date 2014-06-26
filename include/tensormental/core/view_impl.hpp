@@ -12,7 +12,7 @@
 
 namespace tmen {
 
-
+//NOTE: FIX PROBLEM WITH HIGHER/LOWER ORDER VIEWS ERASING DATA (A.memory_.Empty())
 //////////////////////////////////////
 // Helper routines for updating views
 //////////////////////////////////////
@@ -272,7 +272,7 @@ inline void ViewAsHigherOrderHelper
     Unsigned newOrder = 0;
     for(i = 0; i < newShape.size(); i++)
         newOrder += newShape[i].size();
-    A.memory_.Empty();
+    //A.memory_.Empty();
 
     //Update the shape, ldims_, strides_, maps_
     A.shape_.resize(newOrder);
