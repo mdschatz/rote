@@ -272,6 +272,21 @@ public:
     virtual void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
 
     //
+    // Gather-to-one workhorse routines
+    //
+    virtual Int  CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
+    virtual void GatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
+    virtual void PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes, T * const sendBuf);
+    virtual void UnpackGTOCommRecvBuf(const T* const recvBuf, const Mode gMode, const ModeArray& gridModes, const DistTensor<T>& A);
+
+    //
+    // Gather-to-one interface routines
+    //
+    virtual void GatherToOneRedistFrom(const DistTensor<T>& A);
+    virtual void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode);
+    virtual void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
+
+    //
     //Unit mode intro/remove routines
     //
     virtual void RemoveUnitModesRedist(const ModeArray& unitModes);

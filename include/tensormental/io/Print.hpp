@@ -72,7 +72,7 @@ Print
     std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
     bool done = !ElemwiseLessThan(curLoc, A.Shape());
-    T u;
+    T u = T(0);
     while(!done){
     	u = A.Get(curLoc);
 

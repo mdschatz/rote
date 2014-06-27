@@ -255,7 +255,7 @@ DistTensor<T>::Get( const Location& loc ) const
 
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
-    T u;
+    T u = T(0);
     if(Participating()){
         if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
             const Location localLoc = this->Global2LocalIndex(loc);

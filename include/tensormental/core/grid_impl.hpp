@@ -68,7 +68,7 @@ Grid::SetUpGrid()
     CallStackEntry entry("Grid::SetUpGrid");
 #endif
     const Unsigned order = Order();
-    int i;
+    Unsigned i;
     if( size_ != prod(shape_))
     {
         std::ostringstream msg;
