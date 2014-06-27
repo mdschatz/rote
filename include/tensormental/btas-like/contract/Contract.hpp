@@ -121,15 +121,15 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 
     ViewAsLowerOrder(MPA, PA, MPAOldModes );
 
-    Print(PB, "PB");
+//    Print(PB, "PB");
     ViewAsLowerOrder(MPB, PB, MPBOldModes );
     ViewAsLowerOrder(MPC, PC, MPCOldModes );
 
-    Print(MPA, "MPA");
-    Print(MPB, "MPB");
-    Print(MPC, "MPC");
+//    Print(MPA, "MPA");
+//    Print(MPB, "MPB");
+//    Print(MPC, "MPC");
     Gemm(alpha, MPA, MPB, beta, MPC);
-    Print(MPC, "PostMult");
+//    Print(MPC, "PostMult");
     //View as tensor
 
     std::vector<ObjShape> newShape(MPCOldModes.size());
@@ -146,10 +146,10 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
     ViewAsHigherOrder(PC, MPC, MPCModes, newShape);
 
     //Permute back the data
-    printf("\n\nPermuting PC: [%d", invPermC[0]);
-    for(i = 1; i < invPermC.size(); i++)
-        printf(" %d", invPermC[i]);
-    printf("]\n");
+//    printf("\n\nPermuting PC: [%d", invPermC[0]);
+//    for(i = 1; i < invPermC.size(); i++)
+//        printf(" %d", invPermC[i]);
+//    printf("]\n");
     Permute(C, PC, invPermC);
 }
 
