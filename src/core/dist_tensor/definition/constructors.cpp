@@ -23,6 +23,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
   grid_(&grid),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -41,6 +42,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 
   grid_(&grid),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -48,17 +50,18 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 
 template<typename T>
 DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
-: shape_(dist.size(), 0),
+: shape_(dist.size()-1, 0),
   dist_(dist),
 
-  constrainedModeAlignments_(dist_.size(), 0),
-  modeAlignments_(dist_.size(), 0),
-  modeShifts_(dist_.size(), 0),
+  constrainedModeAlignments_(dist_.size()-1, 0),
+  modeAlignments_(dist_.size()-1, 0),
+  modeShifts_(dist_.size()-1, 0),
 
-  tensor_(dist_.size(), false),
+  tensor_(dist_.size()-1, false),
 
   grid_(&grid),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -78,6 +81,7 @@ DistTensor<T>::DistTensor
 
   grid_(&grid),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -105,6 +109,7 @@ DistTensor<T>::DistTensor
 
   grid_(&g),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -131,6 +136,7 @@ DistTensor<T>::DistTensor
 
   grid_(&g),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -157,6 +163,7 @@ DistTensor<T>::DistTensor
 
   grid_(&g),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -184,6 +191,7 @@ DistTensor<T>::DistTensor
 
   grid_(&g),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
@@ -209,6 +217,7 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
 
   grid_(&(A.Grid())),
   gridView_(grid_, dist_),
+  participatingComm_(),
 
   viewType_(OWNER),
   auxMemory_()
