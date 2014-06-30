@@ -58,7 +58,7 @@ public:
     // Destructor
     //
 
-    virtual ~Tensor();
+    ~Tensor();
 
     //
     // Basic information

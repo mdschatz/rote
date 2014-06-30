@@ -61,7 +61,7 @@ class Args
 {
 public:
     Args( int argc, char** argv, std::ostream& error=std::cerr );
-    virtual ~Args() { }
+    ~Args() { }
 
     template<typename T>
     T Input( std::string name, std::string desc );
@@ -77,8 +77,8 @@ protected:
     std::vector<bool> usedArgs_;
     std::ostream& error_;
 
-    virtual void HandleVersion( std::ostream& os=std::cout ) const { }
-    virtual void HandleBuild( std::ostream& os=std::cout ) const { }
+    void HandleVersion( std::ostream& os=std::cout ) const { }
+    void HandleBuild( std::ostream& os=std::cout ) const { }
 
     struct RequiredArg
     { 

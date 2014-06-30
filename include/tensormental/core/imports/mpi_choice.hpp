@@ -23,7 +23,7 @@ public:
     MpiArgs
     ( int argc, char** argv, 
       mpi::Comm comm=mpi::COMM_WORLD, std::ostream& error=std::cerr );
-    virtual ~MpiArgs() { }
+    ~MpiArgs() { }
 
     template<typename T>
     T Input( std::string name, std::string desc );
@@ -40,8 +40,8 @@ protected:
     std::ostream& error_;
     mpi::Comm comm_;
 
-    virtual void HandleVersion( std::ostream& os=std::cout ) const { }
-    virtual void HandleBuild( std::ostream& os=std::cout ) const { }
+    void HandleVersion( std::ostream& os=std::cout ) const { }
+    void HandleBuild( std::ostream& os=std::cout ) const { }
 
     struct RequiredArg
     { 

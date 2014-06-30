@@ -36,10 +36,10 @@ public:
       mpi::Comm comm=mpi::COMM_WORLD, std::ostream& error=std::cerr )
     : choice::MpiArgs(argc,argv,comm,error)
     { }
-    virtual ~Args() { }
+    ~Args() { }
 protected:
-    virtual void HandleVersion( std::ostream& os=std::cout ) const;
-    virtual void HandleBuild( std::ostream& os=std::cout ) const;
+    void HandleVersion( std::ostream& os=std::cout ) const;
+    void HandleBuild( std::ostream& os=std::cout ) const;
 };
 Args& GetArgs();
 
