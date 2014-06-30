@@ -163,6 +163,29 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     LocalContract(alpha, A, B, beta, C, indices);
 }
 
+//NOTE: Get rid of memcopy
+template <typename T>
+void LocalContractAndEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
+    Unsigned i;
+    IndexArray contractIndices;
+    for(i = 0; i < indicesA.size(); i++)
+        if(std::find(indicesB.begin(), indicesB.end(), indicesA[i]) != indicesB.end())
+            contractIndices.push_back(indicesA[i]);
+    std::sort(contractIndices.begin(), contractIndices.end());
+
+    ObjShape tmpShape = C.Shape();
+    IndexArray tmpIndices = ConcatenateVectors(indicesC, contractIndices);
+    for(i = 0; i < contractIndices.size(); i++){
+        tmpShape.push_back(1);
+    }
+
+    Tensor<T> tmp(tmpShape);
+    LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
+    T* CBuf = C.Buffer();
+    const T* tmpBuf = tmp.LockedBuffer();
+    MemCopy(&(CBuf[0]), &(tmpBuf[0]), prod(C.Shape()));
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_BTAS_CONTRACT_HPP
