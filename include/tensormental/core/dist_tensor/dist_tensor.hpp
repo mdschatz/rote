@@ -169,6 +169,7 @@ public:
     mpi::Comm GetCommunicator(Mode mode) const;
     mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
     void SetParticipatingComm();
+    mpi::Comm GetParticipatingComm() const;
     void Empty();
     void EmptyData();
     void SetGrid( const tmen::Grid& grid );

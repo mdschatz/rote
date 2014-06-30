@@ -13,5 +13,6 @@
 #include "./btas-like/contract_decl.hpp"
 #include "./btas-like/permute_decl.hpp"
 #include "./btas-like/reduce_decl.hpp"
+#include "./btas-like/norm_decl.hpp"
 
 #endif // ifndef TMEN_BTAS_DECL_HPP

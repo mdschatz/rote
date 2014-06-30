@@ -165,7 +165,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 
 //NOTE: Get rid of memcopy
 template <typename T>
-void LocalContractAndEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
+void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
     Unsigned i;
     IndexArray contractIndices;
     for(i = 0; i < indicesA.size(); i++)

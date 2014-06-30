@@ -512,6 +512,11 @@ BASE(T)
 DistTensor<T>::GetLocalImagPart( const Location& loc ) const
 { return tensor_.GetImagPart(loc); }
 
+template<typename T>
+mpi::Comm
+DistTensor<T>::GetParticipatingComm() const
+{ return participatingComm_; }
+
 #define FULL(T) \
     template class DistTensor<T>;
 

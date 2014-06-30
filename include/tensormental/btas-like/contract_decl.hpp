@@ -17,7 +17,10 @@ namespace tmen{
 ///////////////////////
 
 template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tensor<T>& C, const std::vector<IndexArray>& indices);
+void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
+
+template <typename T>
+void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
 
 ///////////////////////
 // Distributed routines
