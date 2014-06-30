@@ -16,11 +16,15 @@ namespace tmen{
 template <typename T>
 void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode){
 
+    ObjShape tmpShape = A.Shape();
+    tmpShape[reduceScatterMode] = A.GetGridView().Dimension(reduceScatterMode);
+    this->ResizeTo(tmpShape);
     ReduceScatterCommRedist(A, reduceScatterMode, reduceScatterMode);
 }
 
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
+
     ObjShape tmpShape = A.Shape();
     tmpShape[reduceMode] = A.GetGridView().Dimension(reduceMode);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
@@ -39,6 +43,9 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode r
 //    Print(tmp2, "tmp2 after global reduce");
 
     //B.RemoveUnitMode(reduceMode);
+    ObjShape BShape = tmp2Shape;
+    BShape.erase(BShape.begin() + reduceMode);
+    this->ResizeTo(BShape);
     T* BBuf = this->Buffer();
     const T* tmp2Buf = tmp2.LockedBuffer();
     MemCopy(&(BBuf[0]), &(tmp2Buf[0]), prod(this->LocalShape()));

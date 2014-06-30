@@ -45,7 +45,7 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
     const Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
     const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
 
-    sendSize = prod(maxLocalShape) * nRedistProcs;
+    sendSize = prod(maxLocalShape) * Max(1, nRedistProcs);
     recvSize = sendSize;
 
     const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
@@ -59,7 +59,7 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
 
     PackA2ADoubleModeCommSendBuf(A, a2aModes, a2aCommGroups, sendBuf);
 
-    mpi::AllToAll(sendBuf, sendSize/nRedistProcs, recvBuf, recvSize/nRedistProcs, comm);
+    mpi::AllToAll(sendBuf, sendSize/Max(1, nRedistProcs), recvBuf, recvSize/Max(1, nRedistProcs), comm);
 
     if(!(this->Participating()))
         return;

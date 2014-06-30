@@ -100,7 +100,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const Unsigned nRedistProcs = gvA.Dimension(rMode);
+    const Unsigned nRedistProcs = Max(1, gvA.Dimension(rMode));
 
     //Shape of the local tensor we are packing
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());

@@ -15,7 +15,9 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode){
-
+    ObjShape tmpShape = A.Shape();
+    tmpShape[rMode] = A.GetGridView().Dimension(rMode);
+    this->ResizeTo(tmpShape);
     ReduceToOneCommRedist(A, rMode);
 }
 
@@ -33,6 +35,9 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
 
     tmp2.ReduceToOneCommRedist(tmp, rMode);
 
+    ObjShape BShape = tmp2Shape;
+    BShape.erase(BShape.begin() + rMode);
+    this->ResizeTo(BShape);
     T* thisBuf = this->Buffer();
     const T* tmp2Buf = tmp2.LockedBuffer();
 

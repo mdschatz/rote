@@ -860,7 +860,7 @@ Tensor<T>::operator=( const Tensor<T>& A )
         ResizeTo( A );
     T* dst = this->Buffer();
     const T* src = A.LockedBuffer();
-    MemCopy(&dst[0], &src[0], prod(shape_));
+    MemCopy(&(dst[0]), &(src[0]), prod(shape_));
     return *this;
 }
 

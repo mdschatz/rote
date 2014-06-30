@@ -15,16 +15,6 @@ namespace tmen{
 
 template<typename T>
 void
-DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A)
-{
-#ifndef RELEASE
-    CallStackEntry cse("DistTesnor::GatherToOneRedistFrom");
-#endif
-    GatherToOneRedistFrom(A, 0);
-}
-
-template<typename T>
-void
 DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode)
 {
 #ifndef RELEASE
@@ -36,13 +26,13 @@ DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode)
 
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes){
+    this->ResizeTo(A);
     GatherToOneCommRedist(A, gMode, gridModes);
 }
 
 
 
 #define PROTO(T) \
-        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A); \
         template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode); \
         template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
 

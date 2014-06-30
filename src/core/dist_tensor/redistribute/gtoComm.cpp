@@ -101,8 +101,6 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), gridModes));
-
     //Shape of the local tensor we are packing
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
     const ObjShape localShapeA = A.LocalShape();
@@ -114,10 +112,6 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     //Calculate number of sMode slices to pack
     const Unsigned nMaxGModeSlices = maxLocalShapeA[gMode];
     const Unsigned nLocalGModeSlices = localShapeA[gMode];
-    const Unsigned gModePackStride = nRedistProcs;
-
-    //Number of processes we have to pack for
-    const Unsigned nElemSlices = nRedistProcs;
 
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, gMode));
     const Unsigned copySliceSize = prod(localShapeA, 0, gMode);
@@ -178,7 +172,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
     const tmen::GridView gvB = GetGridView();
 
     const ObjShape commShape = FilterVector(g.Shape(), gridModes);
-    const Unsigned nRedistProcs = prod(commShape);
+    const Unsigned nRedistProcs = Max(1, prod(commShape));
 
     //Only unpack if we are the root (everyone else gets nothing)
     //if(gvB.ModeLoc(gMode) == 0){
@@ -222,7 +216,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
 
 //        printf("MemCopy info:\n");
 //        printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-//        printf("    nMaxRModeSlices: %d\n", nMaxRModeSlices);
+//        printf("    nMaxGModeSlices: %d\n", nMaxGModeSlices);
 //        printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
 //        printf("    copySliceSize: %d\n", copySliceSize);
         for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
@@ -235,9 +229,9 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
                 outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxGModeSlices - 1) / gModeUnpackStride + 1) * outerSliceNum;
                 outerDataBufOff = copySliceSize * nLocalGModeSlices * outerSliceNum;
 
-    //            printf("        outerSliceNum: %d\n", outerSliceNum);
-    //            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-    //            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//                printf("        outerSliceNum: %d\n", outerSliceNum);
+//                printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
+//                printf("        outerDataBufOff: %d\n", outerDataBufOff);
 
                 for(gModeSliceNum = 0; gModeSliceNum < nMaxGModeSlices; gModeSliceNum+= gModeUnpackStride){
                     if(gModeSliceNum + elemSliceNum >= nLocalGModeSlices)
@@ -249,8 +243,8 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
                     startRecvBuf = elemRecvBufOff + outerRecvBufOff + gModeRecvBufOff;
                     startDataBuf = elemDataBufOff + outerDataBufOff + gModeDataBufOff;
 
-    //                printf("          startRecvBuf: %d\n", startRecvBuf);
-    //                printf("          startDataBuf: %d\n", startDataBuf);
+//                    printf("          startRecvBuf: %d\n", startRecvBuf);
+//                    printf("          startDataBuf: %d\n", startDataBuf);
                     MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
                 }
             }

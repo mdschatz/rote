@@ -282,7 +282,6 @@ public:
     //
     // Gather-to-one interface routines
     //
-    virtual void GatherToOneRedistFrom(const DistTensor<T>& A);
     virtual void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode);
     virtual void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
 
