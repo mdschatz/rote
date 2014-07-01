@@ -270,7 +270,8 @@ Dimensions2Strides(const ObjShape& objShape)
   if(strides.size() > 0){
 	  strides[0] = 1;
 	  for(Unsigned i = 1; i < strides.size(); i++){
-		  strides[i] = strides[i-1]*objShape[i-1];
+	      //NOTE: strides set to Max(1,c) to ensure we don't end up with 0 value stride
+		  strides[i] = Max(1, strides[i-1]*objShape[i-1]);
 	  }
   }
   return strides;

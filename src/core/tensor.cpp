@@ -117,7 +117,7 @@ Tensor<T>::Tensor( bool fixed )
 
 template<typename T>
 Tensor<T>::Tensor( const Unsigned order, bool fixed )
-: shape_(order), strides_(order), ldims_(order),
+: shape_(order, 0), strides_(order, 1), ldims_(order, 1),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
 { }
@@ -125,7 +125,7 @@ Tensor<T>::Tensor( const Unsigned order, bool fixed )
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
-: shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(shape.size()),
+: shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(shape.size(), 1),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
@@ -142,7 +142,7 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
 template<typename T>
 Tensor<T>::Tensor
 ( const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed )
-: shape_(shape), strides_(Dimensions2Strides(shape)),
+: shape_(shape), strides_(Dimensions2Strides(shape)), ldims_(ldims),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE

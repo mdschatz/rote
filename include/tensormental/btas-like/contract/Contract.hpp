@@ -105,19 +105,28 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 //    printf("]\n");
     Permute(PC, C, permC);
 
+    const Unsigned maxOrder = Max(Max(PA.Order(), PB.Order()), PC.Order());
+    std::vector<Mode> tensorModes(maxOrder);
+
+    for(i = 0; i < maxOrder; i++)
+        tensorModes[i] = i;
+
+    const Unsigned nIndicesM = permA.size() - nIndicesContract;
+    const Unsigned nIndicesN = permB.size() - nIndicesContract;
+
     //View as matrices
     std::vector<ModeArray> MPAOldModes(2);
-    MPAOldModes[0].insert(MPAOldModes[0].end(), permA.begin(), permA.begin() + nIndicesContract);
-    MPAOldModes[1].insert(MPAOldModes[1].end(), permA.begin() + nIndicesContract, permA.end());
+    MPAOldModes[0].insert(MPAOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesM);
+    MPAOldModes[1].insert(MPAOldModes[1].end(), tensorModes.begin() + nIndicesM, tensorModes.begin() + A.Order());
 
     std::vector<ModeArray> MPBOldModes(2);
-    MPBOldModes[0].insert(MPBOldModes[0].end(), permB.begin(), permB.begin() + nIndicesContract);
-    MPBOldModes[1].insert(MPBOldModes[1].end(), permB.begin() + nIndicesContract, permB.end());
+    MPBOldModes[0].insert(MPBOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesContract);
+    MPBOldModes[1].insert(MPBOldModes[1].end(), tensorModes.begin() + nIndicesContract, tensorModes.begin() + B.Order());
 
     
     std::vector<ModeArray> MPCOldModes(2);
-    MPCOldModes[0].insert(MPCOldModes[0].end(), permC.begin(), permC.begin() + (permA.size() - nIndicesContract));
-    MPCOldModes[1].insert(MPCOldModes[1].end(), permC.begin() + (permA.size() - nIndicesContract), permC.end());
+    MPCOldModes[0].insert(MPCOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesM);
+    MPCOldModes[1].insert(MPCOldModes[1].end(), tensorModes.begin() + nIndicesM, tensorModes.begin() + C.Order());
 
     ViewAsLowerOrder(MPA, PA, MPAOldModes );
 

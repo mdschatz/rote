@@ -242,11 +242,16 @@ inline void ViewAsLowerOrderHelper
     A.shape_.resize(newOrder);
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
-    for(i = 0; i < newOrder; i++){
+    A.shape_[0] = prod(FilterVector(B.Shape(), oldModes[0]));
+    A.strides_[0] = B.LDim(oldModes[0][0]);
+    A.ldims_[0] = B.LDim(oldModes[0][0]);
+    for(i = 1; i < newOrder; i++){
         ModeArray modesToMerge = oldModes[i];
         A.shape_[i] = prod(FilterVector(B.Shape(), modesToMerge));
-        A.ldims_[i] = B.LDim(modesToMerge[0]);
-        A.strides_[i] = B.LDim(modesToMerge[0]);
+
+        //NOTE: strides are set to Max(c, 1) to ensure we don't end up with 0 value strides
+        A.ldims_[i] = Max(1, A.shape_[i-1] * B.LDim(oldModes[i-1][0]));
+        A.strides_[i] = Max(1, A.shape_[i-1] * B.LDim(oldModes[i-1][0]));
     }
 
 //    A.data_     = B.data_;
