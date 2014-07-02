@@ -91,19 +91,24 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 //    for(i = 1; i < permA.size(); i++)
 //        printf(" %d", permA[i]);
 //    printf("]\n");
-    Permute(PA, A, permA);
 
 //    printf("\n\nPermuting B: [%d", permB[0]);
 //    for(i = 1; i < permB.size(); i++)
 //        printf(" %d", permB[i]);
 //    printf("]\n");
-    Permute(PB, B, permB);
 
 //    printf("\n\nPermuting C: [%d", permC[0]);
 //    for(i = 1; i < permC.size(); i++)
 //        printf(" %d", permC[i]);
 //    printf("]\n");
+
+    Permute(PA, A, permA);
+    Permute(PB, B, permB);
     Permute(PC, C, permC);
+
+//    Print(PA, "PA");
+//    Print(PB, "PB");
+//    Print(PC, "PC");
 
     const Unsigned maxOrder = Max(Max(PA.Order(), PB.Order()), PC.Order());
     std::vector<Mode> tensorModes(maxOrder);
@@ -129,8 +134,6 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
     MPCOldModes[1].insert(MPCOldModes[1].end(), tensorModes.begin() + nIndicesM, tensorModes.begin() + C.Order());
 
     ViewAsLowerOrder(MPA, PA, MPAOldModes );
-
-//    Print(PB, "PB");
     ViewAsLowerOrder(MPB, PB, MPBOldModes );
     ViewAsLowerOrder(MPC, PC, MPCOldModes );
 
@@ -160,6 +163,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 //        printf(" %d", invPermC[i]);
 //    printf("]\n");
     Permute(C, PC, invPermC);
+//    Print(C, "result C");
 }
 
 template <typename T>
@@ -189,9 +193,10 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
     }
 
     Tensor<T> tmp(tmpShape);
-    LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
     T* CBuf = C.Buffer();
-    const T* tmpBuf = tmp.LockedBuffer();
+    T* tmpBuf = tmp.Buffer();
+    MemCopy(&(tmpBuf[0]), &(CBuf[0]), prod(tmp.Shape()));
+    LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
     MemCopy(&(CBuf[0]), &(tmpBuf[0]), prod(C.Shape()));
 }
 
