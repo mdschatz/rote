@@ -75,6 +75,12 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        std::cout << " " <<  dataBuf[i];
+//    }
+//    std::cout << std::endl;
+
     const tmen::Grid& g = A.Grid();
 
     Mode a2aMode1 = a2aModes.first;
@@ -91,6 +97,8 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
 
     ModeArray commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
 
     ObjShape gridShape = g.Shape();
 
@@ -101,7 +109,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     //Number of entries to skip when packing the specified mode
     std::vector<Unsigned> modePackStrides(order);
     for(i = 0; i < order; i++){
-        modePackStrides[i] = wrapLCMs[i] / gvA.ModeWrapStride(i);
+        modePackStrides[i] = MaxLength(wrapLCMs[i], gvA.ModeWrapStride(i));
     }
 
     const ObjShape localShape = A.LocalShape();
@@ -125,6 +133,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned nLocalOuterSlices = prod(localShape, a2aMode2 + 1);
 
     const Unsigned copySliceSize = A.LocalModeStride(a2aMode1);
+    const Unsigned maxCopySliceSize = Max(1, prod(packLocalShape, 0, a2aMode1));
     const Unsigned nElemsPerProc = prod(packLocalShape);
 
     //Various counters used to offset in data arrays
@@ -139,8 +148,8 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned a2aMode2PackStride = modePackStrides[a2aMode2];
 
     //The number of times we will pack
-    const Unsigned nPackA2AMode1Slices = Max(1, ((nMaxA2AMode1Slices - 1) / a2aMode1PackStride + 1));
-    const Unsigned nPackA2AMode2Slices = Max(1, ((nMaxA2AMode2Slices - 1) / a2aMode2PackStride + 1));
+    const Unsigned nPackA2AMode1Slices = Max(1, MaxLength(nMaxA2AMode1Slices, a2aMode1PackStride));
+    const Unsigned nPackA2AMode2Slices = Max(1, MaxLength(nMaxA2AMode2Slices, a2aMode2PackStride));
 
     Location myFirstLoc = A.ModeShifts();
 
@@ -170,7 +179,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
         //Determine the Multiloc of the process that owns this element
         Location owningProcGVB = this->DetermineOwner(startPackElemLoc);
         Location owningProcG = GridViewLoc2GridLoc(owningProcGVB, gvB);
-        Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
+        Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, sortedCommModes), FilterVector(gridShape, sortedCommModes));
 
         //Find the local location of the global starting element we are now packing
         Location localLoc = A.Global2LocalIndex(startPackElemLoc);
@@ -188,43 +197,43 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
             outerSendBufOff = copySliceSize * nPackA2AMode1Slices * nMaxMidSlices * nPackA2AMode2Slices * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
 
-//            printf("        outerSliceNum: %d\n", outerSliceNum);
-//            printf("        outerSendBufOff: %d\n", outerSendBufOff);
-//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//            printf("          outerSliceNum: %d\n", outerSliceNum);
+//            printf("          outerSendBufOff: %d\n", outerSendBufOff);
+//            printf("          outerDataBufOff: %d\n", outerDataBufOff);
             for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nMaxA2AMode2Slices; a2aMode2SliceNum += a2aMode2PackStride){
                 if(a2aMode2SliceNum >= nLocalA2AMode2Slices)
                     break;
                 a2aMode2SendBufOff = copySliceSize * nPackA2AMode1Slices * nMaxMidSlices * (a2aMode2SliceNum / a2aMode2PackStride);
                 a2aMode2DataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * a2aMode2SliceNum;
 
-//                printf("        a2aMode2SliceNum: %d\n", a2aMode2SliceNum);
-//                printf("        a2aMode2SendBufOff: %d\n", a2aMode2SendBufOff);
-//                printf("        a2aMode2DataBufOff: %d\n", a2aMode2DataBufOff);
+//                printf("            a2aMode2SliceNum: %d\n", a2aMode2SliceNum);
+//                printf("            a2aMode2SendBufOff: %d\n", a2aMode2SendBufOff);
+//                printf("            a2aMode2DataBufOff: %d\n", a2aMode2DataBufOff);
                 for(midSliceNum = 0; midSliceNum < nMaxMidSlices; midSliceNum++){
                     if(midSliceNum >= nLocalMidSlices)
                         break;
                     midSendBufOff = copySliceSize * nPackA2AMode1Slices * midSliceNum;
                     midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
 
-//                    printf("        midSliceNum: %d\n", midSliceNum);
-//                    printf("        midSendBufOff: %d\n", midSendBufOff);
-//                    printf("        midDataBufOff: %d\n", midDataBufOff);
+//                    printf("              midSliceNum: %d\n", midSliceNum);
+//                    printf("              midSendBufOff: %d\n", midSendBufOff);
+//                    printf("              midDataBufOff: %d\n", midDataBufOff);
                     for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nMaxA2AMode1Slices; a2aMode1SliceNum += a2aMode1PackStride){
                         if(a2aMode1SliceNum >= nLocalA2AMode1Slices)
                             break;
                         a2aMode1SendBufOff = copySliceSize * (a2aMode1SliceNum / a2aMode1PackStride);
                         a2aMode1DataBufOff = copySliceSize * a2aMode1SliceNum;
 
-//                        printf("        a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
-//                        printf("        a2aMode1SendBufOff: %d\n", a2aMode1SendBufOff);
-//                        printf("        a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
+//                        printf("                a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
+//                        printf("                a2aMode1SendBufOff: %d\n", a2aMode1SendBufOff);
+//                        printf("                a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
                         //Down to all contiguous slices, so just copy
 
                         startSendBuf = packElemSendBufOff + outerSendBufOff + a2aMode2SendBufOff + midSendBufOff + a2aMode1SendBufOff;
                         startDataBuf = packElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
 
-//                        printf("        startSendBuf: %d\n", startSendBuf);
-//                        printf("        startDataBuf: %d\n", startDataBuf);
+//                        printf("                  startSendBuf: %d\n", startSendBuf);
+//                        printf("                  startDataBuf: %d\n", startDataBuf);
                         MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
                     }
                 }
@@ -233,12 +242,12 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     }
 
     const ObjShape commGridSlice = FilterVector(this->Grid().Shape(), commModes);
-    //const Unsigned nRedistProcs = prod(commGridSlice);
+    const Unsigned nRedistProcs = prod(commGridSlice);
 
-//    printf("packed sendBuf: ");
+//    std::cout << "packed sendBuf:";
 //    for(Unsigned i = 0; i < prod(packLocalShape) * nRedistProcs; i++)
-//        printf("%d ", sendBuf[i]);
-//    printf("\n");
+//        std::cout << " " << sendBuf[i];
+//    std::cout << std::endl;
 }
 
 template<typename T>
@@ -266,6 +275,8 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
 
     ModeArray commModes  = commGroup1;
     commModes.insert(commModes.end(), commGroup2.begin(), commGroup2.end());
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
 
     ModeArray nonCommModes;
     for(i = 0; i < g.Order(); i++){
@@ -273,6 +284,13 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
             nonCommModes.push_back(i);
         }
     }
+
+//    const ObjShape commGridSlice = FilterVector(this->Grid().Shape(), commModes);
+//    const Unsigned nRedistProcs = prod(commGridSlice);
+//    std::cout << "recvBuf:";
+//    for(Unsigned i = 0; i < prod(MaxLengths(A.Shape(), gvA.ParticipatingShape())) * nRedistProcs; i++)
+//        std::cout << " " << recvBuf[i];
+//    std::cout << std::endl;
 
     ObjShape tensorShape = this->Shape();
     Location myGridLoc = g.Loc();
@@ -340,7 +358,7 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
         //Determine the Multiloc of the process that sent this element
         Location owningProcGVA = A.DetermineOwner(startUnpackElemLoc);
         Location owningProcG = GridViewLoc2GridLoc(owningProcGVA, gvA);
-        Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, commModes), FilterVector(gridShape, commModes));
+        Unsigned owningProc = Loc2LinearLoc(FilterVector(owningProcG, sortedCommModes), FilterVector(gridShape, sortedCommModes));
 
         //Find the local location of the global starting element we are now unpacking
         Location localLoc = this->Global2LocalIndex(startUnpackElemLoc);
@@ -354,12 +372,12 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
         const ObjShape outerSlicePackShape(gvAShape.begin() + a2aMode2 + 1, gvAShape.end());
         std::vector<Unsigned> nPackedOuterWraps(outerSliceShape.size());
         for(i = 0; i < nPackedOuterWraps.size(); i++){
-            nPackedOuterWraps[i] = (outerSliceShape[i] - outerSliceMultiLoc[i] - 1) / outerSlicePackShape[i] + 1;
+            nPackedOuterWraps[i] = MaxLength(outerSliceShape[i] - outerSliceMultiLoc[i],outerSlicePackShape[i]);
         }
         const Unsigned nPackedOuterSlices = Max(1, prod(nPackedOuterWraps));
 
-        const Unsigned nMaxPackedA2AMode2Slices = Max(1, (tensorShape[a2aMode2] - 1) / gvAShape[a2aMode2] / a2aMode2PackStride + 1);
-        const Unsigned nPackedA2AMode2Slices = Max(1, (tensorShape[a2aMode2] - startUnpackElemLoc[a2aMode2] - 1) / gvAShape[a2aMode2] / a2aMode2PackStride + 1);
+        const Unsigned nMaxPackedA2AMode2Slices = Max(1, MaxLength(tensorShape[a2aMode2], gvAShape[a2aMode2] * a2aMode2PackStride));
+        const Unsigned nPackedA2AMode2Slices = Max(1, MaxLength(tensorShape[a2aMode2] - startUnpackElemLoc[a2aMode2], gvAShape[a2aMode2] * a2aMode2PackStride));
 
         const ObjShape midSliceShape(tensorShape.begin() + a2aMode1 + 1, tensorShape.begin() + a2aMode2);
         const Location midSliceMultiLoc(startUnpackElemLoc.begin() + a2aMode1 + 1, startUnpackElemLoc.begin() + a2aMode2);
@@ -367,14 +385,14 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
         std::vector<Unsigned> nMaxPackedMidWraps(midSliceShape.size());
         std::vector<Unsigned> nPackedMidWraps(midSliceShape.size());
         for(i = 0; i < nPackedMidWraps.size(); i++){
-            nPackedMidWraps[i] = (midSliceShape[i] - midSliceMultiLoc[i] - 1) / midSlicePackShape[i] + 1;
-            nMaxPackedMidWraps[i] = (midSliceShape[i] - 1) / midSlicePackShape[i] + 1;
+            nPackedMidWraps[i] = MaxLength(midSliceShape[i] - midSliceMultiLoc[i], midSlicePackShape[i] );
+            nMaxPackedMidWraps[i] = MaxLength(midSliceShape[i], midSlicePackShape[i]);
         }
         const Unsigned nMaxPackedMidSlices = Max(1, prod(nMaxPackedMidWraps));
         const Unsigned nPackedMidSlices = Max(1, prod(nPackedMidWraps));
 
-        const Unsigned nMaxPackedA2AMode1Slices = Max(1, (tensorShape[a2aMode1] - 1) / gvAShape[a2aMode1] / a2aMode1PackStride + 1);
-        const Unsigned nPackedA2AMode1Slices = Max(1, (tensorShape[a2aMode1] - startUnpackElemLoc[a2aMode1] - 1) / gvAShape[a2aMode1] / a2aMode1PackStride + 1);
+        const Unsigned nMaxPackedA2AMode1Slices = Max(1, MaxLength(tensorShape[a2aMode1], gvAShape[a2aMode1] * a2aMode1PackStride));
+        const Unsigned nPackedA2AMode1Slices = Max(1, MaxLength(tensorShape[a2aMode1] - startUnpackElemLoc[a2aMode1], gvAShape[a2aMode1] * a2aMode1PackStride));
 
         //Update the corresponding offsets
         unpackElemRecvBufOff = nElemsPerProc * owningProc;
@@ -396,9 +414,9 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
             outerRecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * nMaxPackedMidSlices * nMaxPackedA2AMode2Slices * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalA2AMode1Slices * nLocalMidSlices * nLocalA2AMode2Slices * outerSliceNum;
 
-//            printf("        outerSliceNum: %d\n", outerSliceNum);
-//            printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-//            printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//            printf("      outerSliceNum: %d\n", outerSliceNum);
+//            printf("      outerRecvBufOff: %d\n", outerRecvBufOff);
+//            printf("      outerDataBufOff: %d\n", outerDataBufOff);
             for(a2aMode2SliceNum = 0; a2aMode2SliceNum < nPackedA2AMode2Slices; a2aMode2SliceNum++){
 
                 a2aMode2RecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * nMaxPackedMidSlices * a2aMode2SliceNum;
@@ -411,22 +429,22 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
                     midRecvBufOff = copySliceSize * nMaxPackedA2AMode1Slices * midSliceNum;
                     midDataBufOff = copySliceSize * nLocalA2AMode1Slices * midSliceNum;
 
-//                    printf("        midSliceNum: %d\n", midSliceNum);
-//                    printf("        midRecvBufOff: %d\n", midRecvBufOff);
-//                    printf("        midDataBufOff: %d\n", midDataBufOff);
+//                    printf("          midSliceNum: %d\n", midSliceNum);
+//                    printf("          midRecvBufOff: %d\n", midRecvBufOff);
+//                    printf("          midDataBufOff: %d\n", midDataBufOff);
                     for(a2aMode1SliceNum = 0; a2aMode1SliceNum < nPackedA2AMode1Slices; a2aMode1SliceNum++){
                         a2aMode1RecvBufOff = copySliceSize * a2aMode1SliceNum;
                         a2aMode1DataBufOff = copySliceSize * (a2aMode1SliceNum * a2aMode1UnpackStride);
 
-//                        printf("        a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
-//                        printf("        a2aMode1RecvBufOff: %d\n", a2aMode1RecvBufOff);
-//                        printf("        a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
+//                        printf("            a2aMode1SliceNum: %d\n", a2aMode1SliceNum);
+//                        printf("            a2aMode1RecvBufOff: %d\n", a2aMode1RecvBufOff);
+//                        printf("            a2aMode1DataBufOff: %d\n", a2aMode1DataBufOff);
                         //Down to all contiguous slices, so just copy
                         startRecvBuf = unpackElemRecvBufOff + outerRecvBufOff + a2aMode2RecvBufOff + midRecvBufOff + a2aMode1RecvBufOff;
                         startDataBuf = unpackElemDataBufOff + outerDataBufOff + a2aMode2DataBufOff + midDataBufOff + a2aMode1DataBufOff;
 
-//                        printf("          startRecvBuf: %d\n", startRecvBuf);
-//                        printf("          startDataBuf: %d\n", startDataBuf);
+//                        printf("                startRecvBuf: %d\n", startRecvBuf);
+//                        printf("                startDataBuf: %d\n", startDataBuf);
                         MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
 
                     }
@@ -434,10 +452,10 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
             }
         }
     }
-//    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(B.LocalShape()); i++)
-//        printf(" %d", dataBuf[i]);
-//    printf("\n");
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
+//        std::cout << " " << dataBuf[i];
+//    std::cout << std::endl;
 }
 
 

@@ -78,58 +78,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
-//template<typename T>
-//Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes){
-//    if(A.Order() != B.Order()){
-//        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
-//    }
-//
-//    ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
-//    ModeDistribution allGatherDistB = B.ModeDist(allGatherMode);
-//
-//    const ModeDistribution check = ConcatenateVectors(allGatherDistB, redistModes);
-//    if(AnyElemwiseNotEqual(check, allGatherDistA)){
-//        LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
-//    }
-//
-//    return true;
-//}
-
-//template <typename T>
-//void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
-//    if(!CheckAllGatherRedist(B, A, allGatherMode, redistModes))
-//        LogicError("AllGatherRedist: Invalid redistribution request");
-//
-//    //NOTE: Fix to handle strides in Tensor data
-//    if(redistModes.size() == 0){
-//        const Location start(A.Order(), 0);
-//        T* dst = B.Buffer(start);
-//        const T* src = A.LockedBuffer(start);
-//        MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
-//        return;
-//    }
-//    Unsigned sendSize, recvSize;
-//    DetermineAGCommunicateDataSize(A, allGatherMode, redistModes, recvSize, sendSize);
-//
-//    const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
-//
-//    Memory<T> auxMemory;
-//    T* auxBuf = auxMemory.Require(sendSize + recvSize);
-//    MemZero(&(auxBuf[0]), sendSize + recvSize);
-//
-//    T* sendBuf = &(auxBuf[0]);
-//    T* recvBuf = &(auxBuf[sendSize]);
-//
-//    //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
-//    PackAGCommSendBuf(A, allGatherMode, sendBuf, redistModes);
-//
-//    //printf("Allgathering %d elements\n", sendSize);
-//    mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
-//
-//    UnpackAGCommRecvBuf(recvBuf, allGatherMode, redistModes, A, B);
-//    //Print(B.LockedTensor(), "A's local tensor after allgathering:");
-//}
-
 template <typename T>
 void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode, T * const sendBuf, const ModeArray& redistModes)
 {
@@ -226,6 +174,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     const Unsigned nMaxAGModeSlices = maxLocalShapeB[agMode];
     const Unsigned nLocalAGModeSlices = localShapeB[agMode];
     const Unsigned agModeUnpackStride = nRedistProcs;
+    const Unsigned nMaxAGModePackSlices = MaxLength(nMaxAGModeSlices, agModeUnpackStride);
 
     //Variables for calculating elements to copy
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, agMode));
@@ -260,7 +209,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
             //NOTE: the weird Max() function ensures we increment the recvBuf correctly
             //e.g. we need to ensure that we jump over all slices packed by the pack routine.  Which should be maxLocalShapeA[agModeA];
             //For consistency, kept same structure as in PackPartialRSSendBuf
-            outerRecvBufOff = maxCopySliceSize * Max(1, (nMaxAGModeSlices - 1) / agModeUnpackStride + 1) * outerSliceNum;
+            outerRecvBufOff = maxCopySliceSize * Max(1, nMaxAGModePackSlices) * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalAGModeSlices * outerSliceNum;
 
 //            printf("        outerSliceNum: %d\n", outerSliceNum);
