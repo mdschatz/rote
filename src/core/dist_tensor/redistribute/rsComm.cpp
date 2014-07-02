@@ -114,6 +114,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     const Unsigned nMaxSModeSlices = maxLocalShapeA[sMode];
     const Unsigned nLocalSModeSlices = localShapeA[sMode];
     const Unsigned sModePackStride = nRedistProcs;
+    const Unsigned nMaxPackSModeSlices = MaxLength(maxLocalShapeA[sMode], sModePackStride);
 
     //Number of processes we have to pack for
     const Unsigned nElemSlices = nRedistProcs;
@@ -145,7 +146,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
         for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++ ){
             if(outerSliceNum >= nLocalOuterSlices)
                 break;
-            outerSendBufOff = maxCopySliceSize * Max(1, nMaxSModeSlices / sModePackStride) * outerSliceNum;
+            outerSendBufOff = maxCopySliceSize * Max(1, nMaxPackSModeSlices) * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
 
 //            printf("        outerSliceNum: %d\n", outerSliceNum);
