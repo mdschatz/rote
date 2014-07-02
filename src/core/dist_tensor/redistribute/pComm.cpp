@@ -177,7 +177,7 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
 
         //Variables for calculating elements to copy
         const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, pMode));
-        const Unsigned copySliceSize = this->LocalModeStride(pMode);
+        const Unsigned copySliceSize = prod(localShapeB, 0, pMode);
 
         //Loop iteration vars
         Unsigned outerSliceNum, pModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" Unsigned offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array

@@ -99,7 +99,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     //Size of slice to copy
     const ObjShape copySliceShape(localShape.begin(), localShape.begin() + lMode);
     //NOTE: This is based on modeA, different from all other unpacks
-    const Unsigned copySliceSize = this->LocalModeStride(lMode);
+    const Unsigned copySliceSize = prod(this->LocalShape(), 0, lMode);
 
     //Where we start copying
     const Unsigned elemStartLoc = myCommLinLoc;

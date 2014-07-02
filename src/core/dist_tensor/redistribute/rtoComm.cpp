@@ -203,7 +203,7 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
 
         //Variables for calculating elements to copy
         const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, rMode));
-        const Unsigned copySliceSize = this->LocalModeStride(rMode);
+        const Unsigned copySliceSize = prod(localShapeB, 0, rMode);
 
         //Loop iteration vars
         Unsigned outerSliceNum, rModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array

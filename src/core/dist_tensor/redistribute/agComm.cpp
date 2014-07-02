@@ -178,7 +178,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
 
     //Variables for calculating elements to copy
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, agMode));
-    const Unsigned copySliceSize = this->LocalModeStride(agMode);
+    const Unsigned copySliceSize = prod(localShapeB, 0, agMode);
 
     //Number of processes we have to unpack from
     const Unsigned nElemSlices = nRedistProcs;

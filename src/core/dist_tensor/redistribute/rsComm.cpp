@@ -91,11 +91,11 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 {
     const T* dataBuf = A.LockedBuffer();
 
-//    printf("dataBuf: ");
+//    std::cout << "dataBuf:";
 //    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        printf("%d ", dataBuf[i]);
+//        std::cout << " " << dataBuf[i];
 //    }
-//    printf("\n");
+//    std::cout << std::endl;
 
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
@@ -122,6 +122,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, sMode));
     const Unsigned copySliceSize = prod(localShapeA, 0, sMode);
 
+
     Unsigned outerSliceNum, sModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
     Unsigned elemSendBufOff, elemDataBufOff;
     Unsigned outerSendBufOff, sModeSendBufOff;
@@ -131,7 +132,9 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 
 //    printf("MemCopy info:\n");
 //    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
+//    printf("    nLocalOuterSlices: %d\n", nLocalOuterSlices);
 //    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
+//    printf("    nLocalSModeSlices: %d\n", nLocalSModeSlices);
 //    printf("    sModePackStride: %d\n", sModePackStride);
 //    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
 //    printf("    copySliceSize: %d\n", copySliceSize);
@@ -139,7 +142,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
         elemSendBufOff = prod(maxLocalShapeA) * elemSliceNum;
         elemDataBufOff = copySliceSize * elemSliceNum;
 
-//        printf("      elemSliceNum: %d\n", elemSliceNum);
+//        printf("      elemSliceNum:   %d\n", elemSliceNum);
 //        printf("      elemSendBufOff: %d\n", elemSendBufOff);
 //        printf("      elemDataBufOff: %d\n", elemDataBufOff);
 
@@ -149,7 +152,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
             outerSendBufOff = maxCopySliceSize * Max(1, nMaxPackSModeSlices) * outerSliceNum;
             outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
 
-//            printf("        outerSliceNum: %d\n", outerSliceNum);
+//            printf("        outerSliceNum:   %d\n", outerSliceNum);
 //            printf("        outerSendBufOff: %d\n", outerSendBufOff);
 //            printf("        outerDataBufOff: %d\n", outerDataBufOff);
 
@@ -159,23 +162,23 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
                     sModeSendBufOff = maxCopySliceSize * (sModeSliceNum / sModePackStride);
                     sModeDataBufOff = copySliceSize * sModeSliceNum;
 
-//                    printf("          sModeSliceNum: %d\n", sModeSliceNum);
+//                    printf("          sModeSliceNum:   %d\n", sModeSliceNum);
 //                    printf("          sModeSendBufOff: %d\n", sModeSendBufOff);
 //                    printf("          sModeDataBufOff: %d\n", sModeDataBufOff);
                     startSendBuf = elemSendBufOff + outerSendBufOff + sModeSendBufOff;
                     startDataBuf = elemDataBufOff + outerDataBufOff + sModeDataBufOff;
 
-//                    printf("          startSendBuf: %d\n", startSendBuf);
-//                    printf("          startDataBuf: %d\n", startDataBuf);
+//                    printf("            startSendBuf: %d\n", startSendBuf);
+//                    printf("            startDataBuf: %d\n", startDataBuf);
                     MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
                 }
         }
     }
 
-//    printf("packed sendBuf: ");
+//    std::cout << "packed sendBuf:";
 //    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++)
-//        printf("%d ", sendBuf[i]);
-//    printf("\n");
+//        std::cout << " " << sendBuf[i];
+//    std::cout << std::endl;
 }
 
 template <typename T>
@@ -189,13 +192,13 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
     const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
 
-    const Unsigned maxRecvElem = prod(maxLocalShapeA) / (gvA.ParticipatingShape()[rMode]);
-//    printf("maxRecvElem: %d\n", maxRecvElem);
-//    printf("recvBuf:");
+//    const Unsigned maxRecvElem = prod(maxLocalShapeA) / (gvA.ParticipatingShape()[rMode]);
+//    std::cout << "maxRecvElem: " << maxRecvElem << std::endl;
+//    std::cout << "recvBuf:";
 //    for(Unsigned i = 0; i < maxRecvElem; i++){
-//        printf(" %d", recvBuf[i]);
+//        std::cout << " " << recvBuf[i];
 //    }
-//    printf("\n");
+//    std::cout << std::endl;
 
     const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
@@ -211,7 +214,7 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
 
     //Variables for calculating elements to copy
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, sMode));
-    const Unsigned copySliceSize = this->LocalModeStride(sMode);
+    const Unsigned copySliceSize = prod(localShapeB, 0, sMode);
 
     //Loop iteration vars
     Unsigned outerSliceNum, sModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
@@ -230,9 +233,9 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
         outerRecvBufOff = maxCopySliceSize * nMaxSModeSlices * outerSliceNum;
         outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
 
-//        printf("        outerSliceNum: %d\n", outerSliceNum);
-//        printf("        outerRecvBufOff: %d\n", outerRecvBufOff);
-//        printf("        outerDataBufOff: %d\n", outerDataBufOff);
+//        printf("      outerSliceNum: %d\n", outerSliceNum);
+//        printf("      outerRecvBufOff: %d\n", outerRecvBufOff);
+//        printf("      outerDataBufOff: %d\n", outerDataBufOff);
 
         for(sModeSliceNum = 0; sModeSliceNum < nMaxSModeSlices; sModeSliceNum++){
             if(sModeSliceNum >= nLocalSModeSlices)
@@ -244,16 +247,16 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
             startRecvBuf = outerRecvBufOff + sModeRecvBufOff;
             startDataBuf = outerDataBufOff + sModeDataBufOff;
 
-//            printf("          startRecvBuf: %d\n", startRecvBuf);
-//            printf("          startDataBuf: %d\n", startDataBuf);
+//            printf("        startRecvBuf: %d\n", startRecvBuf);
+//            printf("        startDataBuf: %d\n", startDataBuf);
             MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
         }
     }
 
-//    printf("dataBuf:");
+//    std::cout << "dataBuf:";
 //    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
-//        printf(" %d", dataBuf[i]);
-//    printf("\n");
+//        std::cout << " " << dataBuf[i];
+//    std::cout << std::endl;
 }
 
 #define PROTO(T) \

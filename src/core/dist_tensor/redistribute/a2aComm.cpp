@@ -132,7 +132,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned nMaxOuterSlices = Max(1, prod(packLocalShape, a2aMode2 + 1));
     const Unsigned nLocalOuterSlices = prod(localShape, a2aMode2 + 1);
 
-    const Unsigned copySliceSize = A.LocalModeStride(a2aMode1);
+    const Unsigned copySliceSize = prod(localShape, 0, a2aMode1);
     const Unsigned maxCopySliceSize = Max(1, prod(packLocalShape, 0, a2aMode1));
     const Unsigned nElemsPerProc = prod(packLocalShape);
 
@@ -321,7 +321,7 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     //Slices of a2aMode2
     const Unsigned nLocalA2AMode2Slices = localShape[a2aMode2];
 
-    const Unsigned copySliceSize = this->LocalModeStride(a2aMode1);
+    const Unsigned copySliceSize = prod(localShape, 0, a2aMode1);
     const Unsigned nElemsPerProc = prod(packedLocalShape);
 
     //Various counters used to offset in data arrays
