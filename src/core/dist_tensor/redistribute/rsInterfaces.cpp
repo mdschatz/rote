@@ -66,7 +66,6 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     Unsigned i;
 
     ObjShape tmpShape = this->Shape();
-    tmpShape.erase(tmpShape.begin() + reduceMode);
     DistTensor<T> tmp(tmpShape, this->TensorDist(), this->Grid());
     T* tmpBuf = tmp.Buffer();
     MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
