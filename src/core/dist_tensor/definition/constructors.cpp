@@ -12,8 +12,8 @@ namespace tmen {
 
 template<typename T>
 DistTensor<T>::DistTensor( const tmen::Grid& grid )
-: shape_(),
-  dist_(),
+: dist_(),
+  shape_(),
 
   constrainedModeAlignments_(),
   modeAlignments_(),
@@ -31,8 +31,8 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
 template<typename T>
 DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
-: shape_(order, 0),
-  dist_(order),
+: dist_(order),
+  shape_(order, 0),
 
   constrainedModeAlignments_(order, 0),
   modeAlignments_(order, 0),
@@ -50,14 +50,14 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 
 template<typename T>
 DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
-: shape_(dist.size()-1, 0),
-  dist_(dist),
+: dist_(dist),
+  shape_(dist_.size()-1, 0),
 
-  constrainedModeAlignments_(dist_.size()-1, 0),
-  modeAlignments_(dist_.size()-1, 0),
-  modeShifts_(dist_.size()-1, 0),
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
 
-  tensor_(dist_.size()-1, false),
+  tensor_(shape_.size(), false),
 
   grid_(&grid),
   gridView_(grid_, dist_),
@@ -70,14 +70,14 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& gri
 template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& grid )
-: shape_(shape),
-  dist_(dist),
+: dist_(dist),
+  shape_(shape),
 
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
 
-  tensor_(shape.size(), false),
+  tensor_(shape_.size(), false),
 
   grid_(&grid),
   gridView_(grid_, dist_),
@@ -86,7 +86,7 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() + 1 != dist.size())
+    if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
     this->SetShifts();
@@ -98,14 +98,14 @@ template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const tmen::Grid& g )
-: shape_(shape),
-  dist_(dist),
+: dist_(dist),
+  shape_(shape),
 
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
 
-  tensor_(shape.size(), false),
+  tensor_(shape_.size(), false),
 
   grid_(&g),
   gridView_(grid_, dist_),
@@ -114,7 +114,7 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() + 1 != dist.size())
+    if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     this->Align( modeAlignments );
     this->ResizeTo( shape );
@@ -125,14 +125,14 @@ template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const std::vector<Unsigned>& ldims, const tmen::Grid& g )
-: shape_(shape),
-  dist_(dist),
+: dist_(dist),
+  shape_(shape),
 
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
 
-  tensor_(shape.size(), false),
+  tensor_(shape_.size(), false),
 
   grid_(&g),
   gridView_(grid_, dist_),
@@ -141,7 +141,7 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() + 1 != dist.size())
+    if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     this->Align( modeAlignments );
     this->ResizeTo( shape, ldims );
@@ -152,14 +152,14 @@ template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
-: shape_(shape),
-  dist_(dist),
+: dist_(dist),
+  shape_(shape),
 
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
 
-  tensor_(shape.size(), false),
+  tensor_(shape_.size(), false),
 
   grid_(&g),
   gridView_(grid_, dist_),
@@ -168,7 +168,7 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() + 1 != dist.size())
+    if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
     this->LockedAttach
@@ -180,14 +180,14 @@ template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
-: shape_(shape),
-  dist_(dist),
+: dist_(dist),
+  shape_(shape),
 
-  constrainedModeAlignments_(shape.size(), 0),
-  modeAlignments_(shape.size(), 0),
-  modeShifts_(shape.size(), 0),
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
 
-  tensor_(shape.size(), false),
+  tensor_(shape_.size(), false),
 
   grid_(&g),
   gridView_(grid_, dist_),
@@ -196,7 +196,167 @@ DistTensor<T>::DistTensor
   viewType_(OWNER),
   auxMemory_()
 {
-    if(shape.size() + 1 != dist.size())
+    if(shape_.size() + 1 != dist_.size())
+        LogicError("Error: Distribution must be of same order as object");
+
+    this->Attach
+    ( shape, modeAlignments, buffer, ldims, g );
+    this->SetParticipatingComm();
+}
+
+//////////////////////////////////
+/// String distribution versions
+//////////////////////////////////
+
+template<typename T>
+DistTensor<T>::DistTensor( const std::string& dist, const tmen::Grid& grid )
+: dist_(StringToTensorDist(dist)),
+  shape_(dist_.size()-1, 0),
+
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
+
+  tensor_(shape_.size(), false),
+
+  grid_(&grid),
+  gridView_(grid_, dist_),
+  participatingComm_(),
+
+  viewType_(OWNER),
+  auxMemory_()
+{ this->SetShifts(); this->SetParticipatingComm();}
+
+template<typename T>
+DistTensor<T>::DistTensor
+( const ObjShape& shape, const std::string& dist, const tmen::Grid& grid )
+: dist_(StringToTensorDist(dist)),
+  shape_(shape),
+
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
+
+  tensor_(shape_.size(), false),
+
+  grid_(&grid),
+  gridView_(grid_, dist_),
+  participatingComm_(),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+    if(shape_.size() + 1 != dist_.size())
+        LogicError("Error: Distribution must be of same order as object");
+
+    this->SetShifts();
+    this->ResizeTo( shape );
+    this->SetParticipatingComm();
+}
+
+template<typename T>
+DistTensor<T>::DistTensor
+( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
+  const tmen::Grid& g )
+: dist_(StringToTensorDist(dist)),
+  shape_(shape),
+
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
+
+  tensor_(shape_.size(), false),
+
+  grid_(&g),
+  gridView_(grid_, dist_),
+  participatingComm_(),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+    if(shape_.size() + 1 != dist_.size())
+        LogicError("Error: Distribution must be of same order as object");
+    this->Align( modeAlignments );
+    this->ResizeTo( shape );
+    this->SetParticipatingComm();
+}
+
+template<typename T>
+DistTensor<T>::DistTensor
+( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
+  const std::vector<Unsigned>& ldims, const tmen::Grid& g )
+: dist_(StringToTensorDist(dist)),
+  shape_(shape),
+
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
+
+  tensor_(shape_.size(), false),
+
+  grid_(&g),
+  gridView_(grid_, dist_),
+  participatingComm_(),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+    if(shape_.size() + 1 != dist_.size())
+        LogicError("Error: Distribution must be of same order as object");
+    this->Align( modeAlignments );
+    this->ResizeTo( shape, ldims );
+    this->SetParticipatingComm();
+}
+
+template<typename T>
+DistTensor<T>::DistTensor
+( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
+  const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
+: dist_(StringToTensorDist(dist)),
+  shape_(shape),
+
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
+
+  tensor_(shape_.size(), false),
+
+  grid_(&g),
+  gridView_(grid_, dist_),
+  participatingComm_(),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+    if(shape_.size() + 1 != dist_.size())
+        LogicError("Error: Distribution must be of same order as object");
+
+    this->LockedAttach
+    ( shape, modeAlignments, buffer, ldims, g );
+    this->SetParticipatingComm();
+}
+
+template<typename T>
+DistTensor<T>::DistTensor
+( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
+  T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
+: dist_(StringToTensorDist(dist)),
+  shape_(shape),
+
+  constrainedModeAlignments_(shape_.size(), 0),
+  modeAlignments_(shape_.size(), 0),
+  modeShifts_(shape_.size(), 0),
+
+  tensor_(shape_.size(), false),
+
+  grid_(&g),
+  gridView_(grid_, dist_),
+  participatingComm_(),
+
+  viewType_(OWNER),
+  auxMemory_()
+{
+    if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
     this->Attach
@@ -206,8 +366,8 @@ DistTensor<T>::DistTensor
 
 template<typename T>
 DistTensor<T>::DistTensor( const DistTensor<T>& A )
-: shape_(),
-  dist_(),
+: dist_(),
+  shape_(),
 
   constrainedModeAlignments_(),
   modeAlignments_(),

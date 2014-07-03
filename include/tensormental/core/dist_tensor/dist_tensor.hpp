@@ -69,6 +69,36 @@ public:
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
       T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
 
+    //////////////////////////////////
+    /// String distribution versions
+    //////////////////////////////////
+
+    // Create a distributed tensor based on a supplied distribution
+    DistTensor( const std::string& dist, const tmen::Grid& g=DefaultGrid() );
+
+    // Create a "shape" distributed tensor
+    DistTensor
+    ( const ObjShape& shape, const std::string& dist, const tmen::Grid& g=DefaultGrid() );
+
+    // Create a "shape" distributed tensor with specified alignments
+    DistTensor
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const tmen::Grid& g );
+
+    // Create a "shape" distributed tensor with specified alignments
+    // and leading dimension
+    DistTensor
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+
+    // View a constant distributed tensor's buffer
+    DistTensor
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
+      const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+
+    // View a mutable distributed tensor's buffer
+    DistTensor
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
+      T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+
     // Create a copy of distributed matrix A
     DistTensor( const DistTensor<T>& A );
 
@@ -384,8 +414,8 @@ public:
 
 protected:
     //Distributed information
-    ObjShape shape_;
     TensorDistribution dist_;
+    ObjShape shape_;
 
     //Wrapping information
     std::vector<bool> constrainedModeAlignments_;
