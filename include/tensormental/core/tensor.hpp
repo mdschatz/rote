@@ -197,7 +197,8 @@ private:
                                    const std::vector<ModeArray>& oldModes, bool isLocked );
     friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
                                    const ModeArray& oldModes, const std::vector<ObjShape>& newShape, bool isLocked );
-
+    friend void ViewAsMatrixHelper<T>( Tensor<T>& A, const Tensor<T>& B,
+                                       const std::vector<ModeArray>& oldModes, bool isLocked );
     friend void View<T>( Tensor<T>& A, Tensor<T>& B);
     friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B);
     friend void View<T>( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
@@ -235,6 +236,17 @@ private:
       const Tensor<T>& B,
       const ModeArray& oldModes,
       const std::vector<ObjShape>& newShape );
+
+    friend
+    void ViewAsMatrix<T>
+    ( Tensor<T>& A,
+      Tensor<T>& B,
+      const std::vector<ModeArray>& oldModes );
+    friend
+    void LockedViewAsMatrix<T>
+    ( Tensor<T>& A,
+      const Tensor<T>& B,
+      const std::vector<ModeArray>& oldModes );
 };
 
 } // namespace tmen

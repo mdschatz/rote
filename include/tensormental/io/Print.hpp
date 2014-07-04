@@ -32,9 +32,11 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     Location curLoc(order);
     std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
-    bool done = !ElemwiseLessThan(curLoc, A.Shape());
+    bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     while(!done){
         os << A.Get(curLoc) << " ";
+        if(order == 0)
+            break;
     	//Update
     	curLoc[ptr]++;
     	while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){
@@ -71,7 +73,7 @@ Print
     Location curLoc(order);
     std::fill(curLoc.begin(), curLoc.end(), 0);
     int ptr = 0;
-    bool done = !ElemwiseLessThan(curLoc, A.Shape());
+    bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     T u = T(0);
     while(!done){
     	u = A.Get(curLoc);
@@ -80,6 +82,8 @@ Print
     		os << u << " ";
     	}
 
+    	if(order == 0)
+    	    break;
     	//Update
     	curLoc[ptr]++;
     	while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){

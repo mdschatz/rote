@@ -41,7 +41,11 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
     T* thisBuf = this->Buffer();
     const T* tmp2Buf = tmp2.LockedBuffer();
 
-    MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
+    //Only do this if we know we are copying into a scalar
+    if(this->Order() == 0)
+        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), 1);
+    else
+        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
 }
 
 #define PROTO(T) \

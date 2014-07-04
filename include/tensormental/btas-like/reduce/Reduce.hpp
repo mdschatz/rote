@@ -87,20 +87,24 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
      MPBOldModes[1] = mergeModes1;
 
 
-     ViewAsLowerOrder(MPA, PA, MPAOldModes );
+     ViewAsMatrix(MPA, PA, MPAOldModes );
 
 //     Print(PB, "PB");
-     ViewAsLowerOrder(MPB, PB, MPBOldModes );
+     ViewAsMatrix(MPB, PB, MPBOldModes );
 
 //     Print(MPA, "MPA");
 //     Print(MPB, "MPB");
 
      const T* MPAData = MPA.LockedBuffer();
      T* MPBData = MPB.Buffer();
-     for(i = 0; i < MPA.Dimension(1); i++){
-         for(j = 0; j < MPA.Dimension(0); j++){
-//             printf("MPBDataptr: %d, MPADataptr: %d\n", i, j + i*MPA.Dimension(0));
-             MPBData[i] += MPAData[j + i*MPA.Dimension(0)];
+     if(A.Order() == 0)
+         MPBData[0] = MPAData[0];
+     else{
+         for(i = 0; i < MPA.Dimension(1); i++){
+             for(j = 0; j < MPA.Dimension(0); j++){
+    //             printf("MPBDataptr: %d, MPADataptr: %d\n", i, j + i*MPA.Dimension(0));
+                 MPBData[i] += MPAData[j + i*MPA.Dimension(0)];
+             }
          }
      }
 
@@ -139,14 +143,17 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
 
 template <typename T>
 void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes){
-    LocalReduce(B.Tensor(), A.LockedTensor(), reduceModes);
+    if(B.Participating())
+        LocalReduce(B.Tensor(), A.LockedTensor(), reduceModes);
 }
 
 template <typename T>
 void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMode){
-    ModeArray modeArr(1);
-    modeArr[0] = reduceMode;
-    LocalReduce(B, A, modeArr);
+    if(B.Participating()){
+        ModeArray modeArr(1);
+        modeArr[0] = reduceMode;
+        LocalReduce(B, A, modeArr);
+    }
 }
 
 } // namespace tmen

@@ -94,11 +94,10 @@ Tensor<T>::AssertSplittableModes(const ModeArray& oldModes, const std::vector<Ob
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertSplittableIndices");
 #endif
-
     Unsigned i;
 
     for(i = 0; i < oldModes.size(); i++){
-        if(prod(newShape[i]) != Dimension(oldModes[i])){
+        if(Max(1, prod(newShape[i])) != Dimension(oldModes[i])){
             LogicError("newShape dimensions must be splittable from old mode dimension");
         }
     }
@@ -113,14 +112,14 @@ Tensor<T>::Tensor( bool fixed )
 : shape_(), strides_(), ldims_(),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
-{ }
+{ data_ = memory_.Buffer(); }
 
 template<typename T>
 Tensor<T>::Tensor( const Unsigned order, bool fixed )
 : shape_(order, 0), strides_(order, 1), ldims_(order, 1),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
   data_(nullptr), memory_()
-{ }
+{ data_ = memory_.Buffer(); }
 
 //TODO: Check for valid set of indices
 template<typename T>
@@ -132,9 +131,11 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape );
 #endif
-    const Unsigned order = this->Order();
     SetLDims(shape_);
-    memory_.Require( prod(ldims_) * shape_[order-1] );
+    const Unsigned order = this->Order();
+    Unsigned numElem = order > 0 ? ldims_[order-1] * shape_[order-1] : 1;
+
+    memory_.Require( numElem );
     data_ = memory_.Buffer();
 }
 
@@ -148,12 +149,12 @@ Tensor<T>::Tensor
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, ldims );
-
 #endif
-    const Unsigned order = this->Order();
     SetLDims(shape);
-    memory_.Require( prod(ldims_) * shape_[order-1] );
+    const Unsigned order = this->Order();
+    Unsigned numElem = order > 0 ? ldims_[order-1] * shape_[order-1] : 1;
 
+    memory_.Require( numElem );
     data_ = memory_.Buffer();
 }
 
@@ -860,7 +861,15 @@ Tensor<T>::operator=( const Tensor<T>& A )
         ResizeTo( A );
     T* dst = this->Buffer();
     const T* src = A.LockedBuffer();
-    MemCopy(&(dst[0]), &(src[0]), prod(shape_));
+    //Only copy single element if we know this is a scalar
+    if(this->Order() == 0){
+        MemCopy(&(dst[0]), &(src[0]), 1);
+    }
+    //Otherwise check if 0 tensor
+    else{
+        MemCopy(&(dst[0]), &(src[0]), prod(shape_));
+    }
+
     return *this;
 }
 
@@ -900,7 +909,7 @@ Tensor<T>::ResizeTo_( const ObjShape& shape )
 	if(reallocate){
 		ldims_ = Dimensions2Strides(shape);
 		strides_ = Dimensions2Strides(shape);
-		memory_.Require(prod(shape));
+		memory_.Require(Max(1,prod(shape)));
 		data_ = memory_.Buffer();
 	}
     //TODO: IMPLEMENT CORRECTLY
@@ -958,7 +967,7 @@ Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims 
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = ldims;
-		memory_.Require(prod(shape));
+		memory_.Require(Max(1,prod(shape)));
 		data_ = memory_.Buffer();
 	}
     //TODO: IMPLEMENT CORRECTLY

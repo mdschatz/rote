@@ -26,10 +26,19 @@ BASE(T) Norm(const Tensor<T>& A){
     CallStackEntry("Norm");
 #endif
     Unsigned i;
+    Unsigned order = A.Order();
     BASE(T) norm = 0;
     const T* buf = A.LockedBuffer();
-    for(i = 0; i < prod(A.Shape()); i++){
-        norm += buf[i] * buf[i];
+
+    //Only do this if we are sure A is a scalar
+    if(order == 0){
+        norm += buf[0] * buf[0];
+    }
+    //Otherwise, A could be 0 length so ignore the norm
+    else{
+        for(i = 0; i < prod(A.Shape()); i++){
+                norm += buf[i] * buf[i];
+        }
     }
 
     return Sqrt(norm);
@@ -43,7 +52,9 @@ BASE(T) Norm(const DistTensor<T>& A){
 #ifndef RELEASE
     CallStackEntry("Norm");
 #endif
-    BASE(T) local_norm = Norm(A.LockedTensor());
+    BASE(T) local_norm = 0;
+    if(A.Participating())
+        local_norm = Norm(A.LockedTensor());
     BASE(T) global_norm = mpi::AllReduce(local_norm, mpi::SUM, A.GetParticipatingComm());
     return global_norm;
 }

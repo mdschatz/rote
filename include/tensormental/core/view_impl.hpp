@@ -288,12 +288,12 @@ inline void ViewAsHigherOrderHelper
         ObjShape newModeGroupShape = newShape[i];
         for(j = 0; j < newModeGroupShape.size(); j++){
             A.shape_[modeCount] = newModeGroupShape[j];
-            if(i == 0 && j == 0){
+            if(modeCount == 0){
                 A.ldims_[modeCount] = 1;
                 A.strides_[modeCount] = 1;
             }else{
                 A.ldims_[modeCount] = A.shape_[modeCount - 1] * A.ldims_[modeCount - 1];
-                A.ldims_[modeCount] = A.shape_[modeCount - 1] * A.strides_[modeCount - 1];
+                A.strides_[modeCount] = A.shape_[modeCount - 1] * A.strides_[modeCount - 1];
             }
             modeCount++;
         }
@@ -304,6 +304,43 @@ inline void ViewAsHigherOrderHelper
         A.viewType_ = LOCKED_VIEW;
     else
         A.viewType_ = VIEW;
+}
+
+template<typename T>
+inline void ViewAsMatrixHelper
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes, bool isLocked )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsMartixHelper");
+    B.AssertMergeableModes(oldModes);
+#endif
+    if(oldModes[0].size() > 0 && oldModes[1].size() > 0)
+        ViewAsLowerOrderHelper(A, B, oldModes, isLocked);
+    else{
+        Unsigned i;
+        const Unsigned newOrder = 2;
+        A.memory_.Empty();
+
+        //Update the shape, ldims_, strides_, maps_
+        A.shape_.resize(newOrder);
+        A.ldims_.resize(newOrder);
+        A.strides_.resize(newOrder);
+        A.shape_[0] = Max(1,prod(FilterVector(B.Shape(), oldModes[0])));
+        A.strides_[0] = oldModes[0].size() == 0 ? 1 : B.LDim(oldModes[0][0]);
+        A.ldims_[0] = oldModes[0].size() == 0 ? 1 : B.LDim(oldModes[0][0]);
+
+        A.shape_[1] = Max(1,prod(FilterVector(B.Shape(), oldModes[1])));
+        A.strides_[1] = A.shape_[0] * A.strides_[0];
+        A.ldims_[1] = A.shape_[0] * A.ldims_[0];
+
+    //    A.data_     = B.data_;
+        if(isLocked)
+            A.viewType_ = LOCKED_VIEW;
+        else
+            A.viewType_ = VIEW;
+    }
 }
 
 ////////////////////////////
@@ -673,6 +710,54 @@ inline Tensor<T> LockedViewAsHigherOrder
 {
    Tensor<T> A(B.Order());
    LockedViewAsHigherOrder(A, B, oldModes);
+   return A;
+}
+
+template<typename T>
+inline void ViewAsMatrix
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ViewAsLowerOrder");
+#endif
+    ViewAsMatrixHelper(A, B, oldModes, false);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
+}
+
+template<typename T>
+inline Tensor<T> ViewAsMatrix
+( Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes )
+{
+   Tensor<T> A(2);
+   ViewAsMatrix(A, B, oldModes);
+   return A;
+}
+
+template<typename T>
+inline void LockedViewAsMatrix
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes )
+{
+#ifndef RELEASE
+    CallStackEntry entry("LockedViewAsLowerOrder");
+#endif
+    ViewAsMatrixHelper(A, B, oldModes, true);
+    //Set the data we can't set in helper
+    A.data_ = B.data_;
+}
+
+template<typename T>
+inline Tensor<T> LockedViewAsMatrix
+( const Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes )
+{
+   Tensor<T> A(2);
+   LockedViewAsMatrix(A, B, oldModes);
    return A;
 }
 

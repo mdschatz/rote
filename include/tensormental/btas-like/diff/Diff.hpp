@@ -27,13 +27,20 @@ void Diff(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
     CallStackEntry("Diff");
 #endif
     Unsigned i;
+    Unsigned order = C.Order();
     //C.ResizeTo(A);
     const T* bufA = A.LockedBuffer();
     const T* bufB = B.LockedBuffer();
     T* bufC = C.Buffer();
 
-    for(i = 0; i < prod(A.Shape()); i++){
-        bufC[i] = bufA[i] - bufB[i];
+    //Only do this if we are sure it's a scalar
+    if(order == 0)
+        bufC[0] = bufA[0] - bufB[0];
+    //If a tensor, could be of size 0, so we have to ignore the diff
+    else{
+        for(i = 0; i < prod(A.Shape()); i++){
+            bufC[i] = bufA[i] - bufB[i];
+        }
     }
 }
 

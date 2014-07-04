@@ -89,6 +89,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
 template <typename T>
 void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf)
 {
+    const Unsigned orderA = A.Order();
     const T* dataBuf = A.LockedBuffer();
 
 //    printf("dataBuf: ");
@@ -108,18 +109,18 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
 
     //Calculate number of outer slices to pack
     const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, rMode + 1));
-    const Unsigned nLocalOuterSlices = prod(localShapeA, rMode + 1);
+    const Unsigned nLocalOuterSlices = orderA == 0 ? 1 : prod(localShapeA, rMode + 1);
 
     //Calculate number of sMode slices to pack
     const Unsigned nMaxRModeSlices = maxLocalShapeA[rMode];
-    const Unsigned nLocalRModeSlices = localShapeA[rMode];
+    const Unsigned nLocalRModeSlices = orderA == 0 ? 1 : localShapeA[rMode];
     const Unsigned rModePackStride = nRedistProcs;
 
     //Number of processes we have to pack for
     const Unsigned nElemSlices = nRedistProcs;
 
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, rMode));
-    const Unsigned copySliceSize = prod(localShapeA, 0, rMode);
+    const Unsigned copySliceSize = orderA == 0 ? 1 : prod(localShapeA, 0, rMode);
 
     Unsigned outerSliceNum, rModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
     Unsigned outerSendBufOff, rModeSendBufOff;
@@ -172,6 +173,7 @@ template <typename T>
 void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMode, const DistTensor<T>& A)
 {
     T* dataBuf = this->Buffer();
+    const Unsigned orderB = this->Order();
 
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
@@ -193,17 +195,17 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
 
         //Number of outer slices to unpack
         const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, rMode + 1));
-        const Unsigned nLocalOuterSlices = prod(localShapeB, rMode + 1);
+        const Unsigned nLocalOuterSlices = orderB == 0 ? 1 : prod(localShapeB, rMode + 1);
 
         //Loop packing bounds variables
         const Unsigned nMaxRModeSlices = maxLocalShapeB[rMode];
-        const Unsigned nLocalRModeSlices = localShapeB[rMode];
+        const Unsigned nLocalRModeSlices = orderB == 0 ? 1 : localShapeB[rMode];
 
         //Each wrap is copied contiguously because the distribution of reduce-to-one mode does not change
 
         //Variables for calculating elements to copy
         const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, rMode));
-        const Unsigned copySliceSize = prod(localShapeB, 0, rMode);
+        const Unsigned copySliceSize = orderB == 0 ? 1 : prod(localShapeB, 0, rMode);
 
         //Loop iteration vars
         Unsigned outerSliceNum, rModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array

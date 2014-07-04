@@ -187,6 +187,39 @@ Tensor<T> LockedViewAsHigherOrder
   const ModeArray& oldModes,
   const std::vector<ObjShape>& newModesShape );
 
+//
+// View as matrix
+//
+
+template<typename T>
+void ViewAsMatrixHelper
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes, bool isLocked );
+
+template<typename T>
+void ViewAsMatrix
+( Tensor<T>& A,
+  Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes );
+
+template<typename T>
+Tensor<T> ViewAsMatrix
+( Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes );
+
+template<typename T>
+void LockedViewAsMatrix
+( Tensor<T>& A,
+  const Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes );
+
+template<typename T>
+Tensor<T> LockedViewAsMatrix
+( const Tensor<T>& B,
+  const std::vector<ModeArray>& oldModes );
+
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_VIEW_DECL_HPP

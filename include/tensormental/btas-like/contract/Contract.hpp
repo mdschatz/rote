@@ -133,9 +133,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
     MPCOldModes[0].insert(MPCOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesM);
     MPCOldModes[1].insert(MPCOldModes[1].end(), tensorModes.begin() + nIndicesM, tensorModes.begin() + C.Order());
 
-    ViewAsLowerOrder(MPA, PA, MPAOldModes );
-    ViewAsLowerOrder(MPB, PB, MPBOldModes );
-    ViewAsLowerOrder(MPC, PC, MPCOldModes );
+    ViewAsMatrix(MPA, PA, MPAOldModes );
+    ViewAsMatrix(MPB, PB, MPBOldModes );
+    ViewAsMatrix(MPC, PC, MPCOldModes );
 
 //    Print(MPA, "MPA");
 //    Print(MPB, "MPB");
@@ -197,7 +197,10 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
     T* tmpBuf = tmp.Buffer();
     MemCopy(&(tmpBuf[0]), &(CBuf[0]), prod(tmp.Shape()));
     LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
-    MemCopy(&(CBuf[0]), &(tmpBuf[0]), prod(C.Shape()));
+    if(C.Order() == 0)
+        MemCopy(&(CBuf[0]), &(tmpBuf[0]),Max(1, prod(C.Shape())));
+    else
+        MemCopy(&(CBuf[0]), &(tmpBuf[0]), prod(C.Shape()));
 }
 
 } // namespace tmen

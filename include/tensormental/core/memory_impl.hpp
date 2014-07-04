@@ -18,7 +18,7 @@ template<typename G>
 inline 
 Memory<G>::Memory()
 : size_(0), buffer_(nullptr)
-{ }
+{ Require( 1 ); }
 
 template<typename G>
 inline 
