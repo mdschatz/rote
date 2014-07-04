@@ -177,7 +177,7 @@ Shift( Int rank, Unsigned alignment, Unsigned wrap )
 {
 #ifndef RELEASE
     CallStackEntry entry("Shift");
-    if( rank < 0 || rank >= wrap )
+    if( rank < 0 || rank >= Int(wrap) )
     {
         std::ostringstream msg;
         msg << "Invalid rank: "

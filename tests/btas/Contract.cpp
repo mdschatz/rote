@@ -35,7 +35,7 @@ typedef struct Arguments{
 
 typedef std::pair< ModeArray, ObjShape> LocalTest;
 
-void ProcessInput(int argc,  char** const argv, Params& args){
+void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     Unsigned i;
     Unsigned argCount = 0;
     if(argCount + 1 >= argc){
@@ -59,7 +59,7 @@ void ProcessInput(int argc,  char** const argv, Params& args){
     }
 
     args.gridShape.resize(gridOrder);
-    for(int i = 0; i < gridOrder; i++){
+    for(i = 0; i < gridOrder; i++){
         int gridDim = atoi(argv[++argCount]);
         if(gridDim <= 0){
             std::cerr << "Grid dim must be greater than 0\n";
@@ -86,8 +86,8 @@ void ProcessInput(int argc,  char** const argv, Params& args){
 
     args.ten1Shape.resize(ten1Order);
     for(i = 0; i < ten1Order; i++){
-        Unsigned tensorDim = atoi(argv[++argCount]);
-        if(tensorDim == 0){
+        int tensorDim = atoi(argv[++argCount]);
+        if(tensorDim <= 0){
             std::cerr << "Tensor dimension must be greater than 0\n";
             Usage();
             throw ArgException();
@@ -103,7 +103,7 @@ void ProcessInput(int argc,  char** const argv, Params& args){
 
     args.ten1Indices.resize(ten1Order);
     for(i = 0; i < ten1Order; i++){
-        Unsigned tensorIndex = atoi(argv[++argCount]);
+        int tensorIndex = atoi(argv[++argCount]);
         if(tensorIndex < 0){
             std::cerr << "Tensor index must be >= 0\n";
             Usage();
@@ -128,8 +128,8 @@ void ProcessInput(int argc,  char** const argv, Params& args){
 
     args.ten2Shape.resize(ten2Order);
     for(i = 0; i < ten2Order; i++){
-        Unsigned tensorDim = atoi(argv[++argCount]);
-        if(tensorDim == 0){
+        int tensorDim = atoi(argv[++argCount]);
+        if(tensorDim <= 0){
             std::cerr << "Tensor dimension must be greater than 0\n";
             Usage();
             throw ArgException();
@@ -145,7 +145,7 @@ void ProcessInput(int argc,  char** const argv, Params& args){
 
     args.ten2Indices.resize(ten2Order);
     for(i = 0; i < ten2Order; i++){
-        Unsigned tensorIndex = atoi(argv[++argCount]);
+        int tensorIndex = atoi(argv[++argCount]);
         if(tensorIndex < 0){
             std::cerr << "Tensor index must be >= 0\n";
             Usage();
@@ -325,7 +325,7 @@ main( int argc, char* argv[] )
 
         ProcessInput(argc, argv, args);
 
-        if(commRank == 0 && args.nProcs != commSize){
+        if(commRank == 0 && args.nProcs != ((Unsigned)commSize)){
             std::cerr << "program not started with correct number of processes\n";
             Usage();
             throw ArgException();

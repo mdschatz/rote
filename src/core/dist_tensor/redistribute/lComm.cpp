@@ -64,7 +64,6 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode
 template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMode, const ModeArray& gridRedistModes)
 {
-    const Unsigned order = A.Order();
     T* dstBuf = this->Buffer();
     const T* srcBuf = A.LockedBuffer();
 

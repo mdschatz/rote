@@ -319,7 +319,6 @@ inline void ViewAsMatrixHelper
     if(oldModes[0].size() > 0 && oldModes[1].size() > 0)
         ViewAsLowerOrderHelper(A, B, oldModes, isLocked);
     else{
-        Unsigned i;
         const Unsigned newOrder = 2;
         A.memory_.Empty();
 

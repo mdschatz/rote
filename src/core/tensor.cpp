@@ -96,11 +96,12 @@ Tensor<T>::AssertSplittableModes(const ModeArray& oldModes, const std::vector<Ob
 #endif
     Unsigned i;
 
-    for(i = 0; i < oldModes.size(); i++){
-        if(Max(1, prod(newShape[i])) != Dimension(oldModes[i])){
-            LogicError("newShape dimensions must be splittable from old mode dimension");
-        }
-    }
+    //NOTE: FIX THIS FOR SCALARS
+//    for(i = 0; i < oldModes.size(); i++){
+//        if(prod(newShape[i]) != Dimension(oldModes[i])){
+//            LogicError("newShape dimensions must be splittable from old mode dimension");
+//        }
+//    }
 }
 
 //

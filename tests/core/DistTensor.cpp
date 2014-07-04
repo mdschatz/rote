@@ -37,7 +37,7 @@ typedef std::pair< std::pair<Mode, Mode>, TensorDistribution> RSTest;
 typedef std::pair< Mode, TensorDistribution > RTOTest;
 typedef std::pair< std::pair<std::pair<Mode, Mode>, std::pair<ModeArray, ModeArray > >, TensorDistribution> A2ADMTest;
 
-void ProcessInput(int argc,  char** const argv, Params& args){
+void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     Unsigned i;
     Unsigned argCount = 0;
     if(argCount + 1 >= argc){
@@ -61,7 +61,7 @@ void ProcessInput(int argc,  char** const argv, Params& args){
     }
 
     args.gridShape.resize(gridOrder);
-    for(int i = 0; i < gridOrder; i++){
+    for(Unsigned i = 0; i < gridOrder; i++){
         int gridDim = atoi(argv[++argCount]);
         if(gridDim <= 0){
             std::cerr << "Grid dim must be greater than 0\n";
@@ -88,8 +88,8 @@ void ProcessInput(int argc,  char** const argv, Params& args){
 
     args.tensorShape.resize(tenOrder);
     for(i = 0; i < tenOrder; i++){
-        Unsigned tensorDim = atoi(argv[++argCount]);
-        if(tensorDim == 0){
+        int tensorDim = atoi(argv[++argCount]);
+        if(tensorDim <= 0){
             std::cerr << "Tensor dimension must be greater than 0\n";
             Usage();
             throw ArgException();
@@ -764,7 +764,7 @@ main( int argc, char* argv[] )
 
         ProcessInput(argc, argv, args);
 
-        if(commRank == 0 && args.nProcs != commSize){
+        if(commRank == 0 && args.nProcs != ((Unsigned)commSize)){
             std::cerr << "program not started with correct number of processes\n";
             Usage();
             throw ArgException();

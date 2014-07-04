@@ -117,7 +117,6 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
         tensorModes[i] = i;
 
     const Unsigned nIndicesM = permA.size() - nIndicesContract;
-    const Unsigned nIndicesN = permB.size() - nIndicesContract;
 
     //View as matrices
     std::vector<ModeArray> MPAOldModes(2);

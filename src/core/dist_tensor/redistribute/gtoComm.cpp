@@ -97,7 +97,6 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
 //    }
 //    printf("\n");
 
-    const tmen::Grid& g = A.Grid();
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
@@ -116,7 +115,7 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, gMode));
     const Unsigned copySliceSize = prod(localShapeA, 0, gMode);
 
-    Unsigned outerSliceNum, gModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
+    Unsigned outerSliceNum, gModeSliceNum; //Which slice of which wrap of which process are we packing
     Unsigned outerSendBufOff, gModeSendBufOff;
     Unsigned outerDataBufOff, gModeDataBufOff;
     Unsigned startSendBuf, startDataBuf;
@@ -179,7 +178,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
         const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
         const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
 
-        const Unsigned maxRecvElem = prod(maxLocalShapeA) * nRedistProcs;
+//        const Unsigned maxRecvElem = prod(maxLocalShapeA) * nRedistProcs;
 //        printf("maxRecvElem: %d\n", maxRecvElem);
 //        printf("recvBuf:");
 //        for(Unsigned i = 0; i < maxRecvElem; i++){

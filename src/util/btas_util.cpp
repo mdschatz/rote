@@ -6,7 +6,7 @@ namespace tmen{
 //TODO: Generalize so that the largest is not permuted
 template<typename T>
 std::vector<ModeArray> DetermineContractModes(const Tensor<T>& A, const Tensor<T>& B, const Tensor<T>& C, const std::vector<IndexArray>& indices){
-    Unsigned i, j;
+    Unsigned i;
     std::vector<ModeArray> ret(3);
 
     //Arrays which will hold the indices corresponding to m,k,n of matrix indices in contraction order

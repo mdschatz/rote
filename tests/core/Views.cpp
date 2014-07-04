@@ -28,7 +28,7 @@ typedef struct Arguments{
   TensorDistribution tensorDist;
 } Params;
 
-void ProcessInput(int argc,  char** const argv, Params& args){
+void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     Unsigned i;
     Unsigned argCount = 0;
     if(argCount + 1 >= argc){
@@ -52,7 +52,7 @@ void ProcessInput(int argc,  char** const argv, Params& args){
     }
 
     args.gridShape.resize(gridOrder);
-    for(int i = 0; i < gridOrder; i++){
+    for(i = 0; i < gridOrder; i++){
         int gridDim = atoi(argv[++argCount]);
         if(gridDim <= 0){
             std::cerr << "Grid dim must be greater than 0\n";
@@ -400,7 +400,7 @@ main( int argc, char* argv[] )
 
         ProcessInput(argc, argv, args);
 
-        if(commRank == 0 && args.nProcs != commSize){
+        if(commRank == 0 && args.nProcs != ((Unsigned)commSize)){
             std::cerr << "program not started with correct number of processes\n";
             Usage();
             throw ArgException();

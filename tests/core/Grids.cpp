@@ -23,14 +23,15 @@ typedef struct Arguments{
   ObjShape gridShape;
 } Params;
 
-void ProcessInput(const int argc,  char** const argv, Params& args){
+void ProcessInput(const Unsigned argc,  char** const argv, Params& args){
+    Unsigned i;
 	if(argc < 2){
 		std::cerr << "Missing required order argument\n";
 		Usage();
 		throw ArgException();
 	}
 
-	int order = atoi(argv[1]);
+	Unsigned order = atoi(argv[1]);
 	args.order = order;
 	if(order <= 0){
 		std::cerr << "grid order must be greater than 0\n";
@@ -46,7 +47,7 @@ void ProcessInput(const int argc,  char** const argv, Params& args){
 
 	args.size = 1;
 	args.gridShape.resize(order);
-	for(int i = 0; i < order; i++){
+	for(i = 0; i < order; i++){
 		int gridDim = atoi(argv[i+2]);
 		if(gridDim <= 0){
 			std::cerr << "grid dim must be greater than 0\n";
@@ -61,33 +62,33 @@ void ProcessInput(const int argc,  char** const argv, Params& args){
 int 
 main( int argc, char* argv[] )
 {
-
+    Unsigned i;
     Initialize( argc, argv );
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commSize = mpi::CommSize( comm );
     const Int commRank = mpi::CommRank( comm );    
     try
     {
-	Params args;
+        Params args;
 
-	ProcessInput(argc, argv, args);
+        ProcessInput(argc, argv, args);
 
-	printf("Comm size: %d rank: %d", commSize, commRank);
-	std::cout << "Input processed\n";
+        printf("Comm size: %d rank: %d", commSize, commRank);
+        std::cout << "Input processed\n";
 
-	if(args.size != commSize){
-		std::cerr << "program not started with correct number of processes\n";
-		Usage();
-		throw ArgException();
-	}
+        if(args.size != ((Unsigned)commSize)){
+            std::cerr << "program not started with correct number of processes\n";
+            Usage();
+            throw ArgException();
+        }
 
-	std::cout << "creating grid\n";
+        std::cout << "creating grid\n";
         printf("Args order: %d\n", args.order);
-	printf("Args dims: [%d", args.gridShape[0]);
-	for(int i = 1; i < args.order; i++)
-		printf(", %d", args.gridShape[i]);
-	printf("]\n");
-	const Grid grid( comm, args.gridShape );
+        printf("Args dims: [%d", args.gridShape[0]);
+        for(i = 1; i < args.order; i++)
+            printf(", %d", args.gridShape[i]);
+        printf("]\n");
+        const Grid grid( comm, args.gridShape );
     }
     catch( std::exception& e ) { ReportException(e); }
 

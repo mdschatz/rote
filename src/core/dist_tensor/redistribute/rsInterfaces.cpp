@@ -76,7 +76,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     T* BBuf = this->Buffer();
     const T* tmpLockedBuf = tmp.LockedBuffer();
     for(i = 0; i < prod(this->LocalShape()); i++)
-        BBuf[i] = beta * BBuf[i] + tmpBuf[i];
+        BBuf[i] = beta * BBuf[i] + tmpLockedBuf[i];
 //    Print(*this, "B after full reduce");
 }
 

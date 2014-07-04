@@ -133,7 +133,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned nLocalOuterSlices = prod(localShape, a2aMode2 + 1);
 
     const Unsigned copySliceSize = prod(localShape, 0, a2aMode1);
-    const Unsigned maxCopySliceSize = Max(1, prod(packLocalShape, 0, a2aMode1));
+//    const Unsigned maxCopySliceSize = Max(1, prod(packLocalShape, 0, a2aMode1));
     const Unsigned nElemsPerProc = prod(packLocalShape);
 
     //Various counters used to offset in data arrays
@@ -241,9 +241,8 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
         }
     }
 
-    const ObjShape commGridSlice = FilterVector(this->Grid().Shape(), commModes);
-    const Unsigned nRedistProcs = prod(commGridSlice);
-
+//    const ObjShape commGridSlice = FilterVector(this->Grid().Shape(), commModes);
+//    const Unsigned nRedistProcs = prod(commGridSlice);
 //    std::cout << "packed sendBuf:";
 //    for(Unsigned i = 0; i < prod(packLocalShape) * nRedistProcs; i++)
 //        std::cout << " " << sendBuf[i];
