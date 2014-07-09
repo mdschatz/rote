@@ -158,34 +158,29 @@ template<typename T>
 void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newModesShape, bool isLocked );
+  const std::vector<ObjShape>& splitShape, bool isLocked );
 
 template<typename T>
 void ViewAsHigherOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newModesShape );
+  const std::vector<ObjShape>& splitShape );
 
 template<typename T>
 Tensor<T> ViewAsHigherOrder
 ( Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newModesShape );
+  const std::vector<ObjShape>& splitShape );
 
 template<typename T>
 void LockedViewAsHigherOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newModesShape );
+  const std::vector<ObjShape>& splitShape );
 
 template<typename T>
 Tensor<T> LockedViewAsHigherOrder
 ( const Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newModesShape );
+  const std::vector<ObjShape>& splitShape );
 
 //
 // View as matrix
@@ -195,29 +190,29 @@ template<typename T>
 void ViewAsMatrixHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes, bool isLocked );
+  const Unsigned& nModesMergeCol, bool isLocked );
 
 template<typename T>
 void ViewAsMatrix
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes );
+  const Unsigned& nModesMergeCol );
 
 template<typename T>
 Tensor<T> ViewAsMatrix
 ( Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes );
+  const Unsigned& nModesMergeCol );
 
 template<typename T>
 void LockedViewAsMatrix
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes );
+  const Unsigned& nModesMergeCol );
 
 template<typename T>
 Tensor<T> LockedViewAsMatrix
 ( const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes );
+  const Unsigned& nModesMergeCol );
 
 
 } // namespace tmen

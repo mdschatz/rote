@@ -252,6 +252,8 @@ DistTensor<T>::Get( const Location& loc ) const
     this->AssertValidEntry( loc );
 #endif
     const Location owningProc = this->DetermineOwner(loc);
+//    PrintVector(loc, "loc");
+//    PrintVector(owningProc, "owner");
 
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
@@ -261,7 +263,36 @@ DistTensor<T>::Get( const Location& loc ) const
             const Location localLoc = this->Global2LocalIndex(loc);
             u = this->GetLocal(localLoc);
         }
-        const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
+
+        //Get the lin loc of the owner
+        Unsigned i, j;
+        int ownerLinearLoc = 0;
+        const TensorDistribution dist = gv.Distribution();
+        const tmen::Grid* g = gv.Grid();
+        const Unsigned participatingOrder = gv.ParticipatingOrder();
+        ModeArray participatingComms = ConcatenateVectors(gv.FreeModes(), gv.BoundModes());
+        std::sort(participatingComms.begin(), participatingComms.end());
+        const Location gvParticipatingLoc = gv.ParticipatingLoc();
+
+        ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
+        Location participatingGridLoc(gridSlice.size());
+
+        for(i = 0; i < participatingOrder; i++){
+            ModeDistribution modeDist = dist[i];
+            ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
+            const Location modeSliceLoc = LinearLoc2Loc(owningProc[i], modeSliceShape);
+
+            for(j = 0; j < modeDist.size(); j++){
+                int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
+                participatingGridLoc[indexOfMode] = modeSliceLoc[j];
+            }
+        }
+        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
+        //
+
+        //const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
+//        std::cout << "owner linloc" << ownerLinearLoc << std::endl;
+//        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
         mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
     }
 
@@ -516,6 +547,26 @@ template<typename T>
 mpi::Comm
 DistTensor<T>::GetParticipatingComm() const
 { return participatingComm_; }
+
+template<typename T>
+Unsigned
+DistTensor<T>::NumElem() const
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::NumElem");
+#endif
+    return prod(shape_);
+}
+
+template<typename T>
+Unsigned
+DistTensor<T>::NumLocalElem() const
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::NumLocalElem");
+#endif
+    return tensor_.NumElem();
+}
 
 #define FULL(T) \
     template class DistTensor<T>;

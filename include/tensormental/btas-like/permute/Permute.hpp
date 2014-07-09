@@ -18,20 +18,22 @@ template<typename T>
 void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     Unsigned i;
     Unsigned order = A.Order();
+
+    T* dstBuf = B.Buffer();
+    const T* srcBuf = A.LockedBuffer();
+
+    if(A.Order() == 0){
+        MemCopy(&(dstBuf[0]), &(srcBuf[0]), 1);
+        return;
+    }
+
     Location curLoc(order, 0);
-
-
-    Permutation invperm(order);
-    for(i = 0; i < order; i++)
-        invperm[perm[i]] = i;
+    Permutation invperm = DetermineInversePermutation(perm);
 
     ObjShape shapeA = A.Shape();
     ObjShape shapeB = B.Shape();
     std::vector<Unsigned> strideA = A.LDims();
     std::vector<Unsigned> strideB = B.LDims();
-
-    T* dstBuf = B.Buffer();
-    const T* srcBuf = A.LockedBuffer();
 
     Unsigned linLocDst = 0;
     Unsigned linLocSrc = 0;

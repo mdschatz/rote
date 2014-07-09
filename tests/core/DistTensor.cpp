@@ -37,6 +37,7 @@ typedef std::pair< std::pair<Mode, Mode>, TensorDistribution> RSTest;
 typedef std::pair< Mode, TensorDistribution > RTOTest;
 typedef std::pair< std::pair<std::pair<Mode, Mode>, std::pair<ModeArray, ModeArray > >, TensorDistribution> A2ADMTest;
 
+
 void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     Unsigned i;
     Unsigned argCount = 0;
@@ -116,6 +117,163 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
 
 template<typename T>
 void
+Set(Tensor<T>& A)
+{
+    Unsigned order = A.Order();
+    Location loc(order);
+    std::fill(loc.begin(), loc.end(), 0);
+    Unsigned ptr = 0;
+    Unsigned counter = 0;
+    bool stop = false;
+
+    while(!stop){
+        A.Set(loc, counter);
+
+        //Update
+        counter++;
+        loc[ptr]++;
+        while(loc[ptr] == A.Dimension(ptr)){
+            loc[ptr] = 0;
+            ptr++;
+            if(ptr == order){
+                stop = true;
+                break;
+            }else{
+                loc[ptr]++;
+            }
+        }
+        ptr = 0;
+    }
+}
+
+template<typename T>
+void
+Set(DistTensor<T>& A)
+{
+    Unsigned order = A.Order();
+    Location loc(order);
+    std::fill(loc.begin(), loc.end(), 0);
+    Unsigned ptr = 0;
+    Unsigned counter = 0;
+    bool stop = false;
+
+    while(!stop){
+        A.Set(loc, counter);
+
+        //Update
+        counter++;
+        loc[ptr]++;
+        while(loc[ptr] == A.Dimension(ptr)){
+            loc[ptr] = 0;
+            ptr++;
+            if(ptr == order){
+                stop = true;
+                break;
+            }else{
+                loc[ptr]++;
+            }
+        }
+        ptr = 0;
+    }
+}
+
+template<typename T>
+bool CheckResult(const DistTensor<T>& A){
+#ifndef RELEASE
+    CallStackEntry entry("CheckResult");
+#endif
+    mpi::Barrier(mpi::COMM_WORLD);
+    Unsigned i;
+    const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
+    const ObjShape globalShape = A.Shape();
+    Tensor<T> check(globalShape);
+    Set(check);
+
+    const Unsigned order = A.Order();
+    const T* checkBuf = check.LockedBuffer();
+    const T* thisBuf = A.LockedBuffer();
+    const std::vector<Unsigned> myShifts = A.ModeShifts();
+    const tmen::Grid& g = A.Grid();
+    const Location myGridLoc = g.Loc();
+    const Location myGridViewLoc = A.GridViewLoc();
+    const ObjShape localShape = A.LocalShape();
+    Tensor<T> localTensor(localShape);
+    localTensor = A.LockedTensor();
+    const TensorDistribution dist = A.TensorDist();
+
+    //Check that all entries are what they should be
+    const std::vector<Unsigned> strides = A.ModeStrides();
+    Unsigned res = 1;
+
+    bool participating = !AnyPositiveElem(FilterVector(myGridLoc, dist[order]));
+    if(participating && !A.Participating())
+        res = 1;
+
+    if(!participating){
+        if(localTensor.MemorySize() > 1)
+            res = 1;
+    }else{
+        Location checkLoc = myGridViewLoc;
+        Unsigned checkLinLoc = Loc2LinearLoc(checkLoc, globalShape);
+        Location distLoc(order, 0);
+        Unsigned distLinLoc = 0;
+
+        Unsigned ptr = 0;
+        bool stop = !ElemwiseLessThan(checkLoc, globalShape);
+
+
+        if(stop && localTensor.MemorySize() > 1){
+            res = 0;
+        }
+
+        while(!stop){
+
+            checkLinLoc = Loc2LinearLoc(checkLoc, globalShape);
+            distLinLoc = Loc2LinearLoc(distLoc, localShape);
+
+//            PrintVector(checkLoc, "checkLoc");
+//            PrintVector(distLoc, "distLoc");
+//            std::cout << "tensor should have: " << checkBuf[checkLinLoc] << ", has: " << thisBuf[distLinLoc] << std::endl;
+            if(checkBuf[checkLinLoc] != thisBuf[distLinLoc]){
+                res = 0;
+                break;
+            }
+
+            //Update
+            distLoc[ptr]++;
+            checkLoc[ptr] += strides[ptr];
+            while(checkLoc[ptr] >= globalShape[ptr]){
+                checkLoc[ptr] = myGridViewLoc[ptr];
+                distLoc[ptr] = 0;
+                ptr++;
+                if(ptr == order){
+                    stop = true;
+                    break;
+                }else{
+                    distLoc[ptr]++;
+                    checkLoc[ptr] += strides[ptr];
+                }
+            }
+            ptr = 0;
+        }
+    }
+    Unsigned recv;
+
+//    std::cout << "comm size" << mpi::CommSize(mpi::COMM_WORLD) << std::endl;
+//    printf("allreducing\n");
+    mpi::AllReduce(&res, &recv, 1, mpi::LOGICAL_AND, mpi::COMM_WORLD);
+//    printf("allreducing finished\n");
+    if(recv == 0)
+        LogicError("redist bug: some process not assigned correct data");
+
+    if(commRank == 0){
+        std::cout << "PASS" << std::endl;
+    }
+}
+
+
+template<typename T>
+void
 TestGTORedist( DistTensor<T>& A, const Mode& gMode, const ModeArray& gridModes, const TensorDistribution& resDist)
 {
 #ifndef RELEASE
@@ -130,7 +288,8 @@ TestGTORedist( DistTensor<T>& A, const Mode& gMode, const ModeArray& gridModes, 
         printf("Gathering to one mode %d: %s <-- %s\n", gMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
     B.GatherToOneRedistFrom(A, gMode, gridModes);
-    Print(B, "B after gather-to-one redist");
+    CheckResult(B);
+//    Print(B, "B after gather-to-one redist");
 }
 
 template<typename T>
@@ -178,7 +337,8 @@ TestPRedist( DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist )
         printf("Permuting mode %d: %s <-- %s\n", pMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
     B.PermutationRedistFrom(A, pMode, resDist);
-    Print(B, "B after permute redist");
+    CheckResult(B);
+//    Print(B, "B after permute redist");
 }
 
 template<typename T>
@@ -199,7 +359,8 @@ TestAGRedist( DistTensor<T>& A, Mode agMode, const ModeArray& redistModes, const
     }
 
     B.AllGatherRedistFrom(A, agMode, redistModes);
-    Print(B, "B after ag redist");
+    CheckResult(B);
+//    Print(B, "B after ag redist");
 }
 
 template<typename T>
@@ -223,10 +384,11 @@ TestLRedist( DistTensor<T>& A, Mode lMode, const ModeDistribution& resDist )
         printf("Locally redistributing mode %d: %s <-- %s\n", lMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    Print(A, "A before local redist");
+//    Print(A, "A before local redist");
     ModeArray gridRedistModes(resDist.begin() + lModeDist.size(), resDist.end());
     B.LocalRedistFrom(A, lMode, gridRedistModes);
-    Print(B, "B after local redist");
+    CheckResult(B);
+//    Print(B, "B after local redist");
 }
 
 template<typename T>
@@ -244,7 +406,7 @@ TestRSRedist(DistTensor<T>& A, Mode rMode, Mode sMode, const TensorDistribution&
     BShape.erase(BShape.begin() + rMode);
     DistTensor<T> B(BShape, resDist, g);
 
-    Print(A, "A before rs redist");
+//    Print(A, "A before rs redist");
     if(commRank == 0){
         printf("Reducing mode %d and scattering mode %d: %s <-- %s\n", rMode, sMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
@@ -295,39 +457,8 @@ TestA2ADMRedist(DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const s
     }
 
     B.AllToAllDoubleModeRedistFrom(A, a2aModes, commGroups);
-
-    Print(B, "B after a2a redist");
-}
-
-template<typename T>
-void
-Set(DistTensor<T>& A)
-{
-    Unsigned order = A.Order();
-    Location loc(order);
-    std::fill(loc.begin(), loc.end(), 0);
-    Unsigned ptr = 0;
-    Unsigned counter = 0;
-    bool stop = false;
-
-    while(!stop){
-        A.Set(loc, counter);
-
-        //Update
-        counter++;
-        loc[ptr]++;
-        while(loc[ptr] == A.Dimension(ptr)){
-            loc[ptr] = 0;
-            ptr++;
-            if(ptr == order){
-                stop = true;
-                break;
-            }else{
-                loc[ptr]++;
-            }
-        }
-        ptr = 0;
-    }
+    CheckResult(B);
+//    Print(B, "B after a2a redist");
 }
 
 template<typename T>

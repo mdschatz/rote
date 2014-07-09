@@ -157,6 +157,9 @@ public:
     void ResizeTo( const ObjShape& shape );
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
+    Unsigned NumElem() const;
+    void CopyBuffer(const Tensor& A);
+
 private:
     ObjShape shape_;
     std::vector<Unsigned> strides_;
@@ -196,9 +199,9 @@ private:
     friend void ViewAsLowerOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
                                    const std::vector<ModeArray>& oldModes, bool isLocked );
     friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
-                                   const ModeArray& oldModes, const std::vector<ObjShape>& newShape, bool isLocked );
+                                   const std::vector<ObjShape>& splitShape, bool isLocked );
     friend void ViewAsMatrixHelper<T>( Tensor<T>& A, const Tensor<T>& B,
-                                       const std::vector<ModeArray>& oldModes, bool isLocked );
+                                       const Unsigned& nModesMergeCol, bool isLocked );
     friend void View<T>( Tensor<T>& A, Tensor<T>& B);
     friend void LockedView<T>( Tensor<T>& A, const Tensor<T>& B);
     friend void View<T>( Tensor<T>& A, Tensor<T>& B, const Location& loc, const ObjShape& shape );
@@ -228,25 +231,23 @@ private:
     void ViewAsHigherOrder<T>
     ( Tensor<T>& A,
       Tensor<T>& B,
-      const ModeArray& oldModes,
-      const std::vector<ObjShape>& newShape );
+      const std::vector<ObjShape>& splitShape );
     friend
     void LockedViewAsHigherOrder<T>
     ( Tensor<T>& A,
       const Tensor<T>& B,
-      const ModeArray& oldModes,
-      const std::vector<ObjShape>& newShape );
+      const std::vector<ObjShape>& splitShape );
 
     friend
     void ViewAsMatrix<T>
     ( Tensor<T>& A,
       Tensor<T>& B,
-      const std::vector<ModeArray>& oldModes );
+      const Unsigned& nModesMergeCol );
     friend
     void LockedViewAsMatrix<T>
     ( Tensor<T>& A,
       const Tensor<T>& B,
-      const std::vector<ModeArray>& oldModes );
+      const Unsigned& nModesMergeCol );
 };
 
 } // namespace tmen

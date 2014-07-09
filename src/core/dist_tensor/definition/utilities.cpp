@@ -116,6 +116,16 @@ DistTensor<T>::SetParticipatingComm()
     participatingComm_ = comm;
 }
 
+template<typename T>
+void
+DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::CopyBuffer");
+#endif
+    tensor_.CopyBuffer(A.LockedTensor());
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

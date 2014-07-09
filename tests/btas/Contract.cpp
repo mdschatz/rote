@@ -268,10 +268,7 @@ LocalContractTest( const Params& args )
 
     for(i = 0; i < localTests.size(); i++){
         LocalTest localTest = localTests[i];
-        std::vector<IndexArray> indices(3);
-        indices[0] = AIndices;
-        indices[1] = BIndices;
-        indices[2] = CIndices;
+
         ObjShape testShape = localTest.second;
         Tensor<T> C(testShape);
         MemZero(C.Buffer(), prod(C.Shape()));
@@ -306,7 +303,7 @@ LocalContractTest( const Params& args )
         Print(A, "A");
         Print(B, "B");
         Print(C, "PreC");
-        LocalContract(T(1), A, B, T(1), C, indices);
+        LocalContract(T(1), A, AIndices, B, BIndices, T(1), C, CIndices);
         Print(C, "PostC");
     }
 }

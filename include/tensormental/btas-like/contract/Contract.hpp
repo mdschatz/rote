@@ -21,17 +21,11 @@ namespace tmen{
 ////////////////////////////////////
 
 template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tensor<T>& C, const std::vector<IndexArray>& indices){
+void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
 #ifndef RELEASE
     CallStackEntry("LocalContract");
-    if(indices.size() != 3)
-        LogicError("LocalContract: indices vector must be of length 3 (A indices, B indices, C indices)");
 
-    IndexArray indA = indices[0];
-    IndexArray indB = indices[1];
-    IndexArray indC = indices[2];
-
-    if(indA.size() != A.Order() || indB.size() != B.Order() || indC.size() != C.Order())
+    if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
         LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
 
     //Check conformal modes
@@ -64,26 +58,20 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 //    }
 #endif
     Unsigned i, j;
-    const std::vector<ModeArray> contractPerms(DetermineContractModes(A, B, C, indices));
-
-    Unsigned nIndicesContract = 0;
-    for(i = 0; i < indices[0].size(); i++)
-        if(std::find(indices[1].begin(), indices[1].end(), indices[0][i]) != indices[1].end())
-            nIndicesContract++;
-    //TODO: Implement invPerm routine to get the invPermC variable (only reason I form CModes)
-    ModeArray CModes(C.Order());
-    for(i = 0; i < C.Order(); i++)
-        CModes[i] = i;
+    const std::vector<ModeArray> contractPerms(DetermineContractModes(indicesA, indicesB, indicesC));
+    const IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+    const Unsigned nIndicesContract = contractIndices.size();
 
     //Determine the permutations for each Tensor
-    const std::vector<Unsigned> permA = contractPerms[0];
-    const std::vector<Unsigned> permB = contractPerms[1];
-    const std::vector<Unsigned> permC = contractPerms[2];
-    const std::vector<Unsigned> invPermC = DeterminePermutation(permC, CModes);
+    const Permutation permA = contractPerms[0];
+    const Permutation permB = contractPerms[1];
+    const Permutation permC = contractPerms[2];
+    const Permutation invPermC = DetermineInversePermutation(permC);
 
     Tensor<T> PA(FilterVector(A.Shape(), permA));
     Tensor<T> PB(FilterVector(B.Shape(), permB));
     Tensor<T> PC(FilterVector(C.Shape(), permC));
+    Tensor<T> IPC;
     Tensor<T> MPA, MPB, MPC;
 
     //Permute A, B, C
@@ -110,31 +98,12 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 //    Print(PB, "PB");
 //    Print(PC, "PC");
 
-    const Unsigned maxOrder = Max(Max(PA.Order(), PB.Order()), PC.Order());
-    std::vector<Mode> tensorModes(maxOrder);
-
-    for(i = 0; i < maxOrder; i++)
-        tensorModes[i] = i;
-
     const Unsigned nIndicesM = permA.size() - nIndicesContract;
 
     //View as matrices
-    std::vector<ModeArray> MPAOldModes(2);
-    MPAOldModes[0].insert(MPAOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesM);
-    MPAOldModes[1].insert(MPAOldModes[1].end(), tensorModes.begin() + nIndicesM, tensorModes.begin() + A.Order());
-
-    std::vector<ModeArray> MPBOldModes(2);
-    MPBOldModes[0].insert(MPBOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesContract);
-    MPBOldModes[1].insert(MPBOldModes[1].end(), tensorModes.begin() + nIndicesContract, tensorModes.begin() + B.Order());
-
-    
-    std::vector<ModeArray> MPCOldModes(2);
-    MPCOldModes[0].insert(MPCOldModes[0].end(), tensorModes.begin(), tensorModes.begin() + nIndicesM);
-    MPCOldModes[1].insert(MPCOldModes[1].end(), tensorModes.begin() + nIndicesM, tensorModes.begin() + C.Order());
-
-    ViewAsMatrix(MPA, PA, MPAOldModes );
-    ViewAsMatrix(MPB, PB, MPBOldModes );
-    ViewAsMatrix(MPC, PC, MPCOldModes );
+    ViewAsMatrix(MPA, PA, nIndicesM );
+    ViewAsMatrix(MPB, PB, nIndicesContract );
+    ViewAsMatrix(MPC, PC, nIndicesM );
 
 //    Print(MPA, "MPA");
 //    Print(MPB, "MPB");
@@ -143,63 +112,40 @@ void LocalContract(T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tens
 //    Print(MPC, "PostMult");
     //View as tensor
 
-    std::vector<ObjShape> newShape(MPCOldModes.size());
-    for(i = 0; i < newShape.size(); i++){
-        ModeArray oldModes(MPCOldModes[i].size());
-        for(j = 0; j < MPCOldModes[i].size(); j++){
-            oldModes[j] = MPCOldModes[i][j];
-        }
-        newShape[i] = FilterVector(PC.Shape(), oldModes);
-    }
-    ModeArray MPCModes(2);
-    MPCModes[0] = 0;
-    MPCModes[1] = 1;
-    ViewAsHigherOrder(PC, MPC, MPCModes, newShape);
+    ObjShape splitColModes(nIndicesM);
+    for(i = 0; i < splitColModes.size(); i++)
+        splitColModes[i] = i;
+
+    std::vector<ObjShape> newShape(2);
+    newShape[0] = FilterVector(PC.Shape(), splitColModes);
+    newShape[1] = NegFilterVector(PC.Shape(), splitColModes);
+
+    ViewAsHigherOrder(IPC, MPC, newShape);
 
     //Permute back the data
 //    printf("\n\nPermuting PC: [%d", invPermC[0]);
 //    for(i = 1; i < invPermC.size(); i++)
 //        printf(" %d", invPermC[i]);
 //    printf("]\n");
-    Permute(C, PC, invPermC);
+    Permute(C, IPC, invPermC);
 //    Print(C, "result C");
-}
-
-template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
-
-    std::vector<IndexArray> indices;
-    indices.push_back(indicesA);
-    indices.push_back(indicesB);
-    indices.push_back(indicesC);
-    LocalContract(alpha, A, B, beta, C, indices);
 }
 
 //NOTE: Get rid of memcopy
 template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
     Unsigned i;
-    IndexArray contractIndices;
-    for(i = 0; i < indicesA.size(); i++)
-        if(std::find(indicesB.begin(), indicesB.end(), indicesA[i]) != indicesB.end())
-            contractIndices.push_back(indicesA[i]);
-    std::sort(contractIndices.begin(), contractIndices.end());
+    IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 
-    ObjShape tmpShape = C.Shape();
+    ObjShape unitModes(contractIndices.size(), 1);
+    ObjShape tmpShape = ConcatenateVectors(C.Shape(), unitModes);
     IndexArray tmpIndices = ConcatenateVectors(indicesC, contractIndices);
-    for(i = 0; i < contractIndices.size(); i++){
-        tmpShape.push_back(1);
-    }
 
     Tensor<T> tmp(tmpShape);
-    T* CBuf = C.Buffer();
-    T* tmpBuf = tmp.Buffer();
-    MemCopy(&(tmpBuf[0]), &(CBuf[0]), prod(tmp.Shape()));
+    //Cannot simply be an attach as will not have correct ldims_ set
+    tmp.CopyBuffer(C);
     LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
-    if(C.Order() == 0)
-        MemCopy(&(CBuf[0]), &(tmpBuf[0]),Max(1, prod(C.Shape())));
-    else
-        MemCopy(&(CBuf[0]), &(tmpBuf[0]), prod(C.Shape()));
+    C.CopyBuffer(tmp);
 }
 
 } // namespace tmen

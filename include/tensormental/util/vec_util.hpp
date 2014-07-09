@@ -33,6 +33,9 @@ template<typename T>
 bool AnyNonPositiveElem(const std::vector<T>& vec);
 
 template<typename T>
+bool AnyPositiveElem(const std::vector<T>& vec);
+
+template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec);
 
 template<typename T>
@@ -72,6 +75,8 @@ std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<
 
 template<typename T>
 Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
+
+Permutation DetermineInversePermutation(const Permutation& perm);
 
 } // namespace tmen
 

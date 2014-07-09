@@ -17,8 +17,9 @@
 
 namespace tmen{
 
-template <typename T>
-std::vector<ModeArray> DetermineContractModes(const Tensor<T>& A, const Tensor<T>& B, const Tensor<T>& C, const std::vector<IndexArray>& indices);
+std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC);
+
+IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray& indicesB);
 
 }
 #endif // ifndef TMEN_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP

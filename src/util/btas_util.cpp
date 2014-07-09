@@ -3,9 +3,7 @@
 
 namespace tmen{
 
-//TODO: Generalize so that the largest is not permuted
-template<typename T>
-std::vector<ModeArray> DetermineContractModes(const Tensor<T>& A, const Tensor<T>& B, const Tensor<T>& C, const std::vector<IndexArray>& indices){
+std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC){
     Unsigned i;
     std::vector<ModeArray> ret(3);
 
@@ -13,11 +11,6 @@ std::vector<ModeArray> DetermineContractModes(const Tensor<T>& A, const Tensor<T
     IndexArray indM;
     IndexArray indN;
     IndexArray indK;
-
-    //Indices
-    IndexArray indicesA = indices[0];
-    IndexArray indicesB = indices[1];
-    IndexArray indicesC = indices[2];
 
     for(i = 0; i < indicesA.size(); i++){
         Index index = indicesA[i];
@@ -55,10 +48,13 @@ std::vector<ModeArray> DetermineContractModes(const Tensor<T>& A, const Tensor<T
     return ret;
 }
 
-#define PROTO(T) \
-    template std::vector<ModeArray> DetermineContractModes(const Tensor<T>& A, const Tensor<T>& B, const Tensor<T>& C, const std::vector<IndexArray>& indices);
-
-PROTO(int)
-PROTO(float)
-PROTO(double)
+IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray& indicesB){
+    Unsigned i;
+    IndexArray contractIndices;
+    for(i = 0; i < indicesA.size(); i++)
+        if(std::find(indicesB.begin(), indicesB.end(), indicesA[i]) != indicesB.end())
+            contractIndices.push_back(indicesA[i]);
+    std::sort(contractIndices.begin(), contractIndices.end());
+    return contractIndices;
+}
 }

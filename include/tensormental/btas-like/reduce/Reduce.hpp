@@ -54,7 +54,7 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
 
      Tensor<T> PA(FilterVector(A.Shape(), perm));
      Tensor<T> PB(FilterVector(B.Shape(), perm));
-     Tensor<T> MPA, MPB;
+     Tensor<T> IPB, MPA, MPB;
 
      //Permute A, B
 //     printf("\n\nPermuting A: [%d", perm[0]);
@@ -68,29 +68,11 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
 //         printf(" %d", perm[i]);
 //     printf("]\n");
      Permute(PB, B, perm);
+     //     Print(PB, "PB");
 
      //View as matrices
-     ModeArray mergeModes0(reduceModes.size());
-     for(i = 0; i < mergeModes0.size(); i++)
-         mergeModes0[i] = i;
-
-     ModeArray mergeModes1(nonReduceModes.size());
-     for(i = 0; i < mergeModes1.size(); i++)
-         mergeModes1[i] = mergeModes0.size() + i;
-
-     std::vector<ModeArray> MPAOldModes(2);
-     MPAOldModes[0] = mergeModes0;
-     MPAOldModes[1] = mergeModes1;
-
-     std::vector<ModeArray> MPBOldModes(2);
-     MPBOldModes[0] = mergeModes0;
-     MPBOldModes[1] = mergeModes1;
-
-
-     ViewAsMatrix(MPA, PA, MPAOldModes );
-
-//     Print(PB, "PB");
-     ViewAsMatrix(MPB, PB, MPBOldModes );
+     ViewAsMatrix(MPA, PA, reduceModes.size() );
+     ViewAsMatrix(MPB, PB, reduceModes.size() );
 
 //     Print(MPA, "MPA");
 //     Print(MPB, "MPB");
@@ -110,13 +92,13 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
 
 //     Print(MPB, "MPB after reduce");
      //View as tensor
-     ModeArray MPBModes(2);
-     MPBModes[0] = 0;
-     MPBModes[1] = 1;
+//     ModeArray MPBModes(2);
+//     MPBModes[0] = 0;
+//     MPBModes[1] = 1;
 
-     std::vector<ObjShape> PBShape(2);
-     PBShape[0] = FilterVector(PB.Shape(), reduceModes);
-     PBShape[1] = FilterVector(PB.Shape(), nonReduceModes);
+//     std::vector<ObjShape> PBShape(2);
+//     PBShape[0] = FilterVector(PB.Shape(), reduceModes);
+//     PBShape[1] = FilterVector(PB.Shape(), nonReduceModes);
 
      //ViewAsHigherOrder(PB, MPB, MPBModes, PBShape);
 //     Print(PB, "PB after higher order view");

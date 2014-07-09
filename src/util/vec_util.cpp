@@ -45,6 +45,15 @@ bool AnyNonPositiveElem(const std::vector<T>& vec){
 }
 
 template<typename T>
+bool AnyPositiveElem(const std::vector<T>& vec){
+  Unsigned i;
+  for(i = 0; i < vec.size(); i++)
+    if(vec[i] > 0)
+      return true;
+  return false;
+}
+
+template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec){
   Unsigned i;
   for(i = 0; i < vec.size(); i++)
@@ -216,6 +225,14 @@ Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>
     return ret;
 }
 
+Permutation DetermineInversePermutation(const Permutation& perm){
+    Unsigned i;
+    Permutation basePerm(perm.size());
+    for(i = 0; i < basePerm.size(); i++)
+        basePerm[i] = i;
+    return DeterminePermutation(perm, basePerm);
+}
+
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
@@ -224,6 +241,7 @@ Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template bool AnyNonNegativeElem(const std::vector<T>& vec); \
 	template bool AnyNonPositiveElem(const std::vector<T>& vec); \
+	template bool AnyPositiveElem(const std::vector<T>& vec); \
 	template bool AnyNegativeElem(const std::vector<T>& vec); \
 	template bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \

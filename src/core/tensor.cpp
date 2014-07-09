@@ -1000,6 +1000,31 @@ Tensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims )
     ResizeTo_( shape, ldims );
 }
 
+template<typename T>
+Unsigned
+Tensor<T>::NumElem() const
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::NumElem");
+#endif
+    return prod(shape_);
+}
+
+template<typename T>
+void
+Tensor<T>::CopyBuffer(const Tensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::NumElem");
+#endif
+    T* thisBuf = Buffer();
+    const T* bufA = A.LockedBuffer();
+    if(A.Order() == 0)
+        MemCopy(&(thisBuf[0]), &(bufA[0]), 1);
+    else
+        MemCopy(&(thisBuf[0]), &(bufA[0]), A.NumElem());
+}
+
 template class Tensor<Int>;
 #ifndef DISABLE_FLOAT
 template class Tensor<float>;

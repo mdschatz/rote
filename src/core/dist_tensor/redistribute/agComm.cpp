@@ -43,9 +43,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
 
     //NOTE: Fix to handle strides in Tensor data
     if(gridModes.size() == 0){
-        T* dst = this->Buffer();
-        const T* src = A.LockedBuffer();
-        MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+        this->CopyLocalBuffer(A);
         return;
     }
     Unsigned sendSize, recvSize;

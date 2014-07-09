@@ -265,27 +265,25 @@ template<typename T>
 inline void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newShape,
+  const std::vector<ObjShape>& splitShape,
   bool isLocked)
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrderHelper");
-    B.AssertSplittableModes(oldModes, newShape);
 #endif
     Unsigned i, j;
     Unsigned newOrder = 0;
-    for(i = 0; i < newShape.size(); i++)
-        newOrder += newShape[i].size();
-    //A.memory_.Empty();
+    for(i = 0; i < splitShape.size(); i++)
+        newOrder += splitShape[i].size();
+    A.memory_.Empty();
 
     //Update the shape, ldims_, strides_, maps_
     A.shape_.resize(newOrder);
     A.ldims_.resize(newOrder);
     A.strides_.resize(newOrder);
     Unsigned modeCount = 0;
-    for(i = 0; i < newShape.size(); i++){
-        ObjShape newModeGroupShape = newShape[i];
+    for(i = 0; i < splitShape.size(); i++){
+        ObjShape newModeGroupShape = splitShape[i];
         for(j = 0; j < newModeGroupShape.size(); j++){
             A.shape_[modeCount] = newModeGroupShape[j];
             if(modeCount == 0){
@@ -310,27 +308,40 @@ template<typename T>
 inline void ViewAsMatrixHelper
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes, bool isLocked )
+  const Unsigned& nModesMergeCol, bool isLocked )
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsMartixHelper");
-    B.AssertMergeableModes(oldModes);
+    //B.AssertMergeableModes(oldModes);
 #endif
-    if(oldModes[0].size() > 0 && oldModes[1].size() > 0)
-        ViewAsLowerOrderHelper(A, B, oldModes, isLocked);
-    else{
+    if(nModesMergeCol > 0 && B.Order() - nModesMergeCol > 0){
+        Unsigned i;
+        std::vector<ModeArray> mergeModes(2);
+        for(i = 0; i < nModesMergeCol; i++)
+            mergeModes[0].push_back(i);
+        for(i = 0; i < B.Order() - nModesMergeCol; i++)
+            mergeModes[1].push_back(nModesMergeCol + i);
+        ViewAsLowerOrderHelper(A, B, mergeModes, isLocked);
+    }else{
+        Unsigned i;
         const Unsigned newOrder = 2;
+        ModeArray modesMergeCol(nModesMergeCol);
+        for(i = 0; i < modesMergeCol.size(); i++)
+            modesMergeCol[i] = i;
+        ModeArray modesMergeRow(B.Order() - nModesMergeCol);
+        for(i = 0; i < modesMergeRow.size(); i++)
+            modesMergeRow[i] = nModesMergeCol + i;
         A.memory_.Empty();
 
         //Update the shape, ldims_, strides_, maps_
         A.shape_.resize(newOrder);
         A.ldims_.resize(newOrder);
         A.strides_.resize(newOrder);
-        A.shape_[0] = Max(1,prod(FilterVector(B.Shape(), oldModes[0])));
-        A.strides_[0] = oldModes[0].size() == 0 ? 1 : B.LDim(oldModes[0][0]);
-        A.ldims_[0] = oldModes[0].size() == 0 ? 1 : B.LDim(oldModes[0][0]);
+        A.shape_[0] = Max(1,prod(FilterVector(B.Shape(), modesMergeCol)));
+        A.strides_[0] = modesMergeCol.size() == 0 ? 1 : B.LDim(modesMergeCol[0]);
+        A.ldims_[0] = modesMergeCol.size() == 0 ? 1 : B.LDim(modesMergeCol[0]);
 
-        A.shape_[1] = Max(1,prod(FilterVector(B.Shape(), oldModes[1])));
+        A.shape_[1] = Max(1,prod(FilterVector(B.Shape(), modesMergeRow)));
         A.strides_[1] = A.shape_[0] * A.strides_[0];
         A.ldims_[1] = A.shape_[0] * A.ldims_[0];
 
@@ -666,13 +677,12 @@ template<typename T>
 inline void ViewAsHigherOrder
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newShape)
+  const std::vector<ObjShape>& splitShape)
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
-    ViewAsHigherOrderHelper(A, B, oldModes, newShape, false);
+    ViewAsHigherOrderHelper(A, B, splitShape, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -680,10 +690,10 @@ inline void ViewAsHigherOrder
 template<typename T>
 inline Tensor<T> ViewAsHigherOrder
 ( Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes )
+  const std::vector<ObjShape>& splitShape )
 {
    Tensor<T> A(B.Order());
-   ViewAsHigherOrder(A, B, oldModes);
+   ViewAsHigherOrder(A, B, splitShape);
    return A;
 }
 
@@ -691,13 +701,12 @@ template<typename T>
 inline void LockedViewAsHigherOrder
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const ModeArray& oldModes,
-  const std::vector<ObjShape>& newShape)
+  const std::vector<ObjShape>& splitShape)
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
-    ViewAsHigherOrderHelper(A, B, oldModes, newShape, true);
+    ViewAsHigherOrderHelper(A, B, splitShape, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -705,10 +714,10 @@ inline void LockedViewAsHigherOrder
 template<typename T>
 inline Tensor<T> LockedViewAsHigherOrder
 ( const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes )
+  const std::vector<ObjShape>& splitShape )
 {
    Tensor<T> A(B.Order());
-   LockedViewAsHigherOrder(A, B, oldModes);
+   LockedViewAsHigherOrder(A, B, splitShape);
    return A;
 }
 
@@ -716,12 +725,12 @@ template<typename T>
 inline void ViewAsMatrix
 ( Tensor<T>& A,
   Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes )
+  const Unsigned& nModesMergeCol )
 {
 #ifndef RELEASE
     CallStackEntry entry("ViewAsLowerOrder");
 #endif
-    ViewAsMatrixHelper(A, B, oldModes, false);
+    ViewAsMatrixHelper(A, B, nModesMergeCol, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -729,10 +738,10 @@ inline void ViewAsMatrix
 template<typename T>
 inline Tensor<T> ViewAsMatrix
 ( Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes )
+  const Unsigned& nModesMergeCol )
 {
    Tensor<T> A(2);
-   ViewAsMatrix(A, B, oldModes);
+   ViewAsMatrix(A, B, nModesMergeCol);
    return A;
 }
 
@@ -740,12 +749,12 @@ template<typename T>
 inline void LockedViewAsMatrix
 ( Tensor<T>& A,
   const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes )
+  const Unsigned& nModesMergeCol )
 {
 #ifndef RELEASE
     CallStackEntry entry("LockedViewAsLowerOrder");
 #endif
-    ViewAsMatrixHelper(A, B, oldModes, true);
+    ViewAsMatrixHelper(A, B, nModesMergeCol, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }
@@ -753,10 +762,10 @@ inline void LockedViewAsMatrix
 template<typename T>
 inline Tensor<T> LockedViewAsMatrix
 ( const Tensor<T>& B,
-  const std::vector<ModeArray>& oldModes )
+  const Unsigned& nModesMergeCol )
 {
    Tensor<T> A(2);
-   LockedViewAsMatrix(A, B, oldModes);
+   LockedViewAsMatrix(A, B, nModesMergeCol);
    return A;
 }
 
