@@ -264,30 +264,31 @@ DistTensor<T>::Get( const Location& loc ) const
             u = this->GetLocal(localLoc);
         }
 
-        //Get the lin loc of the owner
-        Unsigned i, j;
-        int ownerLinearLoc = 0;
-        const TensorDistribution dist = gv.Distribution();
-        const tmen::Grid* g = gv.Grid();
-        const Unsigned participatingOrder = gv.ParticipatingOrder();
-        ModeArray participatingComms = ConcatenateVectors(gv.FreeModes(), gv.BoundModes());
-        std::sort(participatingComms.begin(), participatingComms.end());
-        const Location gvParticipatingLoc = gv.ParticipatingLoc();
-
-        ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
-        Location participatingGridLoc(gridSlice.size());
-
-        for(i = 0; i < participatingOrder; i++){
-            ModeDistribution modeDist = dist[i];
-            ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
-            const Location modeSliceLoc = LinearLoc2Loc(owningProc[i], modeSliceShape);
-
-            for(j = 0; j < modeDist.size(); j++){
-                int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
-                participatingGridLoc[indexOfMode] = modeSliceLoc[j];
-            }
-        }
-        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
+//        //Get the lin loc of the owner
+//        Unsigned i, j;
+//        int ownerLinearLoc = 0;
+//        const TensorDistribution dist = gv.Distribution();
+//        const tmen::Grid* g = gv.Grid();
+//        const Unsigned participatingOrder = gv.ParticipatingOrder();
+//        ModeArray participatingComms = ConcatenateVectors(gv.FreeModes(), gv.BoundModes());
+//        std::sort(participatingComms.begin(), participatingComms.end());
+//        const Location gvParticipatingLoc = gv.ParticipatingLoc();
+//
+//        ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
+//        Location participatingGridLoc(gridSlice.size());
+//
+//        for(i = 0; i < participatingOrder; i++){
+//            ModeDistribution modeDist = dist[i];
+//            ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
+//            const Location modeSliceLoc = LinearLoc2Loc(owningProc[i], modeSliceShape);
+//
+//            for(j = 0; j < modeDist.size(); j++){
+//                int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
+//                participatingGridLoc[indexOfMode] = modeSliceLoc[j];
+//            }
+//        }
+//        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
+        int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);
         //
 
         //const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);

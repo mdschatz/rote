@@ -50,8 +50,14 @@ Location LinearLoc2Loc_(Unsigned linearLoc, const ObjShape& objShape, const Perm
 Unsigned GridViewLoc2GridLinearLoc(const Location& gridViewLoc, const GridView& gridView);
 Unsigned GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView);
 
+Unsigned GridViewLoc2ParticipatingLinearLoc(const Location& gridViewLoc, const GridView& gridView);
+Unsigned GridViewLoc2ParticipatingLinearLoc_(const Location& gridViewLoc, const GridView& gridView);
+
 Location GridViewLoc2GridLoc(const Location& gridViewLoc, const GridView& gridView);
 Location GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView);
+
+Location GridViewLoc2ParticipatingLoc(const Location& gridViewLoc, const GridView& gridView);
+Location GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridView);
 
 Location GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist);
 

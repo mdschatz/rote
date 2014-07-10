@@ -428,6 +428,80 @@ GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
 
 inline
 Location
+GridViewLoc2ParticipatingLoc(const Location& gridViewLoc, const GridView& gridView)
+{
+    return GridViewLoc2ParticipatingLoc_(gridViewLoc, gridView);
+}
+
+inline
+Location
+GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridView)
+{
+    Unsigned i, j;
+    const TensorDistribution dist = gridView.Distribution();
+    const tmen::Grid* g = gridView.Grid();
+    const Unsigned participatingOrder = gridView.ParticipatingOrder();
+    ModeArray participatingComms = ConcatenateVectors(gridView.FreeModes(), gridView.BoundModes());
+    std::sort(participatingComms.begin(), participatingComms.end());
+
+    const Location gvParticipatingLoc = gridView.ParticipatingLoc();
+
+    ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
+    Location participatingGridLoc(gridSlice.size());
+
+    for(i = 0; i < participatingOrder; i++){
+        ModeDistribution modeDist = dist[i];
+        ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
+        const Location modeSliceLoc = LinearLoc2Loc(gridViewLoc[i], modeSliceShape);
+
+        for(j = 0; j < modeDist.size(); j++){
+            int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
+            participatingGridLoc[indexOfMode] = modeSliceLoc[j];
+        }
+    }
+    return participatingGridLoc;
+}
+inline
+Unsigned
+GridViewLoc2ParticipatingLinearLoc(const Location& gridViewLoc, const GridView& gridView)
+{
+    return GridViewLoc2ParticipatingLinearLoc_(gridViewLoc, gridView);
+}
+
+inline
+Unsigned
+GridViewLoc2ParticipatingLinearLoc_(const Location& gridViewLoc, const GridView& gridView)
+{
+    //Get the lin loc of the owner
+    Unsigned i, j;
+    int ownerLinearLoc = 0;
+    const TensorDistribution dist = gridView.Distribution();
+    const tmen::Grid* g = gridView.Grid();
+    const Unsigned participatingOrder = gridView.ParticipatingOrder();
+    ModeArray participatingComms = ConcatenateVectors(gridView.FreeModes(), gridView.BoundModes());
+    std::sort(participatingComms.begin(), participatingComms.end());
+
+    const Location gvParticipatingLoc = gridView.ParticipatingLoc();
+
+    ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
+    Location participatingGridLoc(gridSlice.size());
+
+    for(i = 0; i < participatingOrder; i++){
+        ModeDistribution modeDist = dist[i];
+        ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
+        const Location modeSliceLoc = LinearLoc2Loc(gridViewLoc[i], modeSliceShape);
+
+        for(j = 0; j < modeDist.size(); j++){
+            int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
+            participatingGridLoc[indexOfMode] = modeSliceLoc[j];
+        }
+    }
+    ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
+    return ownerLinearLoc;
+}
+
+inline
+Location
 GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist)
 {
     Unsigned i;
