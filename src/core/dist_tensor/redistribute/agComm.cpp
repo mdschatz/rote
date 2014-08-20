@@ -55,7 +55,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
 
-    const mpi::Comm comm = A.GetCommunicatorForModes(gridModes);
+    const mpi::Comm comm = this->GetCommunicatorForModes(gridModes, A.Grid());
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);

@@ -56,6 +56,12 @@ template <typename T>
 void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode reduceMode){
     if(!this->CheckReduceToOneCommRedist(A, reduceMode))
       LogicError("ReduceToOneRedist: Invalid redistribution request");
+
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
+    const ModeArray commModes = A.ModeDist(reduceMode);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+
     if(!A.Participating())
         return;
     Unsigned sendSize, recvSize;
@@ -66,9 +72,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
 
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    const ModeArray commModes = A.ModeDist(reduceMode);
-    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
+
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);

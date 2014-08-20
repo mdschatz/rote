@@ -22,6 +22,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
   tensor_(true),
 
   grid_(&grid),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -41,6 +42,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
   tensor_(order, false),
 
   grid_(&grid),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -60,6 +62,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& gri
   tensor_(shape_.size(), false),
 
   grid_(&grid),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -80,6 +83,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&grid),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -108,6 +112,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -135,6 +140,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -162,6 +168,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -190,6 +197,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -220,6 +228,7 @@ DistTensor<T>::DistTensor( const std::string& dist, const tmen::Grid& grid )
   tensor_(shape_.size(), false),
 
   grid_(&grid),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -240,6 +249,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&grid),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -268,6 +278,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -295,6 +306,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -322,6 +334,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -350,6 +363,7 @@ DistTensor<T>::DistTensor
   tensor_(shape_.size(), false),
 
   grid_(&g),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 
@@ -376,6 +390,7 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
   tensor_(true),
 
   grid_(&(A.Grid())),
+  commMap_(&(DefaultCommMap())),
   gridView_(grid_, dist_),
   participatingComm_(),
 

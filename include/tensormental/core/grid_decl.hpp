@@ -48,6 +48,8 @@ public:
 
     static int FindFactor( int p );
 
+    mpi::Comm GetCommunicatorForModes(const ModeArray& modes);
+
 private:
     ObjShape shape_;
     Unsigned size_;
@@ -68,6 +70,8 @@ private:
     mpi::Comm cartComm_;  // the processes that are in the grid
     mpi::Comm owningComm_;
 
+    //std::map<ModeArray, mpi::Comm> comms_;
+
     void SetUpGrid();
 
     // Disable copying this class due to MPI_Comm/MPI_Group ownership issues
@@ -82,6 +86,7 @@ bool operator!= ( const Grid& A, const Grid& B );
 
 // Return a grid constructed using mpi::COMM_WORLD.
 const Grid& DefaultGrid();
+mpi::CommMap& DefaultCommMap();
 
 } // namespace tmen
 

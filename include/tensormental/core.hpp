@@ -110,8 +110,8 @@
 #include "tensormental/core/repartition_impl.hpp"
 #include "tensormental/core/slide_partition_decl.hpp"
 #include "tensormental/core/slide_partition_impl.hpp"
-//#include "tensormental/core/random_decl.hpp"
-//#include "tensormental/core/random_impl.hpp"
+#include "tensormental/core/random_decl.hpp"
+#include "tensormental/core/random_impl.hpp"
 //#include "tensormental/core/axpy_interface_decl.hpp"
 //#include "tensormental/core/axpy_interface_impl.hpp"
 

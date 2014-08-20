@@ -34,7 +34,6 @@ typedef std::vector<Unsigned> ObjShape;
 typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
 
-
 template<typename Real>
 using Complex = std::complex<Real>;
 

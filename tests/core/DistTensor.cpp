@@ -120,8 +120,8 @@ void
 Set(Tensor<T>& A)
 {
     Unsigned order = A.Order();
-    Location loc(order);
-    std::fill(loc.begin(), loc.end(), 0);
+    Location loc(order, 0);
+
     Unsigned ptr = 0;
     Unsigned counter = 0;
     bool stop = false;
@@ -151,8 +151,8 @@ void
 Set(DistTensor<T>& A)
 {
     Unsigned order = A.Order();
-    Location loc(order);
-    std::fill(loc.begin(), loc.end(), 0);
+    Location loc(order, 0);
+
     Unsigned ptr = 0;
     Unsigned counter = 0;
     bool stop = false;

@@ -245,11 +245,15 @@ DistTensor<T>::Set( const Location& loc, T u )
     const Location owningProc = this->DetermineOwner(loc);
     const GridView gv = GetGridView();
 
+//    printf("Setting\n");
+//    printf("val: %.3f\n", u);
+//    PrintVector(owningProc, "owner");
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
+//        printf("I'm the owner\n");
         const Location localLoc = this->Global2LocalIndex(loc);
         this->SetLocal(localLoc, u);
     }
-
+//    printf("Exiting\n");
 }
 
 template<typename T>

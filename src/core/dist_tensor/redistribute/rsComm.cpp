@@ -69,7 +69,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
 
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     const ModeArray commModes = A.ModeDist(reduceMode);
-    const mpi::Comm comm = A.GetCommunicatorForModes(commModes);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);

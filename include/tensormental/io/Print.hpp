@@ -29,8 +29,8 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
         os << title << " ";
     
     const Unsigned order = A.Order();
-    Location curLoc(order);
-    std::fill(curLoc.begin(), curLoc.end(), 0);
+    Location curLoc(order, 0);
+
     int ptr = 0;
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     while(!done){
@@ -70,8 +70,8 @@ Print
         os << title << std::endl;
 
     const Unsigned order = A.Order();
-    Location curLoc(order);
-    std::fill(curLoc.begin(), curLoc.end(), 0);
+    Location curLoc(order, 0);
+
     int ptr = 0;
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     T u = T(0);

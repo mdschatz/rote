@@ -62,7 +62,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize;
 
-    const mpi::Comm comm = A.GetCommunicatorForModes(redistModes);
+    const mpi::Comm comm = this->GetCommunicatorForModes(redistModes, A.Grid());
     const int myRank = mpi::CommRank(comm);
 
     Memory<T> auxMemory;

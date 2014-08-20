@@ -56,6 +56,11 @@ template <typename T>
 void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gatherMode, const ModeArray& gridModes){
     if(!this->CheckGatherToOneCommRedist(A, gatherMode, gridModes))
       LogicError("GatherToOneRedist: Invalid redistribution request");
+
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
+    const mpi::Comm comm = this->GetCommunicatorForModes(gridModes, A.Grid());
+
     if(!A.Participating())
         return;
     Unsigned sendSize, recvSize;
@@ -67,8 +72,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gat
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
 
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    const mpi::Comm comm = A.GetCommunicatorForModes(gridModes);
+
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + nRedistProcs*recvSize);
@@ -78,7 +82,6 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gat
 
     PackGTOCommSendBuf(A, gatherMode, gridModes, sendBuf);
 
-//    std::cout << "my rank for gather comm: " << mpi::CommRank(comm) << std::endl;
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 
     if(!(this->Participating()))

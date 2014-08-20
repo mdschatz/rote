@@ -197,7 +197,7 @@ public:
     Location GridViewLoc() const;
     ObjShape GridViewShape() const;
     mpi::Comm GetCommunicator(Mode mode) const;
-    mpi::Comm GetCommunicatorForModes(const ModeArray& modes) const;
+    mpi::Comm GetCommunicatorForModes(const ModeArray& modes, const tmen::Grid& grid);
     void SetParticipatingComm();
     mpi::Comm GetParticipatingComm() const;
     void Empty();
@@ -430,6 +430,7 @@ protected:
 
     //Grid information
     const tmen::Grid* grid_;
+    tmen::mpi::CommMap* commMap_;
     tmen::GridView gridView_;
     mpi::Comm participatingComm_;
 

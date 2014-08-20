@@ -72,22 +72,45 @@ DistTensor<T>::GetCommunicator(Mode mode) const
 
 template<typename T>
 mpi::Comm
-DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes) const
+DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::Grid& grid)
 {
-    mpi::Comm comm;
-    const Location gridLoc = grid_->Loc();
-    const ObjShape gridShape = grid_->Shape();
+//    return grid_->GetCommunicatorForModes(commModes);
+//    mpi::Comm comm;
+//    const Location gridLoc = grid_->Loc();
+//    const ObjShape gridShape = grid_->Shape();
+//
+//    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
+//    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
+//    Location gridSliceLoc = FilterVector(gridLoc, commModes);
+//    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
+//
+//    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
+//    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
+//
+//    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
+    if(commMap_->count(commModes) == 0){
+        mpi::Comm comm;
+        const Location gridLoc = grid.Loc();
+        const ObjShape gridShape = grid.Shape();
 
-    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
-    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
-    Location gridSliceLoc = FilterVector(gridLoc, commModes);
-    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
+        ObjShape gridSliceShape = FilterVector(gridShape, commModes);
+        ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
+        Location gridSliceLoc = FilterVector(gridLoc, commModes);
+        Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
 
-    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
-    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
+//        PrintVector(gridSliceShape, "gridSliceShape");
+//        PrintVector(gridSliceNegShape, "gridSliceNegShape");
+//        PrintVector(gridSliceLoc, "gridSliceLoc");
+//        PrintVector(gridSliceNegLoc, "gridSliceNegLoc");
+        const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
+        const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
 
-    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
-    return comm;
+        //Check this, original was commented line with participating
+        mpi::CommSplit(grid.OwningComm(), commColor, commKey, comm);
+//        std::cout << "made size " << mpi::CommSize(comm) << " comm\n";
+        (*commMap_)[commModes] = comm;
+    }
+    return (*commMap_)[commModes];
 }
 
 template<typename T>
@@ -112,7 +135,7 @@ DistTensor<T>::SetParticipatingComm()
     const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
 
-    mpi::CommSplit(mpi::COMM_WORLD, commColor, commKey, comm);
+    mpi::CommSplit(Grid().OwningComm(), commColor, commKey, comm);
     participatingComm_ = comm;
 }
 

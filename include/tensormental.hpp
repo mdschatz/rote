@@ -16,7 +16,7 @@
 #endif
 
 #include "tensormental/core.hpp"
-//#include "tensormental/tensors.hpp"
+#include "tensormental/tensors.hpp"
 //#include "tensormental/blas-like.hpp"
 #include "tensormental/btas-like.hpp"
 //#include "tensormental/btas.hpp"

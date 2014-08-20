@@ -97,8 +97,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     std::string tensorDist(argv[++argCount]);
     args.tensorDist = tmen::StringToTensorDist(tensorDist);
 
-
-    if(args.tensorDist.size() != args.tensorShape.size()){
+    if(args.tensorDist.size() != args.tensorShape.size() + 1){
         std::cerr << "Tensor distribution must be of same order as tensor\n";
         Usage();
         throw ArgException();
@@ -154,8 +153,8 @@ TestConstViews(DistTensor<T>& A){
     const tmen::Grid& g = A.Grid();
     Unsigned i, j;
     const Unsigned order = A.Order();
-    Location start(order);
-    std::fill(start.begin(), start.end(), 0);
+    Location start(order, 0);
+
     const ObjShape shape = A.Shape();
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
@@ -247,8 +246,8 @@ TestNonConstViews(DistTensor<T>& A){
     const tmen::Grid& g = A.Grid();
     Unsigned i, j;
     const Unsigned order = A.Order();
-    Location start(order);
-    std::fill(start.begin(), start.end(), 0);
+    Location start(order, 0);
+
     const ObjShape shape = A.Shape();
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
@@ -334,31 +333,32 @@ template<typename T>
 void
 Set(DistTensor<T>& A)
 {
-    Unsigned order = A.Order();
-    Location loc(order);
-    std::fill(loc.begin(), loc.end(), 0);
-    Unsigned ptr = 0;
-    Unsigned counter = 0;
-    bool stop = false;
+    MakeUniform(A);
+//    Unsigned order = A.Order();
+//    Location loc(order, 0);
 
-    while(!stop){
-        A.Set(loc, counter);
-
-        //Update
-        counter++;
-        loc[ptr]++;
-        while(loc[ptr] == A.Dimension(ptr)){
-            loc[ptr] = 0;
-            ptr++;
-            if(ptr == order){
-                stop = true;
-                break;
-            }else{
-                loc[ptr]++;
-            }
-        }
-        ptr = 0;
-    }
+//    Unsigned ptr = 0;
+//    Unsigned counter = 0;
+//    bool stop = false;
+//
+//    while(!stop){
+//        A.Set(loc, counter);
+//
+//        //Update
+//        counter++;
+//        loc[ptr]++;
+//        while(loc[ptr] == A.Dimension(ptr)){
+//            loc[ptr] = 0;
+//            ptr++;
+//            if(ptr == order){
+//                stop = true;
+//                break;
+//            }else{
+//                loc[ptr]++;
+//            }
+//        }
+//        ptr = 0;
+//    }
 }
 
 template<typename T>
@@ -373,6 +373,7 @@ DistTensorTest( const Params& args, const Grid& g )
     DistTensor<T> A(args.tensorShape, args.tensorDist, g);
 
     Set(A);
+    Print(A, "Random A");
 
     if(commRank == 0){
         printf("Performing Const tests\n");
@@ -422,7 +423,7 @@ main( int argc, char* argv[] )
 
         const Grid g( comm, args.gridShape );
 
-        DistTensorTest<int>( args, g );
+        DistTensorTest<double>( args, g );
 
     }
     catch( std::exception& e ) { ReportException(e); }

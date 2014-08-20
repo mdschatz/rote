@@ -24,6 +24,7 @@ double minRealWindowVal, maxRealWindowVal,
 #endif
 std::stack<tmen::Int> blocksizeStack;
 tmen::Grid* defaultGrid = 0;
+tmen::mpi::CommMap* defaultCommMap = 0;
 tmen::Args* args = 0;
 
 // A common Mersenne twister configuration
@@ -136,6 +137,7 @@ void Initialize( int& argc, char**& argv )
 
     // Build the default grid
     //defaultGrid = new Grid( mpi::COMM_WORLD );
+    defaultCommMap = new mpi::CommMap();
 
     // Create the types and ops needed for ValueInt
     mpi::CreateValueIntType<Int>();
@@ -202,11 +204,14 @@ void Finalize()
             // Delete the default grid
             delete ::defaultGrid;
             ::defaultGrid = 0;
+            delete ::defaultCommMap;
+            ::defaultCommMap = 0;
 
             mpi::Finalize();
         }
 
         ::defaultGrid = 0;
+        ::defaultCommMap = 0;
         while( ! ::blocksizeStack.empty() )
             ::blocksizeStack.pop();
     }
@@ -241,6 +246,18 @@ const Grid& DefaultGrid()
          "Elemental is initialized before creating a DistMatrix.");
 #endif
     return *::defaultGrid;
+}
+
+mpi::CommMap& DefaultCommMap()
+{
+#ifndef RELEASE
+    CallStackEntry entry("DefaultCommMap");
+    if( ::defaultCommMap == 0 )
+        LogicError
+        ("Attempted to return a non-existant default grid. Please ensure that "
+         "Elemental is initialized before creating a DistMatrix.");
+#endif
+    return *::defaultCommMap;
 }
 
 std::mt19937& Generator()

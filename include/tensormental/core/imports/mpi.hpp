@@ -44,6 +44,8 @@ typedef MPI_Request Request;
 typedef MPI_Status Status;
 typedef MPI_User_function UserFunction;
 
+typedef std::map<ModeArray, mpi::Comm> CommMap;
+
 // Standard constants
 const int ANY_SOURCE = MPI_ANY_SOURCE;
 const int ANY_TAG = MPI_ANY_TAG;
