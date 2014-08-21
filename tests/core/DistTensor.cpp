@@ -776,6 +776,7 @@ DistTensorTest( const Params& args, const Grid& g )
 
     DistTensor<T> A(args.tensorShape, args.tensorDist, g);
     Set(A);
+    Print(A, "A");
 
     std::vector<AGTest> agTests = CreateAGTests(A, args);
     std::vector<GTOTest> gtoTests = CreateGTOTests(A, args);

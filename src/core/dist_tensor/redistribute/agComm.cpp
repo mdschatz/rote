@@ -38,6 +38,9 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     if(!CheckAllGatherCommRedist(A, agMode, gridModes))
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
+
+    const mpi::Comm comm = this->GetCommunicatorForModes(gridModes, A.Grid());
+
     if(!A.Participating())
         return;
 
@@ -54,8 +57,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
 
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
-
-    const mpi::Comm comm = this->GetCommunicatorForModes(gridModes, A.Grid());
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -150,8 +151,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const ObjShape commShape = FilterVector(g.Shape(), redistModes);
-    const Unsigned nRedistProcs = prod(commShape);
+    const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), redistModes));
 
     const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
     const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
@@ -188,6 +188,12 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     Unsigned agModeRecvBufOff, agModeDataBufOff;  //Offsets used to index into dataBuf array
     Unsigned startRecvBuf, startDataBuf;
 
+    ModeArray commModes = redistModes;
+    std::sort(commModes.begin(), commModes.end());
+    const ObjShape redistShape = FilterVector(Grid().Shape(), redistModes);
+    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+    const Permutation redistPerm = DeterminePermutation(commModes, redistModes);
+
 //    printf("MemCopy info:\n");
 //    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
 //    printf("    nMaxAGModeSlices: %d\n", nMaxAGModeSlices);
@@ -195,8 +201,14 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
 //    printf("    copySliceSize: %d\n", copySliceSize);
 //    printf("    agModeUnpackStride: %d\n", agModeUnpackStride);
     for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
+        const Location elemCommLoc = LinearLoc2Loc(elemSliceNum, commShape);
+        const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, redistPerm), redistShape);
+
+//        PrintVector(redistModes, "redistModes");
+//        PrintVector(elemCommLoc, "elemCommLoc");
+//        std::cout << "elemRedistLinLoc" << elemRedistLinLoc << std::endl;
         elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
-        elemDataBufOff = copySliceSize * elemSliceNum;
+        elemDataBufOff = copySliceSize * elemRedistLinLoc;
 
 //        printf("      elemSliceNum: %d\n", elemSliceNum);
 //        printf("      elemRecvBufOff: %d\n", elemRecvBufOff);

@@ -74,6 +74,8 @@ template<typename T>
 mpi::Comm
 DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::Grid& grid)
 {
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
 //    return grid_->GetCommunicatorForModes(commModes);
 //    mpi::Comm comm;
 //    const Location gridLoc = grid_->Loc();
@@ -88,15 +90,15 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::G
 //    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
 //
 //    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
-    if(commMap_->count(commModes) == 0){
+    if(commMap_->count(sortedCommModes) == 0){
         mpi::Comm comm;
         const Location gridLoc = grid.Loc();
         const ObjShape gridShape = grid.Shape();
 
-        ObjShape gridSliceShape = FilterVector(gridShape, commModes);
-        ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
-        Location gridSliceLoc = FilterVector(gridLoc, commModes);
-        Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
+        ObjShape gridSliceShape = FilterVector(gridShape, sortedCommModes);
+        ObjShape gridSliceNegShape = NegFilterVector(gridShape, sortedCommModes);
+        Location gridSliceLoc = FilterVector(gridLoc, sortedCommModes);
+        Location gridSliceNegLoc = NegFilterVector(gridLoc, sortedCommModes);
 
 //        PrintVector(gridSliceShape, "gridSliceShape");
 //        PrintVector(gridSliceNegShape, "gridSliceNegShape");
@@ -108,9 +110,10 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::G
         //Check this, original was commented line with participating
         mpi::CommSplit(grid.OwningComm(), commColor, commKey, comm);
 //        std::cout << "made size " << mpi::CommSize(comm) << " comm\n";
-        (*commMap_)[commModes] = comm;
+        (*commMap_)[sortedCommModes] = comm;
+
     }
-    return (*commMap_)[commModes];
+    return (*commMap_)[sortedCommModes];
 }
 
 template<typename T>

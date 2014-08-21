@@ -173,8 +173,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const ObjShape commShape = FilterVector(g.Shape(), gridModes);
-    const Unsigned nRedistProcs = Max(1, prod(commShape));
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), gridModes)));
 
     //Only unpack if we are the root (everyone else gets nothing)
     //if(gvB.ModeLoc(gMode) == 0){
@@ -216,14 +215,23 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
         Unsigned gModeRecvBufOff, gModeDataBufOff;  //Offsets used to index into dataBuf array
         Unsigned startRecvBuf, startDataBuf;
 
+        ModeArray commModes = gridModes;
+        std::sort(commModes.begin(), commModes.end());
+        const ObjShape redistShape = FilterVector(Grid().Shape(), gridModes);
+        const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+        const Permutation redistPerm = DeterminePermutation(commModes, gridModes);
+
 //        printf("MemCopy info:\n");
 //        printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
 //        printf("    nMaxGModeSlices: %d\n", nMaxGModeSlices);
 //        printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
 //        printf("    copySliceSize: %d\n", copySliceSize);
         for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
+            const Location elemCommLoc = LinearLoc2Loc(elemSliceNum, commShape);
+            const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, redistPerm), redistShape);
+
             elemRecvBufOff = prod(maxLocalShapeA) * elemSliceNum;
-            elemDataBufOff = copySliceSize * elemSliceNum;
+            elemDataBufOff = copySliceSize * elemRedistLinLoc;
 
             for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
                 if(outerSliceNum >= nLocalOuterSlices)

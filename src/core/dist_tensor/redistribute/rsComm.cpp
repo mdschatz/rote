@@ -56,6 +56,11 @@ template <typename T>
 void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
     if(!this->CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
+
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    const ModeArray commModes = A.ModeDist(reduceMode);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+
     if(!A.Participating())
         return;
     Unsigned sendSize, recvSize;
@@ -67,9 +72,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
     recvSize = prod(maxLocalShapeA);
     sendSize = recvSize * nRedistProcs;
 
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    const ModeArray commModes = A.ModeDist(reduceMode);
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+
 
     Memory<T> auxMemory;
     T* auxBuf = auxMemory.Require(sendSize + recvSize);
@@ -129,8 +132,15 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     Unsigned outerDataBufOff, sModeDataBufOff;
     Unsigned startSendBuf, startDataBuf;
 
+    const ModeArray redistModes = A.ModeDist(rMode);
+    ModeArray commModes = redistModes;
+    std::sort(commModes.begin(), commModes.end());
+    const ObjShape redistShape = FilterVector(Grid().Shape(), redistModes);
+    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+    const Permutation commPerm = DeterminePermutation(redistModes, commModes);
 
 //    printf("MemCopy info:\n");
+//    printf("    prod(maxLocalShapeA): %d\n", prod(maxLocalShapeA));
 //    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
 //    printf("    nLocalOuterSlices: %d\n", nLocalOuterSlices);
 //    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
@@ -139,7 +149,18 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 //    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
 //    printf("    copySliceSize: %d\n", copySliceSize);
     for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
-        elemSendBufOff = prod(maxLocalShapeA) * elemSliceNum;
+        const Location elemRedistLoc = LinearLoc2Loc(elemSliceNum, redistShape);
+        const Unsigned elemCommLinLoc = Loc2LinearLoc(FilterVector(elemRedistLoc, commPerm), commShape);
+
+
+//        PrintVector(redistShape, "redistShape");
+//        PrintVector(redistModes, "redistModes");
+//        PrintVector(elemRedistLoc, "elemRedistLoc");
+//        PrintVector(commPerm, "commPerm");
+//        PrintVector(FilterVector(elemRedistLoc, commPerm), "redistLoc");
+//        std::cout << "elemCommLinLoc" << elemCommLinLoc << std::endl;
+
+        elemSendBufOff = prod(maxLocalShapeA) * elemCommLinLoc;
         elemDataBufOff = copySliceSize * elemSliceNum;
 
 //        printf("      elemSliceNum:   %d\n", elemSliceNum);
