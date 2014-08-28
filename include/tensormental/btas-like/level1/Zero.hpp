@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_BLAS_ZERO_HPP
-#define TMEN_BLAS_ZERO_HPP
+#ifndef TMEN_BTAS_ZERO_HPP
+#define TMEN_BTAS_ZERO_HPP
 
 namespace tmen {
 
@@ -36,4 +36,4 @@ Zero( DistTensor<T>& A )
 
 } // namespace tmen
 
-#endif // ifndef TMEN_BLAS_ZERO_HPP
+#endif // ifndef TMEN_BTAS_ZERO_HPP

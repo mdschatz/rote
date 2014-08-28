@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_BLAS_GEMM_HPP
-#define TMEN_BLAS_GEMM_HPP
+#ifndef TMEN_BTAS_GEMM_HPP
+#define TMEN_BTAS_GEMM_HPP
 
 #include "tensormental/core/tensor_forward_decl.hpp"
 
@@ -55,4 +55,4 @@ Gemm
 
 } // namespace tmen
 
-#endif // ifndef TMEN_BLAS_GEMM_HPP
+#endif // ifndef TMEN_BTAS_GEMM_HPP

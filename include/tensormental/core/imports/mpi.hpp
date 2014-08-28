@@ -12,6 +12,7 @@
 #define TMEN_CORE_MPI_HPP
 
 #include "mpi.h"
+#include <map>
 #include "tensormental/core/types_decl.hpp"
 #include "tensormental/core/error_decl.hpp"
 

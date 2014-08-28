@@ -7,9 +7,9 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_BLAS_LEVEL3_HPP
-#define TMEN_BLAS_LEVEL3_HPP
+#ifndef TMEN_BTAS_LEVEL3_HPP
+#define TMEN_BTAS_LEVEL3_HPP
 
 #include "./level3/Gemm.hpp"
 
-#endif // ifndef TMEN_BLAS_LEVEL3_HPP
+#endif // ifndef TMEN_BTAS_LEVEL3_HPP

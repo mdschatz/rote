@@ -470,7 +470,7 @@ if(TMEN_TESTS)
   set(TEST_TYPES core btas)
 
   set(core_TESTS DistTensor Views Grids)
-  set(btas_TESTS Contract)
+  set(btas_TESTS Level1 Contract)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")

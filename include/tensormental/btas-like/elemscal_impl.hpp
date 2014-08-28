@@ -7,11 +7,9 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_BTAS_LEVEL1_HPP
-#define TMEN_BTAS_LEVEL1_HPP
+#ifndef TMEN_BTAS_ELEMSCAL_IMPL_HPP
+#define TMEN_BTAS_ELEMSCAL_IMPL_HPP
 
-#include "./level1/Zero.hpp"
-#include "./level1/YAxpPx.hpp"
-#include "./level1/Axpy.hpp"
+#include "./elemscal/Elemscal.hpp"
 
-#endif // ifndef TMEN_BTAS_LEVEL1_HPP
+#endif // ifndef TMEN_BTAS_ELEMSCAL_IMPL_HPP

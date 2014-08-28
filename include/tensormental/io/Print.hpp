@@ -123,11 +123,11 @@ PrintData
 ( const Tensor<T>& A, std::string title="", std::ostream& os = std::cout){
     os << title << std::endl;
     PrintVector(A.Shape(), "    shape", os);
-    os << "    local data:";
-    const T* buffer = A.LockedBuffer();
-    for(Unsigned i = 0; i < prod(A.Shape()); i++)
-        os << " " << buffer[i];
-    os << std::endl;
+//    os << "    local data:";
+//    const T* buffer = A.LockedBuffer();
+//    for(Unsigned i = 0; i < prod(A.Shape()); i++)
+//        os << " " << buffer[i];
+//    os << std::endl;
 }
 
 template<typename T>
