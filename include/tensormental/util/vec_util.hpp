@@ -21,7 +21,7 @@ template<typename T>
 T prod(const std::vector<T>& a, const Unsigned startIndex = 0);
 
 template<typename T>
-T prod(const std::vector<T>& a, const Unsigned startIndex, const Unsigned endIndex);
+T prod(const std::vector<T>& a, const Unsigned startIndex, const Unsigned nElem);
 
 template<typename T>
 void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);

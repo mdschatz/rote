@@ -119,12 +119,15 @@ public:
     ObjShape Shape() const;
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
+    std::vector<Unsigned> LocalStrides() const;
     Unsigned LocalModeStride(Mode mode) const;
 
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Mode mode) const;
 
 
+    std::vector<Unsigned> Strides() const;
+    Unsigned Stride(Mode mode) const;
     std::vector<Unsigned> LDims() const;
     Unsigned LDim(Mode mode) const;
     size_t AllocatedMemory() const;
@@ -231,7 +234,9 @@ public:
     //
     Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
     void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
+    void PackAGCommSendBufHelper(const AGPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
+    void UnpackAGCommRecvBufHelper(const AGUnpackData& packData, const Mode packMode, T const * const sendBuf, T * const dataBuf);
     void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
 
     //

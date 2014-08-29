@@ -15,10 +15,10 @@ T prod(const std::vector<T>& src, const Unsigned startIndex){
 }
 
 template<typename T>
-T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex){
+T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned nElem){
   if (src.size() == 0)
     return 0;
-  return std::accumulate(src.begin() + startIndex, src.begin() + endIndex, T(1), std::multiplies<T>());
+  return std::accumulate(src.begin() + startIndex, src.begin() + nElem, T(1), std::multiplies<T>());
 }
 
 template<typename T>

@@ -34,6 +34,26 @@ typedef std::vector<Unsigned> ObjShape;
 typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
 
+//Pack data structs
+struct AGPackData
+{
+    ObjShape maxLocalShape;
+    ObjShape localShape;
+    std::vector<Unsigned> sendBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+};
+
+struct AGUnpackData
+{
+    ObjShape maxLocalShape;
+    ObjShape localShape;
+    std::vector<Unsigned> recvBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned maxElemSlice;
+    Unsigned elemSlice;
+    Mode commMode;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 

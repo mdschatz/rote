@@ -67,10 +67,12 @@ public:
     Unsigned Order() const;
     ObjShape Shape() const;
     Unsigned Dimension(Mode mode) const;
-    Unsigned ModeStride(Mode mode) const;
 
+    std::vector<Unsigned> Strides() const;
+    Unsigned Stride(Mode mode) const;
     std::vector<Unsigned> LDims() const;
     Unsigned LDim(Mode mode) const;
+
     Unsigned MemorySize() const;
 
     Unsigned LinearOffset(const Location& loc) const;
@@ -175,7 +177,9 @@ private:
     const T& Get_( const Location& loc ) const;
     T& Set_( const Location& loc );
 
+    void SetStrides(const ObjShape& shape);
     void SetLDims(const ObjShape& shape);
+
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
