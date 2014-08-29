@@ -182,6 +182,7 @@ bool CheckResult(const DistTensor<T>& A){
 #ifndef RELEASE
     CallStackEntry entry("CheckResult");
 #endif
+    printf("In CheckResult\n");
     mpi::Barrier(mpi::COMM_WORLD);
     Unsigned i;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );

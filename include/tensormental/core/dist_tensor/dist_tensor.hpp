@@ -236,7 +236,7 @@ public:
     void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
     void PackAGCommSendBufHelper(const AGPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
-    void UnpackAGCommRecvBufHelper(const AGUnpackData& packData, const Mode packMode, T const * const sendBuf, T * const dataBuf);
+    void UnpackAGCommRecvBufHelper(const AGUnpackData& packData, const Mode unpackMode, T const * const sendBuf, T * const dataBuf);
     void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
 
     //
@@ -274,7 +274,9 @@ public:
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
     void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PackPCommSendBufHelper(const PPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf);
+    void UnpackPCommRecvBufHelper(const PUnpackData& packData, const Mode unpackMode, T const * const sendBuf, T * const dataBuf);
     void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
 
     //

@@ -54,6 +54,22 @@ struct AGUnpackData
     Mode commMode;
 };
 
+struct PPackData
+{
+    ObjShape sendShape;
+    ObjShape localShape;
+    std::vector<Unsigned> sendBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+};
+
+struct PUnpackData
+{
+    ObjShape recvShape;
+    ObjShape localShape;
+    std::vector<Unsigned> recvBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 
