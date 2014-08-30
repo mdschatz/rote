@@ -73,6 +73,17 @@ struct RSUnpackData
     std::vector<Unsigned> dataBufModeStrides;
 };
 
+struct LUnpackData
+{
+    ObjShape srcShape;
+    ObjShape localShape;
+    std::vector<Unsigned> srcBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned maxElemSlices;
+    Unsigned elemSlice;
+    Mode lMode;
+};
+
 struct PPackData
 {
     ObjShape sendShape;

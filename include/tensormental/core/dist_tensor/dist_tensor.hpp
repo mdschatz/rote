@@ -262,6 +262,7 @@ public:
     //
     Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
     void LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+    void UnpackLocalCommHelper(const LUnpackData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf);
     void UnpackLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
 
     //
