@@ -49,9 +49,28 @@ struct AGUnpackData
     ObjShape localShape;
     std::vector<Unsigned> recvBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlice;
+    Unsigned maxElemSlices;
     Unsigned elemSlice;
     Mode commMode;
+};
+
+struct RSPackData
+{
+    ObjShape sendShape;
+    ObjShape localShape;
+    std::vector<Unsigned> sendBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned maxElemSlices;
+    Unsigned elemSlice;
+    Mode sMode;
+};
+
+struct RSUnpackData
+{
+    ObjShape recvShape;
+    ObjShape localShape;
+    std::vector<Unsigned> recvBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
 };
 
 struct PPackData

@@ -236,7 +236,7 @@ public:
     void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
     void PackAGCommSendBufHelper(const AGPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
-    void UnpackAGCommRecvBufHelper(const AGUnpackData& packData, const Mode unpackMode, T const * const sendBuf, T * const dataBuf);
+    void UnpackAGCommRecvBufHelper(const AGUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
 
     //
@@ -276,7 +276,7 @@ public:
     void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
     void PackPCommSendBufHelper(const PPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf);
-    void UnpackPCommRecvBufHelper(const PUnpackData& packData, const Mode unpackMode, T const * const sendBuf, T * const dataBuf);
+    void UnpackPCommRecvBufHelper(const PUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
 
     //
@@ -289,7 +289,9 @@ public:
     //
     Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
     void ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
+    void PackRSCommSendBufHelper(const RSPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf);
+    void UnpackRSCommRecvBufHelper(const RSUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackRSCommRecvBuf(const T* const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A);
 
     //
