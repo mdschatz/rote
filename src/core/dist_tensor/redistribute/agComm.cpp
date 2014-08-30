@@ -272,9 +272,12 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     for(i = 0; i < nRedistProcs; i++){
         const Location elemCommLoc = LinearLoc2Loc(i, commShape);
         const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, redistPerm), redistShape);
-        unpackData.elemSlice = i;
 
-        UnpackAGCommRecvBufHelper(unpackData, order - 1, &(recvBuf[elemRedistLinLoc * nCommElemsPerProc]), &(dataBuf[i * agModeStride]));
+        if(elemRedistLinLoc >= LocalDimension(agMode))
+            continue;
+        unpackData.elemSlice = elemRedistLinLoc;
+
+        UnpackAGCommRecvBufHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * agModeStride]));
 
     }
 

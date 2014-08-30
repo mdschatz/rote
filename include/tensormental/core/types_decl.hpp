@@ -100,6 +100,25 @@ struct PUnpackData
     std::vector<Unsigned> dataBufModeStrides;
 };
 
+struct GTOPackData
+{
+    ObjShape sendShape;
+    ObjShape localShape;
+    std::vector<Unsigned> sendBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+};
+
+struct GTOUnpackData
+{
+    ObjShape recvShape;
+    ObjShape localShape;
+    std::vector<Unsigned> recvBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned maxElemSlices;
+    Unsigned elemSlice;
+    Mode commMode;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 
