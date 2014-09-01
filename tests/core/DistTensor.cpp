@@ -369,7 +369,7 @@ void
 TestLRedist( DistTensor<T>& A, Mode lMode, const ModeDistribution& resDist )
 {
 #ifndef RELEASE
-    CallStackEntry entry("TestAGRedist");
+    CallStackEntry entry("TestLRedist");
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
@@ -623,11 +623,12 @@ CreateLTests(const DistTensor<T>& A, const Params& args){
     std::vector<LTest> ret;
     const tmen::GridView& gv = A.GetGridView();
 
+    const Unsigned order = A.Order();
     const TensorDistribution tDist = A.TensorDist();
     ModeArray freeModes = gv.FreeModes();
 
     //NOTE: Just picking up to 2 modes to redistribute along
-    for(i = 0; i < tDist.size(); i++){
+    for(i = 0; i < order; i++){
         for(j = 0; j < freeModes.size(); j++){
             for(k = 0; k < freeModes.size(); k++){
                 TensorDistribution resDist(tDist.begin(), tDist.end());

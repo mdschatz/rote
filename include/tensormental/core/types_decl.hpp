@@ -119,6 +119,53 @@ struct GTOUnpackData
     Mode commMode;
 };
 
+struct RTOPackData
+{
+    ObjShape sendShape;
+    ObjShape localShape;
+    std::vector<Unsigned> sendBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+};
+
+struct RTOUnpackData
+{
+    ObjShape recvShape;
+    ObjShape localShape;
+    std::vector<Unsigned> recvBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned maxElemSlices;
+    Unsigned elemSlice;
+    Mode commMode;
+};
+
+struct A2APackData
+{
+    ObjShape sendShape;
+    ObjShape localShape;
+    std::vector<Unsigned> sendBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned maxElemSlices1;
+    Unsigned elemSlice1;
+    Mode commMode1;
+    Unsigned maxElemSlices2;
+    Unsigned elemSlice2;
+    Mode commMode2;
+};
+
+struct A2AUnpackData
+{
+    ObjShape recvShape;
+    ObjShape localShape;
+    std::vector<Unsigned> recvBufModeStrides;
+    std::vector<Unsigned> dataBufModeStrides;
+    Unsigned elemSlice1Stride;
+    Unsigned elemSlice1;
+    Mode commMode1;
+    Unsigned elemSlice2Stride;
+    Unsigned elemSlice2;
+    Mode commMode2;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 
