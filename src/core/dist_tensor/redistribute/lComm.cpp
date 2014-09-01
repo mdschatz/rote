@@ -71,15 +71,15 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
     Mode lMode = unpackData.lMode;
     Unsigned srcBufPtr = 0;
     Unsigned dataBufPtr = 0;
-//    Unsigned pSrcBufPtr = 0;
-//    Unsigned pDataBufPtr = 0;
-//
-//    Unsigned order = Order();
-//    Unsigned i;
-//    std::string ident = "";
-//    for(i = 0; i < order - unpackMode; i++)
-//        ident += "  ";
-//    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
+    Unsigned pSrcBufPtr = 0;
+    Unsigned pDataBufPtr = 0;
+
+    Unsigned order = Order();
+    Unsigned i;
+    std::string ident = "";
+    for(i = 0; i < order - unpackMode; i++)
+        ident += "  ";
+    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
 
     if(unpackMode == lMode){
         Unsigned maxElemSlice = unpackData.maxElemSlices;
@@ -89,65 +89,59 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
         unpackSliceSrcBufStride *= maxElemSlice;
 
         if(unpackMode == 0){
-//            std::cout << ident << "srcBuf loc " << &(srcBuf[pSrcBufPtr]) << std::endl;
-//            std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
-//            std::cout << ident << "unpacking src data:";
-//            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice += maxElemSlice){
-//                std::cout << " " << srcBuf[pSrcBufPtr];
-//
-//                std::cout << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-//                pSrcBufPtr += unpackSliceSrcBufStride;
-//                pDataBufPtr += unpackSliceDataBufStride;
-//            }
-//            std::cout << std::endl;
+            std::cout << ident << "unpacking src data:";
+            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
+                std::cout << " " << srcBuf[pSrcBufPtr];
 
-            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice += maxElemSlice){
+                pSrcBufPtr += unpackSliceSrcBufStride;
+                pDataBufPtr += unpackSliceDataBufStride;
+            }
+            std::cout << std::endl;
+
+            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
                 dataBuf[dataBufPtr] = srcBuf[srcBufPtr];
 
-//                std::cout << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
                 srcBufPtr += unpackSliceSrcBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
         }else{
-            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice += maxElemSlice){
+            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
                 UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
 
-//                std::cout << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
                 srcBufPtr += unpackSliceSrcBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
         }
     }else if(unpackMode == 0){
-//        std::cout << ident << "srcBuf loc " << &(srcBuf[pSrcBufPtr]) << std::endl;
-//        std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
-//        std::cout << ident << "unpacking src data:";
-//        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
-//            std::cout << " " << srcBuf[pSrcBufPtr];
-//            pSrcBufPtr += unpackSliceSrcBufStride;
-//            pDataBufPtr += unpackSliceDataBufStride;
-//        }
-//        std::cout << std::endl;
+        std::cout << ident << "unpacking src data:";
+        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
+            std::cout << " " << srcBuf[pSrcBufPtr];
+            pSrcBufPtr += unpackSliceSrcBufStride;
+            pDataBufPtr += unpackSliceDataBufStride;
+        }
+        std::cout << std::endl;
 
         if(unpackSliceSrcBufStride == 1 && unpackSliceDataBufStride == 1){
             MemCopy(&(dataBuf[0]), &(srcBuf[0]), unpackSliceLocalDim);
         }else{
-            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
+            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
                 dataBuf[dataBufPtr] = srcBuf[srcBufPtr];
 
-//                std::cout << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
                 srcBufPtr += unpackSliceSrcBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
         }
     }else {
-        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
+        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
             UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
-//            std::cout << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//            std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+            std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+            std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
             srcBufPtr += unpackSliceSrcBufStride;
             dataBufPtr += unpackSliceDataBufStride;
         }
@@ -161,11 +155,11 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     T* dataBuf = this->Buffer();
     const T* srcBuf = A.LockedBuffer();
 
-//    printf("srcBuf:");
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        printf(" %d", srcBuf[i]);
-//    }
-//    printf("\n");
+    printf("srcBuf:");
+    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+        printf(" %d", srcBuf[i]);
+    }
+    printf("\n");
 
     const tmen::Grid& g = A.Grid();
     const tmen::GridView gvA = A.GetGridView();
@@ -190,14 +184,16 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     Location myCommLoc = FilterVector(g.Loc(), gridRedistModes);
     Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, redistShape);
 
+    PrintVector(myCommLoc, "commLoc");
+    std::cout << "commLinLoc: " << myCommLinLoc << std::endl;
     unpackData.elemSlice = myCommLinLoc;
     UnpackLocalCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
 
-//    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
-//        printf(" %d", dataBuf[i]);
-//    }
-//    printf("\n");
+    printf("dataBuf:");
+    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
+        printf(" %d", dataBuf[i]);
+    }
+    printf("\n");
 
     //----------------------------------------------
     //----------------------------------------------
