@@ -64,7 +64,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode
 template <typename T>
 void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
+    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
     Unsigned unpackSliceSrcBufStride = unpackData.srcBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
     Mode lMode = unpackData.lMode;
@@ -168,12 +168,10 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), gridRedistModes));
 
     LUnpackData unpackData;
-    unpackData.srcShape = A.LocalShape();
-    unpackData.localShape = LocalShape();
-    unpackData.elemSliceStride = nRedistProcs;
-
-    unpackData.srcBufModeStrides = A.LocalStrides();
+    unpackData.dataShape = LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
+    unpackData.srcBufModeStrides = A.LocalStrides();
+    unpackData.elemSliceStride = nRedistProcs;
     unpackData.lMode = lMode;
 
 //    ModeArray commModes = gridRedistModes;
@@ -187,7 +185,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
 
 //    PrintVector(myCommLoc, "commLoc");
 //    std::cout << "commLinLoc: " << myCommLinLoc << std::endl;
-    unpackData.elemSlice = myCommLinLoc;
     UnpackLocalCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
 
 //    printf("dataBuf:");

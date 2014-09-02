@@ -92,7 +92,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
 template<typename T>
 void DistTensor<T>::PackRSCommSendBufHelper(const RSPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
     Unsigned packSlice = packMode;
-    Unsigned packSliceLocalDim = packData.localShape[packSlice];
+    Unsigned packSliceLocalDim = packData.dataShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
     Mode sMode = packData.sMode;
@@ -209,17 +209,15 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
     const Permutation commPerm = DeterminePermutation(redistModes, commModes);
 
+    const ObjShape sendShape = MaxShape();
     RSPackData packData;
-    packData.sendShape = MaxLengths(Shape(), gvB.ParticipatingShape());
-    packData.localShape = A.LocalShape();
-
+    packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
-    packData.sMode = sMode;
-    packData.sendBufModeStrides.resize(order);
-    packData.sendBufModeStrides = Dimensions2Strides(packData.sendShape);
+    packData.sendBufModeStrides = Dimensions2Strides(sendShape);
     packData.elemSliceStride = nRedistProcs;
+    packData.sMode = sMode;
 
-    const Unsigned nCommElemsPerProc = prod(packData.sendShape);
+    const Unsigned nCommElemsPerProc = prod(sendShape);
     const Unsigned sModeStride = LocalModeStride(sMode);
 
     for(i = 0; i < nRedistProcs; i++){
@@ -244,7 +242,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 template <typename T>
 void DistTensor<T>::UnpackRSCommRecvBufHelper(const RSUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
+    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
     Unsigned recvBufPtr = 0;
@@ -287,13 +285,9 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
 //    std::cout << std::endl;
 
     RSUnpackData unpackData;
-    unpackData.recvShape = MaxLengths(Shape(), gvB.ParticipatingShape());
-    unpackData.localShape = LocalShape();
-
+    unpackData.dataShape = LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
-
-    unpackData.recvBufModeStrides.resize(order);
-    unpackData.recvBufModeStrides = Dimensions2Strides(unpackData.recvShape);
+    unpackData.recvBufModeStrides = Dimensions2Strides(MaxShape());
 
     UnpackRSCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }

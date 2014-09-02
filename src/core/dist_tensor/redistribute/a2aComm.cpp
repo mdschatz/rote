@@ -74,13 +74,13 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
 template <typename T>
 void DistTensor<T>::PackA2ACommSendBufHelper(const A2APackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
     Unsigned packSlice = packMode;
-    Unsigned packSliceLocalDim = packData.localShape[packSlice];
+    Unsigned packSliceLocalDim = packData.dataShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
     Unsigned elemSlice2 = packData.elemSlice2;
-    Unsigned maxElemSlice2 = packData.maxElemSlices2;
+    Unsigned maxElemSlice2 = packData.elemSlice2Stride;
     Unsigned elemSlice1 = packData.elemSlice1;
-    Unsigned maxElemSlice1 = packData.maxElemSlices1;
+    Unsigned maxElemSlice1 = packData.elemSlice1Stride;
     Unsigned commMode1 = packData.commMode1;
     Unsigned commMode2 = packData.commMode2;
 
@@ -203,35 +203,33 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
     A2APackData packData;
-    packData.sendShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-    packData.localShape = A.LocalShape();
-
+    const ObjShape sendShape = A.MaxShape();
+    packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
 
-    packData.sendBufModeStrides.resize(order);
-    packData.sendBufModeStrides = Dimensions2Strides(packData.sendShape);
-    packData.maxElemSlices1 = comm1LCM/gvA.Dimension(a2aMode1);
+    packData.sendBufModeStrides = Dimensions2Strides(sendShape);
+    packData.elemSlice1Stride = comm1LCM/gvA.Dimension(a2aMode1);
     packData.commMode1 = a2aMode1;
 
-    packData.maxElemSlices2 = comm2LCM/gvA.Dimension(a2aMode2);
+    packData.elemSlice2Stride = comm2LCM/gvA.Dimension(a2aMode2);
     packData.commMode2 = a2aMode2;
 
     Unsigned a2aMode2Stride = A.LocalModeStride(a2aMode2);
     Unsigned a2aMode1Stride = A.LocalModeStride(a2aMode1);
 
-    const Unsigned nCommElemsPerProc = prod(packData.sendShape);
+    const Unsigned nCommElemsPerProc = prod(sendShape);
     const Location myFirstElemLoc = A.ModeShifts();
     Location packElem = myFirstElemLoc;
     //Pack only if we can
     if(ElemwiseLessThan(packElem, A.Shape())){
-        for(i = 0; i < packData.maxElemSlices2; i++){
+        for(i = 0; i < packData.elemSlice2Stride; i++){
             packElem[a2aMode2] = myFirstElemLoc[a2aMode2] + i * gvA.ModeWrapStride(a2aMode2);
 
             if(packElem[a2aMode2] >= Dimension(a2aMode2))
                 continue;
             packData.elemSlice2 = i;
 
-            for(j = 0; j < packData.maxElemSlices1; j++){
+            for(j = 0; j < packData.elemSlice1Stride; j++){
                 packElem[a2aMode1] = myFirstElemLoc[a2aMode1] + j * gvA.ModeWrapStride(a2aMode1);
 
                 if(packElem[a2aMode1] >= Dimension(a2aMode1))
@@ -263,7 +261,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
 template<typename T>
 void DistTensor<T>::UnpackA2ACommRecvBufHelper(const A2AUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
+    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
     Unsigned commMode1 = unpackData.commMode1;
@@ -389,14 +387,14 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
 
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
-    A2AUnpackData unpackData;
-    unpackData.recvShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-    unpackData.localShape = LocalShape();
 
+    const ObjShape recvShape = A.MaxShape();
+
+    A2AUnpackData unpackData;
+    unpackData.dataShape = LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
 
-    unpackData.recvBufModeStrides.resize(order);
-    unpackData.recvBufModeStrides = Dimensions2Strides(unpackData.recvShape);
+    unpackData.recvBufModeStrides = Dimensions2Strides(recvShape);
     unpackData.elemSlice1Stride = comm1LCM/gvB.Dimension(a2aMode1);
     unpackData.commMode1 = a2aMode1;
 
@@ -406,7 +404,7 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     Unsigned a2aMode2Stride = LocalModeStride(a2aMode2);
     Unsigned a2aMode1Stride = LocalModeStride(a2aMode1);
 
-    const Unsigned nCommElemsPerProc = prod(unpackData.recvShape);
+    const Unsigned nCommElemsPerProc = prod(recvShape);
     const Location myFirstElemLoc = ModeShifts();
 
 //    std::cout << "recvBuf:";
@@ -416,8 +414,7 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
 //    std::cout << std::endl;
 
     Location unpackElem = myFirstElemLoc;
-    //NOTE: Need to make sure this packs correct global element
-//    std::cout << "loop bounds: " << nRedistProcs2 << " " << nRedistProcs1 << std::endl;
+
     //Unpack only if we can
     if(ElemwiseLessThan(unpackElem, Shape())){
         for(i = 0; i < unpackData.elemSlice2Stride; i++){

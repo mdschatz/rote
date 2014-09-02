@@ -30,6 +30,11 @@ DistTensor<T>::Shape() const
 { return shape_; }
 
 template<typename T>
+ObjShape
+DistTensor<T>::MaxShape() const
+{ return MaxLengths(Shape(), gridView_.ParticipatingShape()); }
+
+template<typename T>
 ModeDistribution
 DistTensor<T>::ModeDist(Mode mode) const
 {

@@ -91,7 +91,7 @@ template<typename T>
 void DistTensor<T>::PackGTOCommSendBufHelper(const GTOPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
 
     Unsigned packSlice = packMode;
-    Unsigned packSliceLocalDim = packData.localShape[packSlice];
+    Unsigned packSliceLocalDim = packData.dataShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
     Unsigned sendBufPtr = 0;
@@ -132,13 +132,11 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     const tmen::GridView gvB = GetGridView();
 
     GTOPackData packData;
-    packData.sendShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-    packData.localShape = A.LocalShape();
-
+    packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
 
     packData.sendBufModeStrides.resize(order);
-    packData.sendBufModeStrides = Dimensions2Strides(packData.sendShape);
+    packData.sendBufModeStrides = Dimensions2Strides(A.MaxShape());
 
     PackGTOCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 
@@ -151,7 +149,7 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
 template<typename T>
 void DistTensor<T>::UnpackGTOCommRecvBufHelper(const GTOUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
+    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
     Mode commMode = unpackData.commMode;
@@ -258,7 +256,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
 
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), gridModes)));
 
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
+    const ObjShape recvShape = A.MaxShape();
 
     ModeArray commModes = gridModes;
     std::sort(commModes.begin(), commModes.end());
@@ -266,7 +264,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
     const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
     const Permutation redistPerm = DeterminePermutation(commModes, gridModes);
 
-    const Unsigned nCommElemsPerProc = prod(maxLocalShapeA);
+    const Unsigned nCommElemsPerProc = prod(recvShape);
     const Unsigned gModeStride = LocalModeStride(gMode);
     //    printf("recvBuf:");
     //    for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++){
@@ -275,12 +273,11 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
     //    printf("\n");
 
     GTOUnpackData unpackData;
-
-    unpackData.recvShape = MaxLengths(this->Shape(), gvB.ParticipatingShape());
-    unpackData.localShape = this->LocalShape();
-
-    unpackData.recvBufModeStrides = Dimensions2Strides(maxLocalShapeA);
+    unpackData.dataShape = this->LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
+
+    unpackData.recvBufModeStrides = Dimensions2Strides(recvShape);
+
     unpackData.commMode = gMode;
     unpackData.elemSliceStride = nRedistProcs;
 

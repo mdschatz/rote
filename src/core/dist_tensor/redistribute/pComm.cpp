@@ -115,7 +115,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 template<typename T>
 void DistTensor<T>::PackPCommSendBufHelper(const PPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
     Unsigned packSlice = packMode;
-    Unsigned packSliceLocalDim = packData.localShape[packSlice];
+    Unsigned packSliceLocalDim = packData.dataShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
     Unsigned sendBufPtr = 0;
@@ -149,13 +149,9 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
     const tmen::GridView gvA = A.GetGridView();
 
     PPackData packData;
-    packData.sendShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-    packData.localShape = A.LocalShape();
-
+    packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
-
-    packData.sendBufModeStrides.resize(order);
-    packData.sendBufModeStrides = Dimensions2Strides(packData.sendShape);
+    packData.sendBufModeStrides = Dimensions2Strides(A.MaxShape());
 
     PackPCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
@@ -163,7 +159,7 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
 template<typename T>
 void DistTensor<T>::UnpackPCommRecvBufHelper(const PUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
+    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
     Unsigned recvBufPtr = 0;
@@ -205,18 +201,12 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
-
     const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
     PUnpackData unpackData;
-
-    unpackData.recvShape = maxLocalShapeA;
-    unpackData.localShape = this->LocalShape();
-
-    unpackData.recvBufModeStrides = Dimensions2Strides(maxLocalShapeA);
+    unpackData.dataShape = this->LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
+    unpackData.recvBufModeStrides = Dimensions2Strides(A.MaxShape());
 
     UnpackPCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }

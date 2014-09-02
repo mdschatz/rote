@@ -37,18 +37,16 @@ typedef std::vector<Unsigned> Permutation;
 //Pack data structs
 struct AGPackData
 {
-    ObjShape sendShape;
-    ObjShape localShape;
-    std::vector<Unsigned> sendBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> sendBufModeStrides;
 };
 
 struct AGUnpackData
 {
-    ObjShape recvShape;
-    ObjShape localShape;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> recvBufModeStrides;
     Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode commMode;
@@ -56,10 +54,9 @@ struct AGUnpackData
 
 struct RSPackData
 {
-    ObjShape sendShape;
-    ObjShape localShape;
-    std::vector<Unsigned> sendBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> sendBufModeStrides;
     Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode sMode;
@@ -67,53 +64,47 @@ struct RSPackData
 
 struct RSUnpackData
 {
-    ObjShape recvShape;
-    ObjShape localShape;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> recvBufModeStrides;
 };
 
+//NOTE: Because this is a local copy, the elemSlice is always known.  Therefore we ignore it in this struct
 struct LUnpackData
 {
-    ObjShape srcShape;
-    ObjShape localShape;
-    std::vector<Unsigned> srcBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> srcBufModeStrides;
     Unsigned elemSliceStride;
-    Unsigned elemSlice;
     Mode lMode;
 };
 
 struct PPackData
 {
-    ObjShape sendShape;
-    ObjShape localShape;
-    std::vector<Unsigned> sendBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> sendBufModeStrides;
 };
 
 struct PUnpackData
 {
-    ObjShape recvShape;
-    ObjShape localShape;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> recvBufModeStrides;
 };
 
 struct GTOPackData
 {
-    ObjShape sendShape;
-    ObjShape localShape;
-    std::vector<Unsigned> sendBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> sendBufModeStrides;
 };
 
 struct GTOUnpackData
 {
-    ObjShape recvShape;
-    ObjShape localShape;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> recvBufModeStrides;
     Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode commMode;
@@ -121,43 +112,36 @@ struct GTOUnpackData
 
 struct RTOPackData
 {
-    ObjShape sendShape;
-    ObjShape localShape;
-    std::vector<Unsigned> sendBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> sendBufModeStrides;
 };
 
 struct RTOUnpackData
 {
-    ObjShape recvShape;
-    ObjShape localShape;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned elemSliceStride;
-    Unsigned elemSlice;
-    Mode commMode;
+    std::vector<Unsigned> recvBufModeStrides;
 };
 
 struct A2APackData
 {
-    ObjShape sendShape;
-    ObjShape localShape;
-    std::vector<Unsigned> sendBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlices1;
+    std::vector<Unsigned> sendBufModeStrides;
+    Unsigned elemSlice1Stride;
     Unsigned elemSlice1;
     Mode commMode1;
-    Unsigned maxElemSlices2;
+    Unsigned elemSlice2Stride;
     Unsigned elemSlice2;
     Mode commMode2;
 };
 
 struct A2AUnpackData
 {
-    ObjShape recvShape;
-    ObjShape localShape;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape dataShape;
     std::vector<Unsigned> dataBufModeStrides;
+    std::vector<Unsigned> recvBufModeStrides;
     Unsigned elemSlice1Stride;
     Unsigned elemSlice1;
     Mode commMode1;
