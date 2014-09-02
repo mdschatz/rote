@@ -74,7 +74,6 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
 template <typename T>
 void DistTensor<T>::PackA2ACommSendBufHelper(const A2APackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
     Unsigned packSlice = packMode;
-    Unsigned packSliceMaxDim = packData.sendShape[packSlice];
     Unsigned packSliceLocalDim = packData.localShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
@@ -200,7 +199,6 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     commModesAll.insert(commModesAll.end(), commGroup2.begin(), commGroup2.end());
     std::sort(commModesAll.begin(), commModesAll.end());
     const ObjShape commShapeAll = FilterVector(Grid().Shape(), commModesAll);
-    const Unsigned nRedistProcsAll = Max(1, prod(commShapeAll));
 
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
@@ -265,21 +263,16 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
 template<typename T>
 void DistTensor<T>::UnpackA2ACommRecvBufHelper(const A2AUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceMaxDim = unpackData.recvShape[unpackSlice];
     Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
-    Unsigned elemSlice2 = unpackData.elemSlice2;
-    Unsigned maxElemSlice2 = unpackData.elemSlice2Stride;
-    Unsigned elemSlice1 = unpackData.elemSlice1;
-    Unsigned maxElemSlice1 = unpackData.elemSlice1Stride;
     Unsigned commMode1 = unpackData.commMode1;
     Unsigned commMode2 = unpackData.commMode2;
     Unsigned recvBufPtr = 0;
     Unsigned dataBufPtr = 0;
-    Unsigned pRecvBufPtr = 0;
-    Unsigned pDataBufPtr = 0;
 
+//    Unsigned pRecvBufPtr = 0;
+//    Unsigned pDataBufPtr = 0;
 //    Unsigned order = Order();
 //    Unsigned i;
 //    std::string ident = "";
@@ -393,7 +386,6 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     commModesAll.insert(commModesAll.end(), commGroup2.begin(), commGroup2.end());
     std::sort(commModesAll.begin(), commModesAll.end());
     const ObjShape commShapeAll = FilterVector(Grid().Shape(), commModesAll);
-    const Unsigned nRedistProcsAll = Max(1, prod(commShapeAll));
 
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));

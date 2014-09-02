@@ -91,7 +91,6 @@ template<typename T>
 void DistTensor<T>::PackRTOCommSendBufHelper(const RTOPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
 
     Unsigned packSlice = packMode;
-    Unsigned packSliceMaxDim = packData.sendShape[packSlice];
     Unsigned packSliceLocalDim = packData.localShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
@@ -120,7 +119,6 @@ void DistTensor<T>::PackRTOCommSendBufHelper(const RTOPackData& packData, const 
 template <typename T>
 void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf)
 {
-    const Unsigned orderA = A.Order();
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
 
@@ -148,7 +146,6 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
 template <typename T>
 void DistTensor<T>::UnpackRTOCommRecvBufHelper(const RTOUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceMaxDim = unpackData.recvShape[unpackSlice];
     Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];

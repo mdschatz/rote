@@ -91,7 +91,6 @@ template<typename T>
 void DistTensor<T>::PackGTOCommSendBufHelper(const GTOPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
 
     Unsigned packSlice = packMode;
-    Unsigned packSliceMaxDim = packData.sendShape[packSlice];
     Unsigned packSliceLocalDim = packData.localShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
@@ -152,16 +151,15 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
 template<typename T>
 void DistTensor<T>::UnpackGTOCommRecvBufHelper(const GTOUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceMaxDim = unpackData.recvShape[unpackSlice];
     Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
     Mode commMode = unpackData.commMode;
     Unsigned recvBufPtr = 0;
     Unsigned dataBufPtr = 0;
-    Unsigned pRecvBufPtr = 0;
-    Unsigned pDataBufPtr = 0;
 
+//    Unsigned pRecvBufPtr = 0;
+//    Unsigned pDataBufPtr = 0;
 //    Unsigned order = Order();
 //    Unsigned i;
 //    std::string ident = "";

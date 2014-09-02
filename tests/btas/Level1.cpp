@@ -162,7 +162,6 @@ TestAxpy(const DistTensor<T>& A)
 #ifndef RELEASE
     CallStackEntry entry("TestAxpy");
 #endif
-    Unsigned i;
     Permutation perm(A.Order());
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
     MakeUniform(B);

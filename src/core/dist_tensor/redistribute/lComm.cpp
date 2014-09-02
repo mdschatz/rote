@@ -64,7 +64,6 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode
 template <typename T>
 void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceMaxDim = unpackData.srcShape[unpackSlice];
     Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
     Unsigned unpackSliceSrcBufStride = unpackData.srcBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
@@ -90,7 +89,6 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
 //        std::cout << std::endl;
         if(unpackMode == lMode){
             Unsigned elemSliceStride = unpackData.elemSliceStride;
-            Unsigned elemSlice = unpackData.elemSlice;
 
             //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
             unpackSliceSrcBufStride *= elemSliceStride;
@@ -128,7 +126,6 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
     }else {
         if(unpackMode == lMode){
             Unsigned elemSliceStride = unpackData.elemSliceStride;
-            Unsigned elemSlice = unpackData.elemSlice;
 
             //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
             unpackSliceSrcBufStride *= elemSliceStride;

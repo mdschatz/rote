@@ -114,9 +114,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
 template<typename T>
 void DistTensor<T>::PackPCommSendBufHelper(const PPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
-
     Unsigned packSlice = packMode;
-    Unsigned packSliceMaxDim = packData.sendShape[packSlice];
     Unsigned packSliceLocalDim = packData.localShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
@@ -146,7 +144,6 @@ void DistTensor<T>::PackPCommSendBufHelper(const PPackData& packData, const Mode
 template <typename T>
 void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode pMode, T * const sendBuf)
 {
-    Unsigned i;
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
     const tmen::GridView gvA = A.GetGridView();
@@ -166,7 +163,6 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
 template<typename T>
 void DistTensor<T>::UnpackPCommRecvBufHelper(const PUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceMaxDim = unpackData.recvShape[unpackSlice];
     Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];

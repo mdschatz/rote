@@ -94,7 +94,6 @@ Tensor<T>::AssertSplittableModes(const ModeArray& oldModes, const std::vector<Ob
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertSplittableIndices");
 #endif
-    Unsigned i;
 
     //NOTE: FIX THIS FOR SCALARS
 //    for(i = 0; i < oldModes.size(); i++){

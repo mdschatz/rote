@@ -184,7 +184,6 @@ bool CheckResult(const DistTensor<T>& A){
 #endif
     printf("In CheckResult\n");
     mpi::Barrier(mpi::COMM_WORLD);
-    Unsigned i;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const ObjShape globalShape = A.Shape();
     Tensor<T> check(globalShape);
@@ -269,7 +268,9 @@ bool CheckResult(const DistTensor<T>& A){
 
     if(commRank == 0){
         std::cout << "PASS" << std::endl;
+        return true;
     }
+    return false;
 }
 
 

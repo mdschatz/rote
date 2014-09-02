@@ -16,7 +16,6 @@ namespace tmen{
 //Loop based permutation
 template<typename T>
 void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
-    Unsigned i;
     Unsigned order = A.Order();
 
     T* dstBuf = B.Buffer();
