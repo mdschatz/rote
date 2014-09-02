@@ -89,30 +89,13 @@ struct RTOData
     std::vector<Unsigned> loopIncs;
 };
 
-struct A2APackData
+struct A2AData
 {
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> sendBufModeStrides;
-    Unsigned elemSlice1Stride;
-    Unsigned elemSlice1;
-    Mode commMode1;
-    Unsigned elemSlice2Stride;
-    Unsigned elemSlice2;
-    Mode commMode2;
-};
-
-struct A2AUnpackData
-{
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> recvBufModeStrides;
-    Unsigned elemSlice1Stride;
-    Unsigned elemSlice1;
-    Mode commMode1;
-    Unsigned elemSlice2Stride;
-    Unsigned elemSlice2;
-    Mode commMode2;
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    std::vector<Unsigned> loopStarts;
+    std::vector<Unsigned> loopIncs;
 };
 
 template<typename Real>
