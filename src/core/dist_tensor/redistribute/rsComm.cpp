@@ -68,7 +68,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(reduceMode));
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), A.ModeDist(reduceMode))));
-    const ObjShape maxLocalShapeB = MaxLengths(Shape(), GetGridView().ParticipatingShape());
+    const ObjShape maxLocalShapeB = MaxLocalShape();
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize * nRedistProcs;
 
@@ -209,7 +209,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
     const Permutation commPerm = DeterminePermutation(redistModes, commModes);
 
-    const ObjShape sendShape = MaxShape();
+    const ObjShape sendShape = MaxLocalShape();
     RSPackData packData;
     packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
@@ -276,8 +276,6 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
-
 //    std::cout << "recvBuf:";
 //    for(Unsigned i = 0; i < prod(maxLocalShapeB); i++){
 //        std::cout << " " << recvBuf[i];
@@ -287,7 +285,7 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
     RSUnpackData unpackData;
     unpackData.dataShape = LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
-    unpackData.recvBufModeStrides = Dimensions2Strides(MaxShape());
+    unpackData.recvBufModeStrides = Dimensions2Strides(MaxLocalShape());
 
     UnpackRSCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }

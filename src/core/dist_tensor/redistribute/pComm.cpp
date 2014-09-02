@@ -60,7 +60,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), GetGridView().ParticipatingShape());
+    const ObjShape maxLocalShapeB = MaxLocalShape();
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize;
 
@@ -151,7 +151,7 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
     PPackData packData;
     packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
-    packData.sendBufModeStrides = Dimensions2Strides(A.MaxShape());
+    packData.sendBufModeStrides = Dimensions2Strides(A.MaxLocalShape());
 
     PackPCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
@@ -206,7 +206,7 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
     PUnpackData unpackData;
     unpackData.dataShape = this->LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
-    unpackData.recvBufModeStrides = Dimensions2Strides(A.MaxShape());
+    unpackData.recvBufModeStrides = Dimensions2Strides(A.MaxLocalShape());
 
     UnpackPCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }

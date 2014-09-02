@@ -31,7 +31,7 @@ DistTensor<T>::Shape() const
 
 template<typename T>
 ObjShape
-DistTensor<T>::MaxShape() const
+DistTensor<T>::MaxLocalShape() const
 { return MaxLengths(Shape(), gridView_.ParticipatingShape()); }
 
 template<typename T>

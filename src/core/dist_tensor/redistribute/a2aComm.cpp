@@ -46,8 +46,8 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
     Unsigned sendSize, recvSize;
 
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
-    const ObjShape maxLocalShapeA = A.MaxShape();
-    const ObjShape maxLocalShapeB = MaxShape();
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    const ObjShape maxLocalShapeB = MaxLocalShape();
     const ObjShape commDataShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
 
     sendSize = prod(commDataShape);
@@ -201,8 +201,8 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
     A2APackData packData;
-    const ObjShape maxLocalShapeA = A.MaxShape();
-    const ObjShape maxLocalShapeB = MaxShape();
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    const ObjShape maxLocalShapeB = MaxLocalShape();
     const ObjShape sendShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
 
     packData.dataShape = A.LocalShape();
@@ -389,8 +389,8 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
 
-    const ObjShape maxLocalShapeA = A.MaxShape();
-    const ObjShape maxLocalShapeB = MaxShape();
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    const ObjShape maxLocalShapeB = MaxLocalShape();
     const ObjShape recvShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
 
     A2AUnpackData unpackData;

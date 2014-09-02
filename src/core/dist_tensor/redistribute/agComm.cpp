@@ -53,7 +53,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
 
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
@@ -118,7 +118,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   packData.dataBufModeStrides = A.LocalStrides();
 
   packData.sendBufModeStrides.resize(order);
-  packData.sendBufModeStrides = Dimensions2Strides(A.MaxShape());
+  packData.sendBufModeStrides = Dimensions2Strides(A.MaxLocalShape());
 
   PackAGCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
@@ -231,7 +231,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
     const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), redistModes));
-    const ObjShape recvShape = A.MaxShape();
+    const ObjShape recvShape = A.MaxLocalShape();
 
     ModeArray commModes = redistModes;
     std::sort(commModes.begin(), commModes.end());

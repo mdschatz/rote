@@ -68,7 +68,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
 
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(reduceMode));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
 
@@ -134,7 +134,7 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
     RTOPackData packData;
     packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
-    packData.sendBufModeStrides = Dimensions2Strides(A.MaxShape());
+    packData.sendBufModeStrides = Dimensions2Strides(A.MaxLocalShape());
 
     PackRTOCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
@@ -187,7 +187,7 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
     RTOUnpackData unpackData;
     unpackData.dataShape = this->LocalShape();
     unpackData.dataBufModeStrides = LocalStrides();
-    unpackData.recvBufModeStrides = Dimensions2Strides(MaxShape());
+    unpackData.recvBufModeStrides = Dimensions2Strides(MaxLocalShape());
 
     UnpackRTOCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 

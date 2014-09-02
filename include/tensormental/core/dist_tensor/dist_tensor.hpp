@@ -117,7 +117,7 @@ public:
     Unsigned Order() const;
     Unsigned Dimension(Mode mode) const;
     ObjShape Shape() const;
-    ObjShape MaxShape() const;
+    ObjShape MaxLocalShape() const;
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
     std::vector<Unsigned> LocalStrides() const;

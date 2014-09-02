@@ -68,7 +68,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gat
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(gatherMode));
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
 
@@ -136,7 +136,7 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     packData.dataBufModeStrides = A.LocalStrides();
 
     packData.sendBufModeStrides.resize(order);
-    packData.sendBufModeStrides = Dimensions2Strides(A.MaxShape());
+    packData.sendBufModeStrides = Dimensions2Strides(A.MaxLocalShape());
 
     PackGTOCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 
@@ -256,7 +256,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
 
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), gridModes)));
 
-    const ObjShape recvShape = A.MaxShape();
+    const ObjShape recvShape = A.MaxLocalShape();
 
     ModeArray commModes = gridModes;
     std::sort(commModes.begin(), commModes.end());
