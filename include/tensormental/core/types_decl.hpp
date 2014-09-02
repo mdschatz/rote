@@ -53,7 +53,6 @@ struct RSData
     std::vector<Unsigned> loopIncs;
 };
 
-//NOTE: Because this is a local copy, the elemSlice is always known.  Therefore we ignore it in this struct
 struct LData
 {
     ObjShape loopShape;
@@ -63,18 +62,13 @@ struct LData
     std::vector<Unsigned> loopIncs;
 };
 
-struct PPackData
+struct PData
 {
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> sendBufModeStrides;
-};
-
-struct PUnpackData
-{
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    std::vector<Unsigned> loopStarts;
+    std::vector<Unsigned> loopIncs;
 };
 
 struct GTOPackData

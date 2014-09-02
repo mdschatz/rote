@@ -277,9 +277,8 @@ public:
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
     void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
-    void PackPCommSendBufHelper(const PPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
+    void PackPCommHelper(const PData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf);
-    void UnpackPCommRecvBufHelper(const PUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
 
     //
