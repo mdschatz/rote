@@ -88,30 +88,31 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
 }
 
 template<typename T>
-void DistTensor<T>::PackRTOCommSendBufHelper(const RTOPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
-
-    Unsigned packSlice = packMode;
-    Unsigned packSliceLocalDim = packData.dataShape[packSlice];
-    Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
-    Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
-    Unsigned sendBufPtr = 0;
-    Unsigned dataBufPtr = 0;
+void DistTensor<T>::PackRTOCommHelper(const RTOData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+    Unsigned packSlice;
+    const Unsigned loopEnd = packData.loopShape[packMode];
+    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
+    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
+    const Unsigned loopStart = packData.loopStarts[packMode];
+    const Unsigned loopInc = packData.loopIncs[packMode];
+    Unsigned dstBufPtr = 0;
+    Unsigned srcBufPtr = 0;
 
     if(packMode == 0){
-        if(packSliceSendBufStride == 1 && packSliceDataBufStride == 1){
-            MemCopy(&(sendBuf[0]), &(dataBuf[0]), packSliceLocalDim);
+        if(dstBufStride == 1 && srcBufStride == 1){
+            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
         }else{
-            for(packSlice = 0; packSlice < packSliceLocalDim; packSlice++){
-                sendBuf[sendBufPtr] = dataBuf[dataBufPtr];
-                sendBufPtr += packSliceSendBufStride;
-                dataBufPtr += packSliceDataBufStride;
+            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+                dstBufPtr += dstBufStride;
+                srcBufPtr += srcBufStride;
             }
         }
     }else{
-        for(packSlice = 0; packSlice < packSliceLocalDim; packSlice++){
-            PackRTOCommSendBufHelper(packData, packMode-1, &(dataBuf[dataBufPtr]), &(sendBuf[sendBufPtr]));
-            sendBufPtr += packSliceSendBufStride;
-            dataBufPtr += packSliceDataBufStride;
+        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+            PackRTOCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+            dstBufPtr += dstBufStride;
+            srcBufPtr += srcBufStride;
         }
     }
 }
@@ -131,48 +132,18 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    RTOPackData packData;
-    packData.dataShape = A.LocalShape();
-    packData.dataBufModeStrides = A.LocalStrides();
-    packData.sendBufModeStrides = Dimensions2Strides(A.MaxLocalShape());
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
 
-    PackRTOCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
-}
+    RTOData packData;
+    packData.loopShape = A.LocalShape();
+    packData.srcBufStrides = A.LocalStrides();
+    packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
 
-template <typename T>
-void DistTensor<T>::UnpackRTOCommRecvBufHelper(const RTOUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
-    Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
-    Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
-    Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
-    Unsigned recvBufPtr = 0;
-    Unsigned dataBufPtr = 0;
+    packData.loopStarts = zeros;
+    packData.loopIncs = ones;
 
-//    std::cout << "Unpacking mode " << unpackMode << std::endl;
-//    std::cout << "agMode " << commMode << std::endl;
-
-    if(unpackMode == 0){
-        if(unpackSliceRecvBufStride == 1 && unpackSliceDataBufStride == 1){
-//            std::cout << "unpacking elems" << unpackSliceLocalDim << std::endl;
-            MemCopy(&(dataBuf[0]), &(recvBuf[0]), unpackSliceLocalDim);
-        }else{
-//            std::cout << "unpackSliceRecvBufStride" << unpackSliceRecvBufStride << std::endl;
-//            std::cout << "unpackSliceDataBufStride" << unpackSliceDataBufStride << std::endl;
-            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-                dataBuf[dataBufPtr] = recvBuf[recvBufPtr];
-                recvBufPtr += unpackSliceRecvBufStride;
-                dataBufPtr += unpackSliceDataBufStride;
-            }
-        }
-    }else {
-//        std::cout << "unpackSliceRecvBufStride" << unpackSliceRecvBufStride << std::endl;
-//        std::cout << "unpackSliceDataBufStride" << unpackSliceDataBufStride << std::endl;
-        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-            UnpackRTOCommRecvBufHelper(unpackData, unpackMode-1, &(recvBuf[recvBufPtr]), &(dataBuf[dataBufPtr]));
-            recvBufPtr += unpackSliceRecvBufStride;
-            dataBufPtr += unpackSliceDataBufStride;
-        }
-    }
+    PackRTOCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
 template <typename T>
@@ -184,12 +155,18 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
 
-    RTOUnpackData unpackData;
-    unpackData.dataShape = this->LocalShape();
-    unpackData.dataBufModeStrides = LocalStrides();
-    unpackData.recvBufModeStrides = Dimensions2Strides(MaxLocalShape());
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
 
-    UnpackRTOCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    RTOData unpackData;
+    unpackData.loopShape = this->LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
+
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
+
+    PackRTOCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 
 }
 

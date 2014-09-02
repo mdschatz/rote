@@ -80,18 +80,13 @@ struct GTOData
     std::vector<Unsigned> loopIncs;
 };
 
-struct RTOPackData
+struct RTOData
 {
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> sendBufModeStrides;
-};
-
-struct RTOUnpackData
-{
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> recvBufModeStrides;
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    std::vector<Unsigned> loopStarts;
+    std::vector<Unsigned> loopIncs;
 };
 
 struct A2APackData

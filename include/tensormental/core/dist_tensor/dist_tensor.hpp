@@ -307,9 +307,8 @@ public:
     //
     Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
     void ReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
-    void PackRTOCommSendBufHelper(const RTOPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
+    void PackRTOCommHelper(const RTOData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf);
-    void UnpackRTOCommRecvBufHelper(const RTOUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackRTOCommRecvBuf(const T* const recvBuf, const Mode rMode, const DistTensor<T>& A);
 
     //
