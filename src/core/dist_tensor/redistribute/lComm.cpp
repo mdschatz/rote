@@ -80,15 +80,20 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
 //    for(i = 0; i < order - unpackMode; i++)
 //        ident += "  ";
 //    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
+    if(unpackMode == 0){
+//        std::cout << ident << "unpacking src data:";
+//        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
+//            std::cout << " " << srcBuf[pSrcBufPtr];
+//            pSrcBufPtr += unpackSliceSrcBufStride;
+//            pDataBufPtr += unpackSliceDataBufStride;
+//        }
+//        std::cout << std::endl;
+        if(unpackMode == lMode){
+            Unsigned elemSliceStride = unpackData.elemSliceStride;
+            Unsigned elemSlice = unpackData.elemSlice;
 
-    if(unpackMode == lMode){
-        Unsigned maxElemSlice = unpackData.maxElemSlices;
-        Unsigned elemSlice = unpackData.elemSlice;
-
-        //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
-        unpackSliceSrcBufStride *= maxElemSlice;
-
-        if(unpackMode == 0){
+            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
+            unpackSliceSrcBufStride *= elemSliceStride;
 //            std::cout << ident << "unpacking src data:";
 //            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
 //                std::cout << " " << srcBuf[pSrcBufPtr];
@@ -107,6 +112,26 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
                 dataBufPtr += unpackSliceDataBufStride;
             }
         }else{
+            if(unpackSliceSrcBufStride == 1 && unpackSliceDataBufStride == 1){
+                MemCopy(&(dataBuf[0]), &(srcBuf[0]), unpackSliceLocalDim);
+            }else{
+                for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
+                    dataBuf[dataBufPtr] = srcBuf[srcBufPtr];
+
+    //                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+    //                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                    srcBufPtr += unpackSliceSrcBufStride;
+                    dataBufPtr += unpackSliceDataBufStride;
+                }
+            }
+        }
+    }else {
+        if(unpackMode == lMode){
+            Unsigned elemSliceStride = unpackData.elemSliceStride;
+            Unsigned elemSlice = unpackData.elemSlice;
+
+            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
+            unpackSliceSrcBufStride *= elemSliceStride;
             for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
                 UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
 
@@ -115,35 +140,14 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
                 srcBufPtr += unpackSliceSrcBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
-        }
-    }else if(unpackMode == 0){
-//        std::cout << ident << "unpacking src data:";
-//        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-//            std::cout << " " << srcBuf[pSrcBufPtr];
-//            pSrcBufPtr += unpackSliceSrcBufStride;
-//            pDataBufPtr += unpackSliceDataBufStride;
-//        }
-//        std::cout << std::endl;
-
-        if(unpackSliceSrcBufStride == 1 && unpackSliceDataBufStride == 1){
-            MemCopy(&(dataBuf[0]), &(srcBuf[0]), unpackSliceLocalDim);
         }else{
             for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-                dataBuf[dataBufPtr] = srcBuf[srcBufPtr];
-
-//                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
+    //            std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+    //            std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
                 srcBufPtr += unpackSliceSrcBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
-        }
-    }else {
-        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-            UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
-//            std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//            std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-            srcBufPtr += unpackSliceSrcBufStride;
-            dataBufPtr += unpackSliceDataBufStride;
         }
     }
 }
@@ -169,7 +173,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     LUnpackData unpackData;
     unpackData.srcShape = A.LocalShape();
     unpackData.localShape = LocalShape();
-    unpackData.maxElemSlices = nRedistProcs;
+    unpackData.elemSliceStride = nRedistProcs;
 
     unpackData.srcBufModeStrides = A.LocalStrides();
     unpackData.dataBufModeStrides = LocalStrides();
@@ -192,87 +196,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
 //    printf("dataBuf:");
 //    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
 //        printf(" %d", dataBuf[i]);
-//    }
-//    printf("\n");
-
-    //----------------------------------------------
-    //----------------------------------------------
-    //----------------------------------------------
-
-//    ModeDistribution lModeDistA = A.ModeDist(lMode);
-//    ModeDistribution lModeDistB = this->ModeDist(lMode);
-//
-//    ModeArray commModes(lModeDistB.begin() + lModeDistA.size(), lModeDistB.end());
-//
-//    Location myGridLoc = g.Loc();
-//    ObjShape gridShape = g.Shape();
-//
-//    Location myCommLoc = FilterVector(myGridLoc, commModes);
-//    ObjShape commShape = FilterVector(gridShape, commModes);
-//    Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, commShape);
-//
-//    //NOTE: CHECK THIS IS CORRECT
-//    Unsigned modeUnpackStride = prod(commShape);
-//
-//    //Number of slices after the mode to redist
-//    const ObjShape localShape = A.LocalShape();
-//    const ObjShape outerSliceShape(localShape.begin() + lMode + 1, localShape.end());
-//    const Unsigned nOuterSlices = Max(1, prod(outerSliceShape));
-//
-//    //Number of slices represented by the mode
-//    const Unsigned nLModeSlices = localShape[lMode];
-//
-//    //Size of slice to copy
-//    const ObjShape copySliceShape(localShape.begin(), localShape.begin() + lMode);
-//    //NOTE: This is based on modeA, different from all other unpacks
-//    const Unsigned copySliceSize = prod(this->LocalShape(), 0, lMode);
-//
-//    //Where we start copying
-//    const Unsigned elemStartLoc = myCommLinLoc;
-//
-//    Unsigned lModeSliceNum, outerSliceNum;
-//    Unsigned lModeDstOff, outerDstOff;
-//    Unsigned lModeSrcOff, outerSrcOff;
-//    Unsigned startDstBuf, startSrcBuf;
-//
-////    printf("srcBuf:");
-////    for(Unsigned i = 0; i < prod(localShape); i++){
-////        printf(" %d", srcBuf[i]);
-////    }
-////    printf("\n");
-//
-////    printf("MemCopy info:\n");
-////    printf("    elemStartLoc: %d\n", elemStartLoc);
-////    printf("    nOuterSlices: %d\n", nOuterSlices);
-////    printf("    nLModeSlices: %d\n", nLModeSlices);
-////    printf("    copySliceSize: %d\n", copySliceSize);
-////    printf("    modeUnpackStride: %d\n", modeUnpackStride);
-//    for(outerSliceNum = 0; outerSliceNum < nOuterSlices; outerSliceNum++){
-//        //NOTE: FIX THIS, WE NEED TO SEE HOW MANY TIMES WE RUN THROUGH THE lModeSliceNum loop (similar to some other unpack routine)
-//        outerDstOff = copySliceSize * ((nLModeSlices - elemStartLoc - 1) / modeUnpackStride + 1) * outerSliceNum;
-//        outerSrcOff = copySliceSize * nLModeSlices * outerSliceNum;
-//
-////        printf("        outerSliceNum: %d\n", outerSliceNum);
-////        printf("        outerDstOff: %d\n", outerDstOff);
-////        printf("        outerSrcOff: %d\n", outerSrcOff);
-//        for(lModeSliceNum = elemStartLoc; lModeSliceNum < nLModeSlices; lModeSliceNum += modeUnpackStride){
-//            lModeDstOff = copySliceSize * (lModeSliceNum - elemStartLoc) / modeUnpackStride;
-//            lModeSrcOff = copySliceSize * lModeSliceNum;
-//
-////            printf("          lModeSliceNum: %d\n", lModeSliceNum);
-////            printf("          lModeDstOff: %d\n", lModeDstOff);
-////            printf("          lModeSrcOff: %d\n", lModeSrcOff);
-//            startDstBuf = outerDstOff + lModeDstOff;
-//            startSrcBuf = outerSrcOff + lModeSrcOff;
-//
-////            printf("          startDstBuf: %d\n", startDstBuf);
-////            printf("          startSrcBuf: %d\n", startSrcBuf);
-//            MemCopy(&(dstBuf[startDstBuf]), &(srcBuf[startSrcBuf]), copySliceSize);
-//        }
-//    }
-//    printf("dstBuf:");
-//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
-//        printf(" %d", dstBuf[i]);
 //    }
 //    printf("\n");
 }

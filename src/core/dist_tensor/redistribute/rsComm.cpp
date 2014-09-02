@@ -107,14 +107,23 @@ void DistTensor<T>::PackRSCommSendBufHelper(const RSPackData& packData, const Mo
     //        ident += "  ";
     //    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
 
-    if(packMode == sMode){
+    if(packMode == 0){
+//        std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
+//        std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
+//        std::cout << ident << "unpacking recv data:";
+//        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
+//            std::cout << " " << recvBuf[pRecvBufPtr];
+//            pRecvBufPtr += unpackSliceRecvBufStride;
+//            pDataBufPtr += unpackSliceDataBufStride;
+//        }
+//        std::cout << std::endl;
+
+        if(packMode == sMode){
             Unsigned elemSlice = packData.elemSlice;
-            Unsigned maxElemSlice = packData.maxElemSlices;
+            Unsigned elemSliceStride = packData.elemSliceStride;
 
             //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
-            packSliceDataBufStride *= maxElemSlice;
-
-            if(packMode == 0){
+            packSliceDataBufStride *= elemSliceStride;
 //                std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
 //                std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
 //                std::cout << ident << "unpacking recv data:";
@@ -128,54 +137,51 @@ void DistTensor<T>::PackRSCommSendBufHelper(const RSPackData& packData, const Mo
 //                }
 //                std::cout << std::endl;
 
-                for(packSlice = 0; (packSlice + elemSlice) < packSliceLocalDim; packSlice += maxElemSlice){
-                    sendBuf[sendBufPtr] = dataBuf[dataBufPtr];
-
-//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                    sendBufPtr += packSliceSendBufStride;
-                    dataBufPtr += packSliceDataBufStride;
-                }
-            }else{
-                for(packSlice = 0; (packSlice + elemSlice) < packSliceLocalDim; packSlice += maxElemSlice){
-                    PackRSCommSendBufHelper(packData, packMode-1, &(dataBuf[dataBufPtr]), &(sendBuf[sendBufPtr]));
-
-//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                    sendBufPtr += packSliceSendBufStride;
-                    dataBufPtr += packSliceDataBufStride;
-                }
-            }
-    }else if(packMode == 0){
-//        std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
-//        std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
-//        std::cout << ident << "unpacking recv data:";
-//        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
-//            std::cout << " " << recvBuf[pRecvBufPtr];
-//            pRecvBufPtr += unpackSliceRecvBufStride;
-//            pDataBufPtr += unpackSliceDataBufStride;
-//        }
-//        std::cout << std::endl;
-
-        if(packSliceSendBufStride == 1 && packSliceDataBufStride == 1){
-            MemCopy(&(sendBuf[0]), &(dataBuf[0]), packSliceLocalDim);
-        }else{
-            for(packSlice = 0; packSlice < packSliceMaxDim && packSlice < packSliceLocalDim; packSlice++){
+            for(packSlice = 0; (packSlice + elemSlice) < packSliceLocalDim; packSlice += elemSliceStride){
                 sendBuf[sendBufPtr] = dataBuf[dataBufPtr];
 
-//                std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
                 sendBufPtr += packSliceSendBufStride;
                 dataBufPtr += packSliceDataBufStride;
             }
+        }else{
+            if(packSliceSendBufStride == 1 && packSliceDataBufStride == 1){
+                MemCopy(&(sendBuf[0]), &(dataBuf[0]), packSliceLocalDim);
+            }else{
+                for(packSlice = 0; packSlice < packSliceLocalDim; packSlice++){
+                    sendBuf[sendBufPtr] = dataBuf[dataBufPtr];
+
+    //                std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+    //                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                    sendBufPtr += packSliceSendBufStride;
+                    dataBufPtr += packSliceDataBufStride;
+                }
+            }
         }
     }else {
-        for(packSlice = 0; packSlice < packSliceMaxDim && packSlice < packSliceLocalDim; packSlice++){
-            PackRSCommSendBufHelper(packData, packMode-1, &(dataBuf[dataBufPtr]), &(sendBuf[sendBufPtr]));
-//            std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//            std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-            sendBufPtr += packSliceSendBufStride;
-            dataBufPtr += packSliceDataBufStride;
+        if(packMode == sMode){
+            Unsigned elemSlice = packData.elemSlice;
+            Unsigned elemSliceStride = packData.elemSliceStride;
+
+            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
+            packSliceDataBufStride *= elemSliceStride;
+            for(packSlice = 0; (packSlice + elemSlice) < packSliceLocalDim; packSlice += elemSliceStride){
+                PackRSCommSendBufHelper(packData, packMode-1, &(dataBuf[dataBufPtr]), &(sendBuf[sendBufPtr]));
+
+//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                sendBufPtr += packSliceSendBufStride;
+                dataBufPtr += packSliceDataBufStride;
+            }
+        }else{
+            for(packSlice = 0; packSlice < packSliceLocalDim; packSlice++){
+                PackRSCommSendBufHelper(packData, packMode-1, &(dataBuf[dataBufPtr]), &(sendBuf[sendBufPtr]));
+    //            std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+    //            std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                sendBufPtr += packSliceSendBufStride;
+                dataBufPtr += packSliceDataBufStride;
+            }
         }
     }
 }
@@ -212,7 +218,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
     packData.sMode = sMode;
     packData.sendBufModeStrides.resize(order);
     packData.sendBufModeStrides = Dimensions2Strides(packData.sendShape);
-    packData.maxElemSlices = nRedistProcs;
+    packData.elemSliceStride = nRedistProcs;
 
     const Unsigned nCommElemsPerProc = prod(packData.sendShape);
     const Unsigned sModeStride = LocalModeStride(sMode);
@@ -234,107 +240,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 //    for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++)
 //        std::cout << " " << sendBuf[i];
 //    std::cout << std::endl;
-
-    //-------------------------------------------
-    //-------------------------------------------
-    //-------------------------------------------
-//    const Unsigned nRedistProcs = Max(1, gvA.Dimension(rMode));
-//
-//    //Shape of the local tensor we are packing
-//    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-//    const ObjShape localShapeA = A.LocalShape();
-//
-//    //Calculate number of outer slices to pack
-//    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, sMode + 1));
-//    const Unsigned nLocalOuterSlices = prod(localShapeA, sMode + 1);
-//
-//    //Calculate number of sMode slices to pack
-//    const Unsigned nMaxSModeSlices = maxLocalShapeA[sMode];
-//    const Unsigned nLocalSModeSlices = localShapeA[sMode];
-//    const Unsigned sModePackStride = nRedistProcs;
-//    const Unsigned nMaxPackSModeSlices = MaxLength(maxLocalShapeA[sMode], sModePackStride);
-//
-//    //Number of processes we have to pack for
-//    const Unsigned nElemSlices = nRedistProcs;
-//
-//    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, sMode));
-//    const Unsigned copySliceSize = prod(localShapeA, 0, sMode);
-//
-//
-//    Unsigned outerSliceNum, sModeSliceNum, elemSliceNum; //Which slice of which wrap of which process are we packing
-//    Unsigned elemSendBufOff, elemDataBufOff;
-//    Unsigned outerSendBufOff, sModeSendBufOff;
-//    Unsigned outerDataBufOff, sModeDataBufOff;
-//    Unsigned startSendBuf, startDataBuf;
-//
-//    const ModeArray redistModes = A.ModeDist(rMode);
-//    ModeArray commModes = redistModes;
-//    std::sort(commModes.begin(), commModes.end());
-//    const ObjShape redistShape = FilterVector(Grid().Shape(), redistModes);
-//    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
-//    const Permutation commPerm = DeterminePermutation(redistModes, commModes);
-//
-////    printf("MemCopy info:\n");
-////    printf("    prod(maxLocalShapeA): %d\n", prod(maxLocalShapeA));
-////    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-////    printf("    nLocalOuterSlices: %d\n", nLocalOuterSlices);
-////    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
-////    printf("    nLocalSModeSlices: %d\n", nLocalSModeSlices);
-////    printf("    sModePackStride: %d\n", sModePackStride);
-////    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-////    printf("    copySliceSize: %d\n", copySliceSize);
-//    for(elemSliceNum = 0; elemSliceNum < nElemSlices; elemSliceNum++){
-//        const Location elemRedistLoc = LinearLoc2Loc(elemSliceNum, redistShape);
-//        const Unsigned elemCommLinLoc = Loc2LinearLoc(FilterVector(elemRedistLoc, commPerm), commShape);
-//
-//
-////        PrintVector(redistShape, "redistShape");
-////        PrintVector(redistModes, "redistModes");
-////        PrintVector(elemRedistLoc, "elemRedistLoc");
-////        PrintVector(commPerm, "commPerm");
-////        PrintVector(FilterVector(elemRedistLoc, commPerm), "redistLoc");
-////        std::cout << "elemCommLinLoc" << elemCommLinLoc << std::endl;
-//
-//        elemSendBufOff = prod(maxLocalShapeA) * elemCommLinLoc;
-//        elemDataBufOff = copySliceSize * elemSliceNum;
-//
-////        printf("      elemSliceNum:   %d\n", elemSliceNum);
-////        printf("      elemSendBufOff: %d\n", elemSendBufOff);
-////        printf("      elemDataBufOff: %d\n", elemDataBufOff);
-//
-//        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++ ){
-//            if(outerSliceNum >= nLocalOuterSlices)
-//                break;
-//            outerSendBufOff = maxCopySliceSize * Max(1, nMaxPackSModeSlices) * outerSliceNum;
-//            outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
-//
-////            printf("        outerSliceNum:   %d\n", outerSliceNum);
-////            printf("        outerSendBufOff: %d\n", outerSendBufOff);
-////            printf("        outerDataBufOff: %d\n", outerDataBufOff);
-//
-//                for(sModeSliceNum = 0; sModeSliceNum < nMaxSModeSlices; sModeSliceNum += sModePackStride){
-//                    if(sModeSliceNum + elemSliceNum >= nLocalSModeSlices)
-//                        break;
-//                    sModeSendBufOff = maxCopySliceSize * (sModeSliceNum / sModePackStride);
-//                    sModeDataBufOff = copySliceSize * sModeSliceNum;
-//
-////                    printf("          sModeSliceNum:   %d\n", sModeSliceNum);
-////                    printf("          sModeSendBufOff: %d\n", sModeSendBufOff);
-////                    printf("          sModeDataBufOff: %d\n", sModeDataBufOff);
-//                    startSendBuf = elemSendBufOff + outerSendBufOff + sModeSendBufOff;
-//                    startDataBuf = elemDataBufOff + outerDataBufOff + sModeDataBufOff;
-//
-////                    printf("            startSendBuf: %d\n", startSendBuf);
-////                    printf("            startDataBuf: %d\n", startDataBuf);
-//                    MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
-//                }
-//        }
-//    }
-
-//    std::cout << "packed sendBuf:";
-//    for(Unsigned i = 0; i < prod(maxLocalShapeA) * nRedistProcs; i++)
-//        std::cout << " " << sendBuf[i];
-//    std::cout << std::endl;
 }
 
 template <typename T>
@@ -351,14 +256,14 @@ void DistTensor<T>::UnpackRSCommRecvBufHelper(const RSUnpackData& unpackData, co
         if(unpackSliceRecvBufStride == 1 && unpackSliceDataBufStride == 1){
             MemCopy(&(dataBuf[0]), &(recvBuf[0]), unpackSliceLocalDim);
         }else{
-            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
+            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
                 dataBuf[dataBufPtr] = recvBuf[recvBufPtr];
                 recvBufPtr += unpackSliceRecvBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
         }
     }else{
-        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
+        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
             UnpackRSCommRecvBufHelper(unpackData, unpackMode-1, &(recvBuf[recvBufPtr]), &(dataBuf[dataBufPtr]));
             recvBufPtr += unpackSliceRecvBufStride;
             dataBufPtr += unpackSliceDataBufStride;
@@ -394,68 +299,6 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
     unpackData.recvBufModeStrides = Dimensions2Strides(unpackData.recvShape);
 
     UnpackRSCommRecvBufHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
-
-    //-------------------------------------------
-    //-------------------------------------------
-    //-------------------------------------------
-
-//    const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
-//
-//    //Number of outer slices to unpack
-//    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, sMode + 1));
-//    const Unsigned nLocalOuterSlices = prod(localShapeB, sMode + 1);
-//
-//    //Loop packing bounds variables
-//    const Unsigned nMaxSModeSlices = maxLocalShapeB[sMode];
-//    const Unsigned nLocalSModeSlices = localShapeB[sMode];
-//
-//    //Each wrap is copied contiguously because the distribution of reduceScatter index does not change
-//
-//    //Variables for calculating elements to copy
-//    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, sMode));
-//    const Unsigned copySliceSize = prod(localShapeB, 0, sMode);
-//
-//    //Loop iteration vars
-//    Unsigned outerSliceNum, sModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" int offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
-//    Unsigned outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
-//    Unsigned sModeRecvBufOff, sModeDataBufOff;  //Offsets used to index into dataBuf array
-//    Unsigned startRecvBuf, startDataBuf;
-//
-////    printf("MemCopy info:\n");
-////    printf("    nMaxOuterSlices: %d\n", nMaxOuterSlices);
-////    printf("    nMaxSModeSlices: %d\n", nMaxSModeSlices);
-////    printf("    maxCopySliceSize: %d\n", maxCopySliceSize);
-////    printf("    copySliceSize: %d\n", copySliceSize);
-//    for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
-//        if(outerSliceNum >= nLocalOuterSlices)
-//            break;
-//        outerRecvBufOff = maxCopySliceSize * nMaxSModeSlices * outerSliceNum;
-//        outerDataBufOff = copySliceSize * nLocalSModeSlices * outerSliceNum;
-//
-////        printf("      outerSliceNum: %d\n", outerSliceNum);
-////        printf("      outerRecvBufOff: %d\n", outerRecvBufOff);
-////        printf("      outerDataBufOff: %d\n", outerDataBufOff);
-//
-//        for(sModeSliceNum = 0; sModeSliceNum < nMaxSModeSlices; sModeSliceNum++){
-//            if(sModeSliceNum >= nLocalSModeSlices)
-//                break;
-//
-//            sModeRecvBufOff = (maxCopySliceSize * sModeSliceNum);
-//            sModeDataBufOff = (copySliceSize * sModeSliceNum);
-//
-//            startRecvBuf = outerRecvBufOff + sModeRecvBufOff;
-//            startDataBuf = outerDataBufOff + sModeDataBufOff;
-//
-////            printf("        startRecvBuf: %d\n", startRecvBuf);
-////            printf("        startDataBuf: %d\n", startDataBuf);
-//            MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
-//        }
-//    }
-
-//    std::cout << "dataBuf:";
-//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
-//        std::cout << " " << dataBuf[i];
-//    std::cout << std::endl;
 }
 
 #define PROTO(T) \

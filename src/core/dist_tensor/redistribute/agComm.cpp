@@ -81,7 +81,7 @@ template<typename T>
 void DistTensor<T>::PackAGCommSendBufHelper(const AGPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
 
     Unsigned packSlice = packMode;
-    Unsigned packSliceMaxDim = packData.maxLocalShape[packSlice];
+    Unsigned packSliceMaxDim = packData.sendShape[packSlice];
     Unsigned packSliceLocalDim = packData.localShape[packSlice];
     Unsigned packSliceSendBufStride = packData.sendBufModeStrides[packSlice];
     Unsigned packSliceDataBufStride = packData.dataBufModeStrides[packSlice];
@@ -92,14 +92,14 @@ void DistTensor<T>::PackAGCommSendBufHelper(const AGPackData& packData, const Mo
         if(packSliceSendBufStride == 1 && packSliceDataBufStride == 1){
             MemCopy(&(sendBuf[0]), &(dataBuf[0]), packSliceLocalDim);
         }else{
-            for(packSlice = 0; packSlice < packSliceMaxDim && packSlice < packSliceLocalDim; packSlice++){
+            for(packSlice = 0; packSlice < packSliceLocalDim; packSlice++){
                 sendBuf[sendBufPtr] = dataBuf[dataBufPtr];
                 sendBufPtr += packSliceSendBufStride;
                 dataBufPtr += packSliceDataBufStride;
             }
         }
     }else{
-        for(packSlice = 0; packSlice < packSliceMaxDim && packSlice < packSliceLocalDim; packSlice++){
+        for(packSlice = 0; packSlice < packSliceLocalDim; packSlice++){
             PackAGCommSendBufHelper(packData, packMode-1, &(dataBuf[dataBufPtr]), &(sendBuf[sendBufPtr]));
             sendBufPtr += packSliceSendBufStride;
             dataBufPtr += packSliceDataBufStride;
@@ -117,31 +117,21 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   const tmen::GridView gvA = A.GetGridView();
 
   AGPackData packData;
-  packData.maxLocalShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
+  packData.sendShape = MaxLengths(A.Shape(), gvA.ParticipatingShape());
   packData.localShape = A.LocalShape();
 
   packData.dataBufModeStrides = A.LocalStrides();
 
   packData.sendBufModeStrides.resize(order);
-  packData.sendBufModeStrides = Dimensions2Strides(packData.maxLocalShape);
+  packData.sendBufModeStrides = Dimensions2Strides(packData.sendShape);
 
   PackAGCommSendBufHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
-////  NOTE: Dimensions2Strides should be implemented as this
-//  packData.sendBufModeStrides[0] = 1;
-//  for(i = 1; i < A.Order(); i++){
-//      packData.sendBufModeStrides[i] = packData.sendBufModeStrides[i-1] * packData.maxLocalShape[i-1];
-//  }
-
-//  printf("packed sendBuf: ");
-//  for(Unsigned i = 0; i < prod(packData.maxLocalShape); i++)
-//      printf("%d ", sendBuf[i]);
-//  printf("\n");
 }
 
 template<typename T>
 void DistTensor<T>::UnpackAGCommRecvBufHelper(const AGUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf){
     Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceMaxDim = unpackData.maxLocalShape[unpackSlice];
+    Unsigned unpackSliceMaxDim = unpackData.recvShape[unpackSlice];
     Unsigned unpackSliceLocalDim = unpackData.localShape[unpackSlice];
     Unsigned unpackSliceRecvBufStride = unpackData.recvBufModeStrides[unpackSlice];
     Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
@@ -158,46 +148,7 @@ void DistTensor<T>::UnpackAGCommRecvBufHelper(const AGUnpackData& unpackData, co
 //        ident += "  ";
 //    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
 
-    if(unpackMode == commMode){
-            Unsigned elemSlice = unpackData.elemSlice;
-            Unsigned maxElemSlice = unpackData.maxElemSlices;
-
-            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
-            unpackSliceDataBufStride *= maxElemSlice;
-
-            if(unpackMode == 0){
-//                std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
-//                std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
-//                std::cout << ident << "unpacking recv data:";
-//                for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && (unpackSlice + elemSlice) < unpackSliceLocalDim; unpackSlice += maxElemSlice){
-//                    std::cout << " " << recvBuf[pRecvBufPtr];
-//
-//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-//                    pRecvBufPtr += unpackSliceRecvBufStride;
-//                    pDataBufPtr += unpackSliceDataBufStride;
-//                }
-//                std::cout << std::endl;
-
-                for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && (unpackSlice + elemSlice) < unpackSliceLocalDim; unpackSlice += maxElemSlice){
-                    dataBuf[dataBufPtr] = recvBuf[recvBufPtr];
-
-//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                    recvBufPtr += unpackSliceRecvBufStride;
-                    dataBufPtr += unpackSliceDataBufStride;
-                }
-            }else{
-                for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && (unpackSlice + elemSlice) < unpackSliceLocalDim; unpackSlice += maxElemSlice){
-                    UnpackAGCommRecvBufHelper(unpackData, unpackMode-1, &(recvBuf[recvBufPtr]), &(dataBuf[dataBufPtr]));
-
-//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                    recvBufPtr += unpackSliceRecvBufStride;
-                    dataBufPtr += unpackSliceDataBufStride;
-                }
-            }
-    }else if(unpackMode == 0){
+    if(unpackMode == 0){
 //        std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
 //        std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
 //        std::cout << ident << "unpacking recv data:";
@@ -207,11 +158,26 @@ void DistTensor<T>::UnpackAGCommRecvBufHelper(const AGUnpackData& unpackData, co
 //            pDataBufPtr += unpackSliceDataBufStride;
 //        }
 //        std::cout << std::endl;
+        if(unpackMode == commMode){
+            Unsigned elemSlice = unpackData.elemSlice;
+            Unsigned elemSliceStride = unpackData.elemSliceStride;
 
-        if(unpackSliceRecvBufStride == 1 && unpackSliceDataBufStride == 1){
-            MemCopy(&(dataBuf[0]), &(recvBuf[0]), unpackSliceLocalDim);
-        }else{
-            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
+            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
+            unpackSliceDataBufStride *= elemSliceStride;
+//            std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
+//            std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
+//            std::cout << ident << "unpacking recv data:";
+//            for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && (unpackSlice + elemSlice) < unpackSliceLocalDim; unpackSlice += maxElemSlice){
+//                std::cout << " " << recvBuf[pRecvBufPtr];
+//
+//                std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+//                pRecvBufPtr += unpackSliceRecvBufStride;
+//                pDataBufPtr += unpackSliceDataBufStride;
+//            }
+//            std::cout << std::endl;
+
+            for(unpackSlice = 0; (unpackSlice + elemSlice) < unpackSliceLocalDim; unpackSlice += elemSliceStride){
                 dataBuf[dataBufPtr] = recvBuf[recvBufPtr];
 
 //                std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
@@ -219,14 +185,43 @@ void DistTensor<T>::UnpackAGCommRecvBufHelper(const AGUnpackData& unpackData, co
                 recvBufPtr += unpackSliceRecvBufStride;
                 dataBufPtr += unpackSliceDataBufStride;
             }
+        }else{
+            if(unpackSliceRecvBufStride == 1 && unpackSliceDataBufStride == 1){
+                MemCopy(&(dataBuf[0]), &(recvBuf[0]), unpackSliceLocalDim);
+            }else{
+                for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
+                    dataBuf[dataBufPtr] = recvBuf[recvBufPtr];
+
+    //                std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+    //                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                    recvBufPtr += unpackSliceRecvBufStride;
+                    dataBufPtr += unpackSliceDataBufStride;
+                }
+            }
         }
     }else {
-        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
-            UnpackAGCommRecvBufHelper(unpackData, unpackMode-1, &(recvBuf[recvBufPtr]), &(dataBuf[dataBufPtr]));
-//            std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//            std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-            recvBufPtr += unpackSliceRecvBufStride;
-            dataBufPtr += unpackSliceDataBufStride;
+        if(unpackMode == commMode){
+            Unsigned elemSlice = unpackData.elemSlice;
+            Unsigned maxElemSlice = unpackData.elemSliceStride;
+
+            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
+            unpackSliceDataBufStride *= maxElemSlice;
+            for(unpackSlice = 0; (unpackSlice + elemSlice) < unpackSliceLocalDim; unpackSlice += maxElemSlice){
+                UnpackAGCommRecvBufHelper(unpackData, unpackMode-1, &(recvBuf[recvBufPtr]), &(dataBuf[dataBufPtr]));
+
+//                    std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+//                    std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                recvBufPtr += unpackSliceRecvBufStride;
+                dataBufPtr += unpackSliceDataBufStride;
+            }
+        }else{
+            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
+                UnpackAGCommRecvBufHelper(unpackData, unpackMode-1, &(recvBuf[recvBufPtr]), &(dataBuf[dataBufPtr]));
+    //            std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
+    //            std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+                recvBufPtr += unpackSliceRecvBufStride;
+                dataBufPtr += unpackSliceDataBufStride;
+            }
         }
     }
 }
@@ -260,13 +255,13 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
 
     AGUnpackData unpackData;
 
-    unpackData.maxLocalShape = MaxLengths(this->Shape(), gvB.ParticipatingShape());
+    unpackData.recvShape = MaxLengths(this->Shape(), gvB.ParticipatingShape());
     unpackData.localShape = this->LocalShape();
 
     unpackData.recvBufModeStrides = Dimensions2Strides(maxLocalShapeA);
     unpackData.dataBufModeStrides = LocalStrides();
     unpackData.commMode = agMode;
-    unpackData.maxElemSlices = nRedistProcs;
+    unpackData.elemSliceStride = nRedistProcs;
 
     //NOTE: Check
     for(i = 0; i < nRedistProcs; i++){

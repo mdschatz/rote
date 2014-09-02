@@ -37,7 +37,7 @@ typedef std::vector<Unsigned> Permutation;
 //Pack data structs
 struct AGPackData
 {
-    ObjShape maxLocalShape;
+    ObjShape sendShape;
     ObjShape localShape;
     std::vector<Unsigned> sendBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
@@ -45,11 +45,11 @@ struct AGPackData
 
 struct AGUnpackData
 {
-    ObjShape maxLocalShape;
+    ObjShape recvShape;
     ObjShape localShape;
     std::vector<Unsigned> recvBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlices;
+    Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode commMode;
 };
@@ -60,7 +60,7 @@ struct RSPackData
     ObjShape localShape;
     std::vector<Unsigned> sendBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlices;
+    Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode sMode;
 };
@@ -79,7 +79,7 @@ struct LUnpackData
     ObjShape localShape;
     std::vector<Unsigned> srcBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlices;
+    Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode lMode;
 };
@@ -114,7 +114,7 @@ struct GTOUnpackData
     ObjShape localShape;
     std::vector<Unsigned> recvBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlices;
+    Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode commMode;
 };
@@ -133,7 +133,7 @@ struct RTOUnpackData
     ObjShape localShape;
     std::vector<Unsigned> recvBufModeStrides;
     std::vector<Unsigned> dataBufModeStrides;
-    Unsigned maxElemSlices;
+    Unsigned elemSliceStride;
     Unsigned elemSlice;
     Mode commMode;
 };
