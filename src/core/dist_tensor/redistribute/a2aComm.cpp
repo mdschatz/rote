@@ -45,26 +45,24 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
         return;
     Unsigned sendSize, recvSize;
 
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
+    const ObjShape maxLocalShapeA = A.MaxShape();
+    const ObjShape maxLocalShapeB = MaxShape();
+    const ObjShape commDataShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
 
-
-    const Unsigned nRedistProcs = prod(FilterVector(A.Grid().Shape(), commModes));
-    const ObjShape maxLocalShape = MaxLengths(A.Shape(), A.GetGridView().ParticipatingShape());
-
-    sendSize = prod(maxLocalShape) * Max(1, nRedistProcs);
+    sendSize = prod(commDataShape);
     recvSize = sendSize;
 
-
-
     Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
-    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* auxBuf = auxMemory.Require((sendSize + recvSize) * nRedistProcs);
+    MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
 
     T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
+    T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
     PackA2ADoubleModeCommSendBuf(A, a2aModes, a2aCommGroups, sendBuf);
 
-    mpi::AllToAll(sendBuf, sendSize/Max(1, nRedistProcs), recvBuf, recvSize/Max(1, nRedistProcs), comm);
+    mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
 
     if(!(this->Participating()))
         return;
@@ -203,7 +201,10 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
     A2APackData packData;
-    const ObjShape sendShape = A.MaxShape();
+    const ObjShape maxLocalShapeA = A.MaxShape();
+    const ObjShape maxLocalShapeB = MaxShape();
+    const ObjShape sendShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
+
     packData.dataShape = A.LocalShape();
     packData.dataBufModeStrides = A.LocalStrides();
 
@@ -388,7 +389,9 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
 
-    const ObjShape recvShape = A.MaxShape();
+    const ObjShape maxLocalShapeA = A.MaxShape();
+    const ObjShape maxLocalShapeB = MaxShape();
+    const ObjShape recvShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
 
     A2AUnpackData unpackData;
     unpackData.dataShape = LocalShape();
