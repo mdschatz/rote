@@ -264,7 +264,7 @@ public:
     //
     Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
     void LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
-    void UnpackLocalCommHelper(const LUnpackData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf);
+    void UnpackLocalCommHelper(const LData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf);
     void UnpackLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
 
     //
@@ -294,7 +294,6 @@ public:
     void ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
     void PackRSCommHelper(const RSData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
     void PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf);
-    void UnpackRSCommRecvBufHelper(const RSUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackRSCommRecvBuf(const T* const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A);
 
     //

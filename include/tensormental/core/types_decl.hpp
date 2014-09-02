@@ -53,32 +53,14 @@ struct RSData
     std::vector<Unsigned> loopIncs;
 };
 
-struct RSPackData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufModeStrides;
-    std::vector<Unsigned> dstBufModeStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct RSUnpackData
+//NOTE: Because this is a local copy, the elemSlice is always known.  Therefore we ignore it in this struct
+struct LData
 {
     ObjShape loopShape;
     std::vector<Unsigned> dstBufStrides;
     std::vector<Unsigned> srcBufStrides;
     std::vector<Unsigned> loopStarts;
     std::vector<Unsigned> loopIncs;
-};
-
-//NOTE: Because this is a local copy, the elemSlice is always known.  Therefore we ignore it in this struct
-struct LUnpackData
-{
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> srcBufModeStrides;
-    Unsigned elemSliceStride;
-    Mode lMode;
 };
 
 struct PPackData

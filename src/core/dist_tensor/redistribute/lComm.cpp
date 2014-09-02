@@ -62,14 +62,15 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode
 }
 
 template <typename T>
-void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf){
-    Unsigned unpackSlice = unpackMode;
-    Unsigned unpackSliceLocalDim = unpackData.dataShape[unpackSlice];
-    Unsigned unpackSliceSrcBufStride = unpackData.srcBufModeStrides[unpackSlice];
-    Unsigned unpackSliceDataBufStride = unpackData.dataBufModeStrides[unpackSlice];
-    Mode lMode = unpackData.lMode;
+void DistTensor<T>::UnpackLocalCommHelper(const LData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf){
+    Unsigned unpackSlice;
+    const Unsigned loopEnd = unpackData.loopShape[unpackMode];
+    const Unsigned srcBufStride = unpackData.srcBufStrides[unpackMode];
+    const Unsigned dstBufStride = unpackData.dstBufStrides[unpackMode];
+    const Unsigned loopStart = unpackData.loopStarts[unpackMode];
+    const Unsigned loopInc = unpackData.loopIncs[unpackMode];
     Unsigned srcBufPtr = 0;
-    Unsigned dataBufPtr = 0;
+    Unsigned dstBufPtr = 0;
 //    Unsigned pSrcBufPtr = 0;
 //    Unsigned pDataBufPtr = 0;
 //
@@ -87,64 +88,25 @@ void DistTensor<T>::UnpackLocalCommHelper(const LUnpackData& unpackData, const M
 //            pDataBufPtr += unpackSliceDataBufStride;
 //        }
 //        std::cout << std::endl;
-        if(unpackMode == lMode){
-            Unsigned elemSliceStride = unpackData.elemSliceStride;
-
-            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
-            unpackSliceSrcBufStride *= elemSliceStride;
-//            std::cout << ident << "unpacking src data:";
-//            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-//                std::cout << " " << srcBuf[pSrcBufPtr];
-//
-//                pSrcBufPtr += unpackSliceSrcBufStride;
-//                pDataBufPtr += unpackSliceDataBufStride;
-//            }
-//            std::cout << std::endl;
-
-            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-                dataBuf[dataBufPtr] = srcBuf[srcBufPtr];
+        if(srcBufStride == 1 && dstBufStride == 1){
+            MemCopy(&(dataBuf[0]), &(srcBuf[0]), loopEnd);
+        }else{
+            for(unpackSlice = loopStart; unpackSlice < loopEnd; unpackSlice += loopInc){
+                dataBuf[dstBufPtr] = srcBuf[srcBufPtr];
 
 //                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
 //                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                srcBufPtr += unpackSliceSrcBufStride;
-                dataBufPtr += unpackSliceDataBufStride;
-            }
-        }else{
-            if(unpackSliceSrcBufStride == 1 && unpackSliceDataBufStride == 1){
-                MemCopy(&(dataBuf[0]), &(srcBuf[0]), unpackSliceLocalDim);
-            }else{
-                for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-                    dataBuf[dataBufPtr] = srcBuf[srcBufPtr];
-
-    //                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-    //                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                    srcBufPtr += unpackSliceSrcBufStride;
-                    dataBufPtr += unpackSliceDataBufStride;
-                }
+                srcBufPtr += srcBufStride;
+                dstBufPtr += dstBufStride;
             }
         }
     }else {
-        if(unpackMode == lMode){
-            Unsigned elemSliceStride = unpackData.elemSliceStride;
-
-            //NOTE: Each tensor data we unpack is strided by nRedistProcs (maxElemSlice) entries away
-            unpackSliceSrcBufStride *= elemSliceStride;
-            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-                UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
-
-//                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                srcBufPtr += unpackSliceSrcBufStride;
-                dataBufPtr += unpackSliceDataBufStride;
-            }
-        }else{
-            for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-                UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dataBufPtr]));
-    //            std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-    //            std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                srcBufPtr += unpackSliceSrcBufStride;
-                dataBufPtr += unpackSliceDataBufStride;
-            }
+        for(unpackSlice = loopStart; unpackSlice < loopEnd; unpackSlice += loopInc){
+            UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dstBufPtr]));
+//            std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
+//            std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
+            srcBufPtr += srcBufStride;
+            dstBufPtr += dstBufStride;
         }
     }
 }
@@ -167,12 +129,15 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     const tmen::GridView gvB = GetGridView();
     const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), gridRedistModes));
 
-    LUnpackData unpackData;
-    unpackData.dataShape = LocalShape();
-    unpackData.dataBufModeStrides = LocalStrides();
-    unpackData.srcBufModeStrides = A.LocalStrides();
-    unpackData.elemSliceStride = nRedistProcs;
-    unpackData.lMode = lMode;
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+    LData unpackData;
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = A.LocalStrides();
+    unpackData.srcBufStrides[lMode] = nRedistProcs;
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
 
 //    ModeArray commModes = gridRedistModes;
 //    std::sort(commModes.begin(), commModes.end());
