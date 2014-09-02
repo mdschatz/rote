@@ -87,36 +87,6 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
     UnpackRTOCommRecvBuf(recvBuf, reduceMode, A);
 }
 
-template<typename T>
-void DistTensor<T>::PackRTOCommHelper(const RTOData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-    Unsigned packSlice;
-    const Unsigned loopEnd = packData.loopShape[packMode];
-    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
-    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
-    const Unsigned loopStart = packData.loopStarts[packMode];
-    const Unsigned loopInc = packData.loopIncs[packMode];
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    if(packMode == 0){
-        if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
-        }else{
-            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                dstBufPtr += dstBufStride;
-                srcBufPtr += srcBufStride;
-            }
-        }
-    }else{
-        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackRTOCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-            dstBufPtr += dstBufStride;
-            srcBufPtr += srcBufStride;
-        }
-    }
-}
-
 template <typename T>
 void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf)
 {
@@ -135,7 +105,7 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    RTOData packData;
+    PackData packData;
     packData.loopShape = A.LocalShape();
     packData.srcBufStrides = A.LocalStrides();
     packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
@@ -143,7 +113,7 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
     packData.loopStarts = zeros;
     packData.loopIncs = ones;
 
-    PackRTOCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
 template <typename T>
@@ -158,7 +128,7 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    RTOData unpackData;
+    PackData unpackData;
     unpackData.loopShape = this->LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
@@ -166,7 +136,7 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
-    PackRTOCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 
 }
 

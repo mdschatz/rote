@@ -112,36 +112,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
 }
 
-template<typename T>
-void DistTensor<T>::PackPCommHelper(const PData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-    Unsigned packSlice;
-    const Unsigned loopEnd = packData.loopShape[packMode];
-    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
-    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
-    const Unsigned loopStart = packData.loopStarts[packMode];
-    const Unsigned loopInc = packData.loopIncs[packMode];
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    if(packMode == 0){
-        if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
-        }else{
-            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                dstBufPtr += dstBufStride;
-                srcBufPtr += srcBufStride;
-            }
-        }
-    }else{
-        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackPCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-            dstBufPtr += dstBufStride;
-            srcBufPtr += srcBufStride;
-        }
-    }
-}
-
 //NOTE: This should just be a direct memcopy. But sticking to the same structured code as all other collectives
 template <typename T>
 void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode pMode, T * const sendBuf)
@@ -153,7 +123,7 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    PData packData;
+    PackData packData;
     packData.loopShape = A.LocalShape();
     packData.srcBufStrides = A.LocalStrides();
     packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
@@ -161,7 +131,7 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
     packData.loopStarts = zeros;
     packData.loopIncs = ones;
 
-    PackPCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
 template <typename T>
@@ -178,7 +148,7 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
 
     const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
-    PData unpackData;
+    PackData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = Dimensions2Strides(A.MaxLocalShape());
@@ -186,7 +156,7 @@ void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const 
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
-    PackPCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 
 #define PROTO(T) \

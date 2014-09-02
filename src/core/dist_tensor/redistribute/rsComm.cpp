@@ -89,58 +89,6 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
     UnpackRSCommRecvBuf(recvBuf, reduceMode, scatterMode, A);
 }
 
-template<typename T>
-void DistTensor<T>::PackRSCommHelper(const RSData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-    Unsigned packSlice;
-    const Unsigned loopEnd = packData.loopShape[packMode];
-    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
-    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
-    const Unsigned loopStart = packData.loopStarts[packMode];
-    const Unsigned loopInc = packData.loopIncs[packMode];
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    //    Unsigned order = Order();
-    //    Unsigned i;
-    //    std::string ident = "";
-    //    for(i = 0; i < order - unpackMode; i++)
-    //        ident += "  ";
-    //    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
-
-    if(packMode == 0){
-//        std::cout << ident << "recvBuf loc " << &(recvBuf[pRecvBufPtr]) << std::endl;
-//        std::cout << ident << "dataBuf loc " << &(dataBuf[pDataBufPtr]) << std::endl;
-//        std::cout << ident << "unpacking recv data:";
-//        for(unpackSlice = 0; unpackSlice < unpackSliceMaxDim && unpackSlice < unpackSliceLocalDim; unpackSlice++){
-//            std::cout << " " << recvBuf[pRecvBufPtr];
-//            pRecvBufPtr += unpackSliceRecvBufStride;
-//            pDataBufPtr += unpackSliceDataBufStride;
-//        }
-//        std::cout << std::endl;
-
-        if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
-        }else{
-            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-
-//                std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//                std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                dstBufPtr += dstBufStride;
-                srcBufPtr += srcBufStride;
-            }
-        }
-    }else {
-        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackRSCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-//            std::cout << "recvBuf inc by " << unpackSliceRecvBufStride << std::endl;
-//            std::cout << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-            dstBufPtr += dstBufStride;
-            srcBufPtr += srcBufStride;
-        }
-    }
-}
-
 template <typename T>
 void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, const Mode sMode, T * const sendBuf)
 {
@@ -169,7 +117,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    RSData packData;
+    PackData packData;
     packData.loopShape = A.LocalShape();
     packData.srcBufStrides = A.LocalStrides();
     packData.srcBufStrides[sMode] *= nRedistProcs;
@@ -185,7 +133,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
         const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, commPerm), commShape);
 
         packData.loopStarts[sMode] = i;
-        PackRSCommHelper(packData, order - 1, &(dataBuf[i*sModeStride]), &(sendBuf[elemRedistLinLoc * nCommElemsPerProc]));
+        PackCommHelper(packData, order - 1, &(dataBuf[i*sModeStride]), &(sendBuf[elemRedistLinLoc * nCommElemsPerProc]));
 //        std::cout << "pack slice:" << i << std::endl;
 //        std::cout << "packed sendBuf:";
 //        for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++)
@@ -216,14 +164,14 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMod
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    RSData unpackData;
+    PackData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
-    PackRSCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 
 #define PROTO(T) \

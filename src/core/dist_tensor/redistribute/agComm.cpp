@@ -77,36 +77,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
-template<typename T>
-void DistTensor<T>::PackAGCommHelper(const AGData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-    Unsigned packSlice;
-    const Unsigned loopEnd = packData.loopShape[packMode];
-    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
-    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
-    const Unsigned loopStart = packData.loopStarts[packMode];
-    const Unsigned loopInc = packData.loopIncs[packMode];
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    if(packMode == 0){
-        if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
-        }else{
-            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                dstBufPtr += dstBufStride;
-                srcBufPtr += srcBufStride;
-            }
-        }
-    }else{
-        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackAGCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-            dstBufPtr += dstBufStride;
-            srcBufPtr += srcBufStride;
-        }
-    }
-}
-
 template <typename T>
 void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode, T * const sendBuf, const ModeArray& redistModes)
 {
@@ -118,7 +88,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
 
   const tmen::GridView gvA = A.GetGridView();
 
-  AGData packData;
+  PackData packData;
   packData.loopShape = A.LocalShape();
   packData.srcBufStrides = A.LocalStrides();
 
@@ -127,7 +97,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   packData.loopStarts = zeros;
   packData.loopIncs = ones;
 
-  PackAGCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+  PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
 template <typename T>
@@ -160,7 +130,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    AGData unpackData;
+    PackData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.dstBufStrides[agMode] *= nRedistProcs;
@@ -180,7 +150,7 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
             continue;
         unpackData.loopStarts[agMode] = elemRedistLinLoc;
 
-        PackAGCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * agModeStride]));
+        PackCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * agModeStride]));
 
     }
 

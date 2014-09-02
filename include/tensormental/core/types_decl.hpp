@@ -35,61 +35,7 @@ typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
 
 //Pack data structs
-struct AGData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct RSData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct LData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct PData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct GTOData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct RTOData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
-};
-
-struct A2AData
+struct PackData
 {
     ObjShape loopShape;
     std::vector<Unsigned> srcBufStrides;

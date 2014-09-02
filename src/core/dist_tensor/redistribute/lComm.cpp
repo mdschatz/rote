@@ -62,56 +62,6 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode
 }
 
 template <typename T>
-void DistTensor<T>::UnpackLocalCommHelper(const LData& unpackData, const Mode unpackMode, T const * const srcBuf, T * const dataBuf){
-    Unsigned unpackSlice;
-    const Unsigned loopEnd = unpackData.loopShape[unpackMode];
-    const Unsigned srcBufStride = unpackData.srcBufStrides[unpackMode];
-    const Unsigned dstBufStride = unpackData.dstBufStrides[unpackMode];
-    const Unsigned loopStart = unpackData.loopStarts[unpackMode];
-    const Unsigned loopInc = unpackData.loopIncs[unpackMode];
-    Unsigned srcBufPtr = 0;
-    Unsigned dstBufPtr = 0;
-//    Unsigned pSrcBufPtr = 0;
-//    Unsigned pDataBufPtr = 0;
-//
-//    Unsigned order = Order();
-//    Unsigned i;
-//    std::string ident = "";
-//    for(i = 0; i < order - unpackMode; i++)
-//        ident += "  ";
-//    std::cout << ident << "Unpacking mode " << unpackMode << std::endl;
-    if(unpackMode == 0){
-//        std::cout << ident << "unpacking src data:";
-//        for(unpackSlice = 0; unpackSlice < unpackSliceLocalDim; unpackSlice++){
-//            std::cout << " " << srcBuf[pSrcBufPtr];
-//            pSrcBufPtr += unpackSliceSrcBufStride;
-//            pDataBufPtr += unpackSliceDataBufStride;
-//        }
-//        std::cout << std::endl;
-        if(srcBufStride == 1 && dstBufStride == 1){
-            MemCopy(&(dataBuf[0]), &(srcBuf[0]), loopEnd);
-        }else{
-            for(unpackSlice = loopStart; unpackSlice < loopEnd; unpackSlice += loopInc){
-                dataBuf[dstBufPtr] = srcBuf[srcBufPtr];
-
-//                std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//                std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-                srcBufPtr += srcBufStride;
-                dstBufPtr += dstBufStride;
-            }
-        }
-    }else {
-        for(unpackSlice = loopStart; unpackSlice < loopEnd; unpackSlice += loopInc){
-            UnpackLocalCommHelper(unpackData, unpackMode-1, &(srcBuf[srcBufPtr]), &(dataBuf[dstBufPtr]));
-//            std::cout << ident << "srcBuf inc by " << unpackSliceSrcBufStride << std::endl;
-//            std::cout << ident << "dataBuf inc by " << unpackSliceDataBufStride << std::endl;
-            srcBufPtr += srcBufStride;
-            dstBufPtr += dstBufStride;
-        }
-    }
-}
-
-template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMode, const ModeArray& gridRedistModes)
 {
     Unsigned order = A.Order();
@@ -131,7 +81,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    LData unpackData;
+    PackData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = A.LocalStrides();
@@ -150,7 +100,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
 
 //    PrintVector(myCommLoc, "commLoc");
 //    std::cout << "commLinLoc: " << myCommLinLoc << std::endl;
-    UnpackLocalCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
+    PackCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
 
 //    printf("dataBuf:");
 //    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){

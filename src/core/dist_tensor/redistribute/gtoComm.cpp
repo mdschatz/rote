@@ -87,37 +87,6 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gat
     UnpackGTOCommRecvBuf(recvBuf, gatherMode, gridModes, A);
 }
 
-template<typename T>
-void DistTensor<T>::PackGTOCommHelper(const GTOData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf){
-
-    Unsigned packSlice;
-    Unsigned loopEnd = packData.loopShape[packMode];
-    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
-    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
-    const Unsigned loopStart = packData.loopStarts[packMode];
-    const Unsigned loopInc = packData.loopIncs[packMode];
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    if(packMode == 0){
-        if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(sendBuf[0]), &(dataBuf[0]), loopEnd);
-        }else{
-            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-                sendBuf[dstBufPtr] = dataBuf[srcBufPtr];
-                dstBufPtr += dstBufStride;
-                srcBufPtr += srcBufStride;
-            }
-        }
-    }else{
-        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackGTOCommHelper(packData, packMode-1, &(dataBuf[srcBufPtr]), &(sendBuf[dstBufPtr]));
-            dstBufPtr += dstBufStride;
-            srcBufPtr += srcBufStride;
-        }
-    }
-}
-
 template <typename T>
 void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes, T * const sendBuf)
 {
@@ -136,7 +105,7 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    GTOData packData;
+    PackData packData;
     packData.loopShape = A.LocalShape();
     packData.srcBufStrides = A.LocalStrides();
 
@@ -146,7 +115,7 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
     packData.loopStarts = zeros;
     packData.loopIncs = ones;
 
-    PackGTOCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 
 //    printf("packed sendBuf: ");
 //    for(Unsigned i = 0; i < prod(packData.sendShape); i++)
@@ -186,7 +155,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    GTOData unpackData;
+    PackData unpackData;
     unpackData.loopShape = this->LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.dstBufStrides[gMode] *= nRedistProcs;
@@ -211,7 +180,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
 //        printf("recvBufPtr: %d\n", i * nCommElemsPerProc);
 //        printf("nCommElemsPerProc: %d\n", nCommElemsPerProc);
 
-        PackGTOCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * gModeStride]));
+        PackCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * gModeStride]));
 //        printf("dataBuf:");
 //        for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
 //            printf(" %d", dataBuf[i]);
