@@ -15,13 +15,13 @@ namespace tmen{
 
 template<typename T>
 Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(A.Order() != this->Order())
+    if(A.Order() != Order())
         LogicError("CheckLocalRedist: Objects being redistributed must be of same order");
 
     Unsigned i, j;
     TensorDistribution distA = A.TensorDist();
     ModeDistribution localModeDistA = A.ModeDist(localMode);
-    ModeDistribution localModeDistB = this->ModeDist(localMode);
+    ModeDistribution localModeDistB = ModeDist(localMode);
 
     if(localModeDistB.size() != localModeDistA.size() + gridRedistModes.size())
         LogicError("CheckLocalReist: Input object cannot be redistributed to output object");
@@ -53,9 +53,9 @@ Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode local
 
 template<typename T>
 void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(!this->CheckLocalCommRedist(A, localMode, gridRedistModes))
+    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
         LogicError("LocalRedist: Invalid redistribution request");
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     //Packing is what is stored in memory
     UnpackLocalCommRedist(A, localMode, gridRedistModes);
@@ -65,7 +65,7 @@ template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMode, const ModeArray& gridRedistModes)
 {
     Unsigned order = A.Order();
-    T* dataBuf = this->Buffer();
+    T* dataBuf = Buffer();
     const T* srcBuf = A.LockedBuffer();
 
 //    printf("srcBuf:");
@@ -74,10 +74,11 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
 //    }
 //    printf("\n");
 
-    const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), gridRedistModes));
+    const tmen::Grid& g = Grid();
+    const ObjShape gridShape = g.Shape();
+    const Location gridLoc = g.Loc();
+
+    const Unsigned nRedistProcs = prod(FilterVector(gridShape, gridRedistModes));
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -95,7 +96,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
 //    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
 //    const Permutation redistPerm = DeterminePermutation(commModes, gridRedistModes);
 
-    Location myCommLoc = FilterVector(g.Loc(), gridRedistModes);
+    Location myCommLoc = FilterVector(gridLoc, gridRedistModes);
     Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, redistShape);
 
 //    PrintVector(myCommLoc, "commLoc");
@@ -103,7 +104,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMo
     PackCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
 
 //    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
 //        printf(" %d", dataBuf[i]);
 //    }
 //    printf("\n");

@@ -54,12 +54,12 @@ Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mo
 
 template <typename T>
 void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
-    if(!this->CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
+    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
 
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     const ModeArray commModes = A.ModeDist(reduceMode);
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
@@ -84,7 +84,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode r
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     UnpackRSCommRecvBuf(recvBuf, reduceMode, scatterMode, A);
 }
@@ -102,15 +102,15 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, 
 //    }
 //    std::cout << std::endl;
 
+    const ObjShape gridShape = Grid().Shape();
     const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
     const Unsigned nRedistProcs = Max(1, gvA.Dimension(rMode));
 
     const ModeArray redistModes = A.ModeDist(rMode);
     ModeArray commModes = redistModes;
     std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(Grid().Shape(), redistModes);
-    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+    const ObjShape redistShape = FilterVector(gridShape, redistModes);
+    const ObjShape commShape = FilterVector(gridShape, commModes);
     const Permutation commPerm = DeterminePermutation(redistModes, commModes);
 
     const ObjShape sendShape = MaxLocalShape();
@@ -151,10 +151,7 @@ template <typename T>
 void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode sMode, const DistTensor<T>& A)
 {
     const Unsigned order = A.Order();
-    T* dataBuf = this->Buffer();
-
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    T* dataBuf = Buffer();
 
 //    std::cout << "recvBuf:";
 //    for(Unsigned i = 0; i < prod(maxLocalShapeB); i++){

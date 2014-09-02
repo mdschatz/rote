@@ -54,13 +54,13 @@ Int DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode
 
 template <typename T>
 void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode reduceMode){
-    if(!this->CheckReduceToOneCommRedist(A, reduceMode))
+    if(!CheckReduceToOneCommRedist(A, reduceMode))
       LogicError("ReduceToOneRedist: Invalid redistribution request");
 
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
     const ModeArray commModes = A.ModeDist(reduceMode);
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
@@ -82,7 +82,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode red
 
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
 
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     UnpackRTOCommRecvBuf(recvBuf, reduceMode, A);
 }
@@ -98,9 +98,6 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
 //        printf("%d ", dataBuf[i]);
 //    }
 //    printf("\n");
-
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -119,17 +116,14 @@ void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode,
 template <typename T>
 void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMode, const DistTensor<T>& A)
 {
-    T* dataBuf = this->Buffer();
-    const Unsigned order = this->Order();
-
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const Unsigned order = Order();
+    T* dataBuf = Buffer();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
     PackData unpackData;
-    unpackData.loopShape = this->LocalShape();
+    unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
 

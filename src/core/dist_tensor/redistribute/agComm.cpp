@@ -16,13 +16,13 @@ namespace tmen{
 template<typename T>
 Int
 DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes){
-    if(A.Order() != this->Order()){
+    if(A.Order() != Order()){
         LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
     }
 
     ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
 
-    const ModeDistribution check = ConcatenateVectors(this->ModeDist(allGatherMode), redistModes);
+    const ModeDistribution check = ConcatenateVectors(ModeDist(allGatherMode), redistModes);
     if(AnyElemwiseNotEqual(check, allGatherDistA)){
         LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
     }
@@ -39,14 +39,14 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
 
-    const mpi::Comm comm = this->GetCommunicatorForModes(gridModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(gridModes, A.Grid());
 
     if(!A.Participating())
         return;
 
     //NOTE: Fix to handle strides in Tensor data
     if(gridModes.size() == 0){
-        this->CopyLocalBuffer(A);
+        CopyLocalBuffer(A);
         return;
     }
     Unsigned sendSize, recvSize;
@@ -71,7 +71,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     //printf("Allgathering %d elements\n", sendSize);
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     UnpackAGCommRecvBuf(recvBuf, agMode, gridModes, A);
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
@@ -85,8 +85,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
 
   const Location zeros(order, 0);
   const Location ones(order, 1);
-
-  const tmen::GridView gvA = A.GetGridView();
 
   PackData packData;
   packData.loopShape = A.LocalShape();
@@ -105,18 +103,17 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
 {
     Unsigned order = A.Order();
     Unsigned i;
-    T* dataBuf = this->Buffer();
+    T* dataBuf = Buffer();
 
-    const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), redistModes));
+    const ObjShape gridShape = Grid().Shape();
+
+    const Unsigned nRedistProcs = prod(FilterVector(gridShape, redistModes));
     const ObjShape recvShape = A.MaxLocalShape();
 
     ModeArray commModes = redistModes;
     std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(Grid().Shape(), redistModes);
-    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+    const ObjShape redistShape = FilterVector(gridShape, redistModes);
+    const ObjShape commShape = FilterVector(gridShape, commModes);
     const Permutation redistPerm = DeterminePermutation(commModes, redistModes);
 
     const Unsigned nCommElemsPerProc = prod(recvShape);

@@ -16,12 +16,12 @@ namespace tmen{
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
 Int DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& allToAllModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
-    if(A.Order() != this->Order())
+    if(A.Order() != Order())
         LogicError("CheckAllToAllDoubleModeRedist: Objects being redistributed must be of same order");
     Unsigned i;
     for(i = 0; i < A.Order(); i++){
         if(i != allToAllModes.first && i != allToAllModes.second){
-            if(this->ModeDist(i) != A.ModeDist(i))
+            if(ModeDist(i) != A.ModeDist(i))
                 LogicError("CheckAllToAllDoubleModeRedist: Non-redist modes must have same distribution");
         }
     }
@@ -30,7 +30,7 @@ Int DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, con
 
 template <typename T>
 void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
-    if(!this->CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
+    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
         LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
     //Determine buffer sizes for communication
@@ -39,7 +39,7 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
     commModes.insert(commModes.end(), a2aCommGroups.second.begin(), a2aCommGroups.second.end());
     std::sort(commModes.begin(), commModes.end());
 
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
@@ -64,7 +64,7 @@ void DistTensor<T>::AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const s
 
     mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
 
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     UnpackA2ADoubleModeCommRecvBuf(recvBuf, a2aModes, a2aCommGroups, A);
 }
@@ -74,9 +74,6 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     Unsigned i, j;
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
-
-//    const tmen::GridView gvA = A.GetGridView();
-//    const tmen::GridView gvB = GetGridView();
 
 //    std::cout << "dataBuf:";
 //    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
@@ -111,11 +108,10 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     ModeArray commModesAll = commGroup1;
     commModesAll.insert(commModesAll.end(), commGroup2.begin(), commGroup2.end());
     std::sort(commModesAll.begin(), commModesAll.end());
-    const ObjShape commShapeAll = FilterVector(Grid().Shape(), commModesAll);
 
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));
-    PackData packData;
+
     const ObjShape maxLocalShapeA = A.MaxLocalShape();
     const ObjShape maxLocalShapeB = MaxLocalShape();
     const ObjShape sendShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
@@ -123,6 +119,7 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
     const Unsigned a2aMode2StrideFactor = comm2LCM/gvA.Dimension(a2aMode2);
     const Unsigned a2aMode1StrideFactor = comm1LCM/gvA.Dimension(a2aMode1);
 
+    PackData packData;
     packData.loopShape = A.LocalShape();
     packData.srcBufStrides = A.LocalStrides();
     packData.srcBufStrides[a2aMode2] *= a2aMode2StrideFactor;
@@ -161,7 +158,6 @@ void DistTensor<T>::PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const s
                 Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
                 Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModesAll), FilterVector(g.Shape(), commModesAll));
 
-
 //                std::cout << "startDataBufLoc: " << (i * a2aMode2Stride) + (j * a2aMode1Stride) << std::endl;
 //                std::cout << "startSendBufLoc: " << commLinLoc * nCommElemsPerProc << std::endl;
                 PackCommHelper(packData, order - 1, &(dataBuf[(i * a2aMode2Stride) + (j * a2aMode1Stride)]), &(sendBuf[commLinLoc * nCommElemsPerProc]));
@@ -183,7 +179,7 @@ template<typename T>
 void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A){
     Unsigned i, j;
     const Unsigned order = A.Order();
-    T* dataBuf = this->Buffer();
+    T* dataBuf = Buffer();
 
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
@@ -212,7 +208,6 @@ void DistTensor<T>::UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, cons
     ModeArray commModesAll = commGroup1;
     commModesAll.insert(commModesAll.end(), commGroup2.begin(), commGroup2.end());
     std::sort(commModesAll.begin(), commModesAll.end());
-    const ObjShape commShapeAll = FilterVector(Grid().Shape(), commModesAll);
 
     const Unsigned comm1LCM = tmen::LCM(gvA.Dimension(a2aMode1), gvB.Dimension(a2aMode1));
     const Unsigned comm2LCM = tmen::LCM(gvA.Dimension(a2aMode2), gvB.Dimension(a2aMode2));

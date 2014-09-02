@@ -83,8 +83,8 @@ Grid::SetUpGrid()
     if( inGrid_ )
     {
         // Create a cartesian communicator
-        int shape[order];
-        int periods[order];
+        std::vector<int> shape(order);
+        std::vector<int> periods(order);
 
         for(i = 0; i < order; i++){
           shape[i] = shape_[i];
@@ -92,7 +92,7 @@ Grid::SetUpGrid()
         }
         bool reorder = false;
         mpi::CartCreate
-        ( owningComm_, order, shape, periods, reorder, cartComm_ );
+        ( owningComm_, order, shape.data(), periods.data(), reorder, cartComm_ );
     }
 }
 

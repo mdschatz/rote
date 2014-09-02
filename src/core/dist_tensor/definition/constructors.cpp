@@ -28,7 +28,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); this->SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
@@ -48,7 +48,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); this->SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
@@ -68,7 +68,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& gri
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); this->SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor
@@ -93,9 +93,9 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    this->SetShifts();
-    this->ResizeTo( shape );
-    this->SetParticipatingComm();
+    SetShifts();
+    ResizeTo( shape );
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -121,9 +121,9 @@ DistTensor<T>::DistTensor
 {
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
-    this->Align( modeAlignments );
-    this->ResizeTo( shape );
-    this->SetParticipatingComm();
+    Align( modeAlignments );
+    ResizeTo( shape );
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -149,9 +149,9 @@ DistTensor<T>::DistTensor
 {
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
-    this->Align( modeAlignments );
-    this->ResizeTo( shape, ldims );
-    this->SetParticipatingComm();
+    Align( modeAlignments );
+    ResizeTo( shape, ldims );
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -178,9 +178,9 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    this->LockedAttach
+    LockedAttach
     ( shape, modeAlignments, buffer, ldims, g );
-    this->SetParticipatingComm();
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -207,9 +207,9 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    this->Attach
+    Attach
     ( shape, modeAlignments, buffer, ldims, g );
-    this->SetParticipatingComm();
+    SetParticipatingComm();
 }
 
 //////////////////////////////////
@@ -234,7 +234,7 @@ DistTensor<T>::DistTensor( const std::string& dist, const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ this->SetShifts(); this->SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm();}
 
 template<typename T>
 DistTensor<T>::DistTensor
@@ -259,9 +259,9 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    this->SetShifts();
-    this->ResizeTo( shape );
-    this->SetParticipatingComm();
+    SetShifts();
+    ResizeTo( shape );
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -287,9 +287,9 @@ DistTensor<T>::DistTensor
 {
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
-    this->Align( modeAlignments );
-    this->ResizeTo( shape );
-    this->SetParticipatingComm();
+    Align( modeAlignments );
+    ResizeTo( shape );
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -315,9 +315,9 @@ DistTensor<T>::DistTensor
 {
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
-    this->Align( modeAlignments );
-    this->ResizeTo( shape, ldims );
-    this->SetParticipatingComm();
+    Align( modeAlignments );
+    ResizeTo( shape, ldims );
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -344,9 +344,9 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    this->LockedAttach
+    LockedAttach
     ( shape, modeAlignments, buffer, ldims, g );
-    this->SetParticipatingComm();
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -373,9 +373,9 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    this->Attach
+    Attach
     ( shape, modeAlignments, buffer, ldims, g );
-    this->SetParticipatingComm();
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -400,12 +400,12 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
 #ifndef RELEASE
     CallStackEntry entry("DistTensor[MC,MR]::DistTensor");
 #endif
-    this->SetShifts();
+    SetShifts();
     if( &A != this )
         *this = A;
     else
         LogicError("Tried to construct [MC,MR] with itself");
-    this->SetParticipatingComm();
+    SetParticipatingComm();
 }
 
 template<typename T>
@@ -439,9 +439,9 @@ DistTensor<T>::DistData() const
     tmen::DistData data;
     //data.colDist = MC;
     //data.rowDist = MR;
-    data.modeAlignments = this->modeAlignments_;
-    data.distribution = this->dist_;
-    data.grid = this->grid_;
+    data.modeAlignments = modeAlignments_;
+    data.distribution = dist_;
+    data.grid = grid_;
     return data;
 }
 
@@ -459,35 +459,35 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor = DistTensor");
-    this->AssertNotLocked();
+    AssertNotLocked();
 #endif
-    if( this->Grid() == A.Grid() )
+    if( Grid() == A.Grid() )
     {
-        this->ResizeTo(A);
-        if( !this->Participating() && !A.Participating() )
+        ResizeTo(A);
+        if( !Participating() && !A.Participating() )
             return *this;
-        if( !AnyElemwiseNotEqual(this->Alignments(), A.Alignments()) )
+        if( !AnyElemwiseNotEqual(Alignments(), A.Alignments()) )
         {
-            //this->dist_ = A.TensorDist();
-            this->tensor_ = A.LockedTensor();
-            this->gridView_ = A.gridView_;
-            this->participatingComm_ = A.participatingComm_;
-            this->grid_ = A.grid_;
+            //dist_ = A.TensorDist();
+            tensor_ = A.LockedTensor();
+            gridView_ = A.gridView_;
+            participatingComm_ = A.participatingComm_;
+            grid_ = A.grid_;
         }
 
 //        else
 //        {
-//            const tmen::Grid& g = this->Grid();
+//            const tmen::Grid& g = Grid();
 //#ifdef UNALIGNED_WARNINGS
 //            if( g.Rank() == 0 )
 //                std::cerr << "Unaligned [MC,MR] <- [MC,MR]." << std::endl;
 //#endif
-//            const Int colRank = this->ColRank();
-//            const Int rowRank = this->RowRank();
-//            const Int colStride = this->ColStride();
-//            const Int rowStride = this->RowStride();
-//            const Int colAlignment = this->ColAlignment();
-//            const Int rowAlignment = this->RowAlignment();
+//            const Int colRank = ColRank();
+//            const Int rowRank = RowRank();
+//            const Int colStride = ColStride();
+//            const Int rowStride = RowStride();
+//            const Int colAlignment = ColAlignment();
+//            const Int rowAlignment = RowAlignment();
 //            const Int colAlignmentA = A.ColAlignment();
 //            const Int rowAlignmentA = A.RowAlignment();
 //            const Int colDiff = colAlignment - colAlignmentA;
@@ -499,13 +499,13 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
 //            const Int sendRank = sendRow + sendCol*colStride;
 //            const Int recvRank = recvRow + recvCol*colStride;
 //
-//            const Int localHeight = this->LocalHeight();
-//            const Int localWidth = this->LocalWidth();
+//            const Int localHeight = LocalHeight();
+//            const Int localWidth = LocalWidth();
 //            const Int localHeightA = A.LocalHeight();
 //            const Int localWidthA = A.LocalWidth();
 //            const Int sendSize = localHeightA*localWidthA;
 //            const Int recvSize = localHeight*localWidth;
-//            T* auxBuf = this->auxMemory_.Require( sendSize + recvSize );
+//            T* auxBuf = auxMemory_.Require( sendSize + recvSize );
 //            T* sendBuf = &auxBuf[0];
 //            T* recvBuf = &auxBuf[sendSize];
 //
@@ -524,14 +524,14 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
 //              recvBuf, recvSize, recvRank, g.VCComm() );
 //
 //            // Unpack
-//            T* buffer = this->Buffer();
-//            const Int ldim = this->LDim();
+//            T* buffer = Buffer();
+//            const Int ldim = LDim();
 //            PARALLEL_FOR
 //            for( Int jLoc=0; jLoc<localWidth; ++jLoc )
 //                MemCopy
 //                ( &buffer[jLoc*ldim],
 //                  &recvBuf[jLoc*localHeight], localHeight );
-//            this->auxMemory_.Release();
+//            auxMemory_.Release();
 //        }
     }
 //    else // the grids don't match
@@ -550,16 +550,16 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
 #ifndef RELEASE
     CallStackEntry cse("[MC,MR]::CopyFromDifferentGrid");
 #endif
-    this->ResizeTo( A.Height(), A.Width() );
+    ResizeTo( A.Height(), A.Width() );
     // Just need to ensure that each viewing comm contains the other team's
     // owning comm. Congruence is too strong.
 
     // Compute the number of process rows and columns that each process
     // needs to send to.
-    const Int colStride = this->ColStride();
-    const Int rowStride = this->RowStride();
-    const Int colRank = this->ColRank();
-    const Int rowRank = this->RowRank();
+    const Int colStride = ColStride();
+    const Int rowStride = RowStride();
+    const Int colRank = ColRank();
+    const Int rowRank = RowRank();
     const Int colStrideA = A.ColStride();
     const Int rowStrideA = A.RowStride();
     const Int colRankA = A.ColRank();
@@ -575,12 +575,12 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
     const Int localColStrideA = numColSends;
     const Int localRowStrideA = numRowSends;
 
-    const Int colAlign = this->ColAlignment();
-    const Int rowAlign = this->RowAlignment();
+    const Int colAlign = ColAlignment();
+    const Int rowAlign = RowAlignment();
     const Int colAlignA = A.ColAlignment();
     const Int rowAlignA = A.RowAlignment();
 
-    const bool inThisGrid = this->Participating();
+    const bool inThisGrid = Participating();
     const bool inAGrid = A.Participating();
     if( !inThisGrid && !inAGrid )
         return;
@@ -596,7 +596,7 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
     for( int j=0; j<sizeA; ++j )
         ranks[j] = j;
     mpi::Group viewingGroup;
-    mpi::CommGroup( this->Grid().ViewingComm(), viewingGroup );
+    mpi::CommGroup( Grid().ViewingComm(), viewingGroup );
     mpi::GroupTranslateRanks
     ( A.Grid().OwningGroup(), sizeA, &ranks[0], viewingGroup, &rankMap[0] );
 
@@ -608,7 +608,7 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
         requiredMemory += maxSendSize;
     if( inThisGrid )
         requiredMemory += maxSendSize;
-    T* auxBuf = this->auxMemory_.Require( requiredMemory );
+    T* auxBuf = auxMemory_.Require( requiredMemory );
     Int offset = 0;
     T* sendBuf = &auxBuf[offset];
     if( inAGrid )
@@ -649,10 +649,10 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
                 // Send data
                 const Int recvVCRank = recvRow + recvCol*colStride;
                 const Int recvViewingRank =
-                    this->Grid().VCToViewingMap( recvVCRank );
+                    Grid().VCToViewingMap( recvVCRank );
                 mpi::ISend
                 ( sendBuf, sendHeight*sendWidth, recvViewingRank,
-                  this->Grid().ViewingComm(), sendRequest );
+                  Grid().ViewingComm(), sendRequest );
             }
             // Perform this round of recv's
             if( inThisGrid )
@@ -679,23 +679,23 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
                 {
                     const Int sendColShift = Shift( sendRow, colAlignA, colStrideA ) + colSend*colStrideA;
                     const Int sendHeight = Length( A.Height(), sendColShift, colLCM );
-                    const Int localColOffset = (sendColShift-this->ColShift()) / colStride;
+                    const Int localColOffset = (sendColShift-ColShift()) / colStride;
 
                     Int sendCol = firstSendCol;
                     for( Int rowRecv=0; rowRecv<numRowRecvs; ++rowRecv )
                     {
                         const Int sendRowShift = Shift( sendCol, rowAlignA, rowStrideA ) + rowSend*rowStrideA;
                         const Int sendWidth = Length( A.Width(), sendRowShift, rowLCM );
-                        const Int localRowOffset = (sendRowShift-this->RowShift()) / rowStride;
+                        const Int localRowOffset = (sendRowShift-RowShift()) / rowStride;
 
                         const Int sendVCRank = sendRow+sendCol*colStrideA;
                         mpi::Recv
                         ( recvBuf, sendHeight*sendWidth, rankMap[sendVCRank],
-                          this->Grid().ViewingComm() );
+                          Grid().ViewingComm() );
 
                         // Unpack the data
-                        T* buffer = this->Buffer();
-                        const Int ldim = this->LDim();
+                        T* buffer = Buffer();
+                        const Int ldim = LDim();
                         PARALLEL_FOR
                         for( Int jLoc=0; jLoc<sendWidth; ++jLoc )
                         {
@@ -723,7 +723,7 @@ void DistTensor<T>::CopyFromDifferentGrid( const DistTensor<T>& A )
         if( inAGrid )
             recvRow = (recvRow + colStrideA) % colStride;
     }
-    this->auxMemory_.Release();
+    auxMemory_.Release();
 }
 */
 // PAUSED PASS HERE

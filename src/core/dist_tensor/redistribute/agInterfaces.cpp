@@ -17,7 +17,7 @@ namespace tmen{
 template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
-    this->ResizeTo(A);
+    ResizeTo(A);
     AllGatherCommRedist(A, allGatherMode, redistModes);
 }
 

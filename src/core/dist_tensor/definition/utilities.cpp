@@ -24,13 +24,13 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::DetermineOwner");
-    this->AssertValidEntry( loc );
+    AssertValidEntry( loc );
 #endif
     const tmen::GridView gv = GetGridView();
     Location ownerLoc(gv.ParticipatingOrder());
 
     for(Int i = 0; i < gv.ParticipatingOrder(); i++){
-        ownerLoc[i] = (loc[i] + this->ModeAlignment(i)) % this->ModeStride(i);
+        ownerLoc[i] = (loc[i] + ModeAlignment(i)) % ModeStride(i);
     }
     return ownerLoc;
 }
@@ -41,12 +41,12 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Global2LocalIndex");
-    this->AssertValidEntry( globalLoc );
+    AssertValidEntry( globalLoc );
 #endif
     Unsigned i;
     Location localLoc(globalLoc.size());
     for(i = 0; i < globalLoc.size(); i++){
-        localLoc[i] = (globalLoc[i]-this->ModeShift(i)) / this->ModeStride(i);
+        localLoc[i] = (globalLoc[i]-ModeShift(i)) / ModeStride(i);
     }
     return localLoc;
 }
@@ -57,8 +57,8 @@ mpi::Comm
 DistTensor<T>::GetCommunicator(Mode mode) const
 {
     mpi::Comm comm;
-    ObjShape gridViewSliceShape = this->GridViewShape();
-    Location gridViewSliceLoc = this->GridViewLoc();
+    ObjShape gridViewSliceShape = GridViewShape();
+    Location gridViewSliceLoc = GridViewLoc();
     const Unsigned commKey = gridViewSliceLoc[mode];
 
     //Color is defined by the linear index into the logical grid EXCLUDING the index being distributed

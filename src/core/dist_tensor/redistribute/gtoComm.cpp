@@ -54,12 +54,12 @@ Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode
 
 template <typename T>
 void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gatherMode, const ModeArray& gridModes){
-    if(!this->CheckGatherToOneCommRedist(A, gatherMode, gridModes))
+    if(!CheckGatherToOneCommRedist(A, gatherMode, gridModes))
       LogicError("GatherToOneRedist: Invalid redistribution request");
 
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
-    const mpi::Comm comm = this->GetCommunicatorForModes(gridModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(gridModes, A.Grid());
 
     if(!A.Participating())
         return;
@@ -82,7 +82,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gat
 
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     UnpackGTOCommRecvBuf(recvBuf, gatherMode, gridModes, A);
 }
@@ -98,9 +98,6 @@ void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode,
 //        printf("%d ", dataBuf[i]);
 //    }
 //    printf("\n");
-
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -128,20 +125,18 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
 {
     Unsigned i;
     Unsigned order = Order();
-    T* dataBuf = this->Buffer();
+    T* dataBuf = Buffer();
 
-    const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const ObjShape gridShape = Grid().Shape();
 
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), gridModes)));
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(gridShape, gridModes)));
 
     const ObjShape recvShape = A.MaxLocalShape();
 
     ModeArray commModes = gridModes;
     std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(Grid().Shape(), gridModes);
-    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+    const ObjShape redistShape = FilterVector(gridShape, gridModes);
+    const ObjShape commShape = FilterVector(gridShape, commModes);
     const Permutation redistPerm = DeterminePermutation(commModes, gridModes);
 
     const Unsigned nCommElemsPerProc = prod(recvShape);
@@ -156,7 +151,7 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
     const Location ones(order, 1);
 
     PackData unpackData;
-    unpackData.loopShape = this->LocalShape();
+    unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.dstBufStrides[gMode] *= nRedistProcs;
 
@@ -182,13 +177,13 @@ void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMo
 
         PackCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * gModeStride]));
 //        printf("dataBuf:");
-//        for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
+//        for(Unsigned i = 0; i < prod(LocalShape()); i++)
 //            printf(" %d", dataBuf[i]);
 //        printf("\n");
     }
 
 //    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(this->LocalShape()); i++)
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
 //        printf(" %d", dataBuf[i]);
 //    printf("\n");
 }

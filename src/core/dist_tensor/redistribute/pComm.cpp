@@ -20,7 +20,7 @@ Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode
     const tmen::GridView gvA = A.GetGridView();
 
     const Unsigned AOrder = A.Order();
-    const Unsigned BOrder = this->Order();
+    const Unsigned BOrder = Order();
 
     //Test order retained
     if(BOrder != AOrder){
@@ -29,17 +29,17 @@ Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode
 
     //Test dimension has been resized correctly
     //NOTE: Uses fancy way of performing Ceil() on integer division
-    if(this->Dimension(permuteMode) != A.Dimension(permuteMode))
+    if(Dimension(permuteMode) != A.Dimension(permuteMode))
         LogicError("CheckPartialReduceScatterRedist: Permutation retains the same dimension of indices");
 
     //Make sure all indices are distributed similarly
     for(i = 0; i < BOrder; i++){
         Mode mode = i;
         if(mode == permuteMode){
-            if(!EqualUnderPermutation(this->ModeDist(mode), A.ModeDist(mode)))
+            if(!EqualUnderPermutation(ModeDist(mode), A.ModeDist(mode)))
                 LogicError("CheckPermutationRedist: Distribution of permuted mode does not involve same modes of grid as input");
         }else{
-            if(AnyElemwiseNotEqual(this->ModeDist(mode), A.ModeDist(mode)))
+            if(AnyElemwiseNotEqual(ModeDist(mode), A.ModeDist(mode)))
                 LogicError("CheckPartialReduceScatterRedist: All modes must be distributed similarly");
         }
     }
@@ -49,10 +49,10 @@ Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode
 
 template <typename T>
 void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    if(!this->CheckPermutationCommRedist(A, permuteMode, redistModes))
+    if(!CheckPermutationCommRedist(A, permuteMode, redistModes))
             LogicError("PermutationRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = this->GetCommunicatorForModes(redistModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(redistModes, A.Grid());
     if(!A.Participating())
         return;
 
@@ -74,18 +74,13 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     PackPermutationCommSendBuf(A, permuteMode, sendBuf);
 
-    const GridView gvA = A.GetGridView();
-    const GridView gvB = GetGridView();
-
     const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
-    const ModeDistribution permuteModeDistB = this->ModeDist(permuteMode);
+    const ModeDistribution permuteModeDistB = ModeDist(permuteMode);
 
     ModeDistribution gridModesUsed(permuteModeDistB);
     std::sort(gridModesUsed.begin(), gridModesUsed.end());
 
     const ObjShape gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
-    const std::vector<Unsigned> gridSliceStridesA = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteModeDistA));
-    const std::vector<Unsigned> gridSliceStridesB = Dimensions2Strides(FilterVector(A.Grid().Shape(), permuteModeDistB));
 
     const std::vector<Unsigned> permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
     const std::vector<Unsigned> permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
@@ -107,7 +102,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     mpi::SendRecv(sendBuf, sendSize, sendRank,
                   recvBuf, recvSize, recvRank, comm);
 
-    if(!(this->Participating()))
+    if(!(Participating()))
         return;
     UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
 }
@@ -118,7 +113,6 @@ void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mod
 {
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
-    const tmen::GridView gvA = A.GetGridView();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -138,15 +132,10 @@ template <typename T>
 void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, const DistTensor<T>& A)
 {
     Unsigned order = A.Order();
-    T* dataBuf = this->Buffer();
-
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    T* dataBuf = Buffer();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-
-    const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
     PackData unpackData;
     unpackData.loopShape = LocalShape();

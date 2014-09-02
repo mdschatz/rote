@@ -92,7 +92,7 @@ inline void
 Memory<G>::Release()
 {
 #ifndef POOL_MEMORY
-    this->Empty();
+    Empty();
 #endif
 }
 

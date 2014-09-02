@@ -34,7 +34,7 @@ DistTensor<T>::AssertValidEntry( const Location& loc ) const
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::AssertValidEntry");
 #endif
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if(loc.size() != order )
     {
         LogicError("Index must be of same order as object");
@@ -61,7 +61,7 @@ void
 DistTensor<T>::AssertValidSubtensor
 ( const Location& loc, const ObjShape& shape ) const
 {
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if(shape.size() != order)
         LogicError("Shape must be of same order as object");
     if(loc.size() != order)
@@ -102,7 +102,7 @@ template<typename T>
 void
 DistTensor<T>::AssertSameSize( const ObjShape& shape ) const
 {
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if( shape.size() != order)
       LogicError("Argument must be of same order as object");
     if( AnyElemwiseNotEqual(shape, shape_) )

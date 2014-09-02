@@ -28,7 +28,7 @@ GridView::SetMyGridViewLoc( )
 	const ObjShape gridShape = grid_->Shape();
 	const Location gridLoc = grid_->Loc();
 
-	loc_ = GridLoc2GridViewLoc(gridLoc, gridShape, this->Distribution());
+	loc_ = GridLoc2GridViewLoc(gridLoc, gridShape, Distribution());
 //
 //	for(i = 0; i < order; i++){
 //		ModeDistribution modeDist = dist_[i];
@@ -92,7 +92,7 @@ GridView::SetupGridView(const ModeArray& unusedModes)
 #endif
     Unsigned i;
     Unsigned j;
-    const Unsigned order = this->ParticipatingOrder();
+    const Unsigned order = ParticipatingOrder();
 
     for(i = 0; i < order; i++){
     	ModeDistribution modeDist = dist_[i];
@@ -151,10 +151,10 @@ GridView::LinearRank() const
 {
 	Unsigned i;
 	Unsigned linearRank = 0;
-	const Unsigned order = this->ParticipatingOrder();
-	linearRank += this->ModeLoc(0);
+	const Unsigned order = ParticipatingOrder();
+	linearRank += ModeLoc(0);
 	for(i = 1; i < order; i++){
-		linearRank += this->ModeLoc(i) * this->Dimension(i-1);
+		linearRank += ModeLoc(i) * Dimension(i-1);
 	}
 	return linearRank;
 }
@@ -190,7 +190,7 @@ inline
 Unsigned
 GridView::ModeWrapStride(Mode mode) const
 {
-    const Unsigned order = this->ParticipatingOrder();
+    const Unsigned order = ParticipatingOrder();
     if (mode >= order){
         std::ostringstream msg;
         msg << "Requested stride must be of valid mode:\n"
@@ -218,7 +218,7 @@ inline
 Unsigned
 GridView::Dimension(Mode mode) const
 {
-  const Unsigned order = this->ParticipatingOrder();
+  const Unsigned order = ParticipatingOrder();
   if (mode >= order){
     std::ostringstream msg;
     msg << "Dimension must be of valid mode:\n"
@@ -270,9 +270,9 @@ GridView::RemoveUnitModes(const ModeArray& unitModes)
     ModeArray sorted = unitModes;
     std::sort(sorted.begin(), sorted.end());
     for(i = sorted.size() - 1; i < sorted.size(); i--){
-        this->shape_.erase(this->shape_.begin() + sorted[i]);
-        this->loc_.erase(this->loc_.begin() + sorted[i]);
-        this->dist_.erase(this->dist_.begin() + sorted[i]);
+        shape_.erase(shape_.begin() + sorted[i]);
+        loc_.erase(loc_.begin() + sorted[i]);
+        dist_.erase(dist_.begin() + sorted[i]);
     }
 }
 
@@ -283,7 +283,7 @@ GridView::Participating() const
 #ifndef RELEASE
     CallStackEntry cse("GridView::Participating");
 #endif
-    return loc_[this->ParticipatingOrder()] == 0;
+    return loc_[ParticipatingOrder()] == 0;
 }
 
 //
