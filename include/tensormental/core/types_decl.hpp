@@ -35,21 +35,13 @@ typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
 
 //Pack data structs
-struct AGPackData
+struct AGData
 {
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> sendBufModeStrides;
-};
-
-struct AGUnpackData
-{
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> recvBufModeStrides;
-    Unsigned elemSliceStride;
-    Unsigned elemSlice;
-    Mode commMode;
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    std::vector<Unsigned> loopStarts;
+    std::vector<Unsigned> loopIncs;
 };
 
 struct RSPackData

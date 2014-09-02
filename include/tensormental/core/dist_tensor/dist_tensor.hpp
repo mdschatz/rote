@@ -235,9 +235,8 @@ public:
     //
     Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
     void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
-    void PackAGCommSendBufHelper(const AGPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
+    void PackAGCommHelper(const AGData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
-    void UnpackAGCommRecvBufHelper(const AGUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
 
     //
