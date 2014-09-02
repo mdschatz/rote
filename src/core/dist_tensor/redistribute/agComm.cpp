@@ -157,6 +157,9 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
 //    }
 //    printf("\n");
 
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+
     AGData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
@@ -164,8 +167,6 @@ void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agM
 
     unpackData.srcBufStrides = Dimensions2Strides(recvShape);
 
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
     unpackData.loopIncs[agMode] = nRedistProcs;
