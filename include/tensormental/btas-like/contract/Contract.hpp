@@ -57,7 +57,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //        }
 //    }
 #endif
-    Unsigned i, j;
+    Unsigned i;
     const std::vector<ModeArray> contractPerms(DetermineContractModes(indicesA, indicesB, indicesC));
     const IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
     const Unsigned nIndicesContract = contractIndices.size();
@@ -134,7 +134,6 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //NOTE: Get rid of memcopy
 template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
-    Unsigned i;
     IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 
     ObjShape unitModes(contractIndices.size(), 1);

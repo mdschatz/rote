@@ -152,6 +152,37 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
     tensor_.CopyBuffer(A.LockedTensor());
 }
 
+
+template<typename T>
+void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+    Unsigned packSlice;
+    const Unsigned loopEnd = packData.loopShape[packMode];
+    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
+    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
+    const Unsigned loopStart = packData.loopStarts[packMode];
+    const Unsigned loopInc = packData.loopIncs[packMode];
+    Unsigned dstBufPtr = 0;
+    Unsigned srcBufPtr = 0;
+
+    if(packMode == 0){
+        if(dstBufStride == 1 && srcBufStride == 1){
+            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
+        }else{
+            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+                dstBufPtr += dstBufStride;
+                srcBufPtr += srcBufStride;
+            }
+        }
+    }else{
+        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+            dstBufPtr += dstBufStride;
+            srcBufPtr += srcBufStride;
+        }
+    }
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

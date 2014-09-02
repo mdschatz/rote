@@ -34,6 +34,16 @@ typedef std::vector<Unsigned> ObjShape;
 typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
 
+//Pack data structs
+struct PackData
+{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    std::vector<Unsigned> loopStarts;
+    std::vector<Unsigned> loopIncs;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 

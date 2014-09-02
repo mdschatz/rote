@@ -64,88 +64,47 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const Mode localMode
 template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const Mode lMode, const ModeArray& gridRedistModes)
 {
-    T* dstBuf = this->Buffer();
+    Unsigned order = A.Order();
+    T* dataBuf = this->Buffer();
     const T* srcBuf = A.LockedBuffer();
 
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-
-    const tmen::Grid& g = A.Grid();
-
-    ModeDistribution lModeDistA = A.ModeDist(lMode);
-    ModeDistribution lModeDistB = this->ModeDist(lMode);
-
-    ModeArray commModes(lModeDistB.begin() + lModeDistA.size(), lModeDistB.end());
-
-    Location myGridLoc = g.Loc();
-    ObjShape gridShape = g.Shape();
-
-    Location myCommLoc = FilterVector(myGridLoc, commModes);
-    ObjShape commShape = FilterVector(gridShape, commModes);
-    Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, commShape);
-
-    //NOTE: CHECK THIS IS CORRECT
-    Unsigned modeUnpackStride = prod(commShape);
-
-    //Number of slices after the mode to redist
-    const ObjShape localShape = A.LocalShape();
-    const ObjShape outerSliceShape(localShape.begin() + lMode + 1, localShape.end());
-    const Unsigned nOuterSlices = Max(1, prod(outerSliceShape));
-
-    //Number of slices represented by the mode
-    const Unsigned nLModeSlices = localShape[lMode];
-
-    //Size of slice to copy
-    const ObjShape copySliceShape(localShape.begin(), localShape.begin() + lMode);
-    //NOTE: This is based on modeA, different from all other unpacks
-    const Unsigned copySliceSize = prod(this->LocalShape(), 0, lMode);
-
-    //Where we start copying
-    const Unsigned elemStartLoc = myCommLinLoc;
-
-    Unsigned lModeSliceNum, outerSliceNum;
-    Unsigned lModeDstOff, outerDstOff;
-    Unsigned lModeSrcOff, outerSrcOff;
-    Unsigned startDstBuf, startSrcBuf;
-
 //    printf("srcBuf:");
-//    for(Unsigned i = 0; i < prod(localShape); i++){
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
 //        printf(" %d", srcBuf[i]);
 //    }
 //    printf("\n");
 
-//    printf("MemCopy info:\n");
-//    printf("    elemStartLoc: %d\n", elemStartLoc);
-//    printf("    nOuterSlices: %d\n", nOuterSlices);
-//    printf("    nLModeSlices: %d\n", nLModeSlices);
-//    printf("    copySliceSize: %d\n", copySliceSize);
-//    printf("    modeUnpackStride: %d\n", modeUnpackStride);
-    for(outerSliceNum = 0; outerSliceNum < nOuterSlices; outerSliceNum++){
-        //NOTE: FIX THIS, WE NEED TO SEE HOW MANY TIMES WE RUN THROUGH THE lModeSliceNum loop (similar to some other unpack routine)
-        outerDstOff = copySliceSize * ((nLModeSlices - elemStartLoc - 1) / modeUnpackStride + 1) * outerSliceNum;
-        outerSrcOff = copySliceSize * nLModeSlices * outerSliceNum;
+    const tmen::Grid& g = A.Grid();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const Unsigned nRedistProcs = prod(FilterVector(g.Shape(), gridRedistModes));
 
-//        printf("        outerSliceNum: %d\n", outerSliceNum);
-//        printf("        outerDstOff: %d\n", outerDstOff);
-//        printf("        outerSrcOff: %d\n", outerSrcOff);
-        for(lModeSliceNum = elemStartLoc; lModeSliceNum < nLModeSlices; lModeSliceNum += modeUnpackStride){
-            lModeDstOff = copySliceSize * (lModeSliceNum - elemStartLoc) / modeUnpackStride;
-            lModeSrcOff = copySliceSize * lModeSliceNum;
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+    PackData unpackData;
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = A.LocalStrides();
+    unpackData.srcBufStrides[lMode] = nRedistProcs;
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
 
-//            printf("          lModeSliceNum: %d\n", lModeSliceNum);
-//            printf("          lModeDstOff: %d\n", lModeDstOff);
-//            printf("          lModeSrcOff: %d\n", lModeSrcOff);
-            startDstBuf = outerDstOff + lModeDstOff;
-            startSrcBuf = outerSrcOff + lModeSrcOff;
+//    ModeArray commModes = gridRedistModes;
+//    std::sort(commModes.begin(), commModes.end());
+    const ObjShape redistShape = FilterVector(Grid().Shape(), gridRedistModes);
+//    const ObjShape commShape = FilterVector(Grid().Shape(), commModes);
+//    const Permutation redistPerm = DeterminePermutation(commModes, gridRedistModes);
 
-//            printf("          startDstBuf: %d\n", startDstBuf);
-//            printf("          startSrcBuf: %d\n", startSrcBuf);
-            MemCopy(&(dstBuf[startDstBuf]), &(srcBuf[startSrcBuf]), copySliceSize);
-        }
-    }
-//    printf("dstBuf:");
+    Location myCommLoc = FilterVector(g.Loc(), gridRedistModes);
+    Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, redistShape);
+
+//    PrintVector(myCommLoc, "commLoc");
+//    std::cout << "commLinLoc: " << myCommLinLoc << std::endl;
+    PackCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
+
+//    printf("dataBuf:");
 //    for(Unsigned i = 0; i < prod(this->LocalShape()); i++){
-//        printf(" %d", dstBuf[i]);
+//        printf(" %d", dataBuf[i]);
 //    }
 //    printf("\n");
 }

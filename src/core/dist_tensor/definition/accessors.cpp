@@ -30,6 +30,11 @@ DistTensor<T>::Shape() const
 { return shape_; }
 
 template<typename T>
+ObjShape
+DistTensor<T>::MaxLocalShape() const
+{ return MaxLengths(Shape(), gridView_.ParticipatingShape()); }
+
+template<typename T>
 ModeDistribution
 DistTensor<T>::ModeDist(Mode mode) const
 {
@@ -182,9 +187,24 @@ DistTensor<T>::LocalShape() const
 { return tensor_.Shape(); }
 
 template<typename T>
+std::vector<Unsigned>
+DistTensor<T>::LocalStrides() const
+{ return tensor_.Strides(); }
+
+template<typename T>
 Unsigned
 DistTensor<T>::LocalModeStride(Mode mode) const
-{ return tensor_.ModeStride(mode); }
+{ return tensor_.Stride(mode); }
+
+template<typename T>
+Unsigned
+DistTensor<T>::Stride(Mode mode) const
+{ return tensor_.Stride(mode); }
+
+template<typename T>
+std::vector<Unsigned>
+DistTensor<T>::Strides() const
+{ return tensor_.Strides(); }
 
 template<typename T>
 Unsigned

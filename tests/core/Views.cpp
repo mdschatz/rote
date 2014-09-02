@@ -151,7 +151,7 @@ TestConstViews(DistTensor<T>& A){
     CallStackEntry entry("TestConstViews");
 #endif
     const tmen::Grid& g = A.Grid();
-    Unsigned i, j;
+    Unsigned i;
     const Unsigned order = A.Order();
     Location start(order, 0);
 
@@ -244,7 +244,7 @@ TestNonConstViews(DistTensor<T>& A){
     CallStackEntry entry("TestNonConstViews");
 #endif
     const tmen::Grid& g = A.Grid();
-    Unsigned i, j;
+    Unsigned i;
     const Unsigned order = A.Order();
     Location start(order, 0);
 

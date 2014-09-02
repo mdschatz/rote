@@ -60,7 +60,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
-    const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), GetGridView().ParticipatingShape());
+    const ObjShape maxLocalShapeB = MaxLocalShape();
     recvSize = prod(maxLocalShapeB);
     sendSize = recvSize;
 
@@ -116,98 +116,47 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 template <typename T>
 void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode pMode, T * const sendBuf)
 {
+    const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
-
     const tmen::GridView gvA = A.GetGridView();
 
-    //Shape of the local tensor we are packing
-    const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-    const ObjShape localShapeA = A.LocalShape();
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
 
-    //Calculate number of outer slices to pack
-    const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeA, pMode + 1));
-    const Unsigned nLocalOuterSlices = prod(localShapeA, pMode + 1);
+    PackData packData;
+    packData.loopShape = A.LocalShape();
+    packData.srcBufStrides = A.LocalStrides();
+    packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
 
-    //Calculate number of rsMode slices to pack
-    const Unsigned nMaxPModeSlices = maxLocalShapeA[pMode];
-    const Unsigned nLocalPModeSlices = localShapeA[pMode];
-    const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeA, 0, pMode));
-    const Unsigned copySliceSize = prod(localShapeA, 0, pMode);
+    packData.loopStarts = zeros;
+    packData.loopIncs = ones;
 
-    Unsigned outerSliceNum, pModeSliceNum; //Which slice of which wrap of which process are we packing
-    Unsigned outerSendBufOff, pModeSendBufOff;
-    Unsigned outerDataBufOff, pModeDataBufOff;
-    Unsigned startSendBuf, startDataBuf;
-
-    for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
-        if(outerSliceNum >= nLocalOuterSlices)
-            break;
-        outerSendBufOff = maxCopySliceSize * nMaxPModeSlices * outerSliceNum;
-        outerDataBufOff = copySliceSize * nLocalPModeSlices * outerSliceNum;
-
-        for(pModeSliceNum = 0; pModeSliceNum < nMaxPModeSlices; pModeSliceNum++){
-            if(pModeSliceNum >= nLocalPModeSlices)
-                break;
-            pModeSendBufOff = maxCopySliceSize * pModeSliceNum;
-            pModeDataBufOff = copySliceSize * pModeSliceNum;
-
-            startSendBuf = outerSendBufOff + pModeSendBufOff;
-            startDataBuf = outerDataBufOff + pModeDataBufOff;
-            MemCopy(&(sendBuf[startSendBuf]), &(dataBuf[startDataBuf]), copySliceSize);
-        }
-    }
+    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
 template <typename T>
 void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, const DistTensor<T>& A)
 {
-        T* dataBuf = this->Buffer();
+    Unsigned order = A.Order();
+    T* dataBuf = this->Buffer();
 
-        const tmen::GridView gvA = A.GetGridView();
-        const tmen::GridView gvB = GetGridView();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
-        const ObjShape maxLocalShapeA = MaxLengths(A.Shape(), gvA.ParticipatingShape());
-        const ObjShape maxLocalShapeB = MaxLengths(this->Shape(), gvB.ParticipatingShape());
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
 
-        const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
+    const ObjShape localShapeB = this->LocalShape();         //Shape of the local tensor we are packing
 
-        //Number of outer slices to unpack
-        const Unsigned nMaxOuterSlices = Max(1, prod(maxLocalShapeB, pMode + 1));
-        const Unsigned nLocalOuterSlices = prod(localShapeB, pMode + 1);
+    PackData unpackData;
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = Dimensions2Strides(A.MaxLocalShape());
 
-        //Loop packing bounds variables
-        const Unsigned nMaxPModeSlices = maxLocalShapeB[pMode];
-        const Unsigned nLocalPModeSlices = localShapeB[pMode];
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
 
-        //Variables for calculating elements to copy
-        const Unsigned maxCopySliceSize = Max(1, prod(maxLocalShapeB, 0, pMode));
-        const Unsigned copySliceSize = prod(localShapeB, 0, pMode);
-
-        //Loop iteration vars
-        Unsigned outerSliceNum, pModeSliceNum;  //Pack data for slice "sliceNum" (<nSlices) of wrap "wrapNum" (<nWraps) for proc "procSendNum" Unsigned offSliceRecvBuf, offWrapRecvBuf;  //Offsets used to index into sendBuf array
-        Unsigned outerRecvBufOff, outerDataBufOff;  //Offsets used to index into recvBuf array
-        Unsigned pModeRecvBufOff, pModeDataBufOff;  //Offsets used to index into dataBuf array
-        Unsigned startRecvBuf, startDataBuf;
-
-        for(outerSliceNum = 0; outerSliceNum < nMaxOuterSlices; outerSliceNum++){
-            if(outerSliceNum >= nLocalOuterSlices)
-                break;
-
-            outerRecvBufOff = maxCopySliceSize * nMaxPModeSlices * outerSliceNum;
-            outerDataBufOff = copySliceSize * nLocalPModeSlices * outerSliceNum;
-
-            for(pModeSliceNum = 0; pModeSliceNum < nMaxPModeSlices; pModeSliceNum++){
-                if(pModeSliceNum >= nLocalPModeSlices)
-                    break;
-                pModeRecvBufOff = maxCopySliceSize * pModeSliceNum;
-                pModeDataBufOff = copySliceSize * pModeSliceNum;
-
-                startRecvBuf = outerRecvBufOff + pModeRecvBufOff;
-                startDataBuf = outerDataBufOff + pModeDataBufOff;
-                //printf("startRecvBuf: %d startDataBuf: %d copySliceSize: %d\n", startRecvBuf, startDataBuf, copySliceSize);
-                MemCopy(&(dataBuf[startDataBuf]), &(recvBuf[startRecvBuf]), copySliceSize);
-            }
-        }
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 
 #define PROTO(T) \

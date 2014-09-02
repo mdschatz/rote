@@ -16,7 +16,6 @@ namespace tmen{
 //Loop based permutation
 template<typename T>
 void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
-    Unsigned i;
     Unsigned order = A.Order();
 
     T* dstBuf = B.Buffer();
@@ -32,8 +31,8 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
 
     ObjShape shapeA = A.Shape();
     ObjShape shapeB = B.Shape();
-    std::vector<Unsigned> strideA = A.LDims();
-    std::vector<Unsigned> strideB = B.LDims();
+    std::vector<Unsigned> strideA = A.Strides();
+    std::vector<Unsigned> strideB = B.Strides();
 
     Unsigned linLocDst = 0;
     Unsigned linLocSrc = 0;

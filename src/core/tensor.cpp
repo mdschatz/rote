@@ -94,7 +94,6 @@ Tensor<T>::AssertSplittableModes(const ModeArray& oldModes, const std::vector<Ob
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertSplittableIndices");
 #endif
-    Unsigned i;
 
     //NOTE: FIX THIS FOR SCALARS
 //    for(i = 0; i < oldModes.size(); i++){
@@ -133,6 +132,7 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
     AssertValidDimensions( shape );
 #endif
     SetLDims(shape_);
+    SetStrides(shape_);
     const Unsigned order = this->Order();
     Unsigned numElem = order > 0 ? ldims_[order-1] * shape_[order-1] : 1;
 
@@ -152,8 +152,9 @@ Tensor<T>::Tensor
     AssertValidDimensions( shape, ldims );
 #endif
     SetLDims(shape);
+    SetStrides(shape_);
     const Unsigned order = this->Order();
-    Unsigned numElem = order > 0 ? ldims_[order-1] * shape_[order-1] : 1;
+    Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
 
     memory_.Require( numElem );
     data_ = memory_.Buffer();
@@ -243,6 +244,22 @@ Tensor<T>::SetLDims(const ObjShape& shape)
 }
 
 template<typename T>
+void
+Tensor<T>::SetStrides(const ObjShape& shape)
+{
+  Unsigned i;
+  const int order = this->Order();
+  if(shape.size() != order){
+      LogicError("SetLDims requires that shape order matches object order");
+  }
+  if(order > 0){
+    strides_[0] = 1;
+    for(i = 1; i < order; i++)
+      strides_[i] = strides_[i-1]*shape[i-1];
+  }
+}
+
+template<typename T>
 Unsigned
 Tensor<T>::Order() const
 {
@@ -270,8 +287,15 @@ Tensor<T>::Dimension(Mode mode) const
 }
 
 template<typename T>
+std::vector<Unsigned>
+Tensor<T>::Strides() const
+{
+    return strides_;
+}
+
+template<typename T>
 Unsigned
-Tensor<T>::ModeStride(Mode mode) const
+Tensor<T>::Stride(Mode mode) const
 {
     const Unsigned order = this->Order();
     if( mode >= order){
@@ -802,6 +826,7 @@ Tensor<T>::Attach_( const ObjShape& shape, T* buffer, const std::vector<Unsigned
     memory_.Empty();
     shape_ = shape;
     ldims_ = ldims;
+    strides_ = ldims;
     data_ = buffer;
     viewType_ = (ViewType)( ( viewType_ & ~LOCKED_OWNER ) | VIEW );
 }
@@ -825,6 +850,7 @@ Tensor<T>::LockedAttach_( const ObjShape& shape, const T* buffer, const std::vec
     memory_.Empty();
     shape_ = shape;
     ldims_ = ldims;
+    strides_ = ldims;
     data_ = buffer;
     viewType_ = (ViewType)( viewType_ | VIEW );
 }
@@ -968,6 +994,7 @@ Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims 
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = ldims;
+		strides_ = ldims;
 		memory_.Require(Max(1,prod(shape)));
 		data_ = memory_.Buffer();
 	}

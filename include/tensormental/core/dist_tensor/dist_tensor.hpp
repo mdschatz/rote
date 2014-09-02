@@ -117,14 +117,18 @@ public:
     Unsigned Order() const;
     Unsigned Dimension(Mode mode) const;
     ObjShape Shape() const;
+    ObjShape MaxLocalShape() const;
     ObjShape LocalShape() const;
     Unsigned LocalDimension(Mode mode) const;
+    std::vector<Unsigned> LocalStrides() const;
     Unsigned LocalModeStride(Mode mode) const;
 
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Mode mode) const;
 
 
+    std::vector<Unsigned> Strides() const;
+    Unsigned Stride(Mode mode) const;
     std::vector<Unsigned> LDims() const;
     Unsigned LDim(Mode mode) const;
     size_t AllocatedMemory() const;
@@ -225,6 +229,11 @@ public:
     std::vector<Unsigned> ModeStrides() const;
     Unsigned ModeRank(Mode mode) const;
     tmen::DistData DistData() const;
+
+    //
+    // Shared Comm routines
+    //
+    void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
 
     //
     // Allgather workhorse routines
