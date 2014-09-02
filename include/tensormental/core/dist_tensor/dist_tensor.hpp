@@ -323,9 +323,8 @@ public:
     //
     Int  CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
     void GatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void PackGTOCommSendBufHelper(const GTOPackData& packData, const Mode packMode, T const * const dataBuf, T * const sendBuf);
+    void PackGTOCommHelper(const GTOData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes, T * const sendBuf);
-    void UnpackGTOCommRecvBufHelper(const GTOUnpackData& unpackData, const Mode unpackMode, T const * const recvBuf, T * const dataBuf);
     void UnpackGTOCommRecvBuf(const T* const recvBuf, const Mode gMode, const ModeArray& gridModes, const DistTensor<T>& A);
 
     //

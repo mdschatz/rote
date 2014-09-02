@@ -71,21 +71,13 @@ struct PData
     std::vector<Unsigned> loopIncs;
 };
 
-struct GTOPackData
+struct GTOData
 {
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> sendBufModeStrides;
-};
-
-struct GTOUnpackData
-{
-    ObjShape dataShape;
-    std::vector<Unsigned> dataBufModeStrides;
-    std::vector<Unsigned> recvBufModeStrides;
-    Unsigned elemSliceStride;
-    Unsigned elemSlice;
-    Mode commMode;
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    std::vector<Unsigned> loopStarts;
+    std::vector<Unsigned> loopIncs;
 };
 
 struct RTOPackData
