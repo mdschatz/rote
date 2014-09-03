@@ -137,22 +137,23 @@ TestYAxpPx(const DistTensor<T>& A)
 #ifndef RELEASE
     CallStackEntry entry("TestyAxpPx");
 #endif
-//    Unsigned i;
-//    Permutation perm(A.Order());
-//    DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
-//
-//    for(i = 0; i < B.Order(); i++)
-//        perm[i] = i;
-//
-//    std::sort(perm.begin(), perm.end());
-//    do{
-//
-//        MakeZeros(B);
-//        YAxpPx(T(2), A, perm, B);
-//        Print(A, "\n\nAxpPxing: ");
-//        PrintVector(perm, "under permutation");
-//        Print(B, "Result:");
-//    } while(std::next_permutation(perm.begin(), perm.end()));
+    Unsigned i;
+    Permutation perm(A.Order());
+
+    DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
+
+    for(i = 0; i < B.Order(); i++)
+        perm[i] = i;
+
+    std::sort(perm.begin(), perm.end());
+    do{
+
+        MakeZeros(B);
+        YAxpPx(T(2), A, T(1), perm, B);
+        Print(A, "\n\nAxpPxing: ");
+        PrintVector(perm, "under permutation");
+        Print(B, "Result:");
+    } while(std::next_permutation(perm.begin(), perm.end()));
 }
 
 template<typename T>
@@ -202,9 +203,9 @@ main( int argc, char* argv[] )
         }
         DistTensor<double> A(args.tensorShape, args.tensorDist, g);
         MakeUniform(A);
-        TestElemScal(A);
+//        TestElemScal(A);
         TestYAxpPx(A);
-        TestAxpy(A);
+//        TestAxpy(A);
 
 //        if( commRank == 0 )
 //        {

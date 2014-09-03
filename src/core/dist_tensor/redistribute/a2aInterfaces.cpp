@@ -15,8 +15,8 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
-    this->ResizeTo(A);
-    this->AllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups);
+    ResizeTo(A);
+    AllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups);
 }
 
 #define PROTO(T) \

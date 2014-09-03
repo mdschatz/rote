@@ -26,7 +26,7 @@ DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode)
 
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes){
-    this->ResizeTo(A);
+    ResizeTo(A);
     GatherToOneCommRedist(A, gMode, gridModes);
 }
 

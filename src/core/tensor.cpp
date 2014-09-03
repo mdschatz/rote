@@ -47,7 +47,7 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertValidEntry");
 #endif
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if(order != loc.size())
         LogicError("Index must be of same order as object");
 
@@ -133,7 +133,7 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
 #endif
     SetLDims(shape_);
     SetStrides(shape_);
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     Unsigned numElem = order > 0 ? ldims_[order-1] * shape_[order-1] : 1;
 
     memory_.Require( numElem );
@@ -153,7 +153,7 @@ Tensor<T>::Tensor
 #endif
     SetLDims(shape);
     SetStrides(shape_);
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
 
     memory_.Require( numElem );
@@ -232,7 +232,7 @@ void
 Tensor<T>::SetLDims(const ObjShape& shape)
 {
   Unsigned i;
-  const int order = this->Order();
+  const int order = Order();
   if(shape.size() != order){
       LogicError("SetLDims requires that shape order matches object order");
   }
@@ -248,7 +248,7 @@ void
 Tensor<T>::SetStrides(const ObjShape& shape)
 {
   Unsigned i;
-  const int order = this->Order();
+  const int order = Order();
   if(shape.size() != order){
       LogicError("SetLDims requires that shape order matches object order");
   }
@@ -277,7 +277,7 @@ template<typename T>
 Unsigned
 Tensor<T>::Dimension(Mode mode) const
 { 
-  const Unsigned order = this->Order();
+  const Unsigned order = Order();
   if( mode >= order){
     LogicError("Requested mode dimension out of range.");
     return 0;
@@ -297,7 +297,7 @@ template<typename T>
 Unsigned
 Tensor<T>::Stride(Mode mode) const
 {
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if( mode >= order){
       LogicError("Requested mode dimension out of range.");
       return 0;
@@ -317,7 +317,7 @@ template<typename T>
 Unsigned
 Tensor<T>::LDim(Mode mode) const
 { 
-  const Unsigned order = this->Order();
+  const Unsigned order = Order();
   if( mode >= order){
     LogicError("Requested mode leading dimension out of range.");
     return 0;
@@ -374,7 +374,7 @@ Unsigned
 Tensor<T>::LinearOffset(const Location& loc) const
 {
   Unsigned i;
-  const Unsigned order = this->Order();
+  const Unsigned order = Order();
   if(loc.size() != order){
       LogicError("index must be of same order as tensor");
   }
@@ -886,10 +886,10 @@ Tensor<T>::operator=( const Tensor<T>& A )
 #endif
     if( viewType_ == OWNER )
         ResizeTo( A );
-    T* dst = this->Buffer();
+    T* dst = Buffer();
     const T* src = A.LockedBuffer();
     //Only copy single element if we know this is a scalar
-    if(this->Order() == 0){
+    if(Order() == 0){
         MemCopy(&(dst[0]), &(src[0]), 1);
     }
     //Otherwise check if 0 tensor

@@ -18,8 +18,53 @@ void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const
 
     //ObjShape tmpShape = A.Shape();
     //tmpShape[reduceScatterMode] = A.GetGridView().Dimension(reduceScatterMode);
-    //this->ResizeTo(tmpShape);
+    //ResizeTo(tmpShape);
     ReduceScatterCommRedist(A, reduceScatterMode, reduceScatterMode);
+}
+
+template <typename T>
+void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes){
+    Unsigned i;
+    const tmen::GridView gv = A.GetGridView();
+    const tmen::Grid& g = A.Grid();
+    TensorDistribution dist = A.TensorDist();
+    ModeDistribution blank(0);
+
+    ObjShape tmpShape = A.Shape();
+    for(i = 0; i < reduceModes.size(); i++){
+        tmpShape[reduceModes[i]] = gv.Dimension(reduceModes[i]);
+    }
+    DistTensor<T> tmp(tmpShape, dist, g);
+    T* tmpBuf = tmp.Buffer();
+    MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
+
+    ObjShape tmp2Shape = A.Shape();
+    TensorDistribution tmp2Dist = dist;
+    for(i = 0; i < scatterModes.size(); i++){
+        tmp2Dist[scatterModes[i]] = ConcatenateVectors(tmp2Dist[scatterModes[i]], tmp2Dist[reduceModes[i]]);
+        tmp2Dist[reduceModes[i]] = blank;
+        tmp2Shape[reduceModes[i]] = 1;
+    }
+
+    DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
+    T* tmp2Buf = tmp2.Buffer();
+    MemZero(&(tmp2Buf[0]), prod(tmp2.LocalShape()));
+
+    LocalReduce(tmp, A, reduceModes);
+    tmp2.ReduceScatterCommRedist(tmp, reduceModes, scatterModes);
+
+    ObjShape BShape = tmp2Shape;
+    ModeArray rModes = reduceModes;
+    std::sort(rModes.begin(), rModes.end());
+    for(i = rModes.size() - 1; i < rModes.size(); i--){
+        BShape.erase(BShape.begin() + rModes[i]);
+    }
+
+    ResizeTo(BShape);
+    T* BBuf = Buffer();
+    const T* tmp2LockedBuf = tmp2.LockedBuffer();
+    MemCopy(&(BBuf[0]), &(tmp2LockedBuf[0]), prod(LocalShape()));
+//    Print(*this, "B after full reduce");
 }
 
 template <typename T>
@@ -49,10 +94,10 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode r
     //B.RemoveUnitMode(reduceMode);
     ObjShape BShape = tmp2Shape;
     BShape.erase(BShape.begin() + reduceMode);
-    this->ResizeTo(BShape);
-    T* BBuf = this->Buffer();
+    ResizeTo(BShape);
+    T* BBuf = Buffer();
     const T* tmp2LockedBuf = tmp2.LockedBuffer();
-    MemCopy(&(BBuf[0]), &(tmp2LockedBuf[0]), prod(this->LocalShape()));
+    MemCopy(&(BBuf[0]), &(tmp2LockedBuf[0]), prod(LocalShape()));
 //    Print(*this, "B after full reduce");
 }
 
@@ -65,17 +110,17 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 #endif
     Unsigned i;
 
-    ObjShape tmpShape = this->Shape();
-    DistTensor<T> tmp(tmpShape, this->TensorDist(), this->Grid());
+    ObjShape tmpShape = Shape();
+    DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
     T* tmpBuf = tmp.Buffer();
     MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
 
     tmp.ReduceScatterRedistFrom(A, reduceMode, scatterMode);
 
-    this->ResizeTo(tmpShape);
-    T* BBuf = this->Buffer();
+    ResizeTo(tmpShape);
+    T* BBuf = Buffer();
     const T* tmpLockedBuf = tmp.LockedBuffer();
-    for(i = 0; i < prod(this->LocalShape()); i++)
+    for(i = 0; i < prod(LocalShape()); i++)
         BBuf[i] = beta * BBuf[i] + tmpLockedBuf[i];
 //    Print(*this, "B after full reduce");
 }
@@ -83,6 +128,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 #define PROTO(T) \
         template void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode); \
         template void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
+        template void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes); \
         template void DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode);
 
 PROTO(int)

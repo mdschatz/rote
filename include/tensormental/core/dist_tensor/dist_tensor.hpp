@@ -293,11 +293,16 @@ public:
     void ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
     void PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf);
     void UnpackRSCommRecvBuf(const T* const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A);
+    void PackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& rModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerRMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf, T* const sendBufOrig);
+    void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, T * const sendBuf);
+    void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes);
+    void UnpackRSCommRecvBuf(const T* const recvBuf, const ModeArray& reduceModes, const ModeArray& scatterModes, const DistTensor<T>& A);
 
     //
     // Reduce-scatter interface routines
     //
     void PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode);
+    void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes);
     void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
     void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode);
 

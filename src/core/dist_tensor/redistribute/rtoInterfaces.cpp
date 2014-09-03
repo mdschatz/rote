@@ -17,7 +17,7 @@ template <typename T>
 void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode){
     ObjShape tmpShape = A.Shape();
     tmpShape[rMode] = A.GetGridView().Dimension(rMode);
-    this->ResizeTo(tmpShape);
+    ResizeTo(tmpShape);
     ReduceToOneCommRedist(A, rMode);
 }
 
@@ -37,12 +37,12 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
 
     ObjShape BShape = tmp2Shape;
     BShape.erase(BShape.begin() + rMode);
-    this->ResizeTo(BShape);
-    T* thisBuf = this->Buffer();
+    ResizeTo(BShape);
+    T* thisBuf = Buffer();
     const T* tmp2Buf = tmp2.LockedBuffer();
 
     //Only do this if we know we are copying into a scalar
-    if(this->Order() == 0)
+    if(Order() == 0)
         MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), 1);
     else
         MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));

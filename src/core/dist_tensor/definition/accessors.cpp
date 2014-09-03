@@ -60,7 +60,7 @@ DistTensor<T>::ConstrainedModeAlignment(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ConstrainedModeAlignment");
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
 #endif
@@ -73,7 +73,7 @@ DistTensor<T>::ModeAlignment(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ModeAlignment");
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
 #endif
@@ -93,7 +93,7 @@ DistTensor<T>::ModeShift(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ModeShift");
-    const Unsigned order = this->Order();
+    const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
 #endif
@@ -138,7 +138,7 @@ template<typename T>
 Unsigned
 DistTensor<T>::ModeStride(Mode mode) const
 {
-    return this->gridView_.ModeWrapStride(mode);
+    return gridView_.ModeWrapStride(mode);
 }
 
 //NOTE: This refers to the stride within grid mode.  NOT the stride through index of elements of tensor
@@ -146,13 +146,13 @@ template<typename T>
 std::vector<Unsigned>
 DistTensor<T>::ModeStrides() const
 {
-    return this->gridView_.ParticipatingModeWrapStrides();
+    return gridView_.ParticipatingModeWrapStrides();
 }
 
 template<typename T>
 Unsigned
 DistTensor<T>::ModeRank(Mode mode) const
-{ return this->gridView_.ModeLoc(mode); }
+{ return gridView_.ModeLoc(mode); }
 
 template<typename T>
 Location DistTensor<T>::GridViewLoc() const
@@ -222,7 +222,7 @@ DistTensor<T>::GetLocal( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::GetLocal");
-    this->AssertValidEntry( loc );
+    AssertValidEntry( loc );
 #endif
     return tensor_.Get(loc);
 }
@@ -269,9 +269,9 @@ DistTensor<T>::Get( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::Get");
-    this->AssertValidEntry( loc );
+    AssertValidEntry( loc );
 #endif
-    const Location owningProc = this->DetermineOwner(loc);
+    const Location owningProc = DetermineOwner(loc);
 //    PrintVector(loc, "loc");
 //    PrintVector(owningProc, "owner");
 
@@ -280,8 +280,8 @@ DistTensor<T>::Get( const Location& loc ) const
     T u = T(0);
     if(Participating()){
         if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
-            const Location localLoc = this->Global2LocalIndex(loc);
-            u = this->GetLocal(localLoc);
+            const Location localLoc = Global2LocalIndex(loc);
+            u = GetLocal(localLoc);
         }
 
 //        //Get the lin loc of the owner
@@ -329,15 +329,15 @@ DistTensor<T>::GetDiagonal
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::GetDiagonal");
     if( d.Viewing() )
-        this->AssertSameGrid( d.Grid() );
+        AssertSameGrid( d.Grid() );
     if( ( d.Viewing() || d.ConstrainedColAlignment() ) &&
         !d.AlignedWithDiagonal( *this, offset ) )
     {
         std::ostringstream os;
         os << mpi::WorldRank() << "\n"
            << "offset:         " << offset << "\n"
-           << "colAlignment:   " << this->colAlignment_ << "\n"
-           << "rowAlignment:   " << this->rowAlignment_ << "\n"
+           << "colAlignment:   " << colAlignment_ << "\n"
+           << "rowAlignment:   " << rowAlignment_ << "\n"
            << "d.diagPath:     " << d.diagPath_ << "\n"
            << "d.colAlignment: " << d.colAlignment_ << std::endl;
         std::cerr << os.str();
@@ -345,14 +345,14 @@ DistTensor<T>::GetDiagonal
     }
 #endif
 
-    const tmen::Grid& g = this->Grid();
+    const tmen::Grid& g = Grid();
     if( !d.Viewing() )
     {
         d.SetGrid( g );
         if( !d.ConstrainedColAlignment() )
             d.AlignWithDiagonal( *this, offset );
     }
-    const Int diagLength = this->DiagonalLength(offset);
+    const Int diagLength = DiagonalLength(offset);
     d.ResizeTo( diagLength, 1 );
     if( !d.Participating() )
         return;
@@ -370,18 +370,18 @@ DistTensor<T>::GetDiagonal
         jStart = diagShift;
     }
 
-    const Int colStride = this->ColStride();
-    const Int rowStride = this->RowStride();
-    const Int colShift = this->ColShift();
-    const Int rowShift = this->RowShift();
+    const Int colStride = ColStride();
+    const Int rowStride = RowStride();
+    const Int colShift = ColShift();
+    const Int rowShift = RowShift();
     const Int iLocStart = (iStart-colShift) / colStride;
     const Int jLocStart = (jStart-rowShift) / rowStride;
 
     const Int lcm = g.LCM();
     const Int localDiagLength = d.LocalHeight();
     T* dBuf = d.Buffer();
-    const T* buffer = this->LockedBuffer();
-    const Int ldim = this->LDim();
+    const T* buffer = LockedBuffer();
+    const Int ldim = LDim();
 
     PARALLEL_FOR
     for( Int k=0; k<localDiagLength; ++k )
@@ -397,7 +397,7 @@ template<typename T>
 DistTensor<T>
 DistTensor<T>::GetDiagonal( Int offset ) const
 {
-    DistTensor<T> d( this->Grid() );
+    DistTensor<T> d( Grid() );
     GetDiagonal( d, offset );
     return d;
 }
@@ -411,17 +411,17 @@ DistTensor<T>::GetRealPartOfDiagonal
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::GetRealPartOfDiagonal");
     if( d.Viewing() )
-        this->AssertSameGrid( d.Grid() );
+        AssertSameGrid( d.Grid() );
 #endif
     typedef BASE(T) R;
-    const tmen::Grid& g = this->Grid();
+    const tmen::Grid& g = Grid();
     if( !d.Viewing() )
     {
         d.SetGrid( g );
         if( !d.ConstrainedColAlignment() )
-            d.AlignWithDiagonal( this->DistData(), offset );
+            d.AlignWithDiagonal( DistData(), offset );
     }
-    const Int length = this->DiagonalLength( offset );
+    const Int length = DiagonalLength( offset );
     d.ResizeTo( length, 1 );
     if( !d.Participating() )
         return;
@@ -429,8 +429,8 @@ DistTensor<T>::GetRealPartOfDiagonal
     const Int r = g.Height();
     const Int c = g.Width();
     const Int lcm = g.LCM();
-    const Int colShift = this->ColShift();
-    const Int rowShift = this->RowShift();
+    const Int colShift = ColShift();
+    const Int rowShift = RowShift();
     const Int diagShift = d.ColShift();
 
     Int iStart, jStart;
@@ -450,8 +450,8 @@ DistTensor<T>::GetRealPartOfDiagonal
 
     const Int localDiagLength = d.LocalHeight();
 
-    const T* thisBuffer = this->LockedBuffer();
-    const Int thisLDim = this->LDim();
+    const T* thisBuffer = LockedBuffer();
+    const Int thisLDim = LDim();
     R* dBuf = d.Buffer();
     PARALLEL_FOR
     for( Int k=0; k<localDiagLength; ++k )
@@ -472,17 +472,17 @@ DistTensor<T>::GetImagPartOfDiagonal
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::GetImagPartOfDiagonal");
     if( d.Viewing() )
-        this->AssertSameGrid( d.Grid() );
+        AssertSameGrid( d.Grid() );
 #endif
     typedef BASE(T) R;
-    const tmen::Grid& g = this->Grid();
+    const tmen::Grid& g = Grid();
     if( !d.Viewing() )
     {
         d.SetGrid( g );
         if( !d.ConstrainedColAlignment() )
-            d.AlignWithDiagonal( this->DistData(), offset );
+            d.AlignWithDiagonal( DistData(), offset );
     }
-    const Int length = this->DiagonalLength( offset );
+    const Int length = DiagonalLength( offset );
     d.ResizeTo( length, 1 );
     if( !d.Participating() )
         return;
@@ -490,8 +490,8 @@ DistTensor<T>::GetImagPartOfDiagonal
     const Int r = g.Height();
     const Int c = g.Width();
     const Int lcm = g.LCM();
-    const Int colShift = this->ColShift();
-    const Int rowShift = this->RowShift();
+    const Int colShift = ColShift();
+    const Int rowShift = RowShift();
     const Int diagShift = d.ColShift();
 
     Int iStart, jStart;
@@ -511,8 +511,8 @@ DistTensor<T>::GetImagPartOfDiagonal
 
     const Int localDiagLength = d.LocalHeight();
 
-    const T* thisBuffer = this->LockedBuffer();
-    const Int thisLDim = this->LDim();
+    const T* thisBuffer = LockedBuffer();
+    const Int thisLDim = LDim();
     R* dBuf = d.Buffer();
     PARALLEL_FOR
     for( Int k=0; k<localDiagLength; ++k )
@@ -529,7 +529,7 @@ template<typename T>
 DistTensor<BASE(T)>
 DistTensor<T>::GetRealPartOfDiagonal( Int offset ) const
 {
-    DistTensor<BASE(T)> d( this->Grid() );
+    DistTensor<BASE(T)> d( Grid() );
     GetRealPartOfDiagonal( d, offset );
     return d;
 }
@@ -538,7 +538,7 @@ template<typename T>
 DistTensor<BASE(T)>
 DistTensor<T>::GetImagPartOfDiagonal( Int offset ) const
 {
-    DistTensor<BASE(T)> d( this->Grid() );
+    DistTensor<BASE(T)> d( Grid() );
     GetImagPartOfDiagonal( d, offset );
     return d;
 }
