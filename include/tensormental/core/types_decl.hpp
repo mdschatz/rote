@@ -44,6 +44,13 @@ struct PackData
     std::vector<Unsigned> loopIncs;
 };
 
+struct YAxpPxData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> permSrcStrides;
+    std::vector<Unsigned> dstStrides;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 
