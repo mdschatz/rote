@@ -51,6 +51,19 @@ struct YAxpPxData{
     std::vector<Unsigned> dstStrides;
 };
 
+struct YxpByData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> dstStrides;
+};
+
+struct ZAxpByData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> dstStrides;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 

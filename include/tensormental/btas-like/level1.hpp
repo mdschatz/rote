@@ -12,6 +12,8 @@
 
 #include "./level1/Zero.hpp"
 #include "./level1/YAxpPx.hpp"
+#include "./level1/YxpBy.hpp"
+#include "./level1/ZAxpBy.hpp"
 #include "./level1/Axpy.hpp"
 
 #endif // ifndef TMEN_BTAS_LEVEL1_HPP
