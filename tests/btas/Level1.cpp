@@ -158,6 +158,24 @@ TestYAxpPx(const DistTensor<T>& A)
 
 template<typename T>
 void
+TestZAxpBy(const DistTensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry entry("TestZAxpBy");
+#endif
+    Unsigned i;
+    Permutation perm(A.Order());
+
+    DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
+    MakeUniform(B);
+
+    DistTensor<T> Z(A.Shape(), A.TensorDist(), A.Grid());
+
+    ZAxpBy(T(2), A, T(3), B, Z);
+}
+
+template<typename T>
+void
 TestAxpy(const DistTensor<T>& A)
 {
 #ifndef RELEASE
@@ -205,6 +223,7 @@ main( int argc, char* argv[] )
         MakeUniform(A);
 //        TestElemScal(A);
         TestYAxpPx(A);
+        TestZAxpBy(A);
 //        TestAxpy(A);
 
 //        if( commRank == 0 )

@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TMEN_BTAS_YXPBY_HPP
-#define TMEN_BTAS_YXPBY_HPP
+#ifndef TMEN_BTAS_ZAXPBY_HPP
+#define TMEN_BTAS_ZAXPBY_HPP
 
 namespace tmen {
 
@@ -35,7 +35,7 @@ ZAxpByHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode,
         }
     }else{
         for(i = 0; i < loopEnd; i++){
-            ZAxpByHelper(alpha X, beta, Y, mode-1, &(src1Buf[src1BufPtr]), &(src2Buf[src2BufPtr]), &(dstBuf[dstBufPtr]), data);
+            ZAxpByHelper(alpha, X, beta, Y, mode-1, &(src1Buf[src1BufPtr]), &(src2Buf[src2BufPtr]), &(dstBuf[dstBufPtr]), data);
             src1BufPtr += src1Stride;
             src2BufPtr += src2Stride;
             dstBufPtr += dstStride;
@@ -82,4 +82,4 @@ ZAxpBy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTen
 
 } // namespace tmen
 
-#endif // ifndef TMEN_BTAS_YXPBY_HPP
+#endif // ifndef TMEN_BTAS_ZAXPBY_HPP
