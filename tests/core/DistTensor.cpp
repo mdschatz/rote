@@ -37,6 +37,7 @@ typedef std::pair< std::pair<ModeArray, ModeArray>, TensorDistribution> RSGTest;
 typedef std::pair< std::pair<Mode, Mode>, TensorDistribution> RSTest;
 typedef std::pair< Mode, TensorDistribution > RTOTest;
 typedef std::pair< std::pair<std::pair<Mode, Mode>, std::pair<ModeArray, ModeArray > >, TensorDistribution> A2ADMTest;
+typedef std::pair< std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray > >, TensorDistribution> A2ATest;
 
 
 void ProcessInput(Unsigned argc,  char** const argv, Params& args){
@@ -183,7 +184,7 @@ bool CheckResult(const DistTensor<T>& A){
 #ifndef RELEASE
     CallStackEntry entry("CheckResult");
 #endif
-    printf("In CheckResult\n");
+//    printf("In CheckResult\n");
     mpi::Barrier(mpi::COMM_WORLD);
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const ObjShape globalShape = A.Shape();
@@ -499,6 +500,33 @@ TestA2ADMRedist(DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const s
 }
 
 template<typename T>
+void
+TestA2ARedist(DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& commGroups, const TensorDistribution& resDist){
+#ifndef RELEASE
+    CallStackEntry entry("TestA2ARedist");
+#endif
+    Unsigned i;
+    const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
+    const Grid& g = A.Grid();
+
+    DistTensor<T> B(A.Shape(), resDist, g);
+
+    if(commRank == 0){
+        printf("All-to-alling modes ( %d", a2aModesFrom[0]);
+        for(i = 1; i < a2aModesFrom.size(); i++)
+            printf(", %d", a2aModesFrom[i]);
+        printf("),( %d", a2aModesTo[0]);
+        for(i = 1; i < a2aModesTo.size(); i++)
+            printf(", %d", a2aModesTo[i]);
+        printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
+    }
+
+    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
+    CheckResult(B);
+//    Print(B, "B after a2a redist");
+}
+
+template<typename T>
 TensorDistribution
 DetermineResultingDistributionRTO(const DistTensor<T>& A, Mode rMode){
     const TensorDistribution ADist = A.TensorDist();
@@ -592,6 +620,22 @@ DetermineResultingDistributionA2ADM(const DistTensor<T>& A, const std::pair<Mode
 
     newDist[a2aMode1].insert(newDist[a2aMode1].end(), a2aMode2CommGroup.begin(), a2aMode2CommGroup.end());
     newDist[a2aMode2].insert(newDist[a2aMode2].end(), a2aMode1CommGroup.begin(), a2aMode1CommGroup.end());
+
+    return newDist;
+}
+
+template<typename T>
+TensorDistribution
+DetermineResultingDistributionA2A(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& commGroups){
+    Unsigned i;
+
+    TensorDistribution newDist = A.TensorDist();
+
+    for(i = 0; i < a2aModesFrom.size(); i++)
+        newDist[a2aModesFrom[i]].erase(newDist[a2aModesFrom[i]].end() - commGroups[i].size(), newDist[a2aModesFrom[i]].end());
+
+    for(i = 0; i < a2aModesTo.size(); i++)
+        newDist[a2aModesTo[i]].insert(newDist[a2aModesTo[i]].end(), commGroups[i].begin(), commGroups[i].end());
 
     return newDist;
 }
@@ -863,6 +907,38 @@ CreateA2ADMTests(const DistTensor<T>& A, const Params& args){
 }
 
 template<typename T>
+std::vector<A2ATest>
+CreateA2ATests(const DistTensor<T>& A, const Params& args){
+    std::vector<A2ATest> ret;
+
+    Unsigned i;
+    const Unsigned order = A.Order();
+
+    std::vector<ModeArray> commGroups(order);
+    for(i = 0; i < commGroups.size(); i++)
+        commGroups[i] = A.ModeDist(i);
+
+    ModeArray a2aModesFrom(order);
+    for(i = 0; i < a2aModesFrom.size(); i++)
+        a2aModesFrom[i] = i;
+
+    ModeArray a2aModesTo(order);
+    for(i = 0; i < a2aModesTo.size(); i++)
+        a2aModesTo[i] = i;
+
+    do{
+        std::pair<ModeArray, ModeArray> modesFromTo(a2aModesFrom, a2aModesTo);
+        std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray> > t1(modesFromTo, commGroups);
+        TensorDistribution resDist = DetermineResultingDistributionA2A(A, a2aModesFrom, a2aModesTo, commGroups);
+
+        A2ATest test(t1, resDist);
+        ret.push_back(test);
+    } while(std::next_permutation(a2aModesTo.begin(), a2aModesTo.end()));
+
+    return ret;
+}
+
+template<typename T>
 void
 DistTensorTest( const Params& args, const Grid& g )
 {
@@ -883,78 +959,79 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<RSGTest> rsgTests = CreateRSGTests(A, args);
     std::vector<PRSTest> prsTests = CreatePRSTests(A, args);
     std::vector<PTest> pTests = CreatePTests(A, args);
-    std::vector<A2ADMTest> a2aTests = CreateA2ADMTests(A, args);
+    std::vector<A2ADMTest> a2admTests = CreateA2ADMTests(A, args);
+    std::vector<A2ATest> a2aTests = CreateA2ATests(A, args);
     std::vector<RTOTest> rtoTests = CreateRTOTests(A, args);
 
-//    if(commRank == 0){
-//        printf("Performing AllGather tests\n");
-//    }
-//    for(i = 0; i < agTests.size(); i++){
-//        AGTest thisTest = agTests[i];
-//        Mode agMode = thisTest.first.first;
-//        ModeArray redistModes = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestAGRedist(A, agMode, redistModes, resDist);
-//    }
-//
-//    if(commRank == 0){
-//        printf("Performing Gather-to-one tests\n");
-//    }
-//    for(i = 0; i < gtoTests.size(); i++){
-//        GTOTest thisTest = gtoTests[i];
-//        Mode gMode = thisTest.first.first;
-//        ModeArray redistModes = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestGTORedist(A, gMode, redistModes, resDist);
-//    }
-//
-//    if(commRank == 0){
-//        printf("Performing Local redist tests\n");
-//    }
-//    for(i = 0; i < lTests.size(); i++){
-//        LTest thisTest = lTests[i];
-//        Mode lMode = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
-//
-//        TestLRedist(A, lMode, resDist);
-//    }
-//
-//    if(commRank == 0){
-//            printf("Performing ReduceToOne tests\n");
-//    }
-//    for(i = 0; i < rtoTests.size(); i++){
-//        RTOTest thisTest = rtoTests[i];
-//        Mode rsMode = thisTest.first;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestRTORedist(A, rsMode, resDist);
-//    }
-//
-//    if(commRank == 0){
-//        printf("Performing PartialReduceScatter tests\n");
-//    }
-//    for(i = 0; i < prsTests.size(); i++){
-//        PRSTest thisTest = prsTests[i];
-//        Mode rsMode = thisTest.first;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestPRSRedist(A, rsMode, resDist);
-//    }
-//
-//
-//    if(commRank == 0){
-//        printf("Performing ReduceScatter tests\n");
-//    }
-//    for(i = 0; i < rsTests.size(); i++){
-//        RSTest thisTest = rsTests[i];
-//        Mode rMode = thisTest.first.first;
-//        Mode sMode = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestRSRedist(A, rMode, sMode, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing AllGather tests\n");
+    }
+    for(i = 0; i < agTests.size(); i++){
+        AGTest thisTest = agTests[i];
+        Mode agMode = thisTest.first.first;
+        ModeArray redistModes = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestAGRedist(A, agMode, redistModes, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing Gather-to-one tests\n");
+    }
+    for(i = 0; i < gtoTests.size(); i++){
+        GTOTest thisTest = gtoTests[i];
+        Mode gMode = thisTest.first.first;
+        ModeArray redistModes = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestGTORedist(A, gMode, redistModes, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing Local redist tests\n");
+    }
+    for(i = 0; i < lTests.size(); i++){
+        LTest thisTest = lTests[i];
+        Mode lMode = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
+
+        TestLRedist(A, lMode, resDist);
+    }
+
+    if(commRank == 0){
+            printf("Performing ReduceToOne tests\n");
+    }
+    for(i = 0; i < rtoTests.size(); i++){
+        RTOTest thisTest = rtoTests[i];
+        Mode rsMode = thisTest.first;
+        TensorDistribution resDist = thisTest.second;
+
+        TestRTORedist(A, rsMode, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing PartialReduceScatter tests\n");
+    }
+    for(i = 0; i < prsTests.size(); i++){
+        PRSTest thisTest = prsTests[i];
+        Mode rsMode = thisTest.first;
+        TensorDistribution resDist = thisTest.second;
+
+        TestPRSRedist(A, rsMode, resDist);
+    }
+
+
+    if(commRank == 0){
+        printf("Performing ReduceScatter tests\n");
+    }
+    for(i = 0; i < rsTests.size(); i++){
+        RSTest thisTest = rsTests[i];
+        Mode rMode = thisTest.first.first;
+        Mode sMode = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestRSRedist(A, rMode, sMode, resDist);
+    }
 
     if(commRank == 0){
         printf("Performing ReduceScatterGeneral tests\n");
@@ -968,28 +1045,41 @@ DistTensorTest( const Params& args, const Grid& g )
         TestRSGRedist(A, rModes, sModes, resDist);
     }
 
-//    if(commRank == 0){
-//        printf("Performing Permutation tests\n");
-//    }
-//    for(i = 0; i < pTests.size(); i++){
-//        PTest thisTest = pTests[i];
-//        Mode pMode = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
-//
-//        TestPRedist(A, pMode, resDist);
-//    }
-//
-//    if(commRank == 0){
-//        printf("Performing All-to-all (double index) tests\n");
-//    }
-//    for(i = 0; i < a2aTests.size(); i++){
-//        A2ADMTest thisTest = a2aTests[i];
-//        std::pair<Mode, Mode> a2aModes = thisTest.first.first;
-//        std::pair<ModeArray, ModeArray > commGroups = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestA2ADMRedist(A, a2aModes, commGroups, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing Permutation tests\n");
+    }
+    for(i = 0; i < pTests.size(); i++){
+        PTest thisTest = pTests[i];
+        Mode pMode = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
+
+        TestPRedist(A, pMode, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing All-to-all (double index) tests\n");
+    }
+    for(i = 0; i < a2admTests.size(); i++){
+        A2ADMTest thisTest = a2admTests[i];
+        std::pair<Mode, Mode> a2aModes = thisTest.first.first;
+        std::pair<ModeArray, ModeArray > commGroups = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestA2ADMRedist(A, a2aModes, commGroups, resDist);
+    }
+
+    if(commRank == 0){
+        printf("Performing All-to-all tests\n");
+    }
+    for(i = 6; i < a2aTests.size(); i++){
+        A2ATest thisTest = a2aTests[i];
+        ModeArray a2aModesFrom = thisTest.first.first.first;
+        ModeArray a2aModesTo = thisTest.first.first.second;
+        std::vector<ModeArray> commModes = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestA2ARedist(A, a2aModesFrom, a2aModesTo, commModes, resDist);
+    }
 }
 
 int 

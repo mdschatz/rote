@@ -67,6 +67,30 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 //    Print(*this, "B after full reduce");
 }
 
+template<typename T>
+void
+DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+#endif
+    Unsigned i;
+
+    ObjShape tmpShape = Shape();
+    DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
+    T* tmpBuf = tmp.Buffer();
+    MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
+
+    tmp.ReduceScatterRedistFrom(A, reduceModes, scatterModes);
+
+    ResizeTo(tmpShape);
+    T* BBuf = Buffer();
+    const T* tmpLockedBuf = tmp.LockedBuffer();
+    for(i = 0; i < prod(LocalShape()); i++)
+        BBuf[i] = beta * BBuf[i] + tmpLockedBuf[i];
+//    Print(*this, "B after full reduce");
+}
+
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
 
