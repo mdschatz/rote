@@ -19,8 +19,15 @@ void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const s
     AllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups);
 }
 
+template <typename T>
+void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups){
+    ResizeTo(A);
+    AllToAllCommRedist(A, a2aModesFrom, a2aModesTo, a2aCommGroups);
+}
+
 #define PROTO(T) \
-        template void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups);
+        template void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& commGroups); \
+        template void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups);
 
 
 PROTO(int)
