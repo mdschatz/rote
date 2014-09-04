@@ -149,7 +149,7 @@ TestYAxpPx(const DistTensor<T>& A)
     do{
 
         MakeZeros(B);
-        YAxpPx(T(2), A, T(1), perm, B);
+//        YAxpPx(T(2), A, T(1), perm, B);
         Print(A, "\n\nAxpPxing: ");
         PrintVector(perm, "under permutation");
         Print(B, "Result:");
