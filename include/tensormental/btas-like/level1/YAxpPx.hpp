@@ -56,7 +56,7 @@ YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutat
     YAxpPxData data;
     data.loopShape = X.Shape();
     data.srcStrides = X.Strides();
-    data.permSrcStrides = PX.Strides();
+    data.permSrcStrides = FilterVector(PX.Strides(), perm);
     data.dstStrides = Y.Strides();
 
     const T* srcBuf = X.LockedBuffer();
