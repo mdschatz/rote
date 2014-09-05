@@ -70,17 +70,12 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     tmp2.ReduceToOneCommRedist(tmp, rModes);
 
-    PrintVector(rModes, "rModes");
     ModeArray sortedRModes = rModes;
     std::sort(sortedRModes.begin(), sortedRModes.end());
-    PrintVector(rModes, "sortedRModes");
     ObjShape BShape = tmp2Shape;
-    PrintVector(Shape(), "current shape");
     for(i = sortedRModes.size() - 1; i < sortedRModes.size(); i--){
-        PrintVector(BShape, "resizing to");
         BShape.erase(BShape.begin() + sortedRModes[i]);
     }
-    PrintVector(BShape, "resizing to");
 
     ResizeTo(BShape);
     T* thisBuf = Buffer();

@@ -326,8 +326,8 @@ void DistTensor<T>::A2APackTestHelper(const PackData& packData, const Mode mode,
             PackCommHelper(data, order - 1, &(dataBuf[i * A.LocalModeStride(a2aModeTo)]), &(sendBuf[commLinLoc * nElemsPerProc]));
 //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
 //            std::cout << "packed sendBuf:";
-//            for(Unsigned i = 0; i < nElemsPerProc * 6; i++)
-//                std::cout << " " << sendBufOrig[i];
+//            for(Unsigned j = 0; j < nElemsPerProc * 6; j++)
+//                std::cout << " " << sendBufOrig[j];
 //            std::cout << std::endl;
         }else{
 
@@ -400,18 +400,6 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-
-//    Mode a2aMode1 = a2aModesFrom.first;
-//    Mode a2aMode2 = a2aModesFrom.second;
-//
-//    ModeArray commGroup1 = commGroups.first;
-//    ModeArray commGroup2 = commGroups.second;
-//
-//    //For convenience make sure that a2aMode1 is earlier in the packing
-//    if(a2aMode1 > a2aMode2){
-//        std::swap(a2aMode1, a2aMode2);
-//        std::swap(commGroup1, commGroup2);
-//    }
 
     ModeArray changedA2AModes = a2aModesFrom;
     changedA2AModes.insert(changedA2AModes.end(), a2aModesTo.begin(), a2aModesTo.end());
@@ -519,7 +507,7 @@ void DistTensor<T>::A2AUnpackTestHelper(const PackData& packData, const Mode mod
     const Mode a2aModeTo = changedA2AModes[mode];
 
 //    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
-    for(i = 0; i < nProcsPerA2AMode[mode]; i++){
+    for(i = 0; i < nProcsPerA2AMode[a2aModeTo]; i++){
         elem[a2aModeTo] = myFirstLoc[a2aModeTo] + i * gvB.ModeWrapStride(a2aModeTo);
 //        std::cout << "UnpackTestHelper mode: " << mode << std::endl;
 //        PrintVector(elem, "elem is now");
@@ -550,12 +538,11 @@ void DistTensor<T>::A2AUnpackTestHelper(const PackData& packData, const Mode mod
 //            PrintVector(data.srcBufStrides, "  srcBufStrides");
 //            PrintVector(data.dstBufStrides, "  dstBufStrides");
             PackCommHelper(data, order - 1, &(recvBuf[commLinLoc * nElemsPerProc]), &(dataBuf[i * LocalModeStride(a2aModeTo)]));
-//            std::cout << "packed dataBuf:";
-//            for(Unsigned i = 0; i < prod(LocalShape()); i++)
-//                std::cout << " " << dataBufOrig[i];
+//            std::cout << "dataBuf:";
+//            for(Unsigned j = 0; j < prod(LocalShape()); j++)
+//                std::cout << " " << dataBufOrig[j];
 //            std::cout << std::endl;
         }else{
-
             A2AUnpackTestHelper(data, mode - 1, commModes, changedA2AModes, elem, myFirstLoc, nProcsPerA2AMode, nElemsPerProc, A, &(recvBuf[0]), &(dataBuf[i * LocalModeStride(a2aModeTo)]), dataBufOrig);
         }
     }
@@ -628,12 +615,6 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const Unsigned nCommElemsPerProc = prod(recvShape);
     const Location myFirstElemLoc = ModeShifts();
 
-//    std::cout << "recvBuf:";
-//    for(Unsigned i = 0; i < nRedistProcsAll * nCommElemsPerProc; i++){
-//        std::cout << " " << recvBuf[i];
-//    }
-//    std::cout << std::endl;
-
     Location unpackElem = myFirstElemLoc;
 
 //    PrintVector(unpackElem, "unpackElem");
@@ -645,6 +626,10 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         A2AUnpackTestHelper(unpackData, changedA2AModes.size() - 1, commModesAll, changedA2AModes, unpackElem, myFirstElemLoc, modeStrideFactor, prod(recvShape), A, &(recvBuf[0]), &(dataBuf[0]), &(dataBuf[0]));
     }
 
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
+//        std::cout << " " << dataBuf[i];
+//    std::cout << std::endl;
     //Unpack only if we can
 //    if(ElemwiseLessThan(unpackElem, Shape())){
 //        for(i = 0; i < a2aMode2StrideFactor; i++){
