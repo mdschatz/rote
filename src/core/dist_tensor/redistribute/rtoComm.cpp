@@ -134,11 +134,105 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode rMo
 
 }
 
+template <typename T>
+void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
+//    if(!CheckReduceToOneCommRedist(A, reduceMode))
+//      LogicError("ReduceToOneRedist: Invalid redistribution request");
+
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
+    Unsigned i;
+    const tmen::Grid& g = A.Grid();
+    ModeArray commModes;
+    for(i = 0; i < reduceModes.size(); i++){
+        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
+        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+    }
+
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+
+    if(!A.Participating())
+        return;
+    Unsigned sendSize, recvSize;
+
+    //Determine buffer sizes for communication
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    sendSize = prod(maxLocalShapeA);
+    recvSize = sendSize;
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    PackRTOCommSendBuf(A, 0, sendBuf);
+
+    mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
+
+    if(!(Participating()))
+        return;
+    UnpackRTOCommRecvBuf(recvBuf, 0, A);
+}
+
+template <typename T>
+void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, T * const sendBuf)
+{
+    const Unsigned order = A.Order();
+    const T* dataBuf = A.LockedBuffer();
+
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+
+//    printf("dataBuf: ");
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        printf("%d ", dataBuf[i]);
+//    }
+//    printf("\n");
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+
+    PackData packData;
+    packData.loopShape = A.LocalShape();
+    packData.srcBufStrides = A.LocalStrides();
+    packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
+
+    packData.loopStarts = zeros;
+    packData.loopIncs = ones;
+
+    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+}
+
+template <typename T>
+void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const ModeArray& rModes, const DistTensor<T>& A)
+{
+    const Unsigned order = Order();
+    T* dataBuf = Buffer();
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+
+    PackData unpackData;
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
+
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
+
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+
+}
+
 #define PROTO(T) \
         template Int  DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode); \
         template void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const Mode reduceMode); \
         template void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, T * const sendBuf); \
-        template void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode reduceMode, const DistTensor<T>& A);
+        template void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const Mode reduceMode, const DistTensor<T>& A); \
+        template void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes); \
+        template void DistTensor<T>::PackRTOCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, T * const sendBuf); \
+        template void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const ModeArray& reduceModes, const DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)

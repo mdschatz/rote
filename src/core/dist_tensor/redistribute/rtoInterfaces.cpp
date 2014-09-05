@@ -48,9 +48,55 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
         MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
 }
 
+template <typename T>
+void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
+    Unsigned i;
+    const tmen::GridView gv = A.GetGridView();
+    const tmen::Grid& g = A.Grid();
+    TensorDistribution dist = A.TensorDist();
+    ModeDistribution blank(0);
+
+    ObjShape tmpShape = A.Shape();
+    for(i = 0; i < rModes.size(); i++)
+        tmpShape[rModes[i]] = gv.Dimension(rModes[i]);
+    DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
+
+    LocalReduce(tmp, A, rModes);
+
+    ObjShape tmp2Shape = A.Shape();
+    for(i = 0; i < rModes.size(); i++)
+        tmp2Shape[rModes[i]] = 1;
+    DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), g);
+
+    tmp2.ReduceToOneCommRedist(tmp, rModes);
+
+    PrintVector(rModes, "rModes");
+    ModeArray sortedRModes = rModes;
+    std::sort(sortedRModes.begin(), sortedRModes.end());
+    PrintVector(rModes, "sortedRModes");
+    ObjShape BShape = tmp2Shape;
+    PrintVector(Shape(), "current shape");
+    for(i = sortedRModes.size() - 1; i < sortedRModes.size(); i--){
+        PrintVector(BShape, "resizing to");
+        BShape.erase(BShape.begin() + sortedRModes[i]);
+    }
+    PrintVector(BShape, "resizing to");
+
+    ResizeTo(BShape);
+    T* thisBuf = Buffer();
+    const T* tmp2Buf = tmp2.LockedBuffer();
+
+    //Only do this if we know we are copying into a scalar
+    if(Order() == 0)
+        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), 1);
+    else
+        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
+}
+
 #define PROTO(T) \
         template void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode reduceMode); \
-        template void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
+        template void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode reduceMode); \
+        template void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes);
 
 PROTO(int)
 PROTO(float)

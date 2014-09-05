@@ -321,12 +321,15 @@ public:
     void ReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
     void PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf);
     void UnpackRTOCommRecvBuf(const T* const recvBuf, const Mode rMode, const DistTensor<T>& A);
-
+    void ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& rModes);
+    void PackRTOCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, T * const sendBuf);
+    void UnpackRTOCommRecvBuf(const T* const recvBuf, const ModeArray& rModes, const DistTensor<T>& A);
     //
     // Reduce-to-one interface routines
     //
     void PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
     void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
+    void ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes);
 
     //
     // Gather-to-one workhorse routines
