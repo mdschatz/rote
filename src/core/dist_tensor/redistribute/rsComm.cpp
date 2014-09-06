@@ -88,47 +88,6 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes){
-//    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
-//      LogicError("ReduceScatterRedist: Invalid redistribution request");
-    Unsigned i;
-    const tmen::Grid& g = A.Grid();
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    ModeArray commModes;
-    for(i = 0; i < reduceModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
-        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
-    }
-
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
-
-    if(!A.Participating())
-        return;
-    Unsigned sendSize, recvSize;
-
-    //Determine buffer sizes for communication
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape maxLocalShapeB = MaxLocalShape();
-    recvSize = prod(maxLocalShapeB);
-    sendSize = recvSize * nRedistProcs;
-
-//    PrintVector(maxLocalShapeB, "sendShape");
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
-    MemZero(&(auxBuf[0]), sendSize + recvSize);
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
-
-    PackRSCommSendBuf(A, reduceModes, scatterModes, sendBuf);
-
-    mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
-
-    if(!(Participating()))
-        return;
-    UnpackRSCommRecvBuf(recvBuf, A);
-}
-
-template <typename T>
 void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, T * const sendBuf)
 {
     Unsigned i, j;

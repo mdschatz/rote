@@ -91,50 +91,6 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     UnpackRSCommRecvBuf(recvBuf, A);
 }
 
-template <typename T>
-void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
-//    if(!CheckReduceToOneCommRedist(A, reduceMode))
-//      LogicError("ReduceToOneRedist: Invalid redistribution request");
-
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
-    Unsigned i;
-    const tmen::Grid& g = A.Grid();
-    ModeArray commModes;
-    for(i = 0; i < reduceModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
-        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
-    }
-
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
-
-    if(!A.Participating())
-        return;
-    Unsigned sendSize, recvSize;
-
-    //Determine buffer sizes for communication
-    const ObjShape maxLocalShapeA = A.MaxLocalShape();
-    sendSize = prod(maxLocalShapeA);
-    recvSize = sendSize;
-
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
-    MemZero(&(auxBuf[0]), sendSize + recvSize);
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
-
-    //NOTE: RS and AG pack routines are the exact same
-    PackAGCommSendBuf(A, sendBuf);
-
-    mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
-
-    if(!(Participating()))
-        return;
-
-    //NOTE: RS and RTO unpack routines are the exact same
-    UnpackRSCommRecvBuf(recvBuf, A);
-}
-
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

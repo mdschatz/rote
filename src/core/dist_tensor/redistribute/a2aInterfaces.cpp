@@ -39,7 +39,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     for(i = 0; i < a2aCommGroups.size(); i++)
         commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());
     std::sort(commModes.begin(), commModes.end());
-    AllToAllCommRedist(A, a2aModesFrom, a2aModesTo, a2aCommGroups);
+    AllToAllCommRedist(A, a2aModesFrom, a2aModesTo, commModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

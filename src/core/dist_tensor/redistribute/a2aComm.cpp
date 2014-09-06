@@ -75,58 +75,6 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray>& a2aCommGroups){
-//    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
-//        LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
-
-    Unsigned i;
-    const tmen::Grid& g = A.Grid();
-
-    //Determine buffer sizes for communication
-    ModeArray commModes;
-    for(i = 0; i < a2aCommGroups.size(); i++)
-        commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());
-    std::sort(commModes.begin(), commModes.end());
-
-    ModeArray changedA2AModes = ConcatenateVectors(a2aModesFrom, a2aModesTo);
-    std::sort(changedA2AModes.begin(), changedA2AModes.end());
-    changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
-
-//    PrintVector(commModes, "commModes");
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
-
-    if(!A.Participating())
-        return;
-//    printf("Participating\n");
-//    printf("commRank: %d\n", mpi::CommRank(comm));
-//    printf("commSize: %d\n", mpi::CommSize(comm));
-    Unsigned sendSize, recvSize;
-
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape maxLocalShapeA = A.MaxLocalShape();
-    const ObjShape maxLocalShapeB = MaxLocalShape();
-    const ObjShape commDataShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
-
-    sendSize = prod(commDataShape);
-    recvSize = sendSize;
-
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require((sendSize + recvSize) * nRedistProcs);
-    MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
-
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
-
-    PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
-
-    mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
-
-    if(!(Participating()))
-        return;
-    UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
-}
-
-template <typename T>
 void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf){
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
