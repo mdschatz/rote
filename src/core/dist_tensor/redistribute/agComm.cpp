@@ -38,10 +38,9 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
 //    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
 //        LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
-    Unsigned i;
     const tmen::Grid& g = A.Grid();
 
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
         return;

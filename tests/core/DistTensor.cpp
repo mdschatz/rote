@@ -706,7 +706,6 @@ template<typename T>
 TensorDistribution
 DetermineResultingDistributionRTOG(const DistTensor<T>& A, const ModeArray& rModes){
     Unsigned i;
-    const Unsigned order = A.Order();
     const TensorDistribution ADist = A.TensorDist();
     TensorDistribution ret(ADist);
     ModeArray sortedRModes = rModes;
@@ -1171,7 +1170,7 @@ CreateLGCommGroupsHelper(const DistTensor<T>& A, const Unsigned& nlModes, Unsign
 template<typename T>
 std::vector<LGTest>
 CreateLGTests(const DistTensor<T>& A, const Params& args){
-    Unsigned i, j, k, l;
+    Unsigned i, j;
     std::vector<LGTest > ret;
 
     const Unsigned order = A.Order();

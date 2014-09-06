@@ -886,8 +886,6 @@ Tensor<T>::operator=( const Tensor<T>& A )
 #endif
     if( viewType_ == OWNER )
         ResizeTo( A );
-    T* dst = Buffer();
-    const T* src = A.LockedBuffer();
     //Only copy single element if we know this is a scalar
     CopyBuffer(A);
 //    if(Order() == 0){

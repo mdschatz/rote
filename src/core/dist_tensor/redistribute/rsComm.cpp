@@ -56,7 +56,6 @@ template <typename T>
 void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes){
 //    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
 //      LogicError("ReduceScatterRedist: Invalid redistribution request");
-    Unsigned i;
     const tmen::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
@@ -90,7 +89,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 template <typename T>
 void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, T * const sendBuf)
 {
-    Unsigned i, j;
+    Unsigned i;
     Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
 

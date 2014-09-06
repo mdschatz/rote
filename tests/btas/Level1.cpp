@@ -163,7 +163,6 @@ TestZAxpBy(const DistTensor<T>& A)
 #ifndef RELEASE
     CallStackEntry entry("TestZAxpBy");
 #endif
-    Unsigned i;
     Permutation perm(A.Order());
 
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
