@@ -57,9 +57,6 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 //    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
 //      LogicError("GatherToOneRedist: Invalid redistribution request");
 
-    Unsigned i;
-    const tmen::Grid& g = A.Grid();
-
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
     const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());

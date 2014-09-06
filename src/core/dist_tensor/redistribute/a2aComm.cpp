@@ -33,7 +33,6 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 //    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
 //        LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
-    Unsigned i;
     const tmen::Grid& g = A.Grid();
 
 //    PrintVector(commModes, "commModes");
@@ -127,7 +126,6 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
 template<typename T>
 void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModesAll, const ObjShape& recvShape, const DistTensor<T>& A){
-    Unsigned i;
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();
 

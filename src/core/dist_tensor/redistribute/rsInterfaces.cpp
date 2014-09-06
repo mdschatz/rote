@@ -93,7 +93,6 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
 #endif
-    Unsigned i;
 
     ObjShape tmpShape = Shape();
     DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
