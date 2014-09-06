@@ -164,19 +164,13 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //    }
 //    std::cout << std::endl;
 
-    std::vector<Unsigned> commLCMs(order);
-    std::vector<Unsigned> modeStrideFactor(order);
-    for(i = 0; i < commLCMs.size(); i++){
-        commLCMs[i] = tmen::LCM(gvA.Dimension(i), gvB.Dimension(i));
-        modeStrideFactor[i] = commLCMs[i] / gvA.Dimension(i);
-    }
+    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
+    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
 
     const ObjShape gridShape = Grid().Shape();
     ModeArray uniqueSModes = sModes;
     std::sort(uniqueSModes.begin(), uniqueSModes.end());
-    ModeArray::iterator it;
-    it = std::unique(uniqueSModes.begin(), uniqueSModes.end());
-    uniqueSModes.resize(std::distance(uniqueSModes.begin(), it) );
+    uniqueSModes.erase(std::unique(uniqueSModes.begin(), uniqueSModes.end()), uniqueSModes.end());
 
     std::vector<Unsigned> nProcsForSMode(uniqueSModes.size(), 1);
     for(i = 0; i < uniqueSModes.size(); i++){
@@ -184,7 +178,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             if(sModes[j] == uniqueSModes[i])
                 nProcsForSMode[i] *= Max(1, gvA.Dimension(rModes[j]));
     }
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(gvA.ParticipatingShape(), rModes)));
 
     ModeArray redistModes;
     for(i = 0; i < rModes.size(); i++){
@@ -210,9 +203,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     }
     packData.dstBufStrides = Dimensions2Strides(sendShape);
     packData.loopStarts = zeros;
-    packData.loopIncs = ones;
-    for(i = 0; i < uniqueSModes.size(); i++)
-        packData.loopIncs[uniqueSModes[i]] *= modeStrideFactor[uniqueSModes[i]];
+    packData.loopIncs = modeStrideFactor;
     const Unsigned nCommElemsPerProc = prod(sendShape);
 
     const std::vector<Unsigned> sModeStrides = LocalStrides();
@@ -273,125 +264,8 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const ModeArray
     PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 
-template <typename T>
-void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
-    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
-      LogicError("ReduceScatterRedist: Invalid redistribution request");
-
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    const ModeArray commModes = A.ModeDist(reduceMode);
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
-
-    if(!A.Participating())
-        return;
-    Unsigned sendSize, recvSize;
-
-    //Determine buffer sizes for communication
-    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(reduceMode));
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), A.ModeDist(reduceMode))));
-    const ObjShape maxLocalShapeB = MaxLocalShape();
-    recvSize = prod(maxLocalShapeB);
-    sendSize = recvSize * nRedistProcs;
-
-
-
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
-    MemZero(&(auxBuf[0]), sendSize + recvSize);
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
-
-    PackRSCommSendBuf(A, reduceMode, scatterMode, sendBuf);
-
-    mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
-
-    if(!(Participating()))
-        return;
-    UnpackRSCommRecvBuf(recvBuf, reduceMode, scatterMode, A);
-}
-
-template <typename T>
-void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode rMode, const Mode sMode, T * const sendBuf)
-{
-    Unsigned i;
-    Unsigned order = A.Order();
-    const T* dataBuf = A.LockedBuffer();
-
-//    std::cout << "dataBuf:";
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        std::cout << " " << dataBuf[i];
-//    }
-//    std::cout << std::endl;
-
-    const ObjShape gridShape = Grid().Shape();
-    const tmen::GridView gvA = A.GetGridView();
-    const Unsigned nRedistProcs = Max(1, gvA.Dimension(rMode));
-
-    const ModeArray redistModes = A.ModeDist(rMode);
-    ModeArray commModes = redistModes;
-    std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(gridShape, redistModes);
-    const ObjShape commShape = FilterVector(gridShape, commModes);
-    const Permutation commPerm = DeterminePermutation(redistModes, commModes);
-
-    const ObjShape sendShape = MaxLocalShape();
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-    PackData packData;
-    packData.loopShape = A.LocalShape();
-    packData.srcBufStrides = A.LocalStrides();
-    packData.srcBufStrides[sMode] *= nRedistProcs;
-    packData.dstBufStrides = Dimensions2Strides(sendShape);
-    packData.loopStarts = zeros;
-    packData.loopIncs = ones;
-    packData.loopIncs[sMode] = nRedistProcs;
-    const Unsigned nCommElemsPerProc = prod(sendShape);
-    const Unsigned sModeStride = LocalModeStride(sMode);
-
-    for(i = 0; i < nRedistProcs; i++){
-        const Location elemCommLoc = LinearLoc2Loc(i, redistShape);
-        const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, commPerm), commShape);
-
-        packData.loopStarts[sMode] = i;
-        PackCommHelper(packData, order - 1, &(dataBuf[i*sModeStride]), &(sendBuf[elemRedistLinLoc * nCommElemsPerProc]));
-//        std::cout << "pack slice:" << i << std::endl;
-//        std::cout << "packed sendBuf:";
-//        for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++)
-//            std::cout << " " << sendBuf[i];
-//        std::cout << std::endl;
-    }
-}
-
-template <typename T>
-void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode rMode, const Mode sMode, const DistTensor<T>& A)
-{
-    const Unsigned order = A.Order();
-    T* dataBuf = Buffer();
-
-//    std::cout << "recvBuf:";
-//    for(Unsigned i = 0; i < prod(MaxLocalShape()); i++){
-//        std::cout << " " << recvBuf[i];
-//    }
-//    std::cout << std::endl;
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-    PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = ones;
-
-    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
-}
-
 #define PROTO(T) \
         template Int  DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
-        template void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
-        template void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf); \
-        template void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A); \
         template void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes); \
         template void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, T * const sendBuf); \
         template void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const ModeArray& rModes, const ModeArray& sModes, const DistTensor<T>& A);

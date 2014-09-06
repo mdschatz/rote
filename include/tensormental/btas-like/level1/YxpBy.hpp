@@ -21,7 +21,6 @@ YxpByHelper(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const
     const Unsigned srcStride = data.srcStrides[mode];
     const Unsigned dstStride = data.dstStrides[mode];
     Unsigned srcBufPtr = 0;
-    Unsigned permSrcBufPtr = 0;
     Unsigned dstBufPtr = 0;
 
     if(mode == 0){

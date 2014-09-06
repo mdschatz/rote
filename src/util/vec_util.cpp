@@ -27,6 +27,30 @@ void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::ve
 }
 
 template<typename T>
+void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
+  std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::multiplies<T>());
+}
+
+template<typename T>
+std::vector<T> ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2){
+  std::vector<T> ret(src1.size());
+  ElemwiseProd(src1, src2, ret);
+  return ret;
+}
+
+template<typename T>
+void ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
+  std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::divides<T>());
+}
+
+template<typename T>
+std::vector<T> ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2){
+  std::vector<T> ret(src1.size());
+  std::transform(src1.begin(), src1.end(), src2.begin(), ret.begin(), std::divides<T>());
+  return ret;
+}
+
+template<typename T>
 bool AnyNonNegativeElem(const std::vector<T>& vec){
   Unsigned i;
   for(i = 0; i < vec.size(); i++)
@@ -239,6 +263,10 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template T prod(const std::vector<T>& src, const Unsigned startIndex); \
     template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+	template void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+	template std::vector<T> ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2); \
+	template void ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+	template std::vector<T> ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template bool AnyNonNegativeElem(const std::vector<T>& vec); \
 	template bool AnyNonPositiveElem(const std::vector<T>& vec); \
 	template bool AnyPositiveElem(const std::vector<T>& vec); \

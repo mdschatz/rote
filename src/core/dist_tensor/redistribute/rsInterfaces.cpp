@@ -19,7 +19,13 @@ void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const
     //ObjShape tmpShape = A.Shape();
     //tmpShape[reduceScatterMode] = A.GetGridView().Dimension(reduceScatterMode);
     //ResizeTo(tmpShape);
-    ReduceScatterCommRedist(A, reduceScatterMode, reduceScatterMode);
+    ModeArray reduceModes(1);
+    ModeArray scatterModes(1);
+
+    reduceModes[0] = reduceScatterMode;
+    scatterModes[0] = reduceScatterMode;
+
+    ReduceScatterCommRedist(A, reduceModes, scatterModes);
 }
 
 template <typename T>
@@ -94,35 +100,13 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
 
-    ObjShape tmpShape = A.Shape();
-    tmpShape[reduceMode] = A.GetGridView().Dimension(reduceMode);
-    DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Grid());
-    T* tmpBuf = tmp.Buffer();
-    MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
+    ModeArray reduceModes(1);
+    ModeArray scatterModes(1);
 
-    TensorDistribution dist = A.TensorDist();
-    dist[scatterMode] = ConcatenateVectors(dist[scatterMode], dist[reduceMode]);
-    ModeDistribution blank(0);
-    dist[reduceMode] = blank;
-    ObjShape tmp2Shape = A.Shape();
-    tmp2Shape[reduceMode] = 1;
-    DistTensor<T> tmp2(tmp2Shape, dist, A.Grid());
-    T* tmp2Buf = tmp2.Buffer();
-    MemZero(&(tmp2Buf[0]), prod(tmp2.LocalShape()));
+    reduceModes[0] = reduceMode;
+    scatterModes[0] = scatterMode;
 
-    LocalReduce(tmp, A, reduceMode);
-//    Print(tmp, "tmp after local reduce");
-    tmp2.ReduceScatterCommRedist(tmp, reduceMode, scatterMode);
-//    Print(tmp2, "tmp2 after global reduce");
-
-    //B.RemoveUnitMode(reduceMode);
-    ObjShape BShape = tmp2Shape;
-    BShape.erase(BShape.begin() + reduceMode);
-    ResizeTo(BShape);
-    T* BBuf = Buffer();
-    const T* tmp2LockedBuf = tmp2.LockedBuffer();
-    MemCopy(&(BBuf[0]), &(tmp2LockedBuf[0]), prod(LocalShape()));
-//    Print(*this, "B after full reduce");
+    ReduceScatterRedistFrom(A, reduceModes, scatterModes);
 }
 
 template<typename T>
@@ -132,22 +116,15 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
 #endif
-    Unsigned i;
 
-    ObjShape tmpShape = Shape();
-    DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
-    T* tmpBuf = tmp.Buffer();
-    MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
+    ModeArray reduceModes(1);
+    ModeArray scatterModes(1);
 
-    tmp.ReduceScatterRedistFrom(A, reduceMode, scatterMode);
+    reduceModes[0] = reduceMode;
+    scatterModes[0] = scatterMode;
 
-    ResizeTo(tmpShape);
-    T* BBuf = Buffer();
-    const T* tmpLockedBuf = tmp.LockedBuffer();
-    for(i = 0; i < prod(LocalShape()); i++)
-        BBuf[i] = beta * BBuf[i] + tmpLockedBuf[i];
-//    Print(*this, "B after full reduce");
-}
+    ReduceScatterUpdateRedistFrom(A, beta, reduceModes, scatterModes);
+    }
 
 #define PROTO(T) \
         template void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode); \
