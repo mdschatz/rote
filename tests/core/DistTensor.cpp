@@ -164,6 +164,8 @@ Set(Tensor<T>& A)
     while(!stop){
         A.Set(loc, counter);
 
+        if(order == 0)
+            break;
         //Update
         counter++;
         loc[ptr]++;
@@ -197,6 +199,8 @@ Set(DistTensor<T>& A)
 
         //Update
         counter++;
+        if(order == 0)
+            break;
         loc[ptr]++;
         while(loc[ptr] == A.Dimension(ptr)){
             loc[ptr] = 0;
@@ -274,6 +278,8 @@ bool CheckResult(const DistTensor<T>& A){
                 break;
             }
 
+            if(order == 0)
+                break;
             //Update
             distLoc[ptr]++;
             checkLoc[ptr] += strides[ptr];
@@ -342,7 +348,9 @@ TestGTORedist( DistTensor<T>& A, const ModeArray& gModes, const std::vector<Mode
     DistTensor<T> B(A.Shape(), resDist, g);
 
     if(commRank == 0){
-        printf("Gathering to one modes (%d", gModes[0]);
+        printf("Gathering to one modes (");
+        if(gModes.size() > 0)
+            printf("%d", gModes[0]);
         for(i = 1; i < gModes.size(); i++)
             printf(", %d", gModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
@@ -397,7 +405,9 @@ TestRTOGRedist( DistTensor<T>& A, const ModeArray& rModes, const TensorDistribut
     DistTensor<T> B(shapeB, resDist, g);
 
     if(commRank == 0){
-        printf("Reducing to one modes (%d", rModes[0]);
+        printf("Reducing to one modes (");
+        if(rModes.size() > 0)
+            printf("%d", rModes[0]);
         for(i = 1; i < rModes.size(); i++)
             printf(", %d", rModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
@@ -468,7 +478,9 @@ TestAGGRedist( DistTensor<T>& A, const ModeArray& agModes, const std::vector<Mod
     DistTensor<T> B(A.Shape(), resDist, g);
 
     if(commRank == 0){
-        printf("Allgathering modes (%d", agModes[0]);
+        printf("Allgathering modes (");
+        if(agModes.size() > 0)
+            printf("%d", agModes[0]);
         for(i = 1; i < agModes.size(); i++)
             printf(", %d", agModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
@@ -525,7 +537,9 @@ TestLGRedist( DistTensor<T>& A, const ModeArray& lModes, const std::vector<ModeA
     TensorDistribution lModeDist = A.TensorDist();
 
     if(commRank == 0){
-        printf("Locally redistributing modes (%d", lModes[0]);
+        printf("Locally redistributing modes (");
+        if(lModes.size() > 0)
+            printf("%d", lModes[0]);
         for(i = 1; i < lModes.size(); i++)
             printf(", %d", lModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
@@ -582,10 +596,14 @@ TestRSGRedist(DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes
 
 //    Print(A, "A before rs redist");
     if(commRank == 0){
-        printf("Reducing modes (%d", rModes[0]);
+        printf("Reducing modes (");
+        if(rModes.size() > 0)
+            printf("%d", rModes[0]);
         for(i = 1; i < rModes.size(); i++)
             printf(", %d", rModes[i]);
-        printf(") and scattering modes (%d", sModes[0]);
+        printf(") and scattering modes (");
+        if(sModes.size() > 0)
+            printf("%d", sModes[0]);
         for(i = 1; i < rModes.size(); i++)
             printf(", %d", sModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
@@ -654,10 +672,14 @@ TestA2ARedist(DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& 
     DistTensor<T> B(A.Shape(), resDist, g);
 
     if(commRank == 0){
-        printf("All-to-alling modes ( %d", a2aModesFrom[0]);
+        printf("All-to-alling modes (");
+        if(a2aModesFrom.size() > 0)
+            printf("%d", a2aModesFrom[0]);
         for(i = 1; i < a2aModesFrom.size(); i++)
             printf(", %d", a2aModesFrom[i]);
-        printf("),( %d", a2aModesTo[0]);
+        printf("),(");
+        if(a2aModesTo.size() > 0)
+            printf("%d", a2aModesTo[0]);
         for(i = 1; i < a2aModesTo.size(); i++)
             printf(", %d", a2aModesTo[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
@@ -1438,6 +1460,14 @@ CreateA2ATests(const DistTensor<T>& A, const Params& args){
 
 template<typename T>
 void
+TestCopyBuffer(const DistTensor<T>& A){
+    DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
+    B.CopyLocalBuffer(A);
+    CheckResult(B);
+}
+
+template<typename T>
+void
 DistTensorTest( const Params& args, const Grid& g )
 {
 #ifndef RELEASE
@@ -1464,6 +1494,11 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<A2ATest> a2aTests = CreateA2ATests(A, args);
     std::vector<RTOTest> rtoTests = CreateRTOTests(A, args);
     std::vector<RTOGTest> rtogTests = CreateRTOGTests(A, args);
+
+    if(commRank == 0){
+        printf("Performing CopyLocalBuffer tests\n");
+    }
+    TestCopyBuffer(A);
 
     if(commRank == 0){
         printf("Performing AllGather tests\n");
@@ -1654,12 +1689,16 @@ main( int argc, char* argv[] )
         }
 
         if(commRank == 0){
-            printf("Creating %d", args.gridShape[0]);
+            printf("Creating ");
+            if(args.gridShape.size() > 0)
+                printf("%d", args.gridShape[0]);
             for(i = 1; i < args.gridOrder; i++)
                 printf(" x %d", args.gridShape[i]);
             printf(" grid\n");
 
-            printf("Creating [%d", args.tensorShape[0]);
+            printf("Creating [");
+            if(args.tensorShape.size() > 0)
+                printf("%d", args.tensorShape[0]);
             for(i = 1; i < args.tenOrder; i++)
                 printf(", %d", args.tensorShape[i]);
             printf("] tensor\n");
