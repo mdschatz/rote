@@ -234,33 +234,30 @@ public:
     // Shared Comm routines
     //
     void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
+    void ElemSelectPackHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
+    void ElemSelectUnpackHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const recvBuf, T * const dataBuf);
+    void ElemSelectHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
 
     //
     // Allgather workhorse routines
     //
     Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
-    void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
-    void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
-    void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
+    void PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
+    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& redistModes, const std::vector<ModeArray>& gridModes);
 
     //
     // Allgather interface routines
     //
     void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
+    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistModes);
 
     //
     // All-to-all workhorse routines
     //
     Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
-    void AllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
-    void PackA2ADoubleModeCommSendBuf(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, T * const sendBuf);
-    void UnpackA2ADoubleModeCommRecvBuf(const T * const recvBuf, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& commGroups, const DistTensor<T>& A);
-
     void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray>& a2aCommGroups);
-    void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray>& commGroups, T * const sendBuf);
-    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray>& commGroups, const DistTensor<T>& A);
-    void A2APackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf, T* const sendBufOrig);
-    void A2AUnpackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf, T* const sendBufOrig);
+    void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
+    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
 
     //
     // All-to-all interface routines
@@ -272,21 +269,20 @@ public:
     // Local redist workhorse routines
     //
     Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
-    void LocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
-    void UnpackLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+    void LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes);
+    void UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes);
 
     //
     // Local redist interface routines
     //
     void LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
+    void LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes);
 
     //
     // Point-to-point workhorse routines
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
     void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
-    void PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf);
-    void UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
 
     //
     // Point-to-point interface routines
@@ -297,13 +293,9 @@ public:
     // Reduce-scatter workhorse routines
     //
     Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
-    void PackRSCommSendBuf(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode, T * const sendBuf);
-    void UnpackRSCommRecvBuf(const T* const recvBuf, const Mode reduceMode, const Mode scatterMode, const DistTensor<T>& A);
-    void PackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& rModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerRMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf, T* const sendBufOrig);
     void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, T * const sendBuf);
     void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes);
-    void UnpackRSCommRecvBuf(const T* const recvBuf, const ModeArray& reduceModes, const ModeArray& scatterModes, const DistTensor<T>& A);
+    void UnpackRSCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
 
     //
     // Reduce-scatter interface routines
@@ -318,11 +310,7 @@ public:
     // Reduce-to-one workhorse routines
     //
     Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
-    void ReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
-    void PackRTOCommSendBuf(const DistTensor<T>& A, const Mode rMode, T * const sendBuf);
-    void UnpackRTOCommRecvBuf(const T* const recvBuf, const Mode rMode, const DistTensor<T>& A);
     void ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& rModes);
-    void PackRTOCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, T * const sendBuf);
     void UnpackRTOCommRecvBuf(const T* const recvBuf, const ModeArray& rModes, const DistTensor<T>& A);
     //
     // Reduce-to-one interface routines
@@ -335,15 +323,14 @@ public:
     // Gather-to-one workhorse routines
     //
     Int  CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void GatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes, T * const sendBuf);
-    void UnpackGTOCommRecvBuf(const T* const recvBuf, const Mode gMode, const ModeArray& gridModes, const DistTensor<T>& A);
+    void GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes);
 
     //
     // Gather-to-one interface routines
     //
     void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode);
     void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
+    void GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes);
 
     //
     //Unit mode intro/remove routines

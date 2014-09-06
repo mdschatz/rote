@@ -46,6 +46,26 @@ LCM_( Unsigned a, Unsigned b )
 }
 
 inline
+std::vector<Unsigned>
+LCMs_(const std::vector<Unsigned>& a, const std::vector<Unsigned>& b)
+{
+    Unsigned i;
+    std::vector<Unsigned> ret(a.size());
+    if(a.size() == 0 || b.size() == 0)
+        return ret;
+    for(i = 0; i < ret.size(); i++)
+        ret[i] = LCM(a[i], b[i]);
+    return ret;
+}
+
+inline
+std::vector<Unsigned>
+LCMs(const std::vector<Unsigned>& a, const std::vector<Unsigned>& b)
+{
+    return LCMs_(a, b);
+}
+
+inline
 Unsigned
 Length( Unsigned n, Unsigned shift, Unsigned wrap )
 {

@@ -32,27 +32,34 @@ DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allG
 
 template<typename T>
 void
-DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, const ModeArray& gridModes){
+DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& gridGroups){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AllGatherCommRedist");
-    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
-        LogicError("AllGatherRedist: Invalid redistribution request");
+//    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
+//        LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
+    Unsigned i;
+    const tmen::Grid& g = A.Grid();
 
-    const mpi::Comm comm = GetCommunicatorForModes(gridModes, A.Grid());
+    ModeArray commModes;
+    for(i = 0; i < gridGroups.size(); i++)
+        commModes.insert(commModes.end(), gridGroups[i].begin(), gridGroups[i].end());
+    std::sort(commModes.begin(), commModes.end());
+
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
 
     //NOTE: Fix to handle strides in Tensor data
-    if(gridModes.size() == 0){
+    if(agModes.size() == 0){
         CopyLocalBuffer(A);
         return;
     }
     Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape maxLocalShapeA = A.MaxLocalShape();
 
     sendSize = prod(maxLocalShapeA);
@@ -66,19 +73,21 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, c
     T* recvBuf = &(auxBuf[sendSize]);
 
     //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
-    PackAGCommSendBuf(A, agMode, sendBuf, gridModes);
+    PackAGCommSendBuf(A, sendBuf);
 
     //printf("Allgathering %d elements\n", sendSize);
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
     if(!(Participating()))
         return;
-    UnpackAGCommRecvBuf(recvBuf, agMode, gridModes, A);
+
+    //NOTE: AG and A2A unpack routines are the exact same
+    UnpackA2ACommRecvBuf(recvBuf, agModes, commModes, maxLocalShapeA, A);
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
 template <typename T>
-void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode, T * const sendBuf, const ModeArray& redistModes)
+void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
 {
   const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
@@ -98,75 +107,10 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& agMode
   PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
-template <typename T>
-void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& agMode, const ModeArray& redistModes, const DistTensor<T>& A)
-{
-    Unsigned order = A.Order();
-    Unsigned i;
-    T* dataBuf = Buffer();
-
-    const ObjShape gridShape = Grid().Shape();
-
-    const Unsigned nRedistProcs = prod(FilterVector(gridShape, redistModes));
-    const ObjShape recvShape = A.MaxLocalShape();
-
-    ModeArray commModes = redistModes;
-    std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(gridShape, redistModes);
-    const ObjShape commShape = FilterVector(gridShape, commModes);
-    const Permutation redistPerm = DeterminePermutation(commModes, redistModes);
-
-    const Unsigned nCommElemsPerProc = prod(recvShape);
-    const Unsigned agModeStride = LocalModeStride(agMode);
-//    printf("recvBuf:");
-//    for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++){
-//        printf(" %d", recvBuf[i]);
-//    }
-//    printf("\n");
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
-    PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.dstBufStrides[agMode] *= nRedistProcs;
-
-    unpackData.srcBufStrides = Dimensions2Strides(recvShape);
-
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = ones;
-    unpackData.loopIncs[agMode] = nRedistProcs;
-
-    //NOTE: Check
-    for(i = 0; i < nRedistProcs; i++){
-        const Location elemCommLoc = LinearLoc2Loc(i, commShape);
-        const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, redistPerm), redistShape);
-
-        if(elemRedistLinLoc >= LocalDimension(agMode))
-            continue;
-        unpackData.loopStarts[agMode] = elemRedistLinLoc;
-
-        PackCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * agModeStride]));
-
-    }
-
-//    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
-//        printf(" %d", dataBuf[i]);
-//    printf("\n");
-}
-
 #define PROTO(T) \
-        template void DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const Mode& agMode, const ModeArray& gridModes); \
+        template void DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& gridModes); \
         template Int  DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes); \
-        template void DistTensor<T>::UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
-
-//template Int CheckAllGatherCommRedist(const DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
-//template void AllGatherCommRedist(DistTensor<T>& B, const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes );
-
-
+        template void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
 
 PROTO(int)
 PROTO(float)

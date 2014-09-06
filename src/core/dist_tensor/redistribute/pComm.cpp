@@ -72,7 +72,8 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    PackPermutationCommSendBuf(A, permuteMode, sendBuf);
+    //NOTE: P and AG pack routines are the exact same
+    PackAGCommSendBuf(A, sendBuf);
 
     const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
     const ModeDistribution permuteModeDistB = ModeDist(permuteMode);
@@ -104,55 +105,15 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     if(!(Participating()))
         return;
-    UnpackPermutationCommRecvBuf(recvBuf, permuteMode, A);
-}
 
-//NOTE: This should just be a direct memcopy. But sticking to the same structured code as all other collectives
-template <typename T>
-void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode pMode, T * const sendBuf)
-{
-    const Unsigned order = A.Order();
-    const T* dataBuf = A.LockedBuffer();
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
-    PackData packData;
-    packData.loopShape = A.LocalShape();
-    packData.srcBufStrides = A.LocalStrides();
-    packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
-
-    packData.loopStarts = zeros;
-    packData.loopIncs = ones;
-
-    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
-}
-
-template <typename T>
-void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode pMode, const DistTensor<T>& A)
-{
-    Unsigned order = A.Order();
-    T* dataBuf = Buffer();
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
-    PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.srcBufStrides = Dimensions2Strides(A.MaxLocalShape());
-
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = ones;
-
-    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    //Note: P and RS unpack routines are the exact same
+    UnpackRSCommRecvBuf(recvBuf, A);
 }
 
 #define PROTO(T) \
         template Int  DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PackPermutationCommSendBuf(const DistTensor<T>& A, const Mode permuteMode, T * const sendBuf); \
-        template void DistTensor<T>::UnpackPermutationCommRecvBuf(const T * const recvBuf, const Mode permuteMode, const DistTensor<T>& A);
+        template void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+
 
 PROTO(int)
 PROTO(float)

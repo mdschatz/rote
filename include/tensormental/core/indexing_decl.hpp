@@ -18,6 +18,9 @@ Unsigned GCD_( Unsigned a, Unsigned b );
 Unsigned LCM( Unsigned a, Unsigned b );
 Unsigned LCM_( Unsigned a, Unsigned b );
 
+std::vector<Unsigned> LCMs( const std::vector<Unsigned>& a, const std::vector<Unsigned>& b );
+std::vector<Unsigned> LCMs_( const std::vector<Unsigned>& a, const std::vector<Unsigned>& b );
+
 Unsigned Length( Unsigned n, Unsigned shift, Unsigned wrap );
 Unsigned Length_( Unsigned n, Unsigned shift, Unsigned wrap );
 

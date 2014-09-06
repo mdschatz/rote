@@ -53,21 +53,28 @@ Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
-void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gatherMode, const ModeArray& gridModes){
-    if(!CheckGatherToOneCommRedist(A, gatherMode, gridModes))
-      LogicError("GatherToOneRedist: Invalid redistribution request");
+void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gatherModes, const std::vector<ModeArray>& commGroups){
+//    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
+//      LogicError("GatherToOneRedist: Invalid redistribution request");
+
+    Unsigned i;
+    const tmen::Grid& g = A.Grid();
+
+    ModeArray commModes;
+    for(i = 0; i < commGroups.size(); i++)
+        commModes.insert(commModes.end(), commGroups[i].begin(), commGroups[i].end());
+    std::sort(commModes.begin(), commModes.end());
 
     //NOTE: Hack for testing.  We actually need to let the user specify the commModes
     //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
-    const mpi::Comm comm = GetCommunicatorForModes(gridModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
     Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
-    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(gatherMode));
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), gridModes)));
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
     const ObjShape maxLocalShapeA = A.MaxLocalShape();
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
@@ -78,121 +85,22 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gat
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    PackGTOCommSendBuf(A, gatherMode, gridModes, sendBuf);
+    //NOTE: AG and GTO pack routines are the exact same
+    PackAGCommSendBuf(A, sendBuf);
 
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 
     if(!(Participating()))
         return;
-    UnpackGTOCommRecvBuf(recvBuf, gatherMode, gridModes, A);
-}
 
-template <typename T>
-void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes, T * const sendBuf)
-{
-    Unsigned order = A.Order();
-    const T* dataBuf = A.LockedBuffer();
-
-//    printf("dataBuf: ");
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        printf("%d ", dataBuf[i]);
-//    }
-//    printf("\n");
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
-    PackData packData;
-    packData.loopShape = A.LocalShape();
-    packData.srcBufStrides = A.LocalStrides();
-
-    packData.dstBufStrides.resize(order);
-    packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
-
-    packData.loopStarts = zeros;
-    packData.loopIncs = ones;
-
-    PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
-
-//    printf("packed sendBuf: ");
-//    for(Unsigned i = 0; i < prod(packData.sendShape); i++)
-//        printf("%d ", sendBuf[i]);
-//    printf("\n");
-}
-
-template <typename T>
-void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gMode, const ModeArray& gridModes, const DistTensor<T>& A)
-{
-    Unsigned i;
-    Unsigned order = Order();
-    T* dataBuf = Buffer();
-
-    const ObjShape gridShape = Grid().Shape();
-
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(gridShape, gridModes)));
-
-    const ObjShape recvShape = A.MaxLocalShape();
-
-    ModeArray commModes = gridModes;
-    std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(gridShape, gridModes);
-    const ObjShape commShape = FilterVector(gridShape, commModes);
-    const Permutation redistPerm = DeterminePermutation(commModes, gridModes);
-
-    const Unsigned nCommElemsPerProc = prod(recvShape);
-    const Unsigned gModeStride = LocalModeStride(gMode);
-    //    printf("recvBuf:");
-    //    for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++){
-    //        printf(" %d", recvBuf[i]);
-    //    }
-    //    printf("\n");
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
-    PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.dstBufStrides[gMode] *= nRedistProcs;
-
-    unpackData.srcBufStrides = Dimensions2Strides(recvShape);
-
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = ones;
-    unpackData.loopIncs[gMode] = nRedistProcs;
-
-    //NOTE: Check
-    for(i = 0; i < nRedistProcs; i++){
-        const Location elemCommLoc = LinearLoc2Loc(i, commShape);
-        const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, redistPerm), redistShape);
-        if(elemRedistLinLoc >= LocalDimension(gMode))
-            continue;
-        unpackData.loopStarts[gMode] = elemRedistLinLoc;
-
-//        printf("elemSlice: %d\n", i);
-//        printf("elemRedistLinLoc: %d\n", elemRedistLinLoc);
-//        printf("dataBufPtr: %d\n", elemRedistLinLoc * gModeStride);
-//        printf("recvBufPtr: %d\n", i * nCommElemsPerProc);
-//        printf("nCommElemsPerProc: %d\n", nCommElemsPerProc);
-
-        PackCommHelper(unpackData, order - 1, &(recvBuf[i * nCommElemsPerProc]), &(dataBuf[elemRedistLinLoc * gModeStride]));
-//        printf("dataBuf:");
-//        for(Unsigned i = 0; i < prod(LocalShape()); i++)
-//            printf(" %d", dataBuf[i]);
-//        printf("\n");
-    }
-
-//    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(LocalShape()); i++)
-//        printf(" %d", dataBuf[i]);
-//    printf("\n");
+    //NOTE: AG, A2A, and GTO unpack routines are the exact same
+    UnpackA2ACommRecvBuf(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
 }
 
 #define PROTO(T) \
         template Int  DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes); \
-        template void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const Mode gatherMode, const ModeArray& gridModes); \
-        template void DistTensor<T>::PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gatherMode, const ModeArray& gridModes, T * const sendBuf); \
-        template void DistTensor<T>::UnpackGTOCommRecvBuf(const T * const recvBuf, const Mode gatherMode, const ModeArray& gridModes, const DistTensor<T>& A);
+        template void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gatherModes, const std::vector<ModeArray>& commGroups);
+
 
 PROTO(int)
 PROTO(float)

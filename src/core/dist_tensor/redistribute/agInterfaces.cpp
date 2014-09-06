@@ -18,11 +18,23 @@ template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
     ResizeTo(A);
-    AllGatherCommRedist(A, allGatherMode, redistModes);
+    ModeArray agModes(1);
+    agModes[0] = allGatherMode;
+    std::vector<ModeArray> commGroups(1);
+    commGroups[0] = redistModes;
+    AllGatherRedistFrom(A, agModes, commGroups);
+}
+
+template <typename T>
+void
+DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups ){
+    ResizeTo(A);
+    AllGatherCommRedist(A, allGatherModes, redistGroups);
 }
 
 #define PROTO(T) \
-        template void DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes );
+        template void DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ); \
+        template void DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups );
 
 PROTO(int)
 PROTO(float)
