@@ -93,8 +93,8 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     if(!(Participating()))
         return;
 
-    //NOTE: AG and GTO unpack routines are the exact same
-    UnpackAGCommRecvBuf(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
+    //NOTE: AG, A2A, and GTO unpack routines are the exact same
+    UnpackA2ACommRecvBuf(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
 }
 
 #define PROTO(T) \
