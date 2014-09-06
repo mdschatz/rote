@@ -1158,7 +1158,7 @@ CreateLGTests(const DistTensor<T>& A, const Params& args){
     for(i = 0; i < tensorModes.size(); i++)
         tensorModes[i] = i;
 
-    for(i = 2; i <= order; i++){
+    for(i = 1; i <= order; i++){
         std::vector<ModeArray> lModeCombos = AllCombinations(tensorModes, i);
         for(j = 0; j < lModeCombos.size(); j++){
             ModeArray lModes = lModeCombos[j];
