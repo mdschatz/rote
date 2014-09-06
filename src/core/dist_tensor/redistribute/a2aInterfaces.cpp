@@ -17,10 +17,12 @@ template <typename T>
 void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups){
     ResizeTo(A);
 
-    ModeArray a2aModesFrom(1);
+    ModeArray a2aModesFrom(2);
     a2aModesFrom[0] = a2aModes.first;
-    ModeArray a2aModesTo(1);
-    a2aModesTo[1] = a2aModes.second;
+    a2aModesFrom[1] = a2aModes.second;
+    ModeArray a2aModesTo(2);
+    a2aModesTo[0] = a2aModes.second;
+    a2aModesTo[1] = a2aModes.first;
 
     std::vector<ModeArray > commGroups(2);
     commGroups[0] = a2aCommGroups.first;

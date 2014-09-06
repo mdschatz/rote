@@ -326,15 +326,17 @@ public:
     // Gather-to-one workhorse routines
     //
     Int  CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void GatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void PackGTOCommSendBuf(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes, T * const sendBuf);
+    void GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes);
+    void PackGTOCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
     void UnpackGTOCommRecvBuf(const T* const recvBuf, const Mode gMode, const ModeArray& gridModes, const DistTensor<T>& A);
+    void UnpackGTOCommRecvBuf(const T * const recvBuf, const ModeArray& changedGTOModes, const ModeArray& commModesAll, const ObjShape& recvShape, const DistTensor<T>& A);
 
     //
     // Gather-to-one interface routines
     //
     void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode);
     void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
+    void GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes);
 
     //
     //Unit mode intro/remove routines

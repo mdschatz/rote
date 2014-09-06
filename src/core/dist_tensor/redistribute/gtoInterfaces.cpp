@@ -21,20 +21,36 @@ DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode)
     CallStackEntry cse("DistTesnor::GatherToOneRedistFrom");
 #endif
     ModeArray gModeDist = A.ModeDist(gMode);
-    GatherToOneRedistFrom(A, gMode, gModeDist);
+//    GatherToOneRedistFrom(A, gMode, gModeDist);
+    ModeArray gModes(1);
+    gModes[0] = gMode;
+    std::vector<ModeArray> commGroups(1);
+    commGroups[0] = gModeDist;
+    GatherToOneRedistFrom(A, gModes, commGroups);
 }
 
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes){
     ResizeTo(A);
-    GatherToOneCommRedist(A, gMode, gridModes);
+//    GatherToOneCommRedist(A, gMode, gridModes);
+    ModeArray gModes(1);
+    gModes[0] = gMode;
+    std::vector<ModeArray> commGroups(1);
+    commGroups[0] = gridModes;
+    GatherToOneRedistFrom(A, gModes, commGroups);
 }
 
+template <typename T>
+void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes){
+    ResizeTo(A);
+    GatherToOneCommRedist(A, gModes, gridModes);
+}
 
 
 #define PROTO(T) \
         template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode); \
-        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
+        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes); \
+        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& commGroups);
 
 PROTO(int)
 PROTO(float)
