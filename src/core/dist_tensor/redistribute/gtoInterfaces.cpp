@@ -42,8 +42,13 @@ void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMo
 
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes){
+    Unsigned i;
     ResizeTo(A);
-    GatherToOneCommRedist(A, gModes, gridModes);
+    ModeArray commModes;
+    for(i = 0; i < gridModes.size(); i++)
+        commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
+    std::sort(commModes.begin(), commModes.end());
+    GatherToOneCommRedist(A, gModes, commModes);
 }
 
 

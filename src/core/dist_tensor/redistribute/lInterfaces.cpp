@@ -27,7 +27,7 @@ void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const Mode localMode
 template<typename T>
 void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
     ResizeTo(A);
-    LocalCommRedist(A, localModes, gridRedistModes);
+    LocalCommRedist(A, localModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

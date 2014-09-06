@@ -57,7 +57,15 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
     MemZero(&(tmp2Buf[0]), prod(tmp2.LocalShape()));
 
     LocalReduce(tmp, A, reduceModes);
-    tmp2.ReduceScatterCommRedist(tmp, reduceModes, scatterModes);
+
+    ModeArray commModes;
+    for(i = 0; i < reduceModes.size(); i++){
+        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
+        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+    }
+    std::sort(commModes.begin(), commModes.end());
+
+    tmp2.ReduceScatterCommRedist(tmp, reduceModes, scatterModes, commModes);
 
     ObjShape BShape = tmp2Shape;
     ModeArray rModes = reduceModes;
@@ -124,7 +132,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     scatterModes[0] = scatterMode;
 
     ReduceScatterUpdateRedistFrom(A, beta, reduceModes, scatterModes);
-    }
+}
 
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \

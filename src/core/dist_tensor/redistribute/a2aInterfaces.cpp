@@ -33,7 +33,12 @@ void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const s
 
 template <typename T>
 void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups){
+    Unsigned i;
     ResizeTo(A);
+    ModeArray commModes;
+    for(i = 0; i < a2aCommGroups.size(); i++)
+        commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());
+    std::sort(commModes.begin(), commModes.end());
     AllToAllCommRedist(A, a2aModesFrom, a2aModesTo, a2aCommGroups);
 }
 

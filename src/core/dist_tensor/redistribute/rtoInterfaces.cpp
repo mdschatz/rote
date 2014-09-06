@@ -55,7 +55,14 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
         tmp2Shape[rModes[i]] = 1;
     DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), g);
 
-    tmp2.ReduceToOneCommRedist(tmp, rModes);
+    ModeArray commModes;
+    for(i = 0; i < rModes.size(); i++){
+        ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
+        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+    }
+    std::sort(commModes.begin(), commModes.end());
+
+    tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
 
     ModeArray sortedRModes = rModes;
     std::sort(sortedRModes.begin(), sortedRModes.end());

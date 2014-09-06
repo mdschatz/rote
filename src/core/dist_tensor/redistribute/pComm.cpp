@@ -48,11 +48,11 @@ Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
-void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    if(!CheckPermutationCommRedist(A, permuteMode, redistModes))
+void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& commModes){
+    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
             LogicError("PermutationRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = GetCommunicatorForModes(redistModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
     if(!A.Participating())
         return;
 

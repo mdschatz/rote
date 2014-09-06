@@ -48,8 +48,6 @@ public:
 
     static int FindFactor( int p );
 
-    mpi::Comm GetCommunicatorForModes(const ModeArray& modes);
-
 private:
     ObjShape shape_;
     Unsigned size_;

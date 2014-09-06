@@ -52,6 +52,16 @@ Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode local
 }
 
 template<typename T>
+void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes){
+//    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
+//        LogicError("LocalRedist: Invalid redistribution request");
+    if(!(Participating()))
+        return;
+    //Packing is what is stored in memory
+    UnpackLocalCommRedist(A, localModes);
+}
+
+template<typename T>
 void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
 //    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
 //        LogicError("LocalRedist: Invalid redistribution request");

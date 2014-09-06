@@ -53,6 +53,46 @@ Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
+void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gatherModes, const ModeArray& commModes){
+//    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
+//      LogicError("GatherToOneRedist: Invalid redistribution request");
+
+    Unsigned i;
+    const tmen::Grid& g = A.Grid();
+
+    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
+    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
+
+    if(!A.Participating())
+        return;
+    Unsigned sendSize, recvSize;
+
+    //Determine buffer sizes for communication
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    sendSize = prod(maxLocalShapeA);
+    recvSize = sendSize;
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + nRedistProcs*recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    //NOTE: AG and GTO pack routines are the exact same
+    PackAGCommSendBuf(A, sendBuf);
+
+    mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
+
+    if(!(Participating()))
+        return;
+
+    //NOTE: AG, A2A, and GTO unpack routines are the exact same
+    UnpackA2ACommRecvBuf(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
+}
+
+template <typename T>
 void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gatherModes, const std::vector<ModeArray>& commGroups){
 //    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
 //      LogicError("GatherToOneRedist: Invalid redistribution request");
