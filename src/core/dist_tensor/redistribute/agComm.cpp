@@ -46,7 +46,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     if(!A.Participating())
         return;
 
-    //NOTE: Fix to handle strides in Tensor data
     if(agModes.size() == 0){
         CopyLocalBuffer(A);
         return;

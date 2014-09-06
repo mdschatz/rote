@@ -29,16 +29,12 @@ Int DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, con
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const ModeArray& commModes){
+void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes){
 //    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
 //        LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
     Unsigned i;
     const tmen::Grid& g = A.Grid();
-
-    ModeArray changedA2AModes = ConcatenateVectors(a2aModesFrom, a2aModesTo);
-    std::sort(changedA2AModes.begin(), changedA2AModes.end());
-    changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
 
 //    PrintVector(commModes, "commModes");
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
