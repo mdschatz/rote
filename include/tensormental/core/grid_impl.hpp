@@ -157,31 +157,6 @@ Grid::Dimension(Mode mode) const
   return shape_[mode];
 }
 
-inline
-mpi::Comm
-Grid::GetCommunicatorForModes(const ModeArray& commModes)
-{
-//    if(comms_.count(commModes) == 0){
-//        mpi::Comm comm;
-//        const Location gridLoc = this->Loc();
-//        const ObjShape gridShape = this->Shape();
-//
-//        ObjShape gridSliceShape = FilterVector(gridShape, commModes);
-//        ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
-//        Location gridSliceLoc = FilterVector(gridLoc, commModes);
-//        Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
-//
-//        const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
-//        const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
-//
-//        //Check this, original was commented line with participating
-//        mpi::CommSplit(MPI_COMM_WORLD, commColor, commKey, comm);
-//        comms_[commModes] = comm;
-//    }
-//    return comms_[commModes];
-    return mpi::COMM_WORLD;
-}
-
 //
 // Advanced routines
 //

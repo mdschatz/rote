@@ -889,13 +889,14 @@ Tensor<T>::operator=( const Tensor<T>& A )
     T* dst = Buffer();
     const T* src = A.LockedBuffer();
     //Only copy single element if we know this is a scalar
-    if(Order() == 0){
-        MemCopy(&(dst[0]), &(src[0]), 1);
-    }
-    //Otherwise check if 0 tensor
-    else{
-        MemCopy(&(dst[0]), &(src[0]), prod(shape_));
-    }
+    CopyBuffer(A);
+//    if(Order() == 0){
+//        MemCopy(&(dst[0]), &(src[0]), 1);
+//    }
+//    //Otherwise check if 0 tensor
+//    else{
+//        MemCopy(&(dst[0]), &(src[0]), prod(shape_));
+//    }
 
     return *this;
 }
@@ -1038,18 +1039,66 @@ Tensor<T>::NumElem() const
 }
 
 template<typename T>
+void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+    Unsigned packSlice;
+
+    if(packData.loopShape.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+    }
+
+    const Unsigned loopEnd = packData.loopShape[packMode];
+    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
+    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
+    const Unsigned loopStart = packData.loopStarts[packMode];
+    const Unsigned loopInc = packData.loopIncs[packMode];
+    Unsigned dstBufPtr = 0;
+    Unsigned srcBufPtr = 0;
+
+    if(packMode == 0){
+        if(dstBufStride == 1 && srcBufStride == 1){
+            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
+        }else{
+            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+                dstBufPtr += dstBufStride;
+                srcBufPtr += srcBufStride;
+            }
+        }
+    }else{
+        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+            dstBufPtr += dstBufStride;
+            srcBufPtr += srcBufStride;
+        }
+    }
+}
+
+template<typename T>
 void
 Tensor<T>::CopyBuffer(const Tensor<T>& A)
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::NumElem");
+    CallStackEntry cse("Tensor::CopyBuffer");
 #endif
+
+    const Unsigned order = A.Order();
+    const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
-    const T* bufA = A.LockedBuffer();
-    if(A.Order() == 0)
-        MemCopy(&(thisBuf[0]), &(bufA[0]), 1);
-    else
-        MemCopy(&(thisBuf[0]), &(bufA[0]), A.NumElem());
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+
+    PackData packData;
+    packData.loopShape = A.Shape();
+    packData.srcBufStrides = A.Strides();
+
+    packData.dstBufStrides = Dimensions2Strides(A.Shape());
+
+    packData.loopStarts = zeros;
+    packData.loopIncs = ones;
+
+    PackCommHelper(packData, order - 1, &(srcBuf[0]), &(thisBuf[0]));
 }
 
 template class Tensor<Int>;

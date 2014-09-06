@@ -32,7 +32,7 @@ DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allG
 
 template<typename T>
 void
-DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& gridGroups){
+DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const ModeArray& commModes){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AllGatherCommRedist");
 //    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
@@ -41,17 +41,11 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     Unsigned i;
     const tmen::Grid& g = A.Grid();
 
-    ModeArray commModes;
-    for(i = 0; i < gridGroups.size(); i++)
-        commModes.insert(commModes.end(), gridGroups[i].begin(), gridGroups[i].end());
-    std::sort(commModes.begin(), commModes.end());
-
     const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
 
-    //NOTE: Fix to handle strides in Tensor data
     if(agModes.size() == 0){
         CopyLocalBuffer(A);
         return;
@@ -107,15 +101,24 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& gridModes); \
-        template Int  DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<double>)
-PROTO(Complex<float>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

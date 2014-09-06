@@ -17,6 +17,20 @@ namespace tmen{
 template<typename T>
 void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     Unsigned order = A.Order();
+//    T* dstBuf = B.Buffer();
+//    const T * srcBuf = A.LockedBuffer();
+//
+//    Location zeros(order, 0);
+//    Location ones(order, 1);
+//    Permutation invperm = DetermineInversePermutation(perm);
+//    PackData data;
+//    data.loopShape = B.Shape();
+//    data.srcBufStrides = FilterVector(A.Strides(), perm);
+//    data.dstBufStrides = B.Strides();
+//    data.loopStarts = zeros;
+//    data.loopIncs = ones;
+//
+//    B.PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
 
     T* dstBuf = B.Buffer();
     const T* srcBuf = A.LockedBuffer();

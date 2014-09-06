@@ -42,20 +42,34 @@ void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMo
 
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes){
+    Unsigned i;
     ResizeTo(A);
-    GatherToOneCommRedist(A, gModes, gridModes);
+    ModeArray commModes;
+    for(i = 0; i < gridModes.size(); i++)
+        commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
+    std::sort(commModes.begin(), commModes.end());
+    GatherToOneCommRedist(A, gModes, commModes);
 }
 
 
-#define PROTO(T) \
-        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode); \
-        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes); \
-        template void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& commGroups);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

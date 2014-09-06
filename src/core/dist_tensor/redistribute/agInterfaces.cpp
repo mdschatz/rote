@@ -28,18 +28,33 @@ DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGather
 template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups ){
+    Unsigned i;
     ResizeTo(A);
-    AllGatherCommRedist(A, allGatherModes, redistGroups);
+    ModeArray commModes;
+    for(i = 0; i < redistGroups.size(); i++)
+        commModes.insert(commModes.end(), redistGroups[i].begin(), redistGroups[i].end());
+    std::sort(commModes.begin(), commModes.end());
+    AllGatherCommRedist(A, allGatherModes, commModes);
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ); \
-        template void DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups );
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<double>)
-PROTO(Complex<float>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

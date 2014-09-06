@@ -27,17 +27,27 @@ void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const Mode localMode
 template<typename T>
 void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
     ResizeTo(A);
-    LocalCommRedist(A, localModes, gridRedistModes);
+    LocalCommRedist(A, localModes);
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
-        template void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

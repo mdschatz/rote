@@ -48,11 +48,11 @@ Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
-void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    if(!CheckPermutationCommRedist(A, permuteMode, redistModes))
+void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& commModes){
+    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
             LogicError("PermutationRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = GetCommunicatorForModes(redistModes, A.Grid());
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
     if(!A.Participating())
         return;
 
@@ -110,15 +110,24 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     UnpackRSCommRecvBuf(recvBuf, A);
 }
 
-#define PROTO(T) \
-        template Int  DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

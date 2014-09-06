@@ -160,6 +160,7 @@ public:
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
     Unsigned NumElem() const;
+    void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void CopyBuffer(const Tensor& A);
 
 private:

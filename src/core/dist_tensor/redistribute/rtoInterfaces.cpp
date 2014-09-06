@@ -15,6 +15,7 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode){
+    Unsigned i;
 //    ObjShape tmpShape = A.Shape();
 //    tmpShape[rMode] = A.GetGridView().Dimension(rMode);
 //    ResizeTo(tmpShape);
@@ -24,7 +25,15 @@ void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const M
     ObjShape tmpShape = A.Shape();
     tmpShape[rMode] = A.GetGridView().Dimension(rMode);
     ResizeTo(tmpShape);
-    ReduceToOneRedistFrom(A, rModes);
+
+    ModeArray commModes;
+    for(i = 0; i < rModes.size(); i++){
+        ModeDistribution modeDist = A.ModeDist(rModes[i]);
+        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+    }
+    std::sort(commModes.begin(), commModes.end());
+
+    ReduceToOneCommRedist(A, rModes, commModes);
 }
 
 template <typename T>
@@ -55,7 +64,14 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
         tmp2Shape[rModes[i]] = 1;
     DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), g);
 
-    tmp2.ReduceToOneCommRedist(tmp, rModes);
+    ModeArray commModes;
+    for(i = 0; i < rModes.size(); i++){
+        ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
+        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+    }
+    std::sort(commModes.begin(), commModes.end());
+
+    tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
 
     ModeArray sortedRModes = rModes;
     std::sort(sortedRModes.begin(), sortedRModes.end());
@@ -65,25 +81,27 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     }
 
     ResizeTo(BShape);
-    T* thisBuf = Buffer();
-    const T* tmp2Buf = tmp2.LockedBuffer();
-
-    //Only do this if we know we are copying into a scalar
-    if(Order() == 0)
-        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), 1);
-    else
-        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
+    CopyLocalBuffer(tmp2);
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode reduceMode); \
-        template void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode reduceMode); \
-        template void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

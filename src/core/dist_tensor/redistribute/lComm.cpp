@@ -52,7 +52,7 @@ Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode local
 }
 
 template<typename T>
-void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
+void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes){
 //    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
 //        LogicError("LocalRedist: Invalid redistribution request");
     if(!(Participating()))
@@ -144,15 +144,24 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
 //    printf("\n");
 }
 
-#define PROTO(T) \
-        template Int  DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes); \
-        template void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes); \
-        template void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

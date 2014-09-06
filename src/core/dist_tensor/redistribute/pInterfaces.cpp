@@ -16,16 +16,29 @@ namespace tmen{
 template <typename T>
 void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     ResizeTo(A);
-    PermutationCommRedist(A, permuteMode, redistModes);
+    ModeArray commModes = redistModes;
+    std::sort(commModes.begin(), commModes.end());
+    PermutationCommRedist(A, permuteMode, commModes);
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen
