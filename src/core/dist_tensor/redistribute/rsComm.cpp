@@ -159,7 +159,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 template <typename T>
 void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)
 {
-    const Unsigned order = A.Order();
+    const Unsigned order = Order();
     T* dataBuf = Buffer();
 
 //    std::cout << "recvBuf:";
