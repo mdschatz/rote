@@ -184,7 +184,67 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 }
 
 template<typename T>
-void DistTensor<T>::ElemSelectHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
+void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const GridView& gvSrc, const GridView& gvDst, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
+    Unsigned order = A.Order();
+        PackData data = packData;
+        Location elem = elemData.packElem;
+        ModeArray changedA2AModes = elemData.changedModes;
+        std::vector<Unsigned> nProcsPerA2AMode = elemData.loopShape;
+        ModeArray commModes = elemData.commModes;
+        Unsigned nElemsPerProc = elemData.nElemsPerProc;
+        Unsigned i;
+        const tmen::GridView gvA = gvSrc;
+        const tmen::GridView gvB = gvDst;
+        const tmen::Grid& g = Grid();
+        const Mode changedA2AMode = changedA2AModes[mode];
+//
+//    //    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
+        Unsigned startLoc = elemData.packElem[changedA2AMode];
+        for(i = 0; i < nProcsPerA2AMode[changedA2AMode]; i++){
+            elem[changedA2AMode] = startLoc + i * gvA.ModeWrapStride(changedA2AMode);
+//    //        std::cout << "PackTestHelper mode: " << mode << std::endl;
+//    //        PrintVector(elem, "elem is now");
+            if(elem[changedA2AMode] >= A.Dimension(changedA2AMode)){
+//    //            printf("continuing\n");
+                continue;
+            }
+            data.loopStarts[changedA2AMode] = i;
+//
+            if(mode == 0){
+//    //            printf("hmm\n");
+                Location ownerB = DetermineOwner(elem);
+                Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
+                Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
+
+    //            printf("sMode: %d\n", a2aModeTo);
+    //            PrintVector(ownerB, "ownerB");
+    //            PrintVector(ownerGridLoc, "ownerGridLoc");
+    //            PrintVector(commModes, "commModes");
+    //            printf("commLinLoc: %d\n", commLinLoc);
+
+    //            PrintVector(elem, "pack Global elem");
+    //            PrintVector(data.loopStarts, "local location");
+
+    //            std::cout << "offsetting dataBuf by: " << i * A.LocalModeStride(a2aModeTo) << std::endl;
+    //            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
+    //            printf("pack data:\n");
+    //            PrintVector(data.loopShape, "  loop shape");
+    //            PrintVector(data.loopStarts, "  loop starts");
+    //            PrintVector(data.loopIncs, "  loop incs");
+    //            PrintVector(data.srcBufStrides, "  srcBufStrides");
+    //            PrintVector(data.dstBufStrides, "  dstBufStrides");
+                PackCommHelper(data, order - 1, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[commLinLoc * nElemsPerProc]));
+    //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
+            }else{
+                ElemSelectData newData = elemData;
+                newData.packElem = elem;
+                ElemSelectPackHelper(data, newData, mode - 1, gvSrc, gvDst, A, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[0]));
+            }
+        }
+}
+
+template<typename T>
+void DistTensor<T>::ElemSelectHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
     Unsigned order = A.Order();
         PackData data = packData;
         Location elem = packElem;
@@ -233,7 +293,7 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const Mode mode, 
     //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
             }else{
 
-                ElemSelectHelper(data, mode - 1, commModes, changedA2AModes, elem, myFirstLoc, nProcsPerA2AMode, nElemsPerProc, A, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[0]));
+                ElemSelectHelper(data, mode - 1, commModes, changedA2AModes, elem, nProcsPerA2AMode, nElemsPerProc, A, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[0]));
             }
         }
 }

@@ -64,6 +64,14 @@ struct ZAxpByData{
     std::vector<Unsigned> dstStrides;
 };
 
+struct ElemSelectData{
+    Location packElem;
+    ObjShape loopShape;
+    ModeArray changedModes;
+    ModeArray commModes;
+    Unsigned nElemsPerProc;
+};
+
 template<typename Real>
 using Complex = std::complex<Real>;
 

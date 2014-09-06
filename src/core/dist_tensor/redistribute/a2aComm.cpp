@@ -29,62 +29,6 @@ Int DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, con
 }
 
 template <typename T>
-void DistTensor<T>::A2APackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
-
-    Unsigned order = A.Order();
-    PackData data = packData;
-    Location elem = packElem;
-    Unsigned i;
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const tmen::Grid& g = Grid();
-    const Mode changedA2AMode = changedA2AModes[mode];
-
-//    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
-    Unsigned startLoc = packElem[changedA2AMode];
-    for(i = 0; i < nProcsPerA2AMode[changedA2AMode]; i++){
-        elem[changedA2AMode] = startLoc + i * gvA.ModeWrapStride(changedA2AMode);
-//        std::cout << "PackTestHelper mode: " << mode << std::endl;
-//        PrintVector(elem, "elem is now");
-        if(elem[changedA2AMode] >= A.Dimension(changedA2AMode)){
-//            printf("continuing\n");
-            continue;
-        }
-        data.loopStarts[changedA2AMode] = i;
-
-        if(mode == 0){
-//            printf("hmm\n");
-            Location ownerB = DetermineOwner(elem);
-            Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
-            Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
-
-//            printf("sMode: %d\n", a2aModeTo);
-//            PrintVector(ownerB, "ownerB");
-//            PrintVector(ownerGridLoc, "ownerGridLoc");
-//            PrintVector(commModes, "commModes");
-//            printf("commLinLoc: %d\n", commLinLoc);
-
-//            PrintVector(elem, "pack Global elem");
-//            PrintVector(data.loopStarts, "local location");
-
-//            std::cout << "offsetting dataBuf by: " << i * A.LocalModeStride(a2aModeTo) << std::endl;
-//            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
-//            printf("pack data:\n");
-//            PrintVector(data.loopShape, "  loop shape");
-//            PrintVector(data.loopStarts, "  loop starts");
-//            PrintVector(data.loopIncs, "  loop incs");
-//            PrintVector(data.srcBufStrides, "  srcBufStrides");
-//            PrintVector(data.dstBufStrides, "  dstBufStrides");
-            PackCommHelper(data, order - 1, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[commLinLoc * nElemsPerProc]));
-//            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
-        }else{
-
-            A2APackTestHelper(data, mode - 1, commModes, changedA2AModes, elem, myFirstLoc, nProcsPerA2AMode, nElemsPerProc, A, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[0]));
-        }
-    }
-}
-
-template <typename T>
 void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray>& a2aCommGroups){
 //    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
 //        LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
@@ -179,7 +123,15 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //    PrintVector(modeStrideFactor, "modeStrideFactor");
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
-        ElemSelectHelper(packData, changedA2AModes.size() - 1, commModes, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(sendShape), A, &(dataBuf[0]), &(sendBuf[0]));
+//        ElemSelectHelper(packData, changedA2AModes.size() - 1, commModes, changedA2AModes, myFirstElemLoc, modeStrideFactor, prod(sendShape), A, &(dataBuf[0]), &(sendBuf[0]));
+        ElemSelectData elemData;
+        elemData.commModes = commModes;
+        elemData.changedModes = changedA2AModes;
+        elemData.packElem = myFirstElemLoc;
+        elemData.loopShape = modeStrideFactor;
+        elemData.nElemsPerProc = prod(sendShape);
+
+        ElemSelectPackHelper(packData, elemData, changedA2AModes.size() - 1, A.GetGridView(), GetGridView(), A, &(dataBuf[0]), &(sendBuf[0]));
     }
 }
 
@@ -307,7 +259,6 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         template void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& a2aIndicesFrom, const ModeArray& a2aIndicesTo, const std::vector<ModeArray >& commGroups); \
         template void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commGroups, const ObjShape& sendShape, T * const sendBuf); \
         template void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commGroups, const ObjShape& recvShape, const DistTensor<T>& A); \
-        template void DistTensor<T>::A2APackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf); \
         template void DistTensor<T>::A2AUnpackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const recvBuf, T * const dataBuf);
 
 PROTO(int)
