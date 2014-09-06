@@ -1184,7 +1184,6 @@ CreateLGTests(const DistTensor<T>& A, const Params& args){
 
             CreateLGTestsHelper(A, lModes, 0, commGroups, pieceComms, ret);
         }
-        printf("Up to %d tests for i: %d\n", ret.size(), i);
     }
 
 //    AGTest test(1, DetermineResultingDistributionAG(A, 1));
