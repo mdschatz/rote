@@ -142,7 +142,6 @@ void DistTensor<T>::UnpackRTOCommRecvBuf(const T * const recvBuf, const ModeArra
     unpackData.loopIncs = ones;
 
     PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
-
 }
 
 #define PROTO(T) \

@@ -243,13 +243,17 @@ public:
     //
     Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
     void AllGatherCommRedist(const DistTensor<T>& A, const Mode& redistMode, const ModeArray& gridModes);
-    void PackAGCommSendBuf(const DistTensor<T>& A, const Mode& allGatherMode, T * const sendBuf, const ModeArray& redistModes);
+    void PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
     void UnpackAGCommRecvBuf(const T * const recvBuf, const Mode& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
+    void UnpackAGCommRecvBuf(const T * const recvBuf, const ModeArray& allGatherModes, const ModeArray& redistModes, const ObjShape& recvShape, const DistTensor<T>& A);
+    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& redistModes, const ModeArray& gridModes);
+//    void UnpackAGCommRecvBuf(const T * const recvBuf, const ModeArray& allGatherMode, const ModeArray& redistModes, const DistTensor<T>& A);
 
     //
     // Allgather interface routines
     //
     void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
+    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const ModeArray& redistModes);
 
     //
     // All-to-all workhorse routines
@@ -296,7 +300,7 @@ public:
     Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
     void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, T * const sendBuf);
     void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes);
-    void UnpackRSCommRecvBuf(const T* const recvBuf, const ModeArray& reduceModes, const ModeArray& scatterModes, const DistTensor<T>& A);
+    void UnpackRSCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
 
     //
     // Reduce-scatter interface routines

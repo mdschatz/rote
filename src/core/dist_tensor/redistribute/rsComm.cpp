@@ -90,7 +90,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 
     if(!(Participating()))
         return;
-    UnpackRSCommRecvBuf(recvBuf, reduceModes, scatterModes, A);
+    UnpackRSCommRecvBuf(recvBuf, A);
 }
 
 template <typename T>
@@ -116,13 +116,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     ModeArray uniqueSModes = sModes;
     std::sort(uniqueSModes.begin(), uniqueSModes.end());
     uniqueSModes.erase(std::unique(uniqueSModes.begin(), uniqueSModes.end()), uniqueSModes.end());
-
-//    std::vector<Unsigned> nProcsForSMode(uniqueSModes.size(), 1);
-//    for(i = 0; i < uniqueSModes.size(); i++){
-//        for(j = 0; j < sModes.size(); j++)
-//            if(sModes[j] == uniqueSModes[i])
-//                nProcsForSMode[i] *= Max(1, gvA.Dimension(rModes[j]));
-//    }
 
     ModeArray redistModes;
     for(i = 0; i < rModes.size(); i++){
@@ -161,26 +154,10 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     if(ElemwiseLessThan(packElem, A.Shape())){
         ElemSelectHelper(packData, uniqueSModes.size() - 1, commModes, uniqueSModes, packElem, modeStrideFactor, nCommElemsPerProc, A, &(dataBuf[0]), &(sendBuf[0]));
     }
-//    std::cout << "packed sendBuf:";
-//    for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++)
-//        std::cout << " " << sendBuf[i];
-//    std::cout << std::endl;
-//    for(i = 0; i < nRedistProcs; i++){
-//        const Location elemCommLoc = LinearLoc2Loc(i, redistShape);
-//        const Unsigned elemRedistLinLoc = Loc2LinearLoc(FilterVector(elemCommLoc, commPerm), commShape);
-//
-//        packData.loopStarts[sMode] = i;
-//        PackCommHelper(packData, order - 1, &(dataBuf[i*sModeStride]), &(sendBuf[elemRedistLinLoc * nCommElemsPerProc]));
-////        std::cout << "pack slice:" << i << std::endl;
-////        std::cout << "packed sendBuf:";
-////        for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++)
-////            std::cout << " " << sendBuf[i];
-////        std::cout << std::endl;
-//    }
 }
 
 template <typename T>
-void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const ModeArray& rModes, const ModeArray& sModes, const DistTensor<T>& A)
+void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)
 {
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();
@@ -207,7 +184,7 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const ModeArray
         template Int  DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode); \
         template void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes); \
         template void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, T * const sendBuf); \
-        template void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const ModeArray& rModes, const ModeArray& sModes, const DistTensor<T>& A);
+        template void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A);
 
 PROTO(int)
 PROTO(float)
