@@ -107,15 +107,24 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& gridModes); \
-        template Int  DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes); \
-        template void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<double>)
-PROTO(Complex<float>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 
 } //namespace tmen

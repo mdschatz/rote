@@ -56,15 +56,23 @@ void DistTensor<T>::IntroduceUnitModeRedist(const Unsigned& newModePosition){
 //    IntroduceUnitModesRedist(B, A, modeArr);
 }
 
-#define PROTO(T) \
-        template void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes); \
-        template void DistTensor<T>::RemoveUnitModeRedist(const Mode& unitMode); \
-        template void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions); \
-        template void DistTensor<T>::IntroduceUnitModeRedist(const Unsigned& newModePosition);
+#define PROTO(T) template class DistTensor<T>
+#define COPY(T) \
+  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
+#define FULL(T) \
+  PROTO(T);
 
-PROTO(int)
-PROTO(float)
-PROTO(double)
-PROTO(Complex<float>)
-PROTO(Complex<double>)
+
+FULL(Int);
+#ifndef DISABLE_FLOAT
+FULL(float);
+#endif
+FULL(double);
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(Complex<float>);
+#endif
+FULL(Complex<double>);
+#endif
 } //namespace tmen
