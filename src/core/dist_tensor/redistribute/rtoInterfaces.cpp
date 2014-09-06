@@ -15,6 +15,7 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode){
+    Unsigned i;
 //    ObjShape tmpShape = A.Shape();
 //    tmpShape[rMode] = A.GetGridView().Dimension(rMode);
 //    ResizeTo(tmpShape);
@@ -24,7 +25,15 @@ void DistTensor<T>::PartialReduceToOneRedistFrom(const DistTensor<T>& A, const M
     ObjShape tmpShape = A.Shape();
     tmpShape[rMode] = A.GetGridView().Dimension(rMode);
     ResizeTo(tmpShape);
-    ReduceToOneRedistFrom(A, rModes);
+
+    ModeArray commModes;
+    for(i = 0; i < rModes.size(); i++){
+        ModeDistribution modeDist = A.ModeDist(rModes[i]);
+        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+    }
+    std::sort(commModes.begin(), commModes.end());
+
+    ReduceToOneCommRedist(A, rModes, commModes);
 }
 
 template <typename T>
@@ -72,14 +81,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     }
 
     ResizeTo(BShape);
-    T* thisBuf = Buffer();
-    const T* tmp2Buf = tmp2.LockedBuffer();
-
-    //Only do this if we know we are copying into a scalar
-    if(Order() == 0)
-        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), 1);
-    else
-        MemCopy(&(thisBuf[0]), &(tmp2Buf[0]), prod(tmp2.LocalShape()));
+    CopyLocalBuffer(tmp2);
 }
 
 #define PROTO(T) template class DistTensor<T>

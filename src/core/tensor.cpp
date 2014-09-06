@@ -889,13 +889,14 @@ Tensor<T>::operator=( const Tensor<T>& A )
     T* dst = Buffer();
     const T* src = A.LockedBuffer();
     //Only copy single element if we know this is a scalar
-    if(Order() == 0){
-        MemCopy(&(dst[0]), &(src[0]), 1);
-    }
-    //Otherwise check if 0 tensor
-    else{
-        MemCopy(&(dst[0]), &(src[0]), prod(shape_));
-    }
+    CopyBuffer(A);
+//    if(Order() == 0){
+//        MemCopy(&(dst[0]), &(src[0]), 1);
+//    }
+//    //Otherwise check if 0 tensor
+//    else{
+//        MemCopy(&(dst[0]), &(src[0]), prod(shape_));
+//    }
 
     return *this;
 }

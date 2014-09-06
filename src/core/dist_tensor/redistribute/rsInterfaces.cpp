@@ -84,7 +84,6 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 
     ResizeTo(BShape);
     CopyLocalBuffer(tmp2);
-//    Print(*this, "B after full reduce");
 }
 
 template<typename T>
@@ -104,11 +103,8 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     tmp.ReduceScatterRedistFrom(A, reduceModes, scatterModes);
 
     ResizeTo(tmpShape);
-    T* BBuf = Buffer();
-    const T* tmpLockedBuf = tmp.LockedBuffer();
-    for(i = 0; i < prod(LocalShape()); i++)
-        BBuf[i] = beta * BBuf[i] + tmpLockedBuf[i];
-//    Print(*this, "B after full reduce");
+
+    YxpBy(tmp, beta, *this);
 }
 
 template <typename T>
