@@ -53,7 +53,7 @@ Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mo
 }
 
 template <typename T>
-void DistTensor<T>::PackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& sModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerRMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf, T* const sendBufOrig){
+void DistTensor<T>::PackTestHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& sModes, const Location& packElem, const Location& myFirstLoc, const std::vector<Unsigned>& nProcsPerRMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
 
     Unsigned order = A.Order();
     PackData data = packData;
@@ -102,7 +102,7 @@ void DistTensor<T>::PackTestHelper(const PackData& packData, const Mode mode, co
 //            std::cout << std::endl;
         }else{
 
-            PackTestHelper(data, mode - 1, commModes, sModes, elem, myFirstLoc, nProcsPerRMode, nElemsPerProc, A, &(dataBuf[i * A.LocalModeStride(sMode)]), &(sendBuf[0]), sendBufOrig);
+            PackTestHelper(data, mode - 1, commModes, sModes, elem, myFirstLoc, nProcsPerRMode, nElemsPerProc, A, &(dataBuf[i * A.LocalModeStride(sMode)]), &(sendBuf[0]));
         }
     }
 }
@@ -187,9 +187,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 
     ModeArray commModes = redistModes;
     std::sort(commModes.begin(), commModes.end());
-    const ObjShape redistShape = FilterVector(gridShape, redistModes);
-    const ObjShape commShape = FilterVector(gridShape, commModes);
-    const Permutation commPerm = DeterminePermutation(redistModes, commModes);
 
     const ObjShape sendShape = MaxLocalShape();
 
@@ -197,16 +194,13 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     const Location ones(order, 1);
     PackData packData;
     packData.loopShape = A.LocalShape();
-    packData.srcBufStrides = A.LocalStrides();
-    for(i = 0; i < uniqueSModes.size(); i++){
-        packData.srcBufStrides[uniqueSModes[i]] *= modeStrideFactor[uniqueSModes[i]];
-    }
+    packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), modeStrideFactor);
+
     packData.dstBufStrides = Dimensions2Strides(sendShape);
     packData.loopStarts = zeros;
     packData.loopIncs = modeStrideFactor;
     const Unsigned nCommElemsPerProc = prod(sendShape);
 
-    const std::vector<Unsigned> sModeStrides = LocalStrides();
     const Location myFirstElemLoc = A.ModeShifts();
     Location packElem = myFirstElemLoc;
 
@@ -220,7 +214,8 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //    PrintVector(A.LocalShape(), "localShapeA");
 
     if(ElemwiseLessThan(packElem, A.Shape())){
-        PackTestHelper(packData, uniqueSModes.size() - 1, commModes, uniqueSModes, packElem, myFirstElemLoc, nProcsForSMode, nCommElemsPerProc, A, &(dataBuf[0]), &(sendBuf[0]), &(sendBuf[0]));
+        PackTestHelper(packData, uniqueSModes.size() - 1, commModes, uniqueSModes, packElem, myFirstElemLoc, nProcsForSMode, nCommElemsPerProc, A, &(dataBuf[0]), &(sendBuf[0]));
+//        PackTestHelper(packData, uniqueSModes.size() - 1, commModes, uniqueSModes, packElem, myFirstElemLoc, modeStrideFactor, nCommElemsPerProc, A, &(dataBuf[0]), &(sendBuf[0]));
     }
 //    std::cout << "packed sendBuf:";
 //    for(Unsigned i = 0; i < nCommElemsPerProc * nRedistProcs; i++)

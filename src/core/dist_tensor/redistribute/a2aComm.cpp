@@ -179,7 +179,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //    PrintVector(modeStrideFactor, "modeStrideFactor");
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
-        A2APackTestHelper(packData, changedA2AModes.size() - 1, commModes, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(sendShape), A, &(dataBuf[0]), &(sendBuf[0]));
+        ElemSelectHelper(packData, changedA2AModes.size() - 1, commModes, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(sendShape), A, &(dataBuf[0]), &(sendBuf[0]));
     }
 }
 
