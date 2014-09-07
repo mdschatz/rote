@@ -120,6 +120,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         elemData.loopShape = modeStrideFactor;
         elemData.nElemsPerProc = prod(sendShape);
         elemData.srcElem = zeros;
+        elemData.srcStrides = A.LocalStrides();
 
         ElemSelectPackHelper(packData, elemData, changedA2AModes.size() - 1, A, &(dataBuf[0]), &(sendBuf[0]));
     }
@@ -192,6 +193,8 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         elemData.packElem = myFirstElemLoc;
         elemData.loopShape = modeStrideFactor;
         elemData.nElemsPerProc = prod(recvShape);
+        elemData.dstElem = zeros;
+        elemData.dstStrides = LocalStrides();
 
         ElemSelectUnpackHelper(unpackData, elemData, changedA2AModes.size() - 1, A, &(recvBuf[0]), &(dataBuf[0]));
     }

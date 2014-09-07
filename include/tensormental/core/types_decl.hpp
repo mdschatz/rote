@@ -67,6 +67,7 @@ struct ZAxpByData{
 struct ElemSelectData{
     Location packElem;
     Location srcElem;
+    Location dstElem;
     std::vector<Unsigned> srcStrides;
     std::vector<Unsigned> dstStrides;
     ObjShape loopShape;
