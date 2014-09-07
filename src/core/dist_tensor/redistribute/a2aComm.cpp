@@ -119,6 +119,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         elemData.packElem = myFirstElemLoc;
         elemData.loopShape = modeStrideFactor;
         elemData.nElemsPerProc = prod(sendShape);
+        elemData.srcElem = zeros;
 
         ElemSelectPackHelper(packData, elemData, changedA2AModes.size() - 1, A, &(dataBuf[0]), &(sendBuf[0]));
     }
