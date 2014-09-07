@@ -93,8 +93,12 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    PrintVector(shape_, "constructing distTensor with shape");
+    printf("Distribution: %s\n", tmen::TensorDistToString(dist_).c_str());
+    PrintVector(tensor_.Shape(), "local shape before resize");
     SetShifts();
     ResizeTo( shape );
+    PrintVector(tensor_.Shape(), "local shape after resize");
     SetParticipatingComm();
 }
 

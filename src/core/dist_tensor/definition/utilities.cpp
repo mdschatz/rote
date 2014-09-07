@@ -149,6 +149,8 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::CopyBuffer");
 #endif
+    PrintVector(Alignments(), "myAligns");
+    PrintVector(A.Alignments(), "srcAligns");
     tensor_.CopyBuffer(A.LockedTensor());
 }
 

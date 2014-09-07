@@ -75,14 +75,16 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 
     tmp2.ReduceScatterCommRedist(tmp, reduceModes, scatterModes, commModes);
 
-    ObjShape BShape = tmp2Shape;
-    ModeArray rModes = reduceModes;
-    std::sort(rModes.begin(), rModes.end());
-    for(i = rModes.size() - 1; i < rModes.size(); i--){
-        BShape.erase(BShape.begin() + rModes[i]);
-    }
+    tmp2.RemoveUnitModesRedist(reduceModes);
 
-    ResizeTo(BShape);
+//    ObjShape BShape = tmp2Shape;
+//    ModeArray rModes = reduceModes;
+//    std::sort(rModes.begin(), rModes.end());
+//    for(i = rModes.size() - 1; i < rModes.size(); i--){
+//        BShape.erase(BShape.begin() + rModes[i]);
+//    }
+//
+//    ResizeTo(BShape);
     CopyLocalBuffer(tmp2);
 }
 

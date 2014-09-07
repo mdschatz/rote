@@ -428,11 +428,15 @@ Tensor<T>::RemoveUnitModes(const ModeArray& modes){
     Unsigned i;
     ModeArray sorted = modes;
     std::sort(sorted.begin(), sorted.end());
+    PrintVector(shape_, "shape_");
     for(i = sorted.size() - 1; i < sorted.size(); i--){
         shape_.erase(shape_.begin() + sorted[i]);
+        PrintVector(shape_, "shape_");
         strides_.erase(strides_.begin() + sorted[i]);
         ldims_.erase(ldims_.begin() + sorted[i]);
     }
+    std::cout << "Removing unit mode of tensor" << std::endl;
+    ResizeTo(shape_);
 }
 //
 //template<typename T>
@@ -467,6 +471,7 @@ const T&
 Tensor<T>::Get_( const Location& loc ) const
 { 
     Unsigned linearOffset = LinearOffset(loc);
+//    printf("local linear Offset: %d\n", linearOffset);
     return data_[linearOffset]; 
 }
 
@@ -930,12 +935,14 @@ void
 Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
 	//TODO: Implement general stride
-	bool reallocate = AnyElemwiseGreaterThan(shape, shape_);
+	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
+	std::cout << "reallocing with realloc" << reallocate << std::endl;
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = Dimensions2Strides(shape);
 		strides_ = Dimensions2Strides(shape);
 		memory_.Require(Max(1,prod(shape)));
+		printf("memory_ now is of size: %d\n", memory_.Size());
 		data_ = memory_.Buffer();
 	}
     //TODO: IMPLEMENT CORRECTLY
@@ -989,7 +996,8 @@ void
 Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims )
 {
 	//TODO: Implement general stride
-	bool reallocate = AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(ldims, ldims_);
+	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(ldims, ldims_);
+	std::cout << "Resizing with realloc: " << reallocate << std::endl;
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = ldims;
@@ -1090,8 +1098,11 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
     PackData packData;
     packData.loopShape = A.Shape();
     packData.srcBufStrides = A.Strides();
-
-    packData.dstBufStrides = Dimensions2Strides(A.Shape());
+    packData.dstBufStrides = Strides();
+    PrintVector(packData.srcBufStrides, "srcStrides");
+    PrintVector(packData.dstBufStrides, "dstStrides");
+    PrintVector(packData.loopShape, "loopShape");
+    PrintVector(Shape(), "myShape");
 
     packData.loopStarts = zeros;
     packData.loopIncs = ones;

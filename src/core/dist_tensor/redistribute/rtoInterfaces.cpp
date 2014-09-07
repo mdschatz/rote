@@ -54,15 +54,27 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     ObjShape tmpShape = A.Shape();
     for(i = 0; i < rModes.size(); i++)
-        tmpShape[rModes[i]] = gv.Dimension(rModes[i]);
-    DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
+        if(tmpShape[rModes[i]] != 0)
+            tmpShape[rModes[i]] = gv.Dimension(rModes[i]);
+    PrintVector(tmpShape, "tmpShape");
+    DistTensor<T> tmp(tmpShape, A.TensorDist(), A.Alignments(), g);
+    Zero(tmp);
+    PrintVector(A.Shape(), "shapeA");
 
+    Print(A.LockedTensor(), "A.Local");
+    PrintVector(A.LocalShape(), "A.LocalShape");
+    Print(tmp.Tensor(), "tmp.Local");
+    PrintVector(tmp.LocalShape(), "tmp.LocalShape");
     LocalReduce(tmp, A, rModes);
 
+
     ObjShape tmp2Shape = A.Shape();
-    for(i = 0; i < rModes.size(); i++)
-        tmp2Shape[rModes[i]] = 1;
-    DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), g);
+    for(i = 0; i < rModes.size(); i++){
+        if(tmp2Shape[rModes[i]] != 0)
+            tmp2Shape[rModes[i]] = 1;
+    }
+    PrintVector(tmp2Shape, "tmp2Shape");
+    DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), A.Alignments(), g);
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
@@ -73,6 +85,21 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
 
+    Print(tmp2, "tmp2 after redist");
+    Print(tmp2.Tensor(), "tmp2.Local pre removeUnitModes");
+    PrintVector(tmp2.LocalShape(), "tmp2.LocalShape pre removeUnitModes");
+    PrintVector(tmp2.Shape(), "tmp2 shape before remove Unit");
+    PrintVector(tmp2.LocalShape(), "tmp2 localShape before remove Unit");
+    PrintVector(tmp2.LocalStrides(), "tmp2 strides before remove Unit");
+
+    tmp2.RemoveUnitModesRedist(rModes);
+    Print(tmp2.Tensor(), "tmp2.Local post removeUnitModes");
+    PrintVector(tmp2.LocalShape(), "tmp2.LocalShape post removeUnitModes");
+
+    PrintVector(tmp2.Shape(), "tmp2 shape after remove Unit");
+    PrintVector(tmp2.LocalShape(), "tmp2 localShape after remove Unit");
+    PrintVector(tmp2.LocalStrides(), "tmp2 strides after remove Unit");
+
     ModeArray sortedRModes = rModes;
     std::sort(sortedRModes.begin(), sortedRModes.end());
     ObjShape BShape = tmp2Shape;
@@ -81,6 +108,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     }
 
     ResizeTo(BShape);
+
     CopyLocalBuffer(tmp2);
 }
 

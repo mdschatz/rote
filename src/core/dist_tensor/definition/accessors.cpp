@@ -261,8 +261,6 @@ DistTensor<T>::LockedTensor() const
 // Element access routines
 ///////////////////////////////
 
-//NOTE: INCREDIBLY INEFFICIENT (RECREATING A COMMUNICATOR ON EVERY REQUEST!!!
-//TODO: FIX THIS
 template<typename T>
 T
 DistTensor<T>::Get( const Location& loc ) const
@@ -278,9 +276,13 @@ DistTensor<T>::Get( const Location& loc ) const
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
+//    PrintVector(loc, "Getting loc");
+//    PrintVector(owningProc, "Owner");
     if(Participating()){
         if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
+//            printf("thats me\n");
             const Location localLoc = Global2LocalIndex(loc);
+//            PrintVector(localLoc, "locally at");
             u = GetLocal(localLoc);
         }
 
@@ -309,12 +311,14 @@ DistTensor<T>::Get( const Location& loc ) const
 //        }
 //        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
         int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);
+//        printf("ownerLinLoc: %d\n", ownerLinearLoc);
         //
 
         //const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
 //        std::cout << "owner linloc" << ownerLinearLoc << std::endl;
 //        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
         mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
+//        printf("got val: %d\n", u);
     }
 
     return u;

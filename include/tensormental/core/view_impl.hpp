@@ -42,6 +42,7 @@ inline void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked)
     A.gridView_ = B.gridView_;
     A.shape_ = B.shape_;
     A.modeAlignments_ = B.modeAlignments_;
+    A.dist_ = B.dist_;
     if(isLocked)
         A.viewType_ = LOCKED_VIEW;
     else
@@ -128,6 +129,7 @@ inline void ViewHelper
     A.grid_ = &g;
     A.gridView_ = B.gridView_;
     A.shape_ = shape;
+    A.dist_ = B.dist_;
 
     for(i = 0; i < order; i++)
         A.modeAlignments_[i] = (B.ModeAlignment(i) + loc[i]) % modeWrapStrides[i];
@@ -203,6 +205,7 @@ inline void View2x1Helper
     A.grid_ = BT.grid_;
     A.gridView_ = BT.gridView_;
     A.shape_ = BT.shape_;
+    A.dist_ = BT.dist_;
     A.shape_[mode] += BB.shape_[mode];
     A.modeAlignments_ = BT.modeAlignments_;
     if(isLocked)
@@ -314,37 +317,83 @@ inline void ViewAsMatrixHelper
     CallStackEntry entry("ViewAsMartixHelper");
     //B.AssertMergeableModes(oldModes);
 #endif
-    if(nModesMergeCol > 0 && B.Order() - nModesMergeCol > 0){
-        Unsigned i;
-        std::vector<ModeArray> mergeModes(2);
-        for(i = 0; i < nModesMergeCol; i++)
-            mergeModes[0].push_back(i);
-        for(i = 0; i < B.Order() - nModesMergeCol; i++)
-            mergeModes[1].push_back(nModesMergeCol + i);
+    Unsigned order = B.Order();
+    Unsigned i;
+    std::vector<ModeArray> mergeModes(2);
+    mergeModes[0].resize(nModesMergeCol);
+    mergeModes[1].resize(order - nModesMergeCol);
+    for(i = 0; i < nModesMergeCol; i++)
+        mergeModes[0][i] = i;
+    for(i = nModesMergeCol; i < order; i++)
+        mergeModes[1][i-nModesMergeCol] = i;
+
+    if(nModesMergeCol > 0 && order - nModesMergeCol > 0){
+
         ViewAsLowerOrderHelper(A, B, mergeModes, isLocked);
     }else{
-        Unsigned i;
-        const Unsigned newOrder = 2;
-        ModeArray modesMergeCol(nModesMergeCol);
-        for(i = 0; i < modesMergeCol.size(); i++)
-            modesMergeCol[i] = i;
-        ModeArray modesMergeRow(B.Order() - nModesMergeCol);
-        for(i = 0; i < modesMergeRow.size(); i++)
-            modesMergeRow[i] = nModesMergeCol + i;
         A.memory_.Empty();
 
+        ObjShape shapeB = B.Shape();
+        ObjShape stridesB = B.Strides();
+
         //Update the shape, ldims_, strides_, maps_
-        A.shape_.resize(newOrder);
-        A.ldims_.resize(newOrder);
-        A.strides_.resize(newOrder);
-        A.shape_[0] = Max(1,prod(FilterVector(B.Shape(), modesMergeCol)));
-        A.strides_[0] = modesMergeCol.size() == 0 ? 1 : B.Stride(modesMergeCol[0]);
-        A.ldims_[0] = modesMergeCol.size() == 0 ? 1 : B.LDim(modesMergeCol[0]);
+        A.shape_.resize(2);
+        A.ldims_.resize(2);
+        A.strides_.resize(2);
 
-        A.shape_[1] = Max(1,prod(FilterVector(B.Shape(), modesMergeRow)));
-        A.strides_[1] = A.shape_[0] * A.strides_[0];
-        A.ldims_[1] = A.shape_[0] * A.ldims_[0];
+        if(order == 0){
+            A.shape_[0] = 1;
+            A.strides_[0] = 1;
+            A.ldims_[0] = 1;
 
+            A.shape_[1] = 1;
+            A.strides_[1] = 1;
+            A.ldims_[1] = 1;
+        }else if(order == 1){
+            if(mergeModes[0].size() == 0){
+                A.shape_[0] = 1;
+                A.strides_[0] = 1;
+                A.ldims_[0] = 1;
+
+                A.shape_[1] = shapeB[0];
+                A.strides_[1] = stridesB[0];
+                A.ldims_[1] = stridesB[0];
+            }else{
+                A.shape_[0] = shapeB[0];
+                A.strides_[0] = stridesB[0];
+                A.ldims_[0] = stridesB[0];
+
+                A.shape_[1] = 1;
+                A.strides_[1] = stridesB[0] * shapeB[0];
+                A.ldims_[1] = stridesB[0] * shapeB[0];
+            }
+        }else{
+            if(mergeModes[0].size() == 0){
+                A.shape_[0] = 1;
+                A.strides_[0] = 1;
+                A.ldims_[0] = 1;
+
+                A.shape_[1] = prod(FilterVector(shapeB, mergeModes[1]));
+                A.strides_[1] = stridesB[0];
+                A.ldims_[1] = stridesB[0];
+            }else if(mergeModes[1].size() == 0){
+                A.shape_[0] = prod(FilterVector(shapeB, mergeModes[0]));
+                A.strides_[0] = stridesB[0];
+                A.ldims_[0] = stridesB[0];
+
+                A.shape_[1] = 1;
+                A.strides_[1] = stridesB[order-1] * shapeB[order - 1];
+                A.ldims_[1] = stridesB[order - 1] * shapeB[order - 1];
+            }else{
+                A.shape_[0] = prod(FilterVector(shapeB, mergeModes[0]));
+                A.strides_[0] = stridesB[0];
+                A.ldims_[0] = stridesB[0];
+
+                A.shape_[1] = prod(FilterVector(shapeB, mergeModes[1]));
+                A.strides_[1] = stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1];
+                A.ldims_[1] = stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1];
+            }
+        }
     //    A.data_     = B.data_;
         if(isLocked)
             A.viewType_ = LOCKED_VIEW;

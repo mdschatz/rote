@@ -61,6 +61,12 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
     const tmen::Grid& g = A.Grid();
 
+    PrintVector(commModes);
+    std::cout << tmen::TensorDistToString(A.TensorDist()) << std::endl;
+    if(Participating())
+        printf("participating\n");
+    else
+        printf("not particiapting\n");
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())

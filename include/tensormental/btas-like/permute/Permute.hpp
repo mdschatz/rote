@@ -10,6 +10,7 @@
 #ifndef TMEN_BTAS_PERMUTE_HPP
 #define TMEN_BTAS_PERMUTE_HPP
 
+#include "tensormental/io/Print.hpp"
 namespace tmen{
 
 
@@ -29,6 +30,12 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     data.dstBufStrides = FilterVector(B.Strides(), invperm);
     data.loopStarts = zeros;
     data.loopIncs = ones;
+
+    PrintVector(A.Shape(), "AShape");
+    PrintVector(B.Shape(), "BShape");
+    PrintVector(data.loopShape, "loopShape");
+    PrintVector(data.srcBufStrides, "srcStrides");
+    PrintVector(data.dstBufStrides, "dstStrides");
 
     B.PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
 }
