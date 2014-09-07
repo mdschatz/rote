@@ -167,8 +167,8 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 //    PrintVector(modeStrideFactor, "modeStrideFactor");
     PackData unpackData;
     unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), modeStrideFactor);
     unpackData.srcBufStrides = Dimensions2Strides(recvShape);
+    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), modeStrideFactor);
 
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = modeStrideFactor;
