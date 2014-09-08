@@ -126,6 +126,7 @@ public:
     TensorDistribution TensorDist() const;
     ModeDistribution ModeDist(Mode mode) const;
 
+    void SetDistribution(const TensorDistribution& tenDist);
 
     std::vector<Unsigned> Strides() const;
     Unsigned Stride(Mode mode) const;

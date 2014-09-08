@@ -54,6 +54,7 @@ public:
     void SetMyGridViewLoc();
 
     void RemoveUnitModes(const ModeArray& unitModes);
+    void IntroduceUnitModes(const ModeArray& unitModes);
 
     bool Participating() const;
 

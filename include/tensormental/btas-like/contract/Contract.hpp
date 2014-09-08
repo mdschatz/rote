@@ -94,6 +94,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     Permute(PB, B, permB);
     Permute(PC, C, permC);
 
+//    PrintData(PA, "PA");
+//    PrintData(PB, "PB");
+//    PrintData(PC, "PC");
 //    Print(PA, "PA");
 //    Print(PB, "PB");
 //    Print(PC, "PC");
@@ -101,10 +104,16 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     const Unsigned nIndicesM = permA.size() - nIndicesContract;
 
     //View as matrices
+//    printf("MPA Merged %d indices left and %d right\n", nIndicesM, PA.Order() - nIndicesM);
+//    printf("MPB Merged %d indices left and %d right\n", nIndicesContract, PB.Order() - nIndicesContract);
+//    printf("MPC Merged %d indices left and %d right\n", nIndicesM, PC.Order() - nIndicesM);
     ViewAsMatrix(MPA, PA, nIndicesM );
     ViewAsMatrix(MPB, PB, nIndicesContract );
     ViewAsMatrix(MPC, PC, nIndicesM );
 
+//    PrintData(MPA, "MPA");
+//    PrintData(MPB, "MPB");
+//    PrintData(MPC, "MPC");
 //    Print(MPA, "MPA");
 //    Print(MPB, "MPB");
 //    Print(MPC, "MPC");
@@ -134,17 +143,35 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //NOTE: Get rid of memcopy
 template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
+
+    Unsigned i;
+    Unsigned order = C.Order();
     IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 
-    ObjShape unitModes(contractIndices.size(), 1);
-    ObjShape tmpShape = ConcatenateVectors(C.Shape(), unitModes);
+    ModeArray uModes(contractIndices.size());
+    for(i = 0; i < uModes.size(); i++)
+        uModes[i] = i + order;
+    ObjShape tmpShape(C.Shape());
     IndexArray tmpIndices = ConcatenateVectors(indicesC, contractIndices);
 
     Tensor<T> tmp(tmpShape);
-    //Cannot simply be an attach as will not have correct ldims_ set
     tmp.CopyBuffer(C);
+    tmp.IntroduceUnitModes(uModes);
+
     LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
+
+    tmp.RemoveUnitModes(uModes);
     C.CopyBuffer(tmp);
+
+//    ObjShape unitModes(contractIndices.size(), 1);
+//    ObjShape tmpShape = ConcatenateVectors(C.Shape(), unitModes);
+//    IndexArray tmpIndices = ConcatenateVectors(indicesC, contractIndices);
+//
+//    Tensor<T> tmp(tmpShape);
+//    //Cannot simply be an attach as will not have correct ldims_ set
+//    tmp.CopyBuffer(C);
+//    LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
+//    C.CopyBuffer(tmp);
 }
 
 } // namespace tmen

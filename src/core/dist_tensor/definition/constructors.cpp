@@ -32,7 +32,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
 template<typename T>
 DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
-: dist_(order),
+: dist_(order+1),
   shape_(order, 0),
 
   constrainedModeAlignments_(order, 0),
@@ -122,6 +122,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     Align( modeAlignments );
+    dist_ = dist;
     ResizeTo( shape );
     SetParticipatingComm();
 }

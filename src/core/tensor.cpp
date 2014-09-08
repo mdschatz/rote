@@ -428,23 +428,44 @@ Tensor<T>::RemoveUnitModes(const ModeArray& modes){
     Unsigned i;
     ModeArray sorted = modes;
     std::sort(sorted.begin(), sorted.end());
+
     for(i = sorted.size() - 1; i < sorted.size(); i--){
         shape_.erase(shape_.begin() + sorted[i]);
         strides_.erase(strides_.begin() + sorted[i]);
         ldims_.erase(ldims_.begin() + sorted[i]);
     }
+    ResizeTo(shape_);
 }
-//
-//template<typename T>
-//void
-//Tensor<T>::RemoveUnitMode(const Mode& mode){
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::RemoveUnitMode");
-//#endif
-//    shape_.erase(shape_.begin() + mode);
-//    strides_.erase(strides_.begin() + mode);
-//    ldims_.erase(ldims_.begin() + mode);
-//}
+
+template<typename T>
+void
+Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::IntroduceUnitModes");
+#endif
+    Unsigned i;
+    ModeArray sorted = modes;
+    std::sort(sorted.begin(), sorted.end());
+    for(i = 0; i < sorted.size(); i++){
+        shape_.insert(shape_.begin() + sorted[i], 1);
+
+        Unsigned newStrideVal;
+        if(sorted[i] == strides_.size()){
+            if(sorted[i] == 0){
+                newStrideVal = 1;
+            }else{
+                newStrideVal = strides_[shape_.size() - 1] * shape_[shape_.size() - 1];
+            }
+        }else{
+            newStrideVal = strides_[sorted[i]];
+        }
+
+        strides_.insert(strides_.begin() + sorted[i], newStrideVal);
+        ldims_.insert(ldims_.begin() + sorted[i], newStrideVal);
+    }
+    ResizeTo(shape_);
+}
+
 //
 //template<typename T>
 //void
@@ -467,6 +488,7 @@ const T&
 Tensor<T>::Get_( const Location& loc ) const
 { 
     Unsigned linearOffset = LinearOffset(loc);
+//    printf("local linear Offset: %d\n", linearOffset);
     return data_[linearOffset]; 
 }
 
@@ -930,7 +952,7 @@ void
 Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
 	//TODO: Implement general stride
-	bool reallocate = AnyElemwiseGreaterThan(shape, shape_);
+	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = Dimensions2Strides(shape);
@@ -989,7 +1011,8 @@ void
 Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims )
 {
 	//TODO: Implement general stride
-	bool reallocate = AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(ldims, ldims_);
+	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(ldims, ldims_);
+	std::cout << "Resizing with realloc: " << reallocate << std::endl;
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = ldims;
@@ -1090,8 +1113,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
     PackData packData;
     packData.loopShape = A.Shape();
     packData.srcBufStrides = A.Strides();
-
-    packData.dstBufStrides = Dimensions2Strides(A.Shape());
+    packData.dstBufStrides = Strides();
 
     packData.loopStarts = zeros;
     packData.loopIncs = ones;

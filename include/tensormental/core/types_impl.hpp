@@ -30,7 +30,7 @@ TensorDistToString( const TensorDistribution& distribution, bool endLine )
 {
     std::stringstream ss;
     ss << "[";
-    if(distribution.size() >= 1){
+    if(distribution.size() > 1){
     	ss << ModeDistToString_(distribution[0]);
 		for(size_t i = 1; i < distribution.size()-1; i++)
 		  ss << ", " << ModeDistToString_(distribution[i]);
@@ -96,7 +96,7 @@ StringToTensorDist( const std::string& s )
 inline ModeDistribution
 StringToModeDist( const std::string& s)
 {
-	ModeDistribution distribution;
+	ModeDistribution distribution(0);
 	size_t pos, lastPos;
 	pos = s.find_first_of("(");
 	lastPos = s.find_first_of(")");

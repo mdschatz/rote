@@ -47,6 +47,9 @@ template<typename T>
 void
 DistTensor<T>::AlignWith( const tmen::DistData& data )
 {
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::AlignWith");
+#endif
 /*
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AlignWith");
@@ -114,10 +117,29 @@ DistTensor<T>::AlignWith( const tmen::DistData& data )
 */
 }
 
+//NOTE: This needs to be generalized
 template<typename T>
 void
 DistTensor<T>::AlignWith( const DistTensor<T>& A )
-{ AlignWith( A.DistData() ); }
+{
+    Unsigned i;
+    Unsigned order = A.Order();
+    const tmen::Grid& grid = A.Grid();
+    SetGrid( grid );
+
+    for(i = 0; i < order; i++){
+        modeAlignments_[i] = A.modeAlignments_[i] % ModeStride(i);
+        constrainedModeAlignments_[i] = true;
+    }
+    SetShifts();
+}
+
+template<typename T>
+void
+DistTensor<T>::SetDistribution( const TensorDistribution& tenDist)
+{
+    dist_ = tenDist;
+}
 
 template<typename T>
 void

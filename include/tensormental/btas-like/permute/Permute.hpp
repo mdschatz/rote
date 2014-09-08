@@ -10,6 +10,7 @@
 #ifndef TMEN_BTAS_PERMUTE_HPP
 #define TMEN_BTAS_PERMUTE_HPP
 
+#include "tensormental/io/Print.hpp"
 namespace tmen{
 
 
@@ -17,93 +18,26 @@ namespace tmen{
 template<typename T>
 void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     Unsigned order = A.Order();
-//    T* dstBuf = B.Buffer();
-//    const T * srcBuf = A.LockedBuffer();
-//
-//    Location zeros(order, 0);
-//    Location ones(order, 1);
-//    Permutation invperm = DetermineInversePermutation(perm);
-//    PackData data;
-//    data.loopShape = B.Shape();
-//    data.srcBufStrides = FilterVector(A.Strides(), perm);
-//    data.dstBufStrides = B.Strides();
-//    data.loopStarts = zeros;
-//    data.loopIncs = ones;
-//
-//    B.PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
-
     T* dstBuf = B.Buffer();
-    const T* srcBuf = A.LockedBuffer();
+    const T * srcBuf = A.LockedBuffer();
 
-    if(A.Order() == 0){
-        MemCopy(&(dstBuf[0]), &(srcBuf[0]), 1);
-        return;
-    }
-
-    Location curLoc(order, 0);
+    Location zeros(order, 0);
+    Location ones(order, 1);
     Permutation invperm = DetermineInversePermutation(perm);
+    PackData data;
+    data.loopShape = A.Shape();
+    data.srcBufStrides = A.Strides();
+    data.dstBufStrides = FilterVector(B.Strides(), invperm);
+    data.loopStarts = zeros;
+    data.loopIncs = ones;
 
-    ObjShape shapeA = A.Shape();
-    ObjShape shapeB = B.Shape();
-    std::vector<Unsigned> strideA = A.Strides();
-    std::vector<Unsigned> strideB = B.Strides();
+//    PrintVector(A.Shape(), "AShape");
+//    PrintVector(B.Shape(), "BShape");
+//    PrintVector(data.loopShape, "loopShape");
+//    PrintVector(data.srcBufStrides, "srcStrides");
+//    PrintVector(data.dstBufStrides, "dstStrides");
 
-    Unsigned linLocDst = 0;
-    Unsigned linLocSrc = 0;
-    Unsigned updatePtr = 0;
-    bool done = !ElemwiseLessThan(curLoc,shapeA);
-
-
-//    printf("shapeA: [%d", shapeA[0]);
-//    for(i = 1; i < order; i++)
-//        printf(" %d", shapeA[i]);
-//    printf("]\n");
-//    printf("shapeB: [%d", shapeB[0]);
-//    for(i = 1; i < order; i++)
-//        printf(" %d", shapeB[i]);
-//    printf("]\n");
-//
-//    printf("strideA: [%d", strideA[0]);
-//    for(i = 1; i < order; i++)
-//        printf(" %d", strideA[i]);
-//    printf("]\n");
-//    printf("strideB: [%d", strideB[0]);
-//    for(i = 1; i < order; i++)
-//        printf(" %d", strideB[i]);
-//    printf("]\n");
-
-    while(!done){
-//        printf("curLoc: [%d", curLoc[0]);
-//        for(i = 1; i < order; i++)
-//            printf(" %d", curLoc[i]);
-//        printf("]\n");
-//        printf("linLocDst: %d\n", linLocDst);
-//        printf("linLocSrc: %d\n", linLocSrc);
-        dstBuf[linLocDst] = srcBuf[linLocSrc];
-
-        //Update info
-        curLoc[updatePtr]++;
-        linLocSrc += strideA[updatePtr];
-        linLocDst += strideB[invperm[updatePtr]];
-
-        //Loop update
-        while(updatePtr < order && curLoc[updatePtr] == shapeA[updatePtr]){
-            curLoc[updatePtr] = 0;
-            linLocSrc -= strideA[updatePtr]*shapeA[updatePtr];
-            linLocDst -= strideB[invperm[updatePtr]] * shapeB[invperm[updatePtr]];
-            updatePtr++;
-
-            if(updatePtr >= order){
-                done = true;
-                break;
-            }else{
-                curLoc[updatePtr]++;
-                linLocSrc += strideA[updatePtr];
-                linLocDst += strideB[invperm[updatePtr]];
-            }
-        }
-        updatePtr = 0;
-    }
+    B.PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
 }
 
 } // namespace tmen

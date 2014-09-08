@@ -47,6 +47,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
 template <typename T>
 void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
     Unsigned i;
+    Unsigned order = A.Order();
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
     TensorDistribution dist = A.TensorDist();
@@ -54,16 +55,40 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     ObjShape tmpShape = A.Shape();
     for(i = 0; i < rModes.size(); i++)
-        tmpShape[rModes[i]] = gv.Dimension(rModes[i]);
+        tmpShape[rModes[i]] = Min(gv.Dimension(rModes[i]), A.Dimension(rModes[i]));
+
+    //NOTE: Cannot write (Investigate)
+    // DistTensor<T> tmp(order, g);
+    // tmp.AlignWith(A);
+    // tmp.SetDistribution(A.TensorDist());
+    // tmp.ResizeTo(tmpShape);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
+    tmp.AlignWith(A);
+    tmp.SetDistribution(A.TensorDist());
+    tmp.ResizeTo(tmpShape);
+    Zero(tmp);
 
     LocalReduce(tmp, A, rModes);
 
     ObjShape tmp2Shape = A.Shape();
-    for(i = 0; i < rModes.size(); i++)
-        tmp2Shape[rModes[i]] = 1;
-    DistTensor<T> tmp2(tmp2Shape, A.TensorDist(), g);
 
+    TensorDistribution tmp2Dist =   A.TensorDist();
+    for(i = 0; i < rModes.size(); i++){
+        tmp2Shape[rModes[i]] = Min(1, A.Dimension(rModes[i]));
+        ModeDistribution rModeDist = A.ModeDist(rModes[i]);
+        tmp2Dist[order].insert(tmp2Dist[order].end(), rModeDist.begin(), rModeDist.end());
+        tmp2Dist[rModes[i]] = blank;
+    }
+    std::sort(tmp2Dist[order].begin(), tmp2Dist[order].end());
+
+    //--------------------------------
+    //--------------------------------
+
+    DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
+    tmp2.AlignWith(tmp);
+    tmp2.ResizeTo(tmp2Shape);
+
+    tmp2.SetDistribution(tmp2Dist);
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
         ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
@@ -73,15 +98,10 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
 
-    ModeArray sortedRModes = rModes;
-    std::sort(sortedRModes.begin(), sortedRModes.end());
-    ObjShape BShape = tmp2Shape;
-    for(i = sortedRModes.size() - 1; i < sortedRModes.size(); i--){
-        BShape.erase(BShape.begin() + sortedRModes[i]);
-    }
+    tmp2.RemoveUnitModesRedist(rModes);
 
-    ResizeTo(BShape);
-    CopyLocalBuffer(tmp2);
+    if(Participating())
+        CopyLocalBuffer(tmp2);
 }
 
 #define PROTO(T) template class DistTensor<T>

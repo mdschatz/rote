@@ -543,8 +543,11 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
   ObjShape E_MP3____N_D_0_1_2_3_tempShape;
   E_MP3____N_D_0_1_2_3.ResizeTo( E_MP3____N_D_0_1_2_3_tempShape );
   MakeUniform( E_MP3____N_D_0_1_2_3 );
+  std::cout << "Converting E_MP3_local" << std::endl;
   DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
+  std::cout << "E_MP3_local dist init" << tmen::TensorDistToString(E_MP3_local.TensorDist()).c_str() << std::endl;
   GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
+  std::cout << "E_MP3_local dist post gatherall" << tmen::TensorDistToString(E_MP3_local.TensorDist()).c_str() << std::endl;
   //**** (out of 1)
   //------------------------------------//
 
@@ -607,6 +610,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
 
   //****
   // 1.0 * v2_oegm[D0,D1,D2,D3]_oegm * t_gfon[D2,*,*,D0]_gfno + 0.0 * cont1_temp[D1,*,D3,*,D2,D0]_efmngo
+  printf("ping1");
   LocalContract(1.0, v2_oegm__D_0__D_1__D_2__D_3.LockedTensor(), indices_oegm,
 		t_gfon__D_2__S__S__D_0.LockedTensor(), indices_gfno,
 		0.0, cont1_temp__D_1__S__D_3__S__D_2__D_0.Tensor(), indices_efmngo);
@@ -700,6 +704,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
 
   //****
   // 0.5 * axppx3_temp[D0,D1,D2,D3]_oegm * axppx2_temp[D2,*,D0,*]_gfon + 0.0 * accum_temp[D1,*,D3,*,D2,D0]_efmngo
+  printf("ping2\n");
   LocalContract(0.5, axppx3_temp__D_0__D_1__D_2__D_3.LockedTensor(), indices_oegm,
 		axppx2_temp__D_2__S__D_0__S.LockedTensor(), indices_gfon,
 		0.0, accum_temp__D_1__S__D_3__S__D_2__D_0.Tensor(), indices_efmngo);
@@ -721,6 +726,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
   tempShape.push_back( g.Shape()[3] );
   accum_temp__D_0__D_1__S__S__D_2__D_3.ResizeTo( tempShape );
   // 0.5 * v_efgh[D0,D1,D2,D3]_efgh * t_ghmn[D2,D3,*,*]_ghmn + 0.0 * accum_temp[D0,D1,*,*,D2,D3]_efmngh
+  printf("ping3\n");
   LocalContract(0.5, v_efgh__D_0__D_1__D_2__D_3.LockedTensor(), indices_efgh,
 		t_ghmn__D_2__D_3__S__S.LockedTensor(), indices_ghmn,
 		0.0, accum_temp__D_0__D_1__S__S__D_2__D_3.Tensor(), indices_efmngh);
@@ -735,6 +741,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
 
   //****
   // 0.5 * v_opmn[*,*,D2,D3]_opmn * t_efop[D0,D1,*,*]_efop + 1.0 * accum_temp[D0,D1,D2,D3]_efmn
+  printf("ping4\n");
   LocalContractAndLocalEliminate(0.5, v_opmn__S__S__D_2__D_3.LockedTensor(), indices_opmn,
 				 t_efop__D_0__D_1__S__S.LockedTensor(), indices_efop,
 				 1.0, accum_temp__D_0__D_1__D_2__D_3.Tensor(), indices_efmn);
@@ -752,6 +759,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
   tempShape.push_back( g.Shape()[3] );
   E_MP3__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
   // 2.0 * axppx4_temp[D0,D1,D2,D3]_efmn * accum_temp[D0,D1,D2,D3]_efmn + 0.0 * E_MP3[D0,D1,D2,D3]_efmn
+
   LocalContract(2.0, axppx4_temp__D_0__D_1__D_2__D_3.LockedTensor(), indices_efmn,
 		accum_temp__D_0__D_1__D_2__D_3.LockedTensor(), indices_efmn,
 		0.0, E_MP3__D_0__D_1__D_2__D_3.Tensor(), indices_efmn);

@@ -98,6 +98,13 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   packData.loopIncs = ones;
 
   PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+
+//  Unsigned i;
+//  printf("sendBuf:");
+//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+//      std::cout << " " << sendBuf[i];
+//  }
+//  std::cout << std::endl;
 }
 
 #define PROTO(T) template class DistTensor<T>

@@ -20,24 +20,24 @@ void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const
     //ObjShape tmpShape = A.Shape();
     //tmpShape[reduceScatterMode] = A.GetGridView().Dimension(reduceScatterMode);
     //ResizeTo(tmpShape);
-    ModeArray reduceModes(1);
-    ModeArray scatterModes(1);
-
-    reduceModes[0] = reduceScatterMode;
-    scatterModes[0] = reduceScatterMode;
-
-    ModeArray commModes;
-    for(i = 0; i < reduceModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
-        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
-    }
-    std::sort(commModes.begin(), commModes.end());
-
-    ReduceScatterCommRedist(A, reduceModes, scatterModes, commModes);
+//    ModeArray reduceModes(1);
+//    ModeArray scatterModes(1);
+//
+//    reduceModes[0] = reduceScatterMode;
+//    scatterModes[0] = reduceScatterMode;
+//
+//    ModeArray commModes;
+//    for(i = 0; i < reduceModes.size(); i++){
+//        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
+//        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+//    }
+//    std::sort(commModes.begin(), commModes.end());
+//
+//    ReduceScatterCommRedist(A, reduceModes, scatterModes, commModes);
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes){
+void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes){
     Unsigned i;
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
@@ -45,45 +45,54 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
     ModeDistribution blank(0);
 
     ObjShape tmpShape = A.Shape();
-    for(i = 0; i < reduceModes.size(); i++){
-        tmpShape[reduceModes[i]] = gv.Dimension(reduceModes[i]);
+    for(i = 0; i < rModes.size(); i++){
+        tmpShape[rModes[i]] = Min(gv.Dimension(rModes[i]), A.Dimension(rModes[i]));
     }
-    DistTensor<T> tmp(tmpShape, dist, g);
-    T* tmpBuf = tmp.Buffer();
-    MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
+
+    DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
+    tmp.AlignWith(A);
+    tmp.SetDistribution(A.TensorDist());
+    tmp.ResizeTo(tmpShape);
+    Zero(tmp);
+
+    LocalReduce(tmp, A, rModes);
 
     ObjShape tmp2Shape = A.Shape();
-    TensorDistribution tmp2Dist = dist;
-    for(i = 0; i < scatterModes.size(); i++){
-        tmp2Dist[scatterModes[i]] = ConcatenateVectors(tmp2Dist[scatterModes[i]], tmp2Dist[reduceModes[i]]);
-        tmp2Dist[reduceModes[i]] = blank;
-        tmp2Shape[reduceModes[i]] = 1;
+    TensorDistribution tmp2Dist = A.TensorDist();
+    for(i = 0; i < sModes.size(); i++){
+        tmp2Shape[rModes[i]] = Min(1, A.Dimension(rModes[i]));
+        ModeDistribution rModeDist = A.ModeDist(rModes[i]);
+        tmp2Dist[sModes[i]].insert(tmp2Dist[sModes[i]].end(), rModeDist.begin(), rModeDist.end());
+        tmp2Dist[rModes[i]] = blank;
     }
 
     DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
-    T* tmp2Buf = tmp2.Buffer();
-    MemZero(&(tmp2Buf[0]), prod(tmp2.LocalShape()));
+    tmp2.AlignWith(tmp);
+    tmp2.ResizeTo(tmp2Shape);
+    tmp2.SetDistribution(tmp2Dist);
 
-    LocalReduce(tmp, A, reduceModes);
 
     ModeArray commModes;
-    for(i = 0; i < reduceModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(reduceModes[i]);
+    for(i = 0; i < rModes.size(); i++){
+        ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
         commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
     }
     std::sort(commModes.begin(), commModes.end());
 
-    tmp2.ReduceScatterCommRedist(tmp, reduceModes, scatterModes, commModes);
+    tmp2.ReduceScatterCommRedist(tmp, rModes, sModes, commModes);
 
-    ObjShape BShape = tmp2Shape;
-    ModeArray rModes = reduceModes;
-    std::sort(rModes.begin(), rModes.end());
-    for(i = rModes.size() - 1; i < rModes.size(); i--){
-        BShape.erase(BShape.begin() + rModes[i]);
-    }
+    tmp2.RemoveUnitModesRedist(rModes);
 
-    ResizeTo(BShape);
-    CopyLocalBuffer(tmp2);
+//    ObjShape BShape = tmp2Shape;
+//    ModeArray rModes = reduceModes;
+//    std::sort(rModes.begin(), rModes.end());
+//    for(i = rModes.size() - 1; i < rModes.size(); i--){
+//        BShape.erase(BShape.begin() + rModes[i]);
+//    }
+//
+//    ResizeTo(BShape);
+    if(Participating())
+        CopyLocalBuffer(tmp2);
 }
 
 template<typename T>

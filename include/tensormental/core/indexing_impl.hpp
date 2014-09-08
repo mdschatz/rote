@@ -329,6 +329,28 @@ Loc2LinearLoc_(const Location& loc, const ObjShape& shape, const std::vector<Uns
 }
 
 inline
+Unsigned
+LinearLocFromStrides(const Location& loc, const std::vector<Unsigned>& strides)
+{
+    if(strides.size() != 0 && (loc.size() != strides.size()))
+        LogicError( "Invalid index+stride combination");
+    return LinearLocFromStrides_(loc, strides);
+}
+
+inline
+Unsigned
+LinearLocFromStrides_(const Location& loc, const std::vector<Unsigned>& strides)
+{
+    Unsigned i;
+
+    Unsigned linearInd = 0;
+    for(i = 0; i < loc.size(); i++)
+        linearInd += loc[i] * strides[i];
+
+    return linearInd;
+}
+
+inline
 Location
 LinearLoc2Loc(const Unsigned linearLoc, const ObjShape& shape, const Permutation& permutation)
 {

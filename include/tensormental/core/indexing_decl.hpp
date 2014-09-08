@@ -50,6 +50,9 @@ Unsigned Loc2LinearLoc_(const Location& loc, const ObjShape& shape, const std::v
 Location LinearLoc2Loc(Unsigned linearLoc, const ObjShape& objShape, const Permutation& permutation = Permutation());
 Location LinearLoc2Loc_(Unsigned linearLoc, const ObjShape& objShape, const Permutation& permutation = Permutation());
 
+Unsigned LinearLocFromStrides(const Location& loc, const std::vector<Unsigned>& strides);
+Unsigned LinearLocFromStrides_(const Location& loc, const std::vector<Unsigned>& strides);
+
 Unsigned GridViewLoc2GridLinearLoc(const Location& gridViewLoc, const GridView& gridView);
 Unsigned GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView);
 
