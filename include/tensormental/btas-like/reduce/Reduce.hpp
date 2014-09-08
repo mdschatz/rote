@@ -27,7 +27,6 @@ void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const 
     if(reduceModes.size() != 0){
         Mode reduceMode = reduceModes[mode];
         Unsigned srcBufPtr = 0;
-        Unsigned dstBufPtr = 0;
 
         if(mode == 0){
             if(srcStrides[reduceMode] == 1 && dstStrides[reduceMode] == 1){

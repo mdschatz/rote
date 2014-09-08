@@ -428,14 +428,12 @@ Tensor<T>::RemoveUnitModes(const ModeArray& modes){
     Unsigned i;
     ModeArray sorted = modes;
     std::sort(sorted.begin(), sorted.end());
-    PrintVector(shape_, "shape_");
+
     for(i = sorted.size() - 1; i < sorted.size(); i--){
         shape_.erase(shape_.begin() + sorted[i]);
-        PrintVector(shape_, "shape_");
         strides_.erase(strides_.begin() + sorted[i]);
         ldims_.erase(ldims_.begin() + sorted[i]);
     }
-    std::cout << "Removing unit mode of tensor" << std::endl;
     ResizeTo(shape_);
 }
 
@@ -448,10 +446,9 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
     Unsigned i;
     ModeArray sorted = modes;
     std::sort(sorted.begin(), sorted.end());
-    PrintVector(shape_, "shape_");
     for(i = 0; i < sorted.size(); i++){
         shape_.insert(shape_.begin() + sorted[i], 1);
-        PrintVector(shape_, "shape_");
+
         Unsigned newStrideVal;
         if(sorted[i] == shape_.size())
             newStrideVal = strides_[shape_.size() - 1] * shape_[shape_.size() - 1];
@@ -461,7 +458,6 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
         strides_.insert(strides_.begin() + sorted[i], newStrideVal);
         ldims_.insert(ldims_.begin() + sorted[i], newStrideVal);
     }
-    std::cout << "Removing unit mode of tensor" << std::endl;
     ResizeTo(shape_);
 }
 
@@ -952,13 +948,11 @@ Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
 	//TODO: Implement general stride
 	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
-	std::cout << "reallocing with realloc" << reallocate << std::endl;
 	shape_ = shape;
 	if(reallocate){
 		ldims_ = Dimensions2Strides(shape);
 		strides_ = Dimensions2Strides(shape);
 		memory_.Require(Max(1,prod(shape)));
-		printf("memory_ now is of size: %d\n", memory_.Size());
 		data_ = memory_.Buffer();
 	}
     //TODO: IMPLEMENT CORRECTLY
@@ -1115,10 +1109,6 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
     packData.loopShape = A.Shape();
     packData.srcBufStrides = A.Strides();
     packData.dstBufStrides = Strides();
-    PrintVector(packData.srcBufStrides, "srcStrides");
-    PrintVector(packData.dstBufStrides, "dstStrides");
-    PrintVector(packData.loopShape, "loopShape");
-    PrintVector(Shape(), "myShape");
 
     packData.loopStarts = zeros;
     packData.loopIncs = ones;

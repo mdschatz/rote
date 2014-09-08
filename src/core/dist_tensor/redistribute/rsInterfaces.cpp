@@ -79,9 +79,6 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
     }
     std::sort(commModes.begin(), commModes.end());
 
-    printf("About to RS\n");
-    PrintVector(tmp.Shape(), "tmpShape");
-    PrintVector(tmp2.Shape(), "tmp2Shape");
     tmp2.ReduceScatterCommRedist(tmp, rModes, sModes, commModes);
 
     tmp2.RemoveUnitModesRedist(rModes);

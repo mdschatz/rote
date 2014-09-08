@@ -95,12 +95,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
-    PrintVector(unpackData.loopShape, "  loop shape");
-    PrintVector(unpackData.loopStarts, "  loop starts");
-    PrintVector(unpackData.loopIncs, "  loop incs");
-    PrintVector(unpackData.srcBufStrides, "  srcBufStrides");
-    PrintVector(unpackData.dstBufStrides, "  dstBufStrides");
-
     const Location myFirstElemLoc = ModeShifts();
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){

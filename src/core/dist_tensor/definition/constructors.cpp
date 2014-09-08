@@ -93,12 +93,8 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
-    PrintVector(shape_, "constructing distTensor with shape");
-    printf("Distribution: %s\n", tmen::TensorDistToString(dist_).c_str());
-    PrintVector(tensor_.Shape(), "local shape before resize");
     SetShifts();
     ResizeTo( shape );
-    PrintVector(tensor_.Shape(), "local shape after resize");
     SetParticipatingComm();
 }
 
@@ -125,14 +121,10 @@ DistTensor<T>::DistTensor
 {
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
-    printf("before align: %s\n", tmen::TensorDistToString(dist_).c_str());
     Align( modeAlignments );
-    printf("after align: %s\n", tmen::TensorDistToString(dist_).c_str());
     dist_ = dist;
     ResizeTo( shape );
-    printf("after resize: %s\n", tmen::TensorDistToString(dist_).c_str());
     SetParticipatingComm();
-    printf("after participatingcomm: %s\n", tmen::TensorDistToString(dist_).c_str());
 }
 
 template<typename T>

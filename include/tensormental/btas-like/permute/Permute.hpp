@@ -31,11 +31,11 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     data.loopStarts = zeros;
     data.loopIncs = ones;
 
-    PrintVector(A.Shape(), "AShape");
-    PrintVector(B.Shape(), "BShape");
-    PrintVector(data.loopShape, "loopShape");
-    PrintVector(data.srcBufStrides, "srcStrides");
-    PrintVector(data.dstBufStrides, "dstStrides");
+//    PrintVector(A.Shape(), "AShape");
+//    PrintVector(B.Shape(), "BShape");
+//    PrintVector(data.loopShape, "loopShape");
+//    PrintVector(data.srcBufStrides, "srcStrides");
+//    PrintVector(data.dstBufStrides, "dstStrides");
 
     B.PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
 }
