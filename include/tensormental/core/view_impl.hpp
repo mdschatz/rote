@@ -351,47 +351,64 @@ inline void ViewAsMatrixHelper
             A.ldims_[1] = 1;
         }else if(order == 1){
             if(mergeModes[0].size() == 0){
-                A.shape_[0] = 1;
+                if(shapeB[0] == 0){
+                    A.shape_[0] = 0;
+                }else{
+                    A.shape_[0] = 1;
+                }
+
                 A.strides_[0] = 1;
                 A.ldims_[0] = 1;
 
                 A.shape_[1] = shapeB[0];
-                A.strides_[1] = stridesB[0];
-                A.ldims_[1] = stridesB[0];
+                A.strides_[1] = Max(1, stridesB[0]);
+                A.ldims_[1] = Max(1, stridesB[0]);
             }else{
                 A.shape_[0] = shapeB[0];
-                A.strides_[0] = stridesB[0];
-                A.ldims_[0] = stridesB[0];
+                A.strides_[0] = Max(1, stridesB[0]);
+                A.ldims_[0] = Max(1, stridesB[0]);
 
-                A.shape_[1] = 1;
-                A.strides_[1] = stridesB[0] * shapeB[0];
-                A.ldims_[1] = stridesB[0] * shapeB[0];
+                if(shapeB[0] == 0){
+                    A.shape_[1] = 0;
+                }else{
+                    A.shape_[1] = 1;
+                }
+                A.strides_[1] = Max(1, stridesB[0] * shapeB[0]);
+                A.ldims_[1] = Max(1, stridesB[0] * shapeB[0]);
             }
         }else{
             if(mergeModes[0].size() == 0){
-                A.shape_[0] = 1;
+                A.shape_[1] = prod(FilterVector(shapeB, mergeModes[1]));
+                A.strides_[1] = Max(1, stridesB[0]);
+                A.ldims_[1] = Max(1, stridesB[0]);
+
+                if(A.shape_[1] == 0){
+                    A.shape_[0] = 0;
+                }else{
+                    A.shape_[0] = 1;
+                }
                 A.strides_[0] = 1;
                 A.ldims_[0] = 1;
-
-                A.shape_[1] = prod(FilterVector(shapeB, mergeModes[1]));
-                A.strides_[1] = stridesB[0];
-                A.ldims_[1] = stridesB[0];
             }else if(mergeModes[1].size() == 0){
                 A.shape_[0] = prod(FilterVector(shapeB, mergeModes[0]));
-                A.strides_[0] = stridesB[0];
-                A.ldims_[0] = stridesB[0];
+                A.strides_[0] = Max(1, stridesB[0]);
+                A.ldims_[0] = Max(1, stridesB[0]);
 
-                A.shape_[1] = 1;
-                A.strides_[1] = stridesB[order-1] * shapeB[order - 1];
-                A.ldims_[1] = stridesB[order - 1] * shapeB[order - 1];
+                if(A.shape_[0] == 0){
+                    A.shape_[1] = 0;
+                }else{
+                    A.shape_[1] = 1;
+                }
+                A.strides_[1] = Max(1, stridesB[order-1] * shapeB[order - 1]);
+                A.ldims_[1] = Max(1, stridesB[order - 1] * shapeB[order - 1]);
             }else{
                 A.shape_[0] = prod(FilterVector(shapeB, mergeModes[0]));
-                A.strides_[0] = stridesB[0];
-                A.ldims_[0] = stridesB[0];
+                A.strides_[0] = Max(1, stridesB[0]);
+                A.ldims_[0] = Max(1, stridesB[0]);
 
                 A.shape_[1] = prod(FilterVector(shapeB, mergeModes[1]));
-                A.strides_[1] = stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1];
-                A.ldims_[1] = stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1];
+                A.strides_[1] = Max(1, stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1]);
+                A.ldims_[1] = Max(1, stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1]);
             }
         }
     //    A.data_     = B.data_;

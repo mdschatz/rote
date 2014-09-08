@@ -450,10 +450,15 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
         shape_.insert(shape_.begin() + sorted[i], 1);
 
         Unsigned newStrideVal;
-        if(sorted[i] == shape_.size())
-            newStrideVal = strides_[shape_.size() - 1] * shape_[shape_.size() - 1];
-        else
+        if(sorted[i] == strides_.size()){
+            if(sorted[i] == 0){
+                newStrideVal = 1;
+            }else{
+                newStrideVal = strides_[shape_.size() - 1] * shape_[shape_.size() - 1];
+            }
+        }else{
             newStrideVal = strides_[sorted[i]];
+        }
 
         strides_.insert(strides_.begin() + sorted[i], newStrideVal);
         ldims_.insert(ldims_.begin() + sorted[i], newStrideVal);
