@@ -138,15 +138,20 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     for(i = 0; i < rModes.size(); i++)
         packElem[rModes[i]] = 0;
 
-//    PrintVector(packElem, "packElem");
-//    PrintVector(uniqueSModes, "uniqueSModes");
-//    PrintVector(nProcsForSMode, "procsForSMode");
-//    PrintVector(A.Shape(), "shapeA");
-//    PrintVector(A.LocalShape(), "localShapeA");
+    PrintVector(packElem, "packElem");
+    PrintVector(uniqueSModes, "uniqueSModes");
+    PrintVector(modeStrideFactor, "modeStrideFactor");
+    PrintVector(A.Shape(), "shapeA");
+    PrintVector(A.LocalShape(), "localShapeA");
 
     if(ElemwiseLessThan(packElem, A.Shape())){
         ElemSelectHelper(packData, uniqueSModes.size() - 1, commModes, uniqueSModes, packElem, modeStrideFactor, nCommElemsPerProc, A, &(dataBuf[0]), &(sendBuf[0]));
     }
+    std::cout << "sendBuf:";
+    for(Unsigned i = 0; i < prod(sendShape); i++){
+        std::cout << " " << sendBuf[i];
+    }
+    std::cout << std::endl;
 }
 
 template <typename T>

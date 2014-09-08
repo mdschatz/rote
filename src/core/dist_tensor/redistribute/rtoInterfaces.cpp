@@ -47,6 +47,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
 template <typename T>
 void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
     Unsigned i;
+    Unsigned order = A.Order();
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
     TensorDistribution dist = A.TensorDist();
@@ -56,6 +57,11 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     for(i = 0; i < rModes.size(); i++)
         tmpShape[rModes[i]] = Min(gv.Dimension(rModes[i]), A.Dimension(rModes[i]));
 
+    //NOTE: Cannot write (Investigate)
+    // DistTensor<T> tmp(order, g);
+    // tmp.AlignWith(A);
+    // tmp.SetDistribution(A.TensorDist());
+    // tmp.ResizeTo(tmpShape);
     DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
     tmp.AlignWith(A);
     tmp.SetDistribution(A.TensorDist());
@@ -64,7 +70,6 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     LocalReduce(tmp, A, rModes);
 
-    const Unsigned order = A.Order();
     ObjShape tmp2Shape = A.Shape();
 
     TensorDistribution tmp2Dist =   A.TensorDist();

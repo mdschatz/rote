@@ -61,13 +61,6 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
     const tmen::Grid& g = A.Grid();
 
-    PrintVector(commModes);
-    std::cout << tmen::TensorDistToString(A.TensorDist()) << std::endl;
-    if(Participating())
-        printf("participating\n");
-    else
-        printf("not participating\n");
-    PrintVector(commModes, "getting comm for modes");
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
@@ -88,7 +81,6 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     //NOTE: RS and AG pack routines are the exact same
     PackAGCommSendBuf(A, sendBuf);
 
-    printf("my Rank in comm: %d\n", mpi::CommRank(comm));
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
 
     if(!(Participating()))
