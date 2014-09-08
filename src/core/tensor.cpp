@@ -160,6 +160,26 @@ Tensor<T>::Tensor
     data_ = memory_.Buffer();
 }
 
+//NOTE: THIS IS A DUMMY CONSTRUCTOR. IT WILL BE REMOVED/MERGED
+template<typename T>
+Tensor<T>::Tensor
+( const ObjShape& shape, const std::vector<Unsigned>& strides, Unsigned check, bool fixed )
+: shape_(shape), strides_(strides), ldims_(strides),
+  viewType_( fixed ? OWNER_FIXED : OWNER )
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::Tensor");
+//    AssertValidDimensions( shape, strides );
+#endif
+//    SetLDims(shape);
+//    SetStrides(shape_);
+    const Unsigned order = Order();
+    Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
+
+    memory_.Require( numElem );
+    data_ = memory_.Buffer();
+}
+
 //TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor

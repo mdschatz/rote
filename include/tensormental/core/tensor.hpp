@@ -40,6 +40,7 @@ public:
     Tensor( const Unsigned order, bool fixed = false);
     Tensor( const ObjShape& shape, bool fixed=false );
     Tensor( const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
+    Tensor( const ObjShape& shape, const std::vector<Unsigned>& ldims, Unsigned check, bool fixed=false );
     Tensor
     ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
     Tensor( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
