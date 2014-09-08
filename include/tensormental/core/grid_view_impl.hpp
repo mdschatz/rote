@@ -277,6 +277,22 @@ GridView::RemoveUnitModes(const ModeArray& unitModes)
 }
 
 inline
+void
+GridView::IntroduceUnitModes(const ModeArray& unitModes)
+{
+    Unsigned i;
+    ModeArray sorted = unitModes;
+    std::sort(sorted.begin(), sorted.end());
+    ModeArray blank(0);
+    for(i = 0; i < sorted.size(); i++){
+        shape_.insert(shape_.begin() + sorted[i], 1);
+        loc_.insert(loc_.begin() + sorted[i], 0);
+        dist_.insert(dist_.begin() + sorted[i], blank);
+    }
+}
+
+
+inline
 bool
 GridView::Participating() const
 {

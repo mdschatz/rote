@@ -26,7 +26,6 @@ void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
         modeAlignments_.erase(modeAlignments_.begin() + sorted[i]);
         modeShifts_.erase(modeShifts_.begin() + sorted[i]);
     }
-    std::cout << "Removing unit mode of distTensor" << std::endl;
     tensor_.RemoveUnitModes(unitModes);
     gridView_.RemoveUnitModes(unitModes);
     ResizeTo(Shape());
@@ -41,7 +40,7 @@ void DistTensor<T>::RemoveUnitModeRedist(const Mode& unitMode){
 
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>
-void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions){
+void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitModes){
 //    if(!CheckIntroduceUnitModesRedist(B, A, newModePositions))
 //        LogicError("IntroduceUnitModesRedist: Invalid redistribution request");
 //
@@ -50,6 +49,21 @@ void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& newMod
 //    T* dst = B.Buffer(start);
 //    const T* src = A.LockedBuffer(start);
 //    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
+
+    Unsigned i;
+    ModeArray sorted = unitModes;
+    ModeArray blank(0);
+    std::sort(sorted.begin(), sorted.end());
+    for(i = 0; i < sorted.size(); i++){
+        shape_.insert(shape_.begin() + sorted[i], 1);
+        dist_.insert(dist_.begin() + sorted[i], blank);
+        constrainedModeAlignments_.insert(constrainedModeAlignments_.begin() + sorted[i], false);
+        modeAlignments_.insert(modeAlignments_.begin() + sorted[i], 0);
+        modeShifts_.insert(modeShifts_.begin() + sorted[i], 0);
+    }
+    tensor_.IntroduceUnitModes(unitModes);
+    gridView_.IntroduceUnitModes(unitModes);
+    ResizeTo(Shape());
 }
 
 template<typename T>

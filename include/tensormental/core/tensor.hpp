@@ -88,6 +88,7 @@ public:
 
     void RemoveUnitModes(const ModeArray& modes);
     void RemoveUnitMode(const Mode& mode);
+    void IntroduceUnitModes(const ModeArray& modes);
     void IntroduceUnitMode(const Unsigned& modePosition);
 
     //

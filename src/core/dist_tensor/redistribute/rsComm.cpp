@@ -155,11 +155,11 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTenso
     const Unsigned order = Order();
     T* dataBuf = Buffer();
 
-//    std::cout << "recvBuf:";
-//    for(Unsigned i = 0; i < prod(MaxLocalShape()); i++){
-//        std::cout << " " << recvBuf[i];
-//    }
-//    std::cout << std::endl;
+    std::cout << "recvBuf:";
+    for(Unsigned i = 0; i < prod(A.MaxLocalShape()); i++){
+        std::cout << " " << recvBuf[i];
+    }
+    std::cout << std::endl;
 
     const Location zeros(order, 0);
     const Location ones(order, 1);

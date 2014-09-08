@@ -100,12 +100,13 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::G
         Location gridSliceLoc = FilterVector(gridLoc, sortedCommModes);
         Location gridSliceNegLoc = NegFilterVector(gridLoc, sortedCommModes);
 
-//        PrintVector(gridSliceShape, "gridSliceShape");
-//        PrintVector(gridSliceNegShape, "gridSliceNegShape");
-//        PrintVector(gridSliceLoc, "gridSliceLoc");
-//        PrintVector(gridSliceNegLoc, "gridSliceNegLoc");
+        PrintVector(gridSliceShape, "gridSliceShape");
+        PrintVector(gridSliceNegShape, "gridSliceNegShape");
+        PrintVector(gridSliceLoc, "gridSliceLoc");
+        PrintVector(gridSliceNegLoc, "gridSliceNegLoc");
         const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
         const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
+        printf("myKey: %d myColor: %d\n", commKey, commColor);
 
         //Check this, original was commented line with participating
         mpi::CommSplit(grid.OwningComm(), commColor, commKey, comm);

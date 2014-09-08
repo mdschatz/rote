@@ -272,12 +272,10 @@ DistTensor<T>::Get( const Location& loc ) const
     const Location owningProc = DetermineOwner(loc);
 //    PrintVector(loc, "loc");
 //    PrintVector(owningProc, "owner");
-
+//    PrintVector(grid_->Loc(), "myLoc");
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
-//    PrintVector(loc, "Getting loc");
-//    PrintVector(owningProc, "Owner");
     if(Participating()){
         if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
 //            printf("thats me\n");

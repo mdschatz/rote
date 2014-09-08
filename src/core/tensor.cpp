@@ -438,17 +438,33 @@ Tensor<T>::RemoveUnitModes(const ModeArray& modes){
     std::cout << "Removing unit mode of tensor" << std::endl;
     ResizeTo(shape_);
 }
-//
-//template<typename T>
-//void
-//Tensor<T>::RemoveUnitMode(const Mode& mode){
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::RemoveUnitMode");
-//#endif
-//    shape_.erase(shape_.begin() + mode);
-//    strides_.erase(strides_.begin() + mode);
-//    ldims_.erase(ldims_.begin() + mode);
-//}
+
+template<typename T>
+void
+Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::IntroduceUnitModes");
+#endif
+    Unsigned i;
+    ModeArray sorted = modes;
+    std::sort(sorted.begin(), sorted.end());
+    PrintVector(shape_, "shape_");
+    for(i = 0; i < sorted.size(); i++){
+        shape_.insert(shape_.begin() + sorted[i], 1);
+        PrintVector(shape_, "shape_");
+        Unsigned newStrideVal;
+        if(sorted[i] == shape_.size())
+            newStrideVal = strides_[shape_.size() - 1] * shape_[shape_.size() - 1];
+        else
+            newStrideVal = strides_[sorted[i]];
+
+        strides_.insert(strides_.begin() + sorted[i], newStrideVal);
+        ldims_.insert(ldims_.begin() + sorted[i], newStrideVal);
+    }
+    std::cout << "Removing unit mode of tensor" << std::endl;
+    ResizeTo(shape_);
+}
+
 //
 //template<typename T>
 //void

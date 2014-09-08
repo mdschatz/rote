@@ -66,7 +66,8 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     if(Participating())
         printf("participating\n");
     else
-        printf("not particiapting\n");
+        printf("not participating\n");
+    PrintVector(commModes, "getting comm for modes");
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
@@ -87,6 +88,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     //NOTE: RS and AG pack routines are the exact same
     PackAGCommSendBuf(A, sendBuf);
 
+    printf("my Rank in comm: %d\n", mpi::CommRank(comm));
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
 
     if(!(Participating()))

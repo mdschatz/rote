@@ -398,14 +398,14 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
 
-    if(commRank == 0){
+//    if(commRank == 0){
         printf("Reducing to one modes (");
         if(rModes.size() > 0)
             printf("%d", rModes[0]);
         for(i = 1; i < rModes.size(); i++)
             printf(", %d", rModes[i]);
-//        printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
-    }
+        printf("): %s <-- %s\n", (tmen::TensorDistToString(resDist)).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
+//    }
 
     ObjShape shapeB = A.Shape();
     ModeArray sortedRModes = rModes;
@@ -414,8 +414,7 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
         shapeB.erase(shapeB.begin() + sortedRModes[i]);
     }
 
-    DistTensor<T> B(shapeB, resDist, A.Alignments(), g);
-
+    DistTensor<T> B(shapeB, resDist, NegFilterVector(A.Alignments(), rModes), g);
 
     B.ReduceToOneRedistFrom(A, rModes);
     Print(B, "B after reduce-to-one redist");
@@ -1574,28 +1573,29 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestLGRedist(A, lModes, commGroups, resDist);
 //    }
 
-    if(commRank == 0){
-            printf("Performing ReduceToOne tests\n");
-    }
-    for(i = 0; i < rtoTests.size(); i++){
-        RTOTest thisTest = rtoTests[i];
-        Mode rsMode = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRTORedist(A, rsMode, resDist);
-        break;
-    }
-
 //    if(commRank == 0){
-//            printf("Performing ReduceToOneG tests\n");
+//            printf("Performing ReduceToOne tests\n");
 //    }
-//    for(i = 0; i < rtogTests.size(); i++){
-//        RTOGTest thisTest = rtogTests[i];
-//        ModeArray rModes = thisTest.first;
+//    for(i = 0; i < rtoTests.size(); i++){
+//        RTOTest thisTest = rtoTests[i];
+//        Mode rsMode = thisTest.first;
 //        TensorDistribution resDist = thisTest.second;
 //
-//        TestRTOGRedist(A, rModes, resDist);
+//        TestRTORedist(A, rsMode, resDist);
+//        break;
 //    }
+
+    if(commRank == 0){
+            printf("Performing ReduceToOneG tests\n");
+    }
+    for(i = 0; i < rtogTests.size(); i++){
+        RTOGTest thisTest = rtogTests[i];
+        ModeArray rModes = thisTest.first;
+        TensorDistribution resDist = thisTest.second;
+
+        TestRTOGRedist(A, rModes, resDist);
+
+    }
 //
 //    if(commRank == 0){
 //        printf("Performing PartialReduceScatter tests\n");
@@ -1719,7 +1719,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
     const ObjShape shape = A.Shape();
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
-    for(i = 2; i < order; i++){
+    for(i = 0; i < order; i++){
         Mode mode = i;
         printf("Iterating over mode: %d\n", mode);
 
@@ -1735,7 +1735,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
                             AB,   A2, mode, 1);
             /////////////////////////////////
             Print(A1, "A1before");
-//            if(count == 1)
+            if(count == 1)
                 DistTensorTest<T>(A1, args, g);
             count++;
             /////////////////////////////////
@@ -1788,6 +1788,7 @@ main( int argc, char* argv[] )
 
         const Grid g( comm, args.gridShape );
 
+        PrintVector(g.Loc(), "gridLoc");
         if( commRank == 0 )
         {
             std::cout << "------------------" << std::endl

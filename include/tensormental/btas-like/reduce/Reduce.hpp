@@ -23,24 +23,27 @@ namespace tmen{
 template <typename T>
 void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
     Unsigned i;
-    Mode reduceMode = reduceModes[mode];
-    Unsigned srcBufPtr = 0;
-    Unsigned dstBufPtr = 0;
+    //NOTE: What about scalars?  (reduceShape.size() == 0)
+    if(reduceModes.size() != 0){
+        Mode reduceMode = reduceModes[mode];
+        Unsigned srcBufPtr = 0;
+        Unsigned dstBufPtr = 0;
 
-    if(mode == 0){
-        if(srcStrides[reduceMode] == 1 && dstStrides[reduceMode] == 1){
-            for(i = 0; i < reduceShape[reduceMode]; i++)
-                dstBuf[0] += srcBuf[i];
+        if(mode == 0){
+            if(srcStrides[reduceMode] == 1 && dstStrides[reduceMode] == 1){
+                for(i = 0; i < reduceShape[reduceMode]; i++)
+                    dstBuf[0] += srcBuf[i];
+            }else{
+                for(i = 0; i < reduceShape[reduceMode]; i++){
+                    dstBuf[0] += srcBuf[i];
+                    srcBufPtr += srcStrides[reduceMode];
+                }
+            }
         }else{
             for(i = 0; i < reduceShape[reduceMode]; i++){
-                dstBuf[0] += srcBuf[i];
+                LocalReduceHelper(mode - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[0]), dstStrides);
                 srcBufPtr += srcStrides[reduceMode];
             }
-        }
-    }else{
-        for(i = 0; i < reduceShape[reduceMode]; i++){
-            LocalReduceHelper(mode - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[0]), dstStrides);
-            srcBufPtr += srcStrides[reduceMode];
         }
     }
 }
@@ -48,18 +51,22 @@ void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const 
 template <typename T>
 void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonReduceModes, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
     Unsigned i;
-    Mode nonReduceMode = nonReduceModes[elemMode];
-    Unsigned srcBufPtr = 0;
-    Unsigned dstBufPtr = 0;
+    if(nonReduceModes.size() == 0){
+        LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[0]), srcStrides, &(dstBuf[0]), dstStrides);
+    }else{
+        Mode nonReduceMode = nonReduceModes[elemMode];
+        Unsigned srcBufPtr = 0;
+        Unsigned dstBufPtr = 0;
 
-    for(i = 0; i < reduceShape[nonReduceMode]; i++){
-        if(elemMode == 0)
-            LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
-        else
-            LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
+        for(i = 0; i < reduceShape[nonReduceMode]; i++){
+            if(elemMode == 0)
+                LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
+            else
+                LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
 
-        srcBufPtr += srcStrides[nonReduceMode];
-        dstBufPtr += dstStrides[nonReduceMode];
+            srcBufPtr += srcStrides[nonReduceMode];
+            dstBufPtr += dstStrides[nonReduceMode];
+        }
     }
 }
 

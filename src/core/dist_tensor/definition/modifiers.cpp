@@ -127,10 +127,18 @@ DistTensor<T>::AlignWith( const DistTensor<T>& A )
     const tmen::Grid& grid = A.Grid();
     SetGrid( grid );
 
-    modeAlignments_ = A.modeAlignments_;
-    for(i = 0; i < order; i++)
+    for(i = 0; i < order; i++){
+        modeAlignments_[i] = A.modeAlignments_[i] % ModeStride(i);
         constrainedModeAlignments_[i] = true;
+    }
     SetShifts();
+}
+
+template<typename T>
+void
+DistTensor<T>::SetDistribution( const TensorDistribution& tenDist)
+{
+    dist_ = tenDist;
 }
 
 template<typename T>
