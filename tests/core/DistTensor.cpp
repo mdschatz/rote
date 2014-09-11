@@ -575,7 +575,14 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
     }
 
 //    Print(A, "A before local redist");
-    B.LocalRedistFrom(A, lModes, gridRedistModes);
+//    B.LocalRedistFrom(A, lModes, gridRedistModes);
+    Permutation perm(4);
+    perm[0] = 3;
+    perm[1] = 1;
+    perm[2] = 0;
+    perm[3] = 2;
+    PrintVector(perm, "permutation");
+    B.LocalRedistFromWithPermutation(A, lModes, gridRedistModes, perm);
 //    CheckResult(B);
     Print(B, "B after local redist");
 }
@@ -726,8 +733,17 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
+//    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
 //    CheckResult(B);
+
+    Permutation perm(4);
+    perm[0] = 3;
+    perm[1] = 1;
+    perm[2] = 0;
+    perm[3] = 2;
+    PrintVector(perm, "permutation");
+    B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups, perm);
+//    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
     Print(B, "B after a2a redist");
 }
 
@@ -1536,70 +1552,70 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
     std::vector<RTOTest> rtoTests = CreateRTOTests(A, args);
     std::vector<RTOGTest> rtogTests = CreateRTOGTests(A, args);
 
-    if(commRank == 0){
-        printf("Performing CopyLocalBuffer tests\n");
-    }
-    TestCopyBuffer(A);
-
-    if(commRank == 0){
-        printf("Performing AllGather tests\n");
-    }
-    for(i = 0; i < agTests.size(); i++){
-        AGTest thisTest = agTests[i];
-        Mode agMode = thisTest.first.first;
-        ModeArray redistModes = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestAGRedist(A, agMode, redistModes, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing AllGatherG tests\n");
-    }
-    for(i = 0; i < aggTests.size(); i++){
-        AGGTest thisTest = aggTests[i];
-        ModeArray agModes = thisTest.first.first;
-        std::vector<ModeArray> redistGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestAGGRedist(A, agModes, redistGroups, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing Gather-to-one tests\n");
-    }
-    for(i = 0; i < gtoTests.size(); i++){
-        GTOTest thisTest = gtoTests[i];
-        Mode gMode = thisTest.first.first;
-        ModeArray redistModes = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestGTORedist(A, gMode, redistModes, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing Gather-to-one-G tests\n");
-    }
-    for(i = 0; i < gtogTests.size(); i++){
-        GTOGTest thisTest = gtogTests[i];
-        ModeArray gModes = thisTest.first.first;
-        std::vector<ModeArray> redistGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestGTOGRedist(A, gModes, redistGroups, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing Local redist tests\n");
-    }
-    for(i = 0; i < lTests.size(); i++){
-        LTest thisTest = lTests[i];
-        Mode lMode = thisTest.first;
-        ModeDistribution resDist = thisTest.second;
-
-        TestLRedist(A, lMode, resDist);
-    }
-
+//    if(commRank == 0){
+//        printf("Performing CopyLocalBuffer tests\n");
+//    }
+//    TestCopyBuffer(A);
+//
+//    if(commRank == 0){
+//        printf("Performing AllGather tests\n");
+//    }
+//    for(i = 0; i < agTests.size(); i++){
+//        AGTest thisTest = agTests[i];
+//        Mode agMode = thisTest.first.first;
+//        ModeArray redistModes = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestAGRedist(A, agMode, redistModes, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing AllGatherG tests\n");
+//    }
+//    for(i = 0; i < aggTests.size(); i++){
+//        AGGTest thisTest = aggTests[i];
+//        ModeArray agModes = thisTest.first.first;
+//        std::vector<ModeArray> redistGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestAGGRedist(A, agModes, redistGroups, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing Gather-to-one tests\n");
+//    }
+//    for(i = 0; i < gtoTests.size(); i++){
+//        GTOTest thisTest = gtoTests[i];
+//        Mode gMode = thisTest.first.first;
+//        ModeArray redistModes = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestGTORedist(A, gMode, redistModes, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing Gather-to-one-G tests\n");
+//    }
+//    for(i = 0; i < gtogTests.size(); i++){
+//        GTOGTest thisTest = gtogTests[i];
+//        ModeArray gModes = thisTest.first.first;
+//        std::vector<ModeArray> redistGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestGTOGRedist(A, gModes, redistGroups, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing Local redist tests\n");
+//    }
+//    for(i = 0; i < lTests.size(); i++){
+//        LTest thisTest = lTests[i];
+//        Mode lMode = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
+//
+//        TestLRedist(A, lMode, resDist);
+//    }
+//
     if(commRank == 0){
         printf("Performing LocalG redist tests\n");
     }
@@ -1611,30 +1627,29 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 
         TestLGRedist(A, lModes, commGroups, resDist);
     }
-
-    if(commRank == 0){
-            printf("Performing ReduceToOne tests\n");
-    }
-    for(i = 0; i < rtoTests.size(); i++){
-        RTOTest thisTest = rtoTests[i];
-        Mode rsMode = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRTORedist(A, rsMode, resDist);
-        break;
-    }
-
-    if(commRank == 0){
-            printf("Performing ReduceToOneG tests\n");
-    }
-    for(i = 0; i < rtogTests.size(); i++){
-        RTOGTest thisTest = rtogTests[i];
-        ModeArray rModes = thisTest.first;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRTOGRedist(A, rModes, resDist);
-
-    }
+//
+//    if(commRank == 0){
+//            printf("Performing ReduceToOne tests\n");
+//    }
+//    for(i = 0; i < rtoTests.size(); i++){
+//        RTOTest thisTest = rtoTests[i];
+//        Mode rsMode = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestRTORedist(A, rsMode, resDist);
+//        break;
+//    }
+//
+//    if(commRank == 0){
+//            printf("Performing ReduceToOneG tests\n");
+//    }
+//    for(i = 0; i < rtogTests.size(); i++){
+//        RTOGTest thisTest = rtogTests[i];
+//        ModeArray rModes = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestRTOGRedist(A, rModes, resDist);
+//    }
 
     //NOTE: Broken
 //    if(commRank == 0){
@@ -1648,52 +1663,52 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestPRSRedist(A, rsMode, resDist);
 //    }
 
-    if(commRank == 0){
-        printf("Performing ReduceScatter tests\n");
-    }
-    for(i = 0; i < rsTests.size(); i++){
-        RSTest thisTest = rsTests[i];
-        Mode rMode = thisTest.first.first;
-        Mode sMode = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRSRedist(A, rMode, sMode, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing ReduceScatterGeneral tests\n");
-    }
-    for(i = 0; i < rsgTests.size(); i++){
-        RSGTest thisTest = rsgTests[i];
-        ModeArray rModes = thisTest.first.first;
-        ModeArray sModes = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRSGRedist(A, rModes, sModes, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing Permutation tests\n");
-    }
-    for(i = 0; i < pTests.size(); i++){
-        PTest thisTest = pTests[i];
-        Mode pMode = thisTest.first;
-        ModeDistribution resDist = thisTest.second;
-
-        TestPRedist(A, pMode, resDist);
-    }
-
-    if(commRank == 0){
-        printf("Performing All-to-all (double index) tests\n");
-    }
-    for(i = 0; i < a2admTests.size(); i++){
-        A2ADMTest thisTest = a2admTests[i];
-        std::pair<Mode, Mode> a2aModes = thisTest.first.first;
-        std::pair<ModeArray, ModeArray > commGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestA2ADMRedist(A, a2aModes, commGroups, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing ReduceScatter tests\n");
+//    }
+//    for(i = 0; i < rsTests.size(); i++){
+//        RSTest thisTest = rsTests[i];
+//        Mode rMode = thisTest.first.first;
+//        Mode sMode = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestRSRedist(A, rMode, sMode, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing ReduceScatterGeneral tests\n");
+//    }
+//    for(i = 0; i < rsgTests.size(); i++){
+//        RSGTest thisTest = rsgTests[i];
+//        ModeArray rModes = thisTest.first.first;
+//        ModeArray sModes = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestRSGRedist(A, rModes, sModes, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing Permutation tests\n");
+//    }
+//    for(i = 0; i < pTests.size(); i++){
+//        PTest thisTest = pTests[i];
+//        Mode pMode = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
+//
+//        TestPRedist(A, pMode, resDist);
+//    }
+//
+//    if(commRank == 0){
+//        printf("Performing All-to-all (double index) tests\n");
+//    }
+//    for(i = 0; i < a2admTests.size(); i++){
+//        A2ADMTest thisTest = a2admTests[i];
+//        std::pair<Mode, Mode> a2aModes = thisTest.first.first;
+//        std::pair<ModeArray, ModeArray > commGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestA2ADMRedist(A, a2aModes, commGroups, resDist);
+//    }
 
     if(commRank == 0){
         printf("Performing All-to-all tests\n");
@@ -1839,8 +1854,8 @@ main( int argc, char* argv[] )
         DistTensor<int> A(args.tensorShape, args.tensorDist, g);
         Set(A);
 
-//        DistTensorTest<int>( A, args, g );
-        PerformTest<int>(A, args, g);
+        DistTensorTest<int>( A, args, g );
+//        PerformTest<int>(A, args, g);
 
 //        if( commRank == 0 )
 //        {

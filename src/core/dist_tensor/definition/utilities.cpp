@@ -156,6 +156,9 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
 
 template<typename T>
 void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::PackCommHelper");
+#endif
     Unsigned packSlice;
 
     if(packData.loopShape.size() == 0){
@@ -171,12 +174,24 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
 
+    Unsigned i;
+    std::string ident = "";
+    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+        ident += "  ";
+
+
     if(packMode == 0){
         if(dstBufStride == 1 && srcBufStride == 1){
+            std::cout << ident << "copying " << loopEnd << "elements" << std::endl;
             MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
         }else{
             for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
                 dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+
+                std::cout << ident << "Packing mode: " << packMode << "iteration: " << packSlice << "of: " << loopEnd << "by: " << loopInc << std::endl;
+                std::cout << ident << "copying elem " << srcBuf[srcBufPtr] << std::endl;
+                std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
+                std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
                 dstBufPtr += dstBufStride;
                 srcBufPtr += srcBufStride;
             }
@@ -184,6 +199,9 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
     }else{
         for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
             PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+
+            std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
+            std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
             dstBufPtr += dstBufStride;
             srcBufPtr += srcBufStride;
         }
@@ -451,6 +469,83 @@ void DistTensor<T>::ElemSelectUnpackHelper(const PackData& packData, const ElemS
             newData.packElem = elem;
             newData.dstElem = dstElem;
             ElemSelectUnpackHelper(data, newData, mode - 1, A, &(recvBuf[0]), &(dataBuf[0]));
+        }
+    }
+}
+
+////////////////////////////////////
+////////////////////////////////////
+////////////////////////////////////
+
+template<typename T>
+void DistTensor<T>::ElemSelectUnpackHelperWithPermutation(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const recvBuf, T * const dataBuf){
+    Unsigned order = A.Order();
+    if(order == 0){
+        PackCommHelper(packData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    }
+    PackData data = packData;
+    Location elem = elemData.packElem;
+    Location dstElem = elemData.dstElem;
+    std::vector<Unsigned> srcStrides = elemData.srcStrides;
+    std::vector<Unsigned> dstStrides = elemData.dstStrides;
+    ModeArray changedA2AModes = elemData.changedModes;
+    std::vector<Unsigned> nProcsPerA2AMode = elemData.loopShape;
+    ModeArray commModes = elemData.commModes;
+    Unsigned nElemsPerProc = elemData.nElemsPerProc;
+    Unsigned i;
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const tmen::Grid& g = Grid();
+    const Mode changedA2AMode = changedA2AModes[mode];
+
+//    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
+    Unsigned startLoc = elemData.packElem[changedA2AMode];
+    for(i = 0; i < nProcsPerA2AMode[changedA2AMode]; i++){
+        elem[changedA2AMode] = startLoc + i * gvB.ModeWrapStride(changedA2AMode);
+//        std::cout << "PackTestHelper mode: " << mode << std::endl;
+//        PrintVector(elem, "elem is now");
+        if(elem[changedA2AMode] >= Dimension(changedA2AMode)){
+//            printf("continuing\n");
+            continue;
+        }
+        data.loopStarts[changedA2AMode] = i;
+        dstElem[changedA2AMode] = i;
+
+        if(mode == 0){
+//            printf("hmm\n");
+            Location ownerA = A.DetermineOwner(elem);
+            Location ownerGridLoc = GridViewLoc2GridLoc(ownerA, gvA);
+            Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
+
+//            printf("sMode: %d\n", a2aModeTo);
+//            PrintVector(ownerB, "ownerB");
+//            PrintVector(ownerGridLoc, "ownerGridLoc");
+//            PrintVector(commModes, "commModes");
+//            printf("commLinLoc: %d\n", commLinLoc);
+
+//            PrintVector(elem, "pack Global elem");
+//            PrintVector(data.loopStarts, "local location");
+
+//            std::cout << "offsetting dataBuf by: " << i * A.LocalModeStride(a2aModeTo) << std::endl;
+//            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
+//            printf("pack data:\n");
+//            PrintVector(data.loopShape, "  loop shape");
+//            PrintVector(data.loopStarts, "  loop starts");
+//            PrintVector(data.loopIncs, "  loop incs");
+//            PrintVector(data.srcBufStrides, "  srcBufStrides");
+//            PrintVector(data.dstBufStrides, "  dstBufStrides");
+            PrintVector(dstElem, "dstElem");
+            PrintVector(FilterVector(dstElem, elemData.permutation), "permuted");
+            Unsigned dataBufPtr = LinearLocFromStrides(FilterVector(dstElem, elemData.permutation), dstStrides);
+            printf("starting pack at lin loc: %d\n", dataBufPtr);
+            printf("unpacking first element: %d\n", recvBuf[commLinLoc * nElemsPerProc]);
+            PackCommHelper(data, order - 1, &(recvBuf[commLinLoc * nElemsPerProc]), &(dataBuf[dataBufPtr]));
+//            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
+        }else{
+            ElemSelectData newData = elemData;
+            newData.packElem = elem;
+            newData.dstElem = dstElem;
+            ElemSelectUnpackHelperWithPermutation(data, newData, mode - 1, A, &(recvBuf[0]), &(dataBuf[0]));
         }
     }
 }

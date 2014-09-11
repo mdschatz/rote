@@ -42,6 +42,7 @@ struct PackData
     std::vector<Unsigned> dstBufStrides;
     std::vector<Unsigned> loopStarts;
     std::vector<Unsigned> loopIncs;
+    Permutation permutation;
 };
 
 struct YAxpPxData{
@@ -74,7 +75,7 @@ struct ElemSelectData{
     ModeArray changedModes;
     ModeArray commModes;
     Unsigned nElemsPerProc;
-
+    Permutation permutation;
 };
 
 template<typename Real>

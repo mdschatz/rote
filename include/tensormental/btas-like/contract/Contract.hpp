@@ -174,6 +174,88 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
 //    C.CopyBuffer(tmp);
 }
 
+////////////////////////////////////
+// Local routines without repacking
+////////////////////////////////////
+
+//NOTE: Assumes A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
+template <typename T>
+void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
+#ifndef RELEASE
+    CallStackEntry("LocalContract");
+
+    if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
+        LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
+
+#endif
+    Unsigned i;
+    const std::vector<ModeArray> contractPerms(DetermineContractModes(indicesA, indicesB, indicesC));
+    const IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+    const Unsigned nIndicesContract = contractIndices.size();
+
+    //Determine the permutations for each Tensor
+    const Permutation permA = contractPerms[0];
+    const Permutation permB = contractPerms[1];
+    const Permutation permC = contractPerms[2];
+    const Permutation invPermC = DetermineInversePermutation(permC);
+
+    Tensor<T> MPA, MPB, MPC;
+
+    const Unsigned nIndicesM = permA.size() - nIndicesContract;
+
+    //View as matrices
+//    printf("MPA Merged %d indices left and %d right\n", nIndicesM, PA.Order() - nIndicesM);
+//    printf("MPB Merged %d indices left and %d right\n", nIndicesContract, PB.Order() - nIndicesContract);
+//    printf("MPC Merged %d indices left and %d right\n", nIndicesM, PC.Order() - nIndicesM);
+    ViewAsMatrix(MPA, A, nIndicesM );
+    ViewAsMatrix(MPB, B, nIndicesContract );
+    ViewAsMatrix(MPC, C, nIndicesM );
+
+//    PrintData(MPA, "MPA");
+//    PrintData(MPB, "MPB");
+//    PrintData(MPC, "MPC");
+//    Print(MPA, "MPA");
+//    Print(MPB, "MPB");
+//    Print(MPC, "MPC");
+    Gemm(alpha, MPA, MPB, beta, MPC);
+//    Print(MPC, "PostMult");
+    //View as tensor
+
+    ObjShape splitColModes(nIndicesM);
+    for(i = 0; i < splitColModes.size(); i++)
+        splitColModes[i] = i;
+
+    std::vector<ObjShape> newShape(2);
+    newShape[0] = FilterVector(C.Shape(), splitColModes);
+    newShape[1] = NegFilterVector(C.Shape(), splitColModes);
+
+    ViewAsHigherOrder(C, MPC, newShape);
+
+//    Print(C, "result C");
+}
+
+//NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
+template <typename T>
+void LocalContractAndLocalEliminateDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
+
+    Unsigned i;
+    Unsigned order = C.Order();
+    IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+
+    ModeArray uModes(contractIndices.size());
+    for(i = 0; i < uModes.size(); i++)
+        uModes[i] = i + order;
+
+    IndexArray CIndices = ConcatenateVectors(indicesC, contractIndices);
+
+    C.IntroduceUnitModes(uModes);
+
+    LocalContractDirect(alpha, A, indicesA, B, indicesB, beta, C, CIndices);
+
+    C.RemoveUnitModes(uModes);
+
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_BTAS_CONTRACT_HPP
