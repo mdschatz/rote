@@ -306,11 +306,13 @@ public:
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
     void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PermutationCommRedistWithPermutation(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes, const Permutation& perm);
 
     //
     // Point-to-point interface routines
     //
     void PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PermutationRedistFromWithPermutation(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes, const Permutation& perm);
 
     //
     // Reduce-scatter workhorse routines
@@ -319,6 +321,8 @@ public:
     void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, T * const sendBuf);
     void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes);
     void UnpackRSCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
+    void ReduceScatterCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes, const Permutation& perm);
+    void UnpackRSCommRecvBufWithPermutation(const T* const recvBuf, const DistTensor<T>& A, const Permutation& perm);
 
     //
     // Reduce-scatter interface routines
@@ -328,6 +332,8 @@ public:
     void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes);
     void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
     void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode);
+    void ReduceScatterRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const Permutation& perm);
+    void ReduceScatterUpdateRedistFromWithPermutation(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes, const Permutation& perm);
 
     //
     // Reduce-to-one workhorse routines

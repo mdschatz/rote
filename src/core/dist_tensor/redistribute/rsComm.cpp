@@ -172,6 +172,65 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTenso
     PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 
+template <typename T>
+void DistTensor<T>::ReduceScatterCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes, const Permutation& perm){
+//    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
+//      LogicError("ReduceScatterRedist: Invalid redistribution request");
+    const tmen::Grid& g = A.Grid();
+
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+
+    if(!A.Participating())
+        return;
+    Unsigned sendSize, recvSize;
+
+    //Determine buffer sizes for communication
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
+    const ObjShape maxLocalShapeB = MaxLocalShape();
+    recvSize = prod(maxLocalShapeB);
+    sendSize = recvSize * nRedistProcs;
+
+//    PrintVector(maxLocalShapeB, "sendShape");
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    PackRSCommSendBuf(A, reduceModes, scatterModes, sendBuf);
+
+    mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
+
+    if(!(Participating()))
+        return;
+    UnpackRSCommRecvBufWithPermutation(recvBuf, A, perm);
+}
+
+template <typename T>
+void DistTensor<T>::UnpackRSCommRecvBufWithPermutation(const T * const recvBuf, const DistTensor<T>& A, const Permutation& perm)
+{
+    const Unsigned order = Order();
+    T* dataBuf = Buffer();
+
+//    std::cout << "recvBuf:";
+//    for(Unsigned i = 0; i < prod(A.MaxLocalShape()); i++){
+//        std::cout << " " << recvBuf[i];
+//    }
+//    std::cout << std::endl;
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+    Permutation invPerm = DetermineInversePermutation(perm);
+    PackData unpackData;
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = FilterVector(LocalStrides(), invPerm);
+    unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
+
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )
