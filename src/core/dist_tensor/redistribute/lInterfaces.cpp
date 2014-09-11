@@ -33,7 +33,7 @@ void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const ModeArray& loc
 template<typename T>
 void DistTensor<T>::LocalRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes, const Permutation& perm){
     ResizeTo(A);
-    LocalCommRedist(A, localModes);
+    LocalCommRedistWithPermutation(A, localModes, perm);
 }
 
 #define PROTO(T) template class DistTensor<T>

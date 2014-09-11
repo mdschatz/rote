@@ -156,12 +156,13 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
     }
     std::sort(commModes.begin(), commModes.end());
 
-    tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
+    tmp2.ReduceToOneCommRedistWithPermutation(tmp, rModes, commModes);
 
     tmp2.RemoveUnitModesRedist(rModes);
 
+    //NOTE: Permutation already performed in unpack of tmp2
     if(Participating())
-        CopyLocalBufferWithPermutation(tmp2, perm);
+        CopyLocalBuffer(tmp2);
 }
 
 #define PROTO(T) template class DistTensor<T>
