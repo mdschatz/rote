@@ -37,6 +37,18 @@ DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allG
     AllGatherCommRedist(A, allGatherModes, commModes);
 }
 
+template <typename T>
+void
+DistTensor<T>::AllGatherRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups, const Permutation& perm ){
+    Unsigned i;
+    ResizeTo(A);
+    ModeArray commModes;
+    for(i = 0; i < redistGroups.size(); i++)
+        commModes.insert(commModes.end(), redistGroups[i].begin(), redistGroups[i].end());
+    std::sort(commModes.begin(), commModes.end());
+    AllGatherCommRedistWithPermutation(A, allGatherModes, commModes, perm);
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

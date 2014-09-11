@@ -153,6 +153,15 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
     tensor_.CopyBuffer(A.LockedTensor());
 }
 
+template<typename T>
+void
+DistTensor<T>::CopyLocalBufferWithPermutation(const DistTensor<T>& A, const Permutation& perm)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::CopyBuffer");
+#endif
+    tensor_.CopyBufferWithPermutation(A.LockedTensor(), perm);
+}
 
 template<typename T>
 void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){

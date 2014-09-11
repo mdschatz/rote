@@ -165,6 +165,7 @@ public:
     void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void PackCommHelper(const PackData& packData, const Mode packMode, const Permutation& perm, T const * const srcBuf, T * const dstBuf);
     void CopyBuffer(const Tensor& A);
+    void CopyBufferWithPermutation(const Tensor& A, const Permutation& perm);
 
 private:
     ObjShape shape_;

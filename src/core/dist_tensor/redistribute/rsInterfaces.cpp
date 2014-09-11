@@ -127,6 +127,23 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode r
     ReduceScatterRedistFrom(A, reduceModes, scatterModes);
 }
 
+template<typename T>
+void
+DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+#endif
+
+    ModeArray reduceModes(1);
+    ModeArray scatterModes(1);
+
+    reduceModes[0] = reduceMode;
+    scatterModes[0] = scatterMode;
+
+    ReduceScatterUpdateRedistFrom(A, beta, reduceModes, scatterModes);
+}
+
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, const Permutation& perm){
     Unsigned i;
@@ -207,22 +224,6 @@ DistTensor<T>::ReduceScatterUpdateRedistFromWithPermutation(const DistTensor<T>&
 }
 
 
-template<typename T>
-void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
-#endif
-
-    ModeArray reduceModes(1);
-    ModeArray scatterModes(1);
-
-    reduceModes[0] = reduceMode;
-    scatterModes[0] = scatterMode;
-
-    ReduceScatterUpdateRedistFrom(A, beta, reduceModes, scatterModes);
-}
 
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
