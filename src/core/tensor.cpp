@@ -466,6 +466,9 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
     Unsigned i;
     ModeArray sorted = modes;
     std::sort(sorted.begin(), sorted.end());
+    shape_.reserve(shape_.size() + sorted.size());
+    strides_.reserve(strides_.size() + sorted.size());
+    ldims_.reserve(ldims_.size() + sorted.size());
     for(i = 0; i < sorted.size(); i++){
         shape_.insert(shape_.begin() + sorted[i], 1);
 
