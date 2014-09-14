@@ -156,7 +156,7 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
     }
     std::sort(commModes.begin(), commModes.end());
 
-    tmp2.ReduceToOneCommRedistWithPermutation(tmp, rModes, commModes);
+    tmp2.ReduceToOneCommRedistWithPermutation(tmp, rModes, commModes, perm);
 
     tmp2.RemoveUnitModesRedist(rModes);
 

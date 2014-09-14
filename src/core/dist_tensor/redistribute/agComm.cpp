@@ -124,7 +124,7 @@ DistTensor<T>::AllGatherCommRedistWithPermutation(const DistTensor<T>& A, const 
         return;
 
     //NOTE: AG and A2A unpack routines are the exact same
-    UnpackA2ACommRecvBufWithPermutation(recvBuf, agModes, commModes, perm, maxLocalShapeA, A);
+    UnpackA2ACommRecvBufWithPermutation(recvBuf, agModes, commModes, maxLocalShapeA, A, perm);
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 

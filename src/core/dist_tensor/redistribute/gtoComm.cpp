@@ -123,7 +123,7 @@ void DistTensor<T>::GatherToOneCommRedistWithPermutation(const DistTensor<T>& A,
         return;
 
     //NOTE: AG, A2A, and GTO unpack routines are the exact same
-    UnpackA2ACommRecvBufWithPermutation(recvBuf, gatherModes, commModes, perm, maxLocalShapeA, A);
+    UnpackA2ACommRecvBufWithPermutation(recvBuf, gatherModes, commModes, maxLocalShapeA, A, perm);
 }
 
 #define PROTO(T) template class DistTensor<T>

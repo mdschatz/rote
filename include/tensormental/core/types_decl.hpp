@@ -58,6 +58,19 @@ struct YxpByData{
     std::vector<Unsigned> dstStrides;
 };
 
+struct AxpyData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> dstStrides;
+};
+
+struct ElemScalData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> dstStrides;
+};
+
 struct ZAxpByData{
     ObjShape loopShape;
     std::vector<Unsigned> src1Strides;

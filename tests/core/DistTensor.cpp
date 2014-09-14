@@ -742,7 +742,7 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
     perm[2] = 0;
     perm[3] = 2;
     PrintVector(perm, "permutation");
-    B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups, perm);
+    B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups, perm, perm);
 //    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
     Print(B, "B after a2a redist");
 }

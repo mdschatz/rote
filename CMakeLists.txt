@@ -471,7 +471,7 @@ if(TMEN_TESTS)
 
   set(core_TESTS DistTensor Views Grids Woody)
   set(btas_TESTS Level1 Contract)
-  set(applications_TESTS MP3 Test3)
+  set(applications_TESTS MP3 MP3 Vesta Test3)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")
