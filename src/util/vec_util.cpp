@@ -169,6 +169,19 @@ bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec
 }
 
 template<typename T>
+std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm){
+    Unsigned i;
+    std::vector<T> ret;
+    for(i = 0; i < perm.size(); i++){
+        if(perm[i] < 0 || perm[i] >= vec.size())
+            continue;
+        else
+            ret.push_back(vec[perm[i]]);
+    }
+    return ret;
+}
+
+template<typename T>
 std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter){
 	Unsigned i;
 	std::vector<T> ret;
@@ -277,6 +290,7 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template std::vector<T> PermuteVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \

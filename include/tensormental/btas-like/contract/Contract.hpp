@@ -68,9 +68,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     const Permutation permC = contractPerms[2];
     const Permutation invPermC = DetermineInversePermutation(permC);
 
-    Tensor<T> PA(FilterVector(A.Shape(), permA));
-    Tensor<T> PB(FilterVector(B.Shape(), permB));
-    Tensor<T> PC(FilterVector(C.Shape(), permC));
+    Tensor<T> PA(PermuteVector(A.Shape(), permA));
+    Tensor<T> PB(PermuteVector(B.Shape(), permB));
+    Tensor<T> PC(PermuteVector(C.Shape(), permC));
     Tensor<T> IPC;
     Tensor<T> MPA, MPB, MPC;
 

@@ -248,7 +248,7 @@ DistTensor<T>::ResizeLocalUnderPerm(const Permutation& perm)
     CallStackEntry cse("DistTensor::ResizeLocalUnderPerm");
 #endif
     if(Participating()){
-        tensor_.ResizeTo(FilterVector(Lengths(shape_, modeShifts_, gridView_.ParticipatingShape()), perm));
+        tensor_.ResizeTo(PermuteVector(Lengths(shape_, modeShifts_, gridView_.ParticipatingShape()), perm));
     }
 }
 
@@ -285,7 +285,7 @@ DistTensor<T>::Set( const Location& loc, T u )
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
 //        printf("I'm the owner\n");
         const Location localLoc = Global2LocalIndex(loc);
-        SetLocal(localLoc, u);
+        SetLocal(PermuteVector(localLoc, localPerm_), u);
     }
 //    printf("Exiting\n");
 }
@@ -302,7 +302,7 @@ DistTensor<T>::Update( const Location& loc, T u )
     const Location owningProc = DetermineOwner(loc);
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
         const Location localLoc = Global2LocalIndex(loc);
-        UpdateLocal(localLoc, u);
+        UpdateLocal(PermuteVector(localLoc, localPerm_), u);
     }
 }
 
@@ -763,6 +763,28 @@ template<typename T>
 void
 DistTensor<T>::UpdateLocal( const Location& loc, T alpha )
 { tensor_.Update(loc,alpha); }
+
+template<typename T>
+void
+DistTensor<T>::SetLocalPermutation(const Permutation& perm)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::SetLocalPermutation");
+#endif
+    localPerm_ = perm;
+}
+
+template<typename T>
+void
+DistTensor<T>::SetDefaultPermutation()
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::SetDefaultPermutation");
+#endif
+    Unsigned i;
+    for(i = 0; i < Order(); i++)
+        localPerm_[i] = i;
+}
 
 #define FULL(T) \
     template class DistTensor<T>;

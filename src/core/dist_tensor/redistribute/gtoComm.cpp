@@ -90,7 +90,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 }
 
 template <typename T>
-void DistTensor<T>::GatherToOneCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& gatherModes, const ModeArray& commModes, const Permutation& perm){
+void DistTensor<T>::GatherToOneCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& gatherModes, const ModeArray& commModes){
 //    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
 //      LogicError("GatherToOneRedist: Invalid redistribution request");
 
@@ -123,7 +123,7 @@ void DistTensor<T>::GatherToOneCommRedistWithPermutation(const DistTensor<T>& A,
         return;
 
     //NOTE: AG, A2A, and GTO unpack routines are the exact same
-    UnpackA2ACommRecvBufWithPermutation(recvBuf, gatherModes, commModes, maxLocalShapeA, A, perm);
+    UnpackA2ACommRecvBufWithPermutation(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
 }
 
 #define PROTO(T) template class DistTensor<T>

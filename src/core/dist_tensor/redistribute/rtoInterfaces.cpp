@@ -105,7 +105,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 }
 
 template <typename T>
-void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& rModes, const Permutation& perm){
+void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& rModes){
     Unsigned i;
     Unsigned order = A.Order();
     const tmen::GridView gv = A.GetGridView();
@@ -156,7 +156,7 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
     }
     std::sort(commModes.begin(), commModes.end());
 
-    tmp2.ReduceToOneCommRedistWithPermutation(tmp, rModes, commModes, perm);
+    tmp2.ReduceToOneCommRedistWithPermutation(tmp, rModes, commModes);
 
     tmp2.RemoveUnitModesRedist(rModes);
 

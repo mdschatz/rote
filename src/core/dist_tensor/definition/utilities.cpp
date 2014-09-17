@@ -570,11 +570,11 @@ void DistTensor<T>::ElemSelectUnpackHelperWithPermutation(const PackData& packDa
     std::vector<Unsigned> nProcsPerA2AMode = elemData.loopShape;
     ModeArray commModes = elemData.commModes;
     Unsigned nElemsPerProc = elemData.nElemsPerProc;
-    Unsigned i;
+    Unsigned i, j;
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
     const tmen::Grid& g = Grid();
-    const Mode changedA2AMode = changedA2AModes[mode];
+    const Mode changedA2AMode = mode;
 
 //    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
     Unsigned startLoc = elemData.packElem[changedA2AMode];
@@ -612,18 +612,28 @@ void DistTensor<T>::ElemSelectUnpackHelperWithPermutation(const PackData& packDa
 //            PrintVector(data.loopIncs, "  loop incs");
 //            PrintVector(data.srcBufStrides, "  srcBufStrides");
 //            PrintVector(data.dstBufStrides, "  dstBufStrides");
-            PrintVector(dstElem, "dstElem");
-            PrintVector(FilterVector(dstElem, elemData.permutation), "permuted");
-            Unsigned dataBufPtr = LinearLocFromStrides(FilterVector(dstElem, elemData.permutation), dstStrides);
-            printf("starting pack at lin loc: %d\n", dataBufPtr);
-            printf("unpacking first element: %d\n", recvBuf[commLinLoc * nElemsPerProc]);
+//            PrintVector(dstElem, "dstElem");
+//            PrintVector(PermuteVector(dstElem, elemData.permutation), "permuted dstElem");
+            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(dstElem, elemData.permutation), dstStrides);
+            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
+//            printf("starting pack at lin loc: %d\n", dataBufPtr);
+//            printf("unpacking first element: %d\n", recvBuf[commLinLoc * nElemsPerProc]);
             PackCommHelper(data, order - 1, &(recvBuf[commLinLoc * nElemsPerProc]), &(dataBuf[dataBufPtr]));
 //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
         }else{
+//            printf("ping\n");
+//            printf("order: %d\n", order);
+//            printf("mode: %d\n", mode);
             ElemSelectData newData = elemData;
             newData.packElem = elem;
             newData.dstElem = dstElem;
             ElemSelectUnpackHelperWithPermutation(data, newData, mode - 1, A, &(recvBuf[0]), &(dataBuf[0]));
+//            if(mode == order-1){
+//                printf("dataBuf:");
+//                for(j = 0; j < prod(LocalShape()); j++)
+//                    printf(" %d", dataBuf[j]);
+//                printf("\n");
+//            }
         }
     }
 }

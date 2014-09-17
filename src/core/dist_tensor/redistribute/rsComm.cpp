@@ -173,7 +173,7 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTenso
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes, const Permutation& perm){
+void DistTensor<T>::ReduceScatterCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes){
 //    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
 //      LogicError("ReduceScatterRedist: Invalid redistribution request");
     const tmen::Grid& g = A.Grid();
@@ -203,11 +203,11 @@ void DistTensor<T>::ReduceScatterCommRedistWithPermutation(const DistTensor<T>& 
 
     if(!(Participating()))
         return;
-    UnpackRSCommRecvBufWithPermutation(recvBuf, A, perm);
+    UnpackRSCommRecvBufWithPermutation(recvBuf, A);
 }
 
 template <typename T>
-void DistTensor<T>::UnpackRSCommRecvBufWithPermutation(const T * const recvBuf, const DistTensor<T>& A, const Permutation& perm)
+void DistTensor<T>::UnpackRSCommRecvBufWithPermutation(const T * const recvBuf, const DistTensor<T>& A)
 {
     const Unsigned order = Order();
     T* dataBuf = Buffer();
@@ -220,11 +220,10 @@ void DistTensor<T>::UnpackRSCommRecvBufWithPermutation(const T * const recvBuf, 
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    Permutation invPerm = DetermineInversePermutation(perm);
     PackData unpackData;
     unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = FilterVector(LocalStrides(), invPerm);
-    unpackData.srcBufStrides = Dimensions2Strides(MaxLocalShape());
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(MaxLocalShape()), localPerm_);
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 

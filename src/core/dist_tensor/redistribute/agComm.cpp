@@ -81,7 +81,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
 
 template<typename T>
 void
-DistTensor<T>::AllGatherCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& agModes, const ModeArray& commModes, const Permutation& perm){
+DistTensor<T>::AllGatherCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& agModes, const ModeArray& commModes){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AllGatherCommRedist");
 //    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
@@ -124,7 +124,7 @@ DistTensor<T>::AllGatherCommRedistWithPermutation(const DistTensor<T>& A, const 
         return;
 
     //NOTE: AG and A2A unpack routines are the exact same
-    UnpackA2ACommRecvBufWithPermutation(recvBuf, agModes, commModes, maxLocalShapeA, A, perm);
+    UnpackA2ACommRecvBufWithPermutation(recvBuf, agModes, commModes, maxLocalShapeA, A);
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 

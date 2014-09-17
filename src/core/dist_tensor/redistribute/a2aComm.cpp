@@ -211,7 +211,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 ///////////////////////
 
 template <typename T>
-void DistTensor<T>::AllToAllCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const Permutation& unpackPerm){
+void DistTensor<T>::AllToAllCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes){
     //    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
     //        LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
@@ -248,11 +248,11 @@ void DistTensor<T>::AllToAllCommRedistWithPermutation(const DistTensor<T>& A, co
 
         if(!(Participating()))
             return;
-        UnpackA2ACommRecvBufWithPermutation(recvBuf, changedA2AModes, commModes, commDataShape, A, unpackPerm);
+        UnpackA2ACommRecvBufWithPermutation(recvBuf, changedA2AModes, commModes, commDataShape, A);
 }
 
 template<typename T>
-void DistTensor<T>::UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModesAll, const ObjShape& recvShape, const DistTensor<T>& A, const Permutation& perm){
+void DistTensor<T>::UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModesAll, const ObjShape& recvShape, const DistTensor<T>& A){
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();
 
@@ -313,38 +313,38 @@ void DistTensor<T>::UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf,
 
     //Local storage is permuted.  That is why tmpStrides not LocalStrides()
 
-    std::vector<Unsigned> tmpStrides = Dimensions2Strides(FilterVector(LocalShape(), perm));
-
-    Permutation invPerm = DetermineInversePermutation(perm);
+    Permutation invPerm = DetermineInversePermutation(localPerm_);
     PackData unpackData;
     unpackData.loopShape = LocalShape();
-    unpackData.srcBufStrides = Dimensions2Strides(recvShape);
+//    PrintVector(localPerm_, "localPerm_");
+    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
 //    unpackData.dstBufStrides = FilterVector(tmpStrides, invPerm);
-    unpackData.dstBufStrides = ElemwiseProd(FilterVector(tmpStrides, invPerm), modeStrideFactor);
+    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
 //    unpackData.dstBufStrides = FilterVector(ElemwiseProd(LocalStrides(), modeStrideFactor), invPerm);
 
     unpackData.loopStarts = zeros;
-    unpackData.loopIncs = modeStrideFactor;
+    unpackData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
 
-    PrintVector(unpackData.loopShape, "unpackShape");
-    PrintVector(unpackData.srcBufStrides, "unpackStrides");
-    PrintVector(tmpStrides, "tmpStrides");
-    PrintVector(unpackData.dstBufStrides, "permuted strides");
-    PrintVector(LocalStrides(), "Bs local strides");
+//    PrintVector(recvShape, "srcShape");
+//    PrintVector(unpackData.loopShape, "unpackShape");
+//    PrintVector(unpackData.loopIncs, "loop incs");
+//    PrintVector(unpackData.srcBufStrides, "srcStrides");
+//    PrintVector(unpackData.dstBufStrides, "dstStrides");
+//    PrintVector(LocalStrides(), "Bs local strides");
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
 //        A2AUnpackTestHelper(unpackData, changedA2AModes.size() - 1, commModesAll, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(recvShape), A, &(recvBuf[0]), &(dataBuf[0]));
         ElemSelectData elemData;
         elemData.commModes = commModesAll;
-        elemData.changedModes = changedA2AModes;
+//        elemData.changedModes = FilterVector(localPerm_, changedA2AModes);
         elemData.packElem = myFirstElemLoc;
         elemData.loopShape = modeStrideFactor;
         elemData.nElemsPerProc = prod(recvShape);
         elemData.dstElem = zeros;
-        elemData.dstStrides = tmpStrides;
-        elemData.permutation = perm;
+        elemData.dstStrides = LocalStrides();
+        elemData.permutation = localPerm_;
 
-        ElemSelectUnpackHelperWithPermutation(unpackData, elemData, changedA2AModes.size() - 1, A, &(recvBuf[0]), &(dataBuf[0]));
+        ElemSelectUnpackHelperWithPermutation(unpackData, elemData, order - 1, A, &(recvBuf[0]), &(dataBuf[0]));
     }
 
 //    Unsigned i;

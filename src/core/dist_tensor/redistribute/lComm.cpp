@@ -139,17 +139,17 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
 }
 
 template<typename T>
-void DistTensor<T>::LocalCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& localModes, const Permutation& perm){
+void DistTensor<T>::LocalCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& localModes){
 //    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
 //        LogicError("LocalRedist: Invalid redistribution request");
     if(!(Participating()))
         return;
     //Packing is what is stored in memory
-    UnpackLocalCommRedistWithPermutation(A, localModes, perm);
+    UnpackLocalCommRedistWithPermutation(A, localModes);
 }
 
 template <typename T>
-void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& lModes, const Permutation& perm)
+void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& lModes)
 {
     Unsigned i;
     Unsigned order = A.Order();
@@ -174,12 +174,12 @@ void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A,
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    Permutation invPerm = DetermineInversePermutation(perm);
+    Permutation invPerm = DetermineInversePermutation(localPerm_);
 
     PackData unpackData;
     unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.srcBufStrides = FilterVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), perm);
+    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPerm);
+    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), A.localPerm_);
 //    unpackData.srcBufStrides[lMode] *= nRedistProcs;
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;

@@ -281,7 +281,7 @@ DistTensor<T>::Get( const Location& loc ) const
 //            printf("thats me\n");
             const Location localLoc = Global2LocalIndex(loc);
 //            PrintVector(localLoc, "locally at");
-            u = GetLocal(localLoc);
+            u = GetLocal(PermuteVector(localLoc, localPerm_));
         }
 
 //        //Get the lin loc of the owner

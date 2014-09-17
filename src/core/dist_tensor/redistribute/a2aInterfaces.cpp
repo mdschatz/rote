@@ -48,9 +48,9 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups, const Permutation& unpackPerm){
+void DistTensor<T>::AllToAllRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups){
     Unsigned i;
-    ResizeTo(A);
+//    ResizeTo(A);
     ModeArray commModes;
     for(i = 0; i < a2aCommGroups.size(); i++)
         commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());
@@ -60,7 +60,7 @@ void DistTensor<T>::AllToAllRedistFromWithPermutation(const DistTensor<T>& A, co
     std::sort(changedA2AModes.begin(), changedA2AModes.end());
     changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
 
-    AllToAllCommRedistWithPermutation(A, changedA2AModes, commModes, unpackPerm);
+    AllToAllCommRedistWithPermutation(A, changedA2AModes, commModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

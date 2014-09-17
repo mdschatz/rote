@@ -145,7 +145,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, const Permutation& perm){
+void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes){
     Unsigned i;
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
@@ -187,7 +187,7 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
     }
     std::sort(commModes.begin(), commModes.end());
 
-    tmp2.ReduceScatterCommRedistWithPermutation(tmp, rModes, sModes, commModes, perm);
+    tmp2.ReduceScatterCommRedistWithPermutation(tmp, rModes, sModes, commModes);
 
     tmp2.RemoveUnitModesRedist(rModes);
 
@@ -205,7 +205,7 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
 
 template<typename T>
 void
-DistTensor<T>::ReduceScatterUpdateRedistFromWithPermutation(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes, const Permutation& perm)
+DistTensor<T>::ReduceScatterUpdateRedistFromWithPermutation(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
@@ -216,7 +216,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFromWithPermutation(const DistTensor<T>&
     T* tmpBuf = tmp.Buffer();
     MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
 
-    tmp.ReduceScatterRedistFromWithPermutation(A, reduceModes, scatterModes, perm);
+    tmp.ReduceScatterRedistFromWithPermutation(A, reduceModes, scatterModes);
 
     ResizeTo(tmpShape);
 

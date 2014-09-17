@@ -91,7 +91,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
 }
 
 template <typename T>
-void DistTensor<T>::ReduceToOneCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, const Permutation& perm){
+void DistTensor<T>::ReduceToOneCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes){
 //    if(!CheckReduceToOneCommRedist(A, reduceMode))
 //      LogicError("ReduceToOneRedist: Invalid redistribution request");
 
@@ -125,7 +125,7 @@ void DistTensor<T>::ReduceToOneCommRedistWithPermutation(const DistTensor<T>& A,
         return;
 
     //NOTE: RS and RTO unpack routines are the exact same
-    UnpackRSCommRecvBufWithPermutation(recvBuf, A, perm);
+    UnpackRSCommRecvBufWithPermutation(recvBuf, A);
 }
 
 #define PROTO(T) template class DistTensor<T>
