@@ -378,6 +378,7 @@ public:
 
     void ResizeTo( const DistTensor<T>& A);
     void ResizeTo( const ObjShape& shape );
+    void ResizeLocalUnderPerm( const Permutation& perm );
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
     // Distribution alignment

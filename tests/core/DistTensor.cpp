@@ -582,6 +582,9 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
     perm[2] = 0;
     perm[3] = 2;
     PrintVector(perm, "permutation");
+    PrintVector(B.LocalShape(), "LocalShape");
+    B.ResizeLocalUnderPerm(perm);
+    PrintVector(B.LocalShape(), "PLocalShape");
     B.LocalRedistFromWithPermutation(A, lModes, gridRedistModes, perm);
 //    CheckResult(B);
     Print(B, "B after local redist");
@@ -742,6 +745,7 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
     perm[2] = 0;
     perm[3] = 2;
     PrintVector(perm, "permutation");
+    B.ResizeLocalUnderPerm(perm);
     B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups, perm, perm);
 //    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
     Print(B, "B after a2a redist");

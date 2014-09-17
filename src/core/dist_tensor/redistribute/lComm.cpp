@@ -178,12 +178,17 @@ void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A,
 
     PackData unpackData;
     unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = FilterVector(LocalStrides(), invPerm);
-    unpackData.srcBufStrides = ElemwiseProd(A.LocalStrides(), modeStrideFactor);
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = FilterVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), perm);
 //    unpackData.srcBufStrides[lMode] *= nRedistProcs;
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
+//    PrintVector(A.LocalShape(), "srcLocalShape");
+//    PrintVector(LocalShape(), "dstLocalShape");
+//    PrintVector(unpackData.loopShape, "loopShape");
+//    PrintVector(unpackData.dstBufStrides, "dstStrides");
+//    PrintVector(unpackData.srcBufStrides, "srcStrides");
     const Location myFirstElemLoc = ModeShifts();
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
@@ -193,32 +198,6 @@ void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A,
             srcBufPtr += firstLocInA[lModes[i]] * A.LocalModeStride(lModes[i]);
         PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
     }
-//    PrintVector(unpackElem, "unpackElem");
-//    PrintVector(changedA2AModes, "uniqueA2AModesTo");
-//    PrintVector(Shape(), "shapeA");
-//    PrintVector(LocalShape(), "localShapeA");
-
-//    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
-////        A2AUnpackTestHelper(unpackData, changedA2AModes.size() - 1, commModesAll, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(recvShape), A, &(recvBuf[0]), &(dataBuf[0]));
-//        ElemSelectData elemData;
-//        elemData.commModes = gridRedistModes;
-//        elemData.changedModes = lModes;
-//        elemData.packElem = myFirstElemLoc;
-//        elemData.loopShape = modeStrideFactor;
-//        elemData.nElemsPerProc = prod(recvShape);
-//
-//        ElemSelectUnpackHelper(unpackData, elemData, changedAGModes.size() - 1, A, &(recvBuf[0]), &(dataBuf[0]));
-//    }
-
-    //----------------------------------------
-    //----------------------------------------
-
-//    const ObjShape redistShape = FilterVector(Grid().Shape(), gridRedistModes);
-//
-//    Location myCommLoc = FilterVector(gridLoc, gridRedistModes);
-//    Unsigned myCommLinLoc = Loc2LinearLoc(myCommLoc, redistShape);
-//
-//    PackCommHelper(unpackData, order - 1, &(srcBuf[myCommLinLoc * A.LocalModeStride(lMode)]), &(dataBuf[0]));
 
 //    printf("dataBuf:");
 //    for(Unsigned i = 0; i < prod(LocalShape()); i++){

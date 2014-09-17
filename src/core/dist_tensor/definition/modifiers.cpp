@@ -242,6 +242,18 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
 
 template<typename T>
 void
+DistTensor<T>::ResizeLocalUnderPerm(const Permutation& perm)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ResizeLocalUnderPerm");
+#endif
+    if(Participating()){
+        tensor_.ResizeTo(FilterVector(Lengths(shape_, modeShifts_, gridView_.ParticipatingShape()), perm));
+    }
+}
+
+template<typename T>
+void
 DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims )
 {
 #ifndef RELEASE

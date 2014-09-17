@@ -184,9 +184,9 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
     Unsigned srcBufPtr = 0;
 
     Unsigned i;
-    std::string ident = "";
-    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-        ident += "  ";
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
 
 
     if(packMode == 0){
