@@ -746,7 +746,7 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
     perm[3] = 2;
     PrintVector(perm, "permutation");
     B.ResizeLocalUnderPerm(perm);
-    B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups, perm, perm);
+    B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups, perm);
 //    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
     Print(B, "B after a2a redist");
 }
@@ -1620,17 +1620,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestLRedist(A, lMode, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing LocalG redist tests\n");
-    }
-    for(i = 0; i < lgTests.size(); i++){
-        LGTest thisTest = lgTests[i];
-        ModeArray lModes = thisTest.first.first;
-        std::vector<ModeArray> commGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestLGRedist(A, lModes, commGroups, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing LocalG redist tests\n");
+//    }
+//    for(i = 0; i < lgTests.size(); i++){
+//        LGTest thisTest = lgTests[i];
+//        ModeArray lModes = thisTest.first.first;
+//        std::vector<ModeArray> commGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestLGRedist(A, lModes, commGroups, resDist);
+//    }
 //
 //    if(commRank == 0){
 //            printf("Performing ReduceToOne tests\n");

@@ -252,8 +252,8 @@ public:
     void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
     void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
     ////////////////////////////
-    void AllToAllCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const Permutation& packPerm, const Permutation& unpackPerm);
-    void PackA2ACommSendBufWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf, const Permutation& perm);
+    void AllToAllCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const Permutation& unpackPerm);
+//    void PackA2ACommSendBufWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf, const Permutation& perm);
     void UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A, const Permutation& perm);
 
     //
@@ -261,7 +261,7 @@ public:
     //
     void AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
     void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups);
-    void AllToAllRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups, const Permutation& packPerm, const Permutation& unpackPerm);
+    void AllToAllRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups, const Permutation& unpackPerm);
 
     //
     // Allgather workhorse routines
