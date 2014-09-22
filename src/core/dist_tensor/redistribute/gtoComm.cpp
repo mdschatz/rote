@@ -115,7 +115,7 @@ void DistTensor<T>::GatherToOneCommRedistWithPermutation(const DistTensor<T>& A,
     T* recvBuf = &(auxBuf[sendSize]);
 
     //NOTE: AG and GTO pack routines are the exact same
-    PackAGCommSendBuf(A, sendBuf);
+    PackAGCommSendBufWithPermutation(A, sendBuf);
 
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 

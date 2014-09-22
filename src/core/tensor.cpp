@@ -63,7 +63,7 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
             msg << ", " << loc[i];
         msg << ") of ";
         if(loc.size() > 0)
-            msg << loc[0];
+            msg << shape_[0];
         for(i = 1; i < order; i++)
             msg << " x " << shape_[i];
         msg << "Tensor.";
@@ -1183,7 +1183,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
 
 template<typename T>
 void
-Tensor<T>::CopyBufferWithPermutation(const Tensor<T>& A, const Permutation& perm)
+Tensor<T>::CopyBufferWithPermutation(const Tensor<T>& A, const Permutation& srcPerm, const Permutation& dstPerm)
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");
@@ -1196,10 +1196,12 @@ Tensor<T>::CopyBufferWithPermutation(const Tensor<T>& A, const Permutation& perm
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
+    Permutation invPermSrc = DetermineInversePermutation(srcPerm);
+    Permutation invPermDst = DetermineInversePermutation(dstPerm);
     PackData packData;
-    packData.loopShape = A.Shape();
-    packData.srcBufStrides = A.Strides();
-    packData.dstBufStrides = Strides();
+    packData.loopShape = PermuteVector(A.Shape(), invPermSrc);
+    packData.srcBufStrides = PermuteVector(A.Strides(), invPermSrc);
+    packData.dstBufStrides = PermuteVector(Strides(), invPermDst);
 
     packData.loopStarts = zeros;
     packData.loopIncs = ones;

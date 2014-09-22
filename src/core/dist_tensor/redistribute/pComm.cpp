@@ -136,7 +136,7 @@ void DistTensor<T>::PermutationCommRedistWithPermutation(const DistTensor<T>& A,
     T* recvBuf = &(auxBuf[sendSize]);
 
     //NOTE: P and AG pack routines are the exact same
-    PackAGCommSendBuf(A, sendBuf);
+    PackAGCommSendBufWithPermutation(A, sendBuf);
 
     const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
     const ModeDistribution permuteModeDistB = ModeDist(permuteMode);

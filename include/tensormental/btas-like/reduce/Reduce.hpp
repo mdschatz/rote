@@ -22,6 +22,7 @@ namespace tmen{
 
 template <typename T>
 void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
+//    std::cout << "before: " << dstBuf[0] << std::endl;
     Unsigned i;
     //NOTE: What about scalars?  (reduceShape.size() == 0)
     if(reduceModes.size() != 0){
@@ -30,12 +31,14 @@ void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const 
 
         if(mode == 0){
             if(srcStrides[reduceMode] == 1 && dstStrides[reduceMode] == 1){
-                for(i = 0; i < reduceShape[reduceMode]; i++)
-                    dstBuf[0] += srcBuf[i];
-            }else{
                 for(i = 0; i < reduceShape[reduceMode]; i++){
                     dstBuf[0] += srcBuf[i];
+                }
+            }else{
+                for(i = 0; i < reduceShape[reduceMode]; i++){
+                    dstBuf[0] += srcBuf[srcBufPtr];
                     srcBufPtr += srcStrides[reduceMode];
+//                    std::cout << "incing by: " << srcStrides[reduceMode] << std::endl;
                 }
             }
         }else{
@@ -45,6 +48,7 @@ void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const 
             }
         }
     }
+//    std::cout << "after: " << dstBuf[0] << std::endl;
 }
 
 template <typename T>
@@ -58,11 +62,11 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
         Unsigned dstBufPtr = 0;
 
         for(i = 0; i < reduceShape[nonReduceMode]; i++){
-            if(elemMode == 0)
+            if(elemMode == 0){
                 LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
-            else
+            }else{
                 LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
-
+            }
             srcBufPtr += srcStrides[nonReduceMode];
             dstBufPtr += dstStrides[nonReduceMode];
         }
@@ -220,6 +224,12 @@ void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMod
         modeArr[0] = reduceMode;
         LocalReduce(B, A, modeArr);
     }
+}
+
+template <typename T>
+void LocalReduceWithPermutation(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes, const Permutation& perm){
+    if(B.Participating())
+        LocalReduce(B.Tensor(), A.LockedTensor(), PermuteVector(reduceModes, perm));
 }
 
 } // namespace tmen

@@ -122,7 +122,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         elemData.srcElem = zeros;
         elemData.srcStrides = A.LocalStrides();
 
-        ElemSelectPackHelper(packData, elemData, changedA2AModes.size() - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+        ElemSelectPackHelperWithPermutation(packData, elemData, changedA2AModes.size() - 1, A, &(dataBuf[0]), &(sendBuf[0]));
     }
 }
 
@@ -235,6 +235,7 @@ void DistTensor<T>::AllToAllCommRedistWithPermutation(const DistTensor<T>& A, co
         sendSize = prod(commDataShape);
         recvSize = sendSize;
 
+        printf("send size: %d\n", sendSize);
         Memory<T> auxMemory;
         T* auxBuf = auxMemory.Require((sendSize + recvSize) * nRedistProcs);
         MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
@@ -242,13 +243,80 @@ void DistTensor<T>::AllToAllCommRedistWithPermutation(const DistTensor<T>& A, co
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
-        PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
+        PackA2ACommSendBufWithPermutation(A, changedA2AModes, commModes, commDataShape, sendBuf);
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
 
         if(!(Participating()))
             return;
         UnpackA2ACommRecvBufWithPermutation(recvBuf, changedA2AModes, commModes, commDataShape, A);
+}
+
+template <typename T>
+void DistTensor<T>::PackA2ACommSendBufWithPermutation(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf){
+    const Unsigned order = A.Order();
+    const T* dataBuf = A.LockedBuffer();
+
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        std::cout << " " <<  dataBuf[i];
+//    }
+//    std::cout << std::endl;
+
+    const Location zeros(order, 0);
+
+    //----------------------------------------
+    //----------------------------------------
+    //----------------------------------------
+
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const ObjShape gvAShape = gvA.ParticipatingShape();
+    const ObjShape gvBShape = gvB.ParticipatingShape();
+
+    const std::vector<Unsigned> commLCMs = LCMs(gvAShape, gvBShape);
+    const std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
+
+    Permutation invPerm = DetermineInversePermutation(A.localPerm_);
+    PackData packData;
+    packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+    packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
+
+    packData.dstBufStrides = Dimensions2Strides(sendShape);
+
+    packData.loopStarts = zeros;
+    packData.loopIncs = modeStrideFactor;
+
+    const Location myFirstElemLoc = A.ModeShifts();
+
+//    PrintVector(packElem, "packElem");
+//    PrintVector(changedA2AModes, "changedA2AModes");
+//    PrintVector(A.Shape(), "shapeA");
+//    PrintVector(A.LocalShape(), "localShapeA");
+//    PrintVector(modeStrideFactor, "modeStrideFactor");
+
+    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
+//        ElemSelectHelper(packData, changedA2AModes.size() - 1, commModes, changedA2AModes, myFirstElemLoc, modeStrideFactor, prod(sendShape), A, &(dataBuf[0]), &(sendBuf[0]));
+        ElemSelectData elemData;
+        elemData.commModes = commModes;
+        elemData.changedModes = changedA2AModes;
+        elemData.packElem = myFirstElemLoc;
+        elemData.loopShape = modeStrideFactor;
+        elemData.nElemsPerProc = prod(sendShape);
+        elemData.srcElem = zeros;
+        elemData.srcStrides = A.LocalStrides();
+        elemData.permutation = A.localPerm_;
+
+        ElemSelectPackHelperWithPermutation(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+    }
+
+//    Unsigned i;
+//    const tmen::Grid& g = Grid();
+//    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
+//    printf("sendBuf:");
+//    for(i = 0; i < prod(sendShape)*nRedistProcs; i++)
+//        printf(" %d", sendBuf[i]);
+//    printf("\n");
 }
 
 template<typename T>

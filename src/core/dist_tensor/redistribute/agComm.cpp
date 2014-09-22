@@ -115,7 +115,7 @@ DistTensor<T>::AllGatherCommRedistWithPermutation(const DistTensor<T>& A, const 
     T* recvBuf = &(auxBuf[sendSize]);
 
     //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
-    PackAGCommSendBuf(A, sendBuf);
+    PackAGCommSendBufWithPermutation(A, sendBuf);
 
     //printf("Allgathering %d elements\n", sendSize);
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
@@ -140,6 +140,35 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   PackData packData;
   packData.loopShape = A.LocalShape();
   packData.srcBufStrides = A.LocalStrides();
+
+  packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
+
+  packData.loopStarts = zeros;
+  packData.loopIncs = ones;
+
+  PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+
+//  Unsigned i;
+//  printf("sendBuf:");
+//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+//      std::cout << " " << sendBuf[i];
+//  }
+//  std::cout << std::endl;
+}
+
+template <typename T>
+void DistTensor<T>::PackAGCommSendBufWithPermutation(const DistTensor<T>& A, T * const sendBuf)
+{
+  const Unsigned order = A.Order();
+  const T* dataBuf = A.LockedBuffer();
+
+  const Location zeros(order, 0);
+  const Location ones(order, 1);
+
+  Permutation invPerm = DetermineInversePermutation(A.localPerm_);
+  PackData packData;
+  packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+  packData.srcBufStrides = PermuteVector(A.LocalStrides(), invPerm);
 
   packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
 

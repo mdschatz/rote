@@ -157,13 +157,26 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
         tmpShape[rModes[i]] = Min(gv.Dimension(rModes[i]), A.Dimension(rModes[i]));
     }
 
+//    PrintVector(tmpShape, "tmpShape");
     DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
     tmp.AlignWith(A);
     tmp.SetDistribution(A.TensorDist());
-    tmp.ResizeTo(tmpShape);
+    tmp.SetLocalPermutation(A.localPerm_);
+    tmp.ResizeToUnderPerm(tmpShape);
+
+//    PrintVector(tmp.Shape(), "tmpShapeAfterPerm");
     Zero(tmp);
 
-    LocalReduce(tmp, A, rModes);
+//    const T* dataBuf = A.LockedBuffer();
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        std::cout << " " << dataBuf[i];
+//    }
+//    std::cout << std::endl;
+
+    LocalReduceWithPermutation(tmp, A, rModes, A.localPerm_);
+//    PrintVector(rModes, "reducing rModes");
+//    Print(tmp, "after localReduce");
 
     ObjShape tmp2Shape = A.Shape();
     TensorDistribution tmp2Dist = A.TensorDist();
@@ -176,10 +189,11 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
 
     DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
     tmp2.AlignWith(tmp);
-    tmp2.ResizeTo(tmp2Shape);
+    tmp2.SetLocalPermutation(A.localPerm_);
+    tmp2.ResizeToUnderPerm(tmp2Shape);
     tmp2.SetDistribution(tmp2Dist);
 
-
+//    printf("tmpDist: %s\n", tmen::TensorDistToString(tmp.TensorDist()).c_str());
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
         ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
@@ -200,7 +214,7 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
 //
 //    ResizeTo(BShape);
     if(Participating())
-        CopyLocalBuffer(tmp2);
+        CopyLocalBufferWithPermutation(tmp2);
 }
 
 template<typename T>

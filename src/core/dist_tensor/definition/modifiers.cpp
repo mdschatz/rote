@@ -253,6 +253,32 @@ DistTensor<T>::ResizeLocalUnderPerm(const Permutation& perm)
 }
 
 template<typename T>
+void DistTensor<T>::ResizeToUnderPerm( const DistTensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::ResizeTo");
+    AssertNotLocked();
+#endif
+    ResizeToUnderPerm(A.Shape());
+}
+
+//TODO: FIX Participating
+template<typename T>
+void
+DistTensor<T>::ResizeToUnderPerm( const ObjShape& shape )
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::ResizeTo");
+    AssertNotLocked();
+#endif
+    shape_ = shape;
+    SetShifts();
+    if(Participating()){
+        tensor_.ResizeTo(PermuteVector(Lengths(shape, modeShifts_, gridView_.ParticipatingShape()), localPerm_));
+    }
+}
+
+template<typename T>
 void
 DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims )
 {
@@ -285,7 +311,7 @@ DistTensor<T>::Set( const Location& loc, T u )
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
 //        printf("I'm the owner\n");
         const Location localLoc = Global2LocalIndex(loc);
-        SetLocal(PermuteVector(localLoc, localPerm_), u);
+        SetLocal(localLoc, u);
     }
 //    printf("Exiting\n");
 }
@@ -302,7 +328,7 @@ DistTensor<T>::Update( const Location& loc, T u )
     const Location owningProc = DetermineOwner(loc);
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
         const Location localLoc = Global2LocalIndex(loc);
-        UpdateLocal(PermuteVector(localLoc, localPerm_), u);
+        UpdateLocal(localLoc, u);
     }
 }
 

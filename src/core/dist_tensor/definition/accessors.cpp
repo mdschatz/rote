@@ -273,6 +273,7 @@ DistTensor<T>::Get( const Location& loc ) const
 //    PrintVector(loc, "loc");
 //    PrintVector(owningProc, "owner");
 //    PrintVector(grid_->Loc(), "myLoc");
+
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
@@ -280,8 +281,10 @@ DistTensor<T>::Get( const Location& loc ) const
         if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
 //            printf("thats me\n");
             const Location localLoc = Global2LocalIndex(loc);
+//            PrintVector(LocalShape(), "localShape");
+//            PrintVector(localPerm_, "localPerm");
 //            PrintVector(localLoc, "locally at");
-            u = GetLocal(PermuteVector(localLoc, localPerm_));
+            u = GetLocal(localLoc);
         }
 
 //        //Get the lin loc of the owner

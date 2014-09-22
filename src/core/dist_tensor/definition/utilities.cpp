@@ -48,6 +48,8 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
     for(i = 0; i < globalLoc.size(); i++){
         localLoc[i] = (globalLoc[i]-ModeShift(i)) / ModeStride(i);
     }
+//    PrintVector(localLoc, "Unpermuted loc");
+    localLoc = PermuteVector(localLoc, localPerm_);
     return localLoc;
 }
 
@@ -155,12 +157,12 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
 
 template<typename T>
 void
-DistTensor<T>::CopyLocalBufferWithPermutation(const DistTensor<T>& A, const Permutation& perm)
+DistTensor<T>::CopyLocalBufferWithPermutation(const DistTensor<T>& A)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::CopyBuffer");
 #endif
-    tensor_.CopyBufferWithPermutation(A.LockedTensor(), perm);
+    tensor_.CopyBufferWithPermutation(A.LockedTensor(), A.localPerm_, localPerm_);
 }
 
 template<typename T>
@@ -505,7 +507,7 @@ void DistTensor<T>::ElemSelectPackHelperWithPermutation(const PackData& packData
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
     const tmen::Grid& g = Grid();
-    const Mode changedA2AMode = changedA2AModes[mode];
+    const Mode changedA2AMode = mode;
 
     //    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
     Unsigned startLoc = elemData.packElem[changedA2AMode];
@@ -522,10 +524,12 @@ void DistTensor<T>::ElemSelectPackHelperWithPermutation(const PackData& packData
 
         if(mode == 0){
 //            printf("hmm\n");
-            Location ownerB = DetermineOwner(FilterVector(elem, elemData.permutation));
+//            PrintVector(elem, "packing elem");
+            Location ownerB = DetermineOwner(elem);
             Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
+//            PrintVector(ownerB, "owner loc");
             Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
-
+//            printf("owner lin loc %d\n", commLinLoc);
 //            printf("sMode: %d\n", a2aModeTo);
 //            PrintVector(ownerB, "ownerB");
 //            PrintVector(ownerGridLoc, "ownerGridLoc");
@@ -543,14 +547,15 @@ void DistTensor<T>::ElemSelectPackHelperWithPermutation(const PackData& packData
 //            PrintVector(data.loopIncs, "  loop incs");
 //            PrintVector(data.srcBufStrides, "  srcBufStrides");
 //            PrintVector(data.dstBufStrides, "  dstBufStrides");
-            Unsigned dataBufPtr = LinearLocFromStrides(srcElem, srcStrides);
+            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(srcElem, elemData.permutation), PermuteVector(srcStrides, elemData.permutation));
+            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
             PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
 //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
         }else{
             ElemSelectData newData = elemData;
             newData.packElem = elem;
             newData.srcElem = srcElem;
-            ElemSelectPackHelper(data, newData, mode - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+            ElemSelectPackHelperWithPermutation(data, newData, mode - 1, A, &(dataBuf[0]), &(sendBuf[0]));
         }
     }
 }
@@ -689,6 +694,72 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const Mode mode, 
             }else{
 
                 ElemSelectHelper(data, mode - 1, commModes, changedA2AModes, elem, nProcsPerA2AMode, nElemsPerProc, A, &(dataBuf[i * A.LocalModeStride(changedA2AMode)]), &(sendBuf[0]));
+            }
+        }
+}
+
+template<typename T>
+void DistTensor<T>::ElemSelectHelperT(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
+    Unsigned order = A.Order();
+        PackData data = packData;
+        Location elem = elemData.packElem;
+        Location srcElem = elemData.srcElem;
+        std::vector<Unsigned> srcStrides = elemData.srcStrides;
+        ModeArray changedA2AModes = elemData.changedModes;
+        std::vector<Unsigned> nProcsPerA2AMode = elemData.loopShape;
+        ModeArray commModes = elemData.commModes;
+        Unsigned nElemsPerProc = elemData.nElemsPerProc;
+        Unsigned i;
+        const tmen::GridView gvA = A.GetGridView();
+        const tmen::GridView gvB = GetGridView();
+        const tmen::Grid& g = Grid();
+        const Mode changedA2AMode = mode;
+
+    //    PrintVector(nProcsPerA2AMode, "nProcsPerA2AMode");
+        Unsigned startLoc = elemData.packElem[changedA2AMode];
+        for(i = 0; i < nProcsPerA2AMode[changedA2AMode]; i++){
+            elem[changedA2AMode] = startLoc + i * gvA.ModeWrapStride(changedA2AMode);
+            srcElem[changedA2AMode] = i;
+    //        std::cout << "PackTestHelper mode: " << mode << std::endl;
+    //        PrintVector(elem, "elem is now");
+            if(elem[changedA2AMode] >= A.Dimension(changedA2AMode)){
+    //            printf("continuing\n");
+                continue;
+            }
+            data.loopStarts[changedA2AMode] = i;
+
+            if(mode == 0){
+    //            printf("hmm\n");
+                Location ownerB = DetermineOwner(elem);
+                Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
+                Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
+
+    //            printf("sMode: %d\n", a2aModeTo);
+    //            PrintVector(ownerB, "ownerB");
+    //            PrintVector(ownerGridLoc, "ownerGridLoc");
+    //            PrintVector(commModes, "commModes");
+    //            printf("commLinLoc: %d\n", commLinLoc);
+
+    //            PrintVector(elem, "pack Global elem");
+    //            PrintVector(data.loopStarts, "local location");
+
+    //            std::cout << "offsetting dataBuf by: " << i * A.LocalModeStride(a2aModeTo) << std::endl;
+    //            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
+    //            printf("pack data:\n");
+    //            PrintVector(data.loopShape, "  loop shape");
+    //            PrintVector(data.loopStarts, "  loop starts");
+    //            PrintVector(data.loopIncs, "  loop incs");
+    //            PrintVector(data.srcBufStrides, "  srcBufStrides");
+    //            PrintVector(data.dstBufStrides, "  dstBufStrides");
+                Unsigned dataBufPtr = LinearLocFromStrides(srcElem, srcStrides);
+
+                PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
+    //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
+            }else{
+                ElemSelectData newData = elemData;
+                newData.packElem = elem;
+                newData.srcElem = srcElem;
+                ElemSelectHelperT(data, newData, mode - 1, A, &(dataBuf[0]), &(sendBuf[0]));
             }
         }
 }

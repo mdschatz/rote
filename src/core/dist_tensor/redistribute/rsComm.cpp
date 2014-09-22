@@ -197,13 +197,80 @@ void DistTensor<T>::ReduceScatterCommRedistWithPermutation(const DistTensor<T>& 
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    PackRSCommSendBuf(A, reduceModes, scatterModes, sendBuf);
+    PackRSCommSendBufWithPermutation(A, reduceModes, scatterModes, commModes, sendBuf);
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
     if(!(Participating()))
         return;
     UnpackRSCommRecvBufWithPermutation(recvBuf, A);
+}
+
+template <typename T>
+void DistTensor<T>::PackRSCommSendBufWithPermutation(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, const ModeArray& commModes, T * const sendBuf)
+{
+    Unsigned i;
+    Unsigned order = A.Order();
+    const T* dataBuf = A.LockedBuffer();
+
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        std::cout << " " << dataBuf[i];
+//    }
+//    std::cout << std::endl;
+
+    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
+    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
+    //Set the mode stride factor to 1 for all reduceModes
+    for(i = 0; i < rModes.size(); i++)
+        modeStrideFactor[rModes[i]] = 1;
+
+    const ObjShape sendShape = MaxLocalShape();
+
+    Permutation invPerm = DetermineInversePermutation(A.localPerm_);
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+    PackData packData;
+    packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+    packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
+
+    packData.dstBufStrides = Dimensions2Strides(sendShape);
+    packData.loopStarts = zeros;
+    packData.loopIncs = modeStrideFactor;
+    const Unsigned nCommElemsPerProc = prod(sendShape);
+
+    const Location myFirstElemLoc = A.ModeShifts();
+    Location packElem = myFirstElemLoc;
+
+    for(i = 0; i < rModes.size(); i++)
+        packElem[rModes[i]] = 0;
+
+    if(ElemwiseLessThan(packElem, A.Shape())){
+        ElemSelectData elemData;
+        elemData.commModes = commModes;
+//        elemData.changedModes = uniqueSModes;
+        elemData.packElem = packElem;
+        elemData.loopShape = modeStrideFactor;
+        elemData.nElemsPerProc = prod(sendShape);
+        elemData.srcElem = zeros;
+        elemData.srcStrides = A.LocalStrides();
+
+//        PrintPackData(packData, "packData");
+//        PrintElemSelectData(elemData, "elemData");
+        ElemSelectHelperT(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+    }
+
+//    const tmen::Grid& g = A.Grid();
+//    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
+//    printf("nRedistProcs: %d\n", nRedistProcs);
+//    std::cout << "sendBuf:";
+//    for(Unsigned i = 0; i < prod(sendShape)* nRedistProcs; i++){
+//        std::cout << " " << sendBuf[i];
+//    }
+//    std::cout << std::endl;
 }
 
 template <typename T>
