@@ -188,28 +188,28 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestLGRedist(A, lModes, commGroups, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing Permutation tests\n");
-    }
-    for(i = 0; i < pTests.size(); i++){
-        PTest thisTest = pTests[i];
-        Mode pMode = thisTest.first;
-        ModeDistribution resDist = thisTest.second;
-
-        TestPRedist(A, pMode, resDist);
-    }
-//
 //    if(commRank == 0){
-//        printf("Performing ReduceScatterG tests\n");
+//        printf("Performing Permutation tests\n");
 //    }
-//    for(i = 0; i < rsgTests.size(); i++){
-//        RSGTest thisTest = rsgTests[i];
-//        ModeArray rModes = thisTest.first.first;
-//        ModeArray sModes = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
+//    for(i = 0; i < pTests.size(); i++){
+//        PTest thisTest = pTests[i];
+//        Mode pMode = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
 //
-//        TestRSGRedist(A, rModes, sModes, resDist);
+//        TestPRedist(A, pMode, resDist);
 //    }
+//
+    if(commRank == 0){
+        printf("Performing ReduceScatterG tests\n");
+    }
+    for(i = 0; i < rsgTests.size(); i++){
+        RSGTest thisTest = rsgTests[i];
+        ModeArray rModes = thisTest.first.first;
+        ModeArray sModes = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestRSGRedist(A, rModes, sModes, resDist);
+    }
 //
 //    if(commRank == 0){
 //            printf("Performing ReduceToOneG tests\n");
