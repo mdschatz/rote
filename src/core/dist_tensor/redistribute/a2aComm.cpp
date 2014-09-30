@@ -418,7 +418,7 @@ void DistTensor<T>::UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf,
         ElemSelectUnpackHelperWithPermutation(unpackData, elemData, order - 1, A, &(recvBuf[0]), &(dataBuf[0]));
     }
 
-//    Unsigned i;
+    Unsigned i;
 //    printf("dataBuf:");
 //    for(i = 0; i < prod(LocalShape()); i++)
 //        printf(" %d", dataBuf[i]);

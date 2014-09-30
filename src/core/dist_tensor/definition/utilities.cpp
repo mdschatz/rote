@@ -547,10 +547,10 @@ void DistTensor<T>::ElemSelectPackHelperWithPermutation(const PackData& packData
 //            PrintVector(data.loopIncs, "  loop incs");
 //            PrintVector(data.srcBufStrides, "  srcBufStrides");
 //            PrintVector(data.dstBufStrides, "  dstBufStrides");
-            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(srcElem, elemData.permutation), PermuteVector(srcStrides, elemData.permutation));
+            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(srcElem, elemData.permutation), srcStrides);
 //            std::cout << "offsetting dataBuf by: " << dataBufPtr << std::endl;
 //            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
-            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
+//            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
             PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
 //            printf("sendBuf:");
 //            for(i = 0; i < nElemsPerProc*prod(FilterVector(g.Shape(), commModes)); i++)

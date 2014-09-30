@@ -783,7 +783,7 @@ DistTensor<T>::EmptyData()
 template<typename T>
 void
 DistTensor<T>::SetLocal( const Location& loc, T alpha )
-{ tensor_.Set(loc,alpha); }
+{ tensor_.Set(PermuteVector(loc, localPerm_), alpha); }
 
 template<typename T>
 void
