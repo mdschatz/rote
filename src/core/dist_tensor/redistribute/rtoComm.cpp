@@ -117,7 +117,7 @@ void DistTensor<T>::ReduceToOneCommRedistWithPermutation(const DistTensor<T>& A,
     T* recvBuf = &(auxBuf[sendSize]);
 
     //NOTE: RS and AG pack routines are the exact same
-    PackAGCommSendBuf(A, sendBuf);
+    PackAGCommSendBufWithPermutation(A, sendBuf);
 
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
 
