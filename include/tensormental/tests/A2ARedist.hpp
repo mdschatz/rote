@@ -130,12 +130,7 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
 //    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
 //    CheckResult(B);
 
-    Permutation defaultPerm(order);
-    for(i = 0; i < order; i++)
-        defaultPerm[i] = i;
-    DistTensor<T> check(A.Shape(), resDist, g);
-    check.SetLocalPermutation(defaultPerm);
-    check.ResizeLocalUnderPerm(defaultPerm);
+    Tensor<T> check(A.Shape());
     Set(check);
 
     Permutation perm(order);

@@ -80,11 +80,10 @@ Set(DistTensor<T>& A)
 }
 
 template<typename T>
-bool CheckResult(const DistTensor<T>& A, const DistTensor<T>& actual){
+bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
 #ifndef RELEASE
     CallStackEntry entry("CheckResult");
 #endif
-//    printf("In CheckResult\n");
     mpi::Barrier(mpi::COMM_WORLD);
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const ObjShape globalShape = A.Shape();

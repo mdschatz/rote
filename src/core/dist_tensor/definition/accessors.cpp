@@ -269,6 +269,7 @@ DistTensor<T>::Get( const Location& loc ) const
     CallStackEntry entry("[MC,MR]::Get");
     AssertValidEntry( loc );
 #endif
+    const tmen::Grid& g = Grid();
     const Location owningProc = DetermineOwner(loc);
 //    PrintVector(loc, "loc");
 //    PrintVector(owningProc, "owner");
@@ -280,7 +281,11 @@ DistTensor<T>::Get( const Location& loc ) const
     Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
     if(Participating()){
-        if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
+//        PrintVector(gv.ParticipatingLoc(), "myParticipatingLoc");
+        const Location ownerGridLoc = GridViewLoc2GridLoc(owningProc, gv);
+//        PrintVector(ownerGridLoc, "ownerGridLoc");
+//        PrintVector(g.Loc(), "myGridLoc");
+        if(!AnyElemwiseNotEqual(g.Loc(), ownerGridLoc)){
 //            printf("thats me\n");
             const Location localLoc = Global2LocalIndex(loc);
 //            PrintVector(LocalShape(), "localShape");
@@ -314,12 +319,12 @@ DistTensor<T>::Get( const Location& loc ) const
 //        }
 //        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
         int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);
-//        printf("ownerLinLoc: %d\n", ownerLinearLoc);
+        printf("ownerLinLoc: %d\n", ownerLinearLoc);
         //
 
         //const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
 //        std::cout << "owner linloc" << ownerLinearLoc << std::endl;
-//        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
+        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
         mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
 //        printf("got val: %d\n", u);
     }

@@ -96,6 +96,7 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
     CallStackEntry entry("TestAGGRedist");
 #endif
     Unsigned i;
+    Unsigned order = A.Order();
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     //const int order = A.Order();
     const Grid& g = A.Grid();
@@ -114,9 +115,23 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    B.AllGatherRedistFrom(A, agModes, redistGroups);
+    Tensor<T> check(A.Shape());
+    Set(check);
+
+    Permutation perm(order);
+    for(i = 0; i < order; i++)
+        perm[i] = i;
+
+    do{
+        B.SetLocalPermutation(perm);
+        B.ResizeLocalUnderPerm(perm);
+        B.AllGatherRedistFromWithPermutation(A, agModes, redistGroups);
+        CheckResult(B, check);
+    }while(next_permutation(perm.begin(), perm.end()));
+
+//    B.AllGatherRedistFrom(A, agModes, redistGroups);
 //    CheckResult(B);
-    Print(B, "B after agg redist");
+//    Print(B, "B after agg redist");
 }
 
 #endif // ifndef TMEN_TESTS_AGGREDIST_HPP
