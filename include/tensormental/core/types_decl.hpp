@@ -64,6 +64,11 @@ struct AxpyData{
     std::vector<Unsigned> dstStrides;
 };
 
+struct ScalData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+};
+
 struct ElemScalData{
     ObjShape loopShape;
     std::vector<Unsigned> src1Strides;

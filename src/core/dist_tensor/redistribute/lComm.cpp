@@ -174,12 +174,14 @@ void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A,
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    Permutation invPerm = DetermineInversePermutation(localPerm_);
+    Permutation invPermB = DetermineInversePermutation(localPerm_);
+    Permutation invPermA = DetermineInversePermutation(A.localPerm_);
 
     PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPerm);
-    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), A.localPerm_);
+    unpackData.loopShape = PermuteVector(LocalShape(), invPermB);
+//    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPerm);
+    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPermB);
+    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), invPermA);
 //    unpackData.srcBufStrides[lMode] *= nRedistProcs;
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
@@ -196,6 +198,7 @@ void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A,
         Unsigned srcBufPtr = 0;
         for(i = 0; i < lModes.size(); i++)
             srcBufPtr += firstLocInA[lModes[i]] * A.LocalModeStride(lModes[i]);
+//        printf("copying from srcBuf: %d\n", srcBufPtr);
         PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
     }
 

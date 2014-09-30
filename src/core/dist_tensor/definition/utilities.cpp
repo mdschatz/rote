@@ -49,7 +49,6 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
         localLoc[i] = (globalLoc[i]-ModeShift(i)) / ModeStride(i);
     }
 //    PrintVector(localLoc, "Unpermuted loc");
-    localLoc = PermuteVector(localLoc, localPerm_);
     return localLoc;
 }
 

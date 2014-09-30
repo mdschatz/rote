@@ -224,7 +224,7 @@ DistTensor<T>::GetLocal( const Location& loc ) const
     CallStackEntry entry("[MC,MR]::GetLocal");
     AssertValidEntry( loc );
 #endif
-    return tensor_.Get(loc);
+    return tensor_.Get(PermuteVector(loc, localPerm_));
 }
 
 template<typename T>
@@ -272,6 +272,8 @@ DistTensor<T>::Get( const Location& loc ) const
     const Location owningProc = DetermineOwner(loc);
 //    PrintVector(loc, "loc");
 //    PrintVector(owningProc, "owner");
+//    PrintVector(LocalShape(), "localShape");
+//    PrintVector(localPerm_, "localPerm");
 //    PrintVector(grid_->Loc(), "myLoc");
 
     const tmen::GridView& gv = GetGridView();
