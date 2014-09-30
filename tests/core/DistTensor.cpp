@@ -152,29 +152,29 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestA2ARedist(A, a2aModesFrom, a2aModesTo, commModes, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing AllGatherG tests\n");
-    }
-    for(i = 1; i < aggTests.size(); i++){
-        AGGTest thisTest = aggTests[i];
-        ModeArray agModes = thisTest.first.first;
-        std::vector<ModeArray> redistGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestAGGRedist(A, agModes, redistGroups, resDist);
-    }
-//
 //    if(commRank == 0){
-//        printf("Performing Gather-to-one-G tests\n");
+//        printf("Performing AllGatherG tests\n");
 //    }
-//    for(i = 0; i < gtogTests.size(); i++){
-//        GTOGTest thisTest = gtogTests[i];
-//        ModeArray gModes = thisTest.first.first;
+//    for(i = 1; i < aggTests.size(); i++){
+//        AGGTest thisTest = aggTests[i];
+//        ModeArray agModes = thisTest.first.first;
 //        std::vector<ModeArray> redistGroups = thisTest.first.second;
 //        TensorDistribution resDist = thisTest.second;
 //
-//        TestGTOGRedist(A, gModes, redistGroups, resDist);
+//        TestAGGRedist(A, agModes, redistGroups, resDist);
 //    }
+//
+    if(commRank == 0){
+        printf("Performing Gather-to-one-G tests\n");
+    }
+    for(i = 0; i < gtogTests.size(); i++){
+        GTOGTest thisTest = gtogTests[i];
+        ModeArray gModes = thisTest.first.first;
+        std::vector<ModeArray> redistGroups = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestGTOGRedist(A, gModes, redistGroups, resDist);
+    }
 //
 //    if(commRank == 0){
 //        printf("Performing LocalG redist tests\n");

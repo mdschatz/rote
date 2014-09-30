@@ -319,12 +319,12 @@ DistTensor<T>::Get( const Location& loc ) const
 //        }
 //        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
         int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);
-        printf("ownerLinLoc: %d\n", ownerLinearLoc);
+//        printf("ownerLinLoc: %d\n", ownerLinearLoc);
         //
 
         //const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
 //        std::cout << "owner linloc" << ownerLinearLoc << std::endl;
-        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
+//        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
         mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
 //        printf("got val: %d\n", u);
     }

@@ -97,6 +97,7 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
     CallStackEntry entry("TestGTOGRedist");
 #endif
     Unsigned i;
+    Unsigned order = A.Order();
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
 
@@ -113,9 +114,24 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
             printf(", %d", gModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
-    B.GatherToOneRedistFrom(A, gModes, gridGroups);
+
+    Tensor<T> check(A.Shape());
+    Set(check);
+
+    Permutation perm(order);
+    for(i = 0; i < order; i++)
+        perm[i] = i;
+
+    do{
+        B.SetLocalPermutation(perm);
+        B.ResizeLocalUnderPerm(perm);
+        B.GatherToOneRedistFromWithPermutation(A, gModes, gridGroups);
+        CheckResult(B, check);
+    }while(next_permutation(perm.begin(), perm.end()));
+
+//    B.GatherToOneRedistFrom(A, gModes, gridGroups);
 //    CheckResult(B);
-    Print(B, "B after gather-to-one redist");
+//    Print(B, "B after gather-to-one redist");
 }
 
 #endif // ifndef TMEN_TESTS_GTOGREDIST_HPP

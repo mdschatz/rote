@@ -50,7 +50,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
 template <typename T>
 void DistTensor<T>::AllToAllRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups){
     Unsigned i;
-//    ResizeTo(A);
+    ResizeToUnderPerm(A);
     ModeArray commModes;
     for(i = 0; i < a2aCommGroups.size(); i++)
         commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());

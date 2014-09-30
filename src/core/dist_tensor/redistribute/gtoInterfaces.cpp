@@ -54,7 +54,7 @@ void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes){
     Unsigned i;
-    ResizeTo(A);
+    ResizeToUnderPerm(A);
     ModeArray commModes;
     for(i = 0; i < gridModes.size(); i++)
         commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
