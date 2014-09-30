@@ -188,16 +188,16 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestLGRedist(A, lModes, commGroups, resDist);
 //    }
 //
-//    if(commRank == 0){
-//        printf("Performing Permutation tests\n");
-//    }
-//    for(i = 0; i < pTests.size(); i++){
-//        PTest thisTest = pTests[i];
-//        Mode pMode = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
-//
-//        TestPRedist(A, pMode, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing Permutation tests\n");
+    }
+    for(i = 0; i < pTests.size(); i++){
+        PTest thisTest = pTests[i];
+        Mode pMode = thisTest.first;
+        ModeDistribution resDist = thisTest.second;
+
+        TestPRedist(A, pMode, resDist);
+    }
 //
 //    if(commRank == 0){
 //        printf("Performing ReduceScatterG tests\n");
