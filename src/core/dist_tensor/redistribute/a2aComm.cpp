@@ -235,7 +235,6 @@ void DistTensor<T>::AllToAllCommRedistWithPermutation(const DistTensor<T>& A, co
         sendSize = prod(commDataShape);
         recvSize = sendSize;
 
-        printf("send size: %d\n", sendSize);
         Memory<T> auxMemory;
         T* auxBuf = auxMemory.Require((sendSize + recvSize) * nRedistProcs);
         MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);

@@ -65,23 +65,11 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
         perm[i] = i;
 
     do{
-//        PrintVector(B.LocalShape(), "LocalShape");
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
         B.LocalRedistFromWithPermutation(A, lModes, gridRedistModes);
-//        Print(B, "B after LGRedist");
-//        PrintVector(B.LocalShape(), "B localShape after LGRedist");
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
-    perm[0] = 3;
-    perm[1] = 1;
-    perm[2] = 0;
-    perm[3] = 2;
-
-//    B.ResizeLocalUnderPerm(perm);
-//    B.LocalRedistFromWithPermutation(A, lModes, gridRedistModes, perm);
-//    CheckResult(B);
-//    Print(B, "B after local redist");
 }
 
 
@@ -163,7 +151,7 @@ CreateLGTests(const DistTensor<T>& A, const Params& args){
     for(i = 0; i < tensorModes.size(); i++)
         tensorModes[i] = i;
 
-    for(i = 2; i <= order; i++){
+    for(i = 1; i <= order; i++){
         std::vector<ModeArray> lModeCombos = AllCombinations(tensorModes, i);
         for(j = 0; j < lModeCombos.size(); j++){
             ModeArray lModes = lModeCombos[j];
