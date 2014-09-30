@@ -757,7 +757,7 @@ void DistTensor<T>::ElemSelectHelperT(const PackData& packData, const ElemSelect
     //            PrintVector(data.loopIncs, "  loop incs");
     //            PrintVector(data.srcBufStrides, "  srcBufStrides");
     //            PrintVector(data.dstBufStrides, "  dstBufStrides");
-                Unsigned dataBufPtr = LinearLocFromStrides(srcElem, srcStrides);
+                Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(srcElem, elemData.permutation), srcStrides);
 
                 PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
     //            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;

@@ -152,17 +152,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestA2ARedist(A, a2aModesFrom, a2aModesTo, commModes, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing AllGatherG tests\n");
-    }
-    for(i = 1; i < aggTests.size(); i++){
-        AGGTest thisTest = aggTests[i];
-        ModeArray agModes = thisTest.first.first;
-        std::vector<ModeArray> redistGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestAGGRedist(A, agModes, redistGroups, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing AllGatherG tests\n");
+//    }
+//    for(i = 1; i < aggTests.size(); i++){
+//        AGGTest thisTest = aggTests[i];
+//        ModeArray agModes = thisTest.first.first;
+//        std::vector<ModeArray> redistGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestAGGRedist(A, agModes, redistGroups, resDist);
+//    }
 //
 //    if(commRank == 0){
 //        printf("Performing Gather-to-one-G tests\n");
@@ -199,17 +199,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestPRedist(A, pMode, resDist);
 //    }
 //
-//    if(commRank == 0){
-//        printf("Performing ReduceScatterG tests\n");
-//    }
-//    for(i = 0; i < rsgTests.size(); i++){
-//        RSGTest thisTest = rsgTests[i];
-//        ModeArray rModes = thisTest.first.first;
-//        ModeArray sModes = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestRSGRedist(A, rModes, sModes, resDist);
-//    }
+    if(commRank == 0){
+        printf("Performing ReduceScatterG tests\n");
+    }
+    for(i = 0; i < rsgTests.size(); i++){
+        RSGTest thisTest = rsgTests[i];
+        ModeArray rModes = thisTest.first.first;
+        ModeArray sModes = thisTest.first.second;
+        TensorDistribution resDist = thisTest.second;
+
+        TestRSGRedist(A, rModes, sModes, resDist);
+    }
 //
 //    if(commRank == 0){
 //            printf("Performing ReduceToOneG tests\n");
@@ -364,19 +364,22 @@ main( int argc, char* argv[] )
 
 
         DistTensor<int> A(args.tensorShape, args.tensorDist, g);
+        Unsigned order = A.Order();
+        ObjShape origShape = A.Shape();
         Permutation permA(A.Order());
         for(i = 0; i < A.Order(); i++)
             permA[i] = i;
 
         Unsigned count = 0;
         do{
-            if(count == 0)
+            if(count <= 0)
                 count++;
             else{
                 if(commRank == 0){
                     printf("Testing ");
                     PrintVector(permA, "Input Perm");
                 }
+
                 A.SetLocalPermutation(permA);
                 A.ResizeToUnderPerm(A.Shape());
                 Set(A);

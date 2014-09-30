@@ -142,6 +142,7 @@ PrintData
         os << "Distribution: " << tmen::TensorDistToString(A.TensorDist()) << std::endl;
         PrintVector(A.Alignments(), "alignments", os);
         PrintVector(A.ModeShifts(), "shifts", os);
+        PrintVector(A.LocalPermutation(), "local permutation", os);
         PrintData(A.LockedTensor(), "tensor data", os);
     }
 }

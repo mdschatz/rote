@@ -228,8 +228,10 @@ void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMod
 
 template <typename T>
 void LocalReduceWithPermutation(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes, const Permutation& perm){
-    if(B.Participating())
-        LocalReduce(B.Tensor(), A.LockedTensor(), PermuteVector(reduceModes, perm));
+    if(B.Participating()){
+        Permutation invPerm = DetermineInversePermutation(perm);
+        LocalReduce(B.Tensor(), A.LockedTensor(), FilterVector(invPerm, reduceModes));
+    }
 }
 
 } // namespace tmen

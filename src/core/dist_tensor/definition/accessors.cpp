@@ -601,6 +601,16 @@ DistTensor<T>::NumLocalElem() const
     return tensor_.NumElem();
 }
 
+template<typename T>
+Permutation
+DistTensor<T>::LocalPermutation() const
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::LocalPermutation");
+#endif
+    return localPerm_;
+}
+
 #define FULL(T) \
     template class DistTensor<T>;
 
