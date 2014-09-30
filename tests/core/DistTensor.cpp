@@ -176,17 +176,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestGTOGRedist(A, gModes, redistGroups, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing LocalG redist tests\n");
-    }
-    for(i = 0; i < lgTests.size(); i++){
-        LGTest thisTest = lgTests[i];
-        ModeArray lModes = thisTest.first.first;
-        std::vector<ModeArray> commGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestLGRedist(A, lModes, commGroups, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing LocalG redist tests\n");
+//    }
+//    for(i = 0; i < lgTests.size(); i++){
+//        LGTest thisTest = lgTests[i];
+//        ModeArray lModes = thisTest.first.first;
+//        std::vector<ModeArray> commGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestLGRedist(A, lModes, commGroups, resDist);
+//    }
 
 //    if(commRank == 0){
 //            printf("Performing ReduceToOneG tests\n");
