@@ -80,8 +80,21 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
 
     DistTensor<T> B(shapeB, resDist, NegFilterVector(A.Alignments(), rModes), g);
 
-    B.ReduceToOneRedistFrom(A, rModes);
-    Print(B, "B after reduce-to-one redist");
+    Unsigned order = B.Order();
+    Permutation perm(order);
+    for(i = 0; i < order; i++)
+        perm[i] = i;
+
+    do{
+        B.SetLocalPermutation(perm);
+        B.ResizeLocalUnderPerm(perm);
+        B.ReduceToOneRedistFromWithPermutation(A, rModes);
+        Print(B, "B after reduce-to-one redist");
+//        CheckResult(B, check);
+    }while(next_permutation(perm.begin(), perm.end()));
+
+//    B.ReduceToOneRedistFrom(A, rModes);
+//    Print(B, "B after reduce-to-one redist");
 }
 
 #endif // ifndef TMEN_TESTS_RTOGREDIST_HPP

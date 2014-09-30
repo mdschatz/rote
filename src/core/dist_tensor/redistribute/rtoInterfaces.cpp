@@ -160,9 +160,12 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
 
     tmp2.RemoveUnitModesRedist(rModes);
 
+    ResizeToUnderPerm(tmp2);
     //NOTE: Permutation already performed in unpack of tmp2
-    if(Participating())
-        CopyLocalBuffer(tmp2);
+    if(Participating()){
+
+        CopyLocalBufferWithPermutation(tmp2);
+    }
 }
 
 #define PROTO(T) template class DistTensor<T>

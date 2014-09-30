@@ -199,28 +199,28 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestPRedist(A, pMode, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing ReduceScatterG tests\n");
-    }
-    for(i = 0; i < rsgTests.size(); i++){
-        RSGTest thisTest = rsgTests[i];
-        ModeArray rModes = thisTest.first.first;
-        ModeArray sModes = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRSGRedist(A, rModes, sModes, resDist);
-    }
-//
 //    if(commRank == 0){
-//            printf("Performing ReduceToOneG tests\n");
+//        printf("Performing ReduceScatterG tests\n");
 //    }
-//    for(i = 0; i < rtogTests.size(); i++){
-//        RTOGTest thisTest = rtogTests[i];
-//        ModeArray rModes = thisTest.first;
+//    for(i = 0; i < rsgTests.size(); i++){
+//        RSGTest thisTest = rsgTests[i];
+//        ModeArray rModes = thisTest.first.first;
+//        ModeArray sModes = thisTest.first.second;
 //        TensorDistribution resDist = thisTest.second;
 //
-//        TestRTOGRedist(A, rModes, resDist);
+//        TestRSGRedist(A, rModes, sModes, resDist);
 //    }
+//
+    if(commRank == 0){
+            printf("Performing ReduceToOneG tests\n");
+    }
+    for(i = 0; i < rtogTests.size(); i++){
+        RTOGTest thisTest = rtogTests[i];
+        ModeArray rModes = thisTest.first;
+        TensorDistribution resDist = thisTest.second;
+
+        TestRTOGRedist(A, rModes, resDist);
+    }
 //
 //
 

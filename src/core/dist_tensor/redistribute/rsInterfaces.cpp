@@ -91,8 +91,9 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 //    }
 //
 //    ResizeTo(BShape);
+    ResizeToUnderPerm(tmp2);
     if(Participating())
-        CopyLocalBuffer(tmp2);
+        CopyLocalBufferWithPermutation(tmp2);
 }
 
 template<typename T>
