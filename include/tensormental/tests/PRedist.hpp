@@ -35,6 +35,8 @@ TestPRedist( const DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist
     CallStackEntry entry("TestPRedist");
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
+    Unsigned i;
+    Unsigned order = A.Order();
     //const int order = A.Order();
     const Grid& g = A.Grid();
 
@@ -50,9 +52,24 @@ TestPRedist( const DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist
     if(commRank == 0){
         printf("Permuting mode %d: %s <-- %s\n", pMode, (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
-    B.PermutationRedistFrom(A, pMode, resDist);
+
+    Tensor<T> check(A.Shape());
+    Set(check);
+
+    Permutation perm(order);
+    for(i = 0; i < order; i++)
+        perm[i] = i;
+
+    do{
+        B.SetLocalPermutation(perm);
+        B.ResizeLocalUnderPerm(perm);
+        B.PermutationRedistFromWithPermutation(A, pMode, resDist);
+        CheckResult(B, check);
+    }while(next_permutation(perm.begin(), perm.end()));
+
+//    B.PermutationRedistFrom(A, pMode, resDist);
 //    CheckResult(B);
-    Print(B, "B after permute redist");
+//    Print(B, "B after permute redist");
 }
 
 #endif // ifndef TMEN_TESTS_PREDIST_HPP

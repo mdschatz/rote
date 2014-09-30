@@ -164,17 +164,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestAGGRedist(A, agModes, redistGroups, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing Gather-to-one-G tests\n");
-    }
-    for(i = 0; i < gtogTests.size(); i++){
-        GTOGTest thisTest = gtogTests[i];
-        ModeArray gModes = thisTest.first.first;
-        std::vector<ModeArray> redistGroups = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestGTOGRedist(A, gModes, redistGroups, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing Gather-to-one-G tests\n");
+//    }
+//    for(i = 0; i < gtogTests.size(); i++){
+//        GTOGTest thisTest = gtogTests[i];
+//        ModeArray gModes = thisTest.first.first;
+//        std::vector<ModeArray> redistGroups = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestGTOGRedist(A, gModes, redistGroups, resDist);
+//    }
 //
 //    if(commRank == 0){
 //        printf("Performing LocalG redist tests\n");
@@ -187,18 +187,18 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //
 //        TestLGRedist(A, lModes, commGroups, resDist);
 //    }
-
-//    if(commRank == 0){
-//            printf("Performing ReduceToOneG tests\n");
-//    }
-//    for(i = 0; i < rtogTests.size(); i++){
-//        RTOGTest thisTest = rtogTests[i];
-//        ModeArray rModes = thisTest.first;
-//        TensorDistribution resDist = thisTest.second;
 //
-//        TestRTOGRedist(A, rModes, resDist);
+//    if(commRank == 0){
+//        printf("Performing Permutation tests\n");
 //    }
-
+//    for(i = 0; i < pTests.size(); i++){
+//        PTest thisTest = pTests[i];
+//        Mode pMode = thisTest.first;
+//        ModeDistribution resDist = thisTest.second;
+//
+//        TestPRedist(A, pMode, resDist);
+//    }
+//
 //    if(commRank == 0){
 //        printf("Performing ReduceScatterG tests\n");
 //    }
@@ -212,15 +212,16 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //    }
 //
 //    if(commRank == 0){
-//        printf("Performing Permutation tests\n");
+//            printf("Performing ReduceToOneG tests\n");
 //    }
-//    for(i = 0; i < pTests.size(); i++){
-//        PTest thisTest = pTests[i];
-//        Mode pMode = thisTest.first;
-//        ModeDistribution resDist = thisTest.second;
+//    for(i = 0; i < rtogTests.size(); i++){
+//        RTOGTest thisTest = rtogTests[i];
+//        ModeArray rModes = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
 //
-//        TestPRedist(A, pMode, resDist);
+//        TestRTOGRedist(A, rModes, resDist);
 //    }
+//
 //
 
 }
