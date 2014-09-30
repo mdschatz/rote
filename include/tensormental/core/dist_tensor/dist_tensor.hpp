@@ -176,7 +176,7 @@ public:
     void SetLocal( const Location& loc, T alpha );
     void UpdateLocal( const Location& loc, T alpha );
     void SetLocalPermutation(const Permutation& perm);
-
+    Permutation LocalPermutation() const;
     //
     // Though the following routines are meant for complex data, all but two
     // logically apply to real data.

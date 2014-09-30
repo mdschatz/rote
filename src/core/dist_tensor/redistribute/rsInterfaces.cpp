@@ -176,6 +176,7 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
 //    std::cout << std::endl;
 
     LocalReduceWithPermutation(tmp, A, rModes, A.localPerm_);
+
 //    PrintVector(rModes, "reducing rModes");
 //    Print(tmp, "after localReduce");
 
@@ -206,14 +207,7 @@ void DistTensor<T>::ReduceScatterRedistFromWithPermutation(const DistTensor<T>& 
 
     tmp2.RemoveUnitModesRedist(rModes);
 
-//    ObjShape BShape = tmp2Shape;
-//    ModeArray rModes = reduceModes;
-//    std::sort(rModes.begin(), rModes.end());
-//    for(i = rModes.size() - 1; i < rModes.size(); i--){
-//        BShape.erase(BShape.begin() + rModes[i]);
-//    }
-//
-//    ResizeTo(BShape);
+    ResizeToUnderPerm(tmp2.Shape());
     if(Participating())
         CopyLocalBufferWithPermutation(tmp2);
 }

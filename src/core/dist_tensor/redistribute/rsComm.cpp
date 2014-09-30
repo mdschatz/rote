@@ -257,6 +257,7 @@ void DistTensor<T>::PackRSCommSendBufWithPermutation(const DistTensor<T>& A, con
         elemData.nElemsPerProc = prod(sendShape);
         elemData.srcElem = zeros;
         elemData.srcStrides = A.LocalStrides();
+        elemData.permutation = A.localPerm_;
 
 //        PrintPackData(packData, "packData");
 //        PrintElemSelectData(elemData, "elemData");

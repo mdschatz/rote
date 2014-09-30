@@ -100,7 +100,7 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
+        B.ResizeToUnderPerm(BShape);
         B.ReduceScatterRedistFromWithPermutation(A, rModes, sModes);
         Print(B, "B after rs redist");
 //        CheckResult(B, check);

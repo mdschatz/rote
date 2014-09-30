@@ -142,7 +142,7 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //    if(commRank == 0){
 //        printf("Performing All-to-all tests\n");
 //    }
-//    for(i = 0; i < a2aTests.size(); i++){
+//    for(i = 6; i < a2aTests.size(); i++){
 //        A2ATest thisTest = a2aTests[i];
 //        ModeArray a2aModesFrom = thisTest.first.first.first;
 //        ModeArray a2aModesTo = thisTest.first.first.second;
@@ -275,7 +275,15 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
 
     const ObjShape shape = A.Shape();
 
+    Permutation defaultPerm(order);
+    for(i = 0; i < order; i++)
+        defaultPerm[i] = i;
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
+    AT.SetLocalPermutation(defaultPerm);
+    AB.SetLocalPermutation(defaultPerm);
+    A0.SetLocalPermutation(defaultPerm);
+    A1.SetLocalPermutation(defaultPerm);
+    A2.SetLocalPermutation(defaultPerm);
     for(i = 0; i < order; i++){
         Mode mode = i;
         printf("Iterating over mode: %d\n", mode);
@@ -291,6 +299,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
                            /**/  /**/
                             AB,   A2, mode, 1);
             /////////////////////////////////
+            A1.SetLocalPermutation(defaultPerm);
             Print(A1, "A1before");
 //            if(count == 1)
                 DistTensorTest<T>(A1, args, g);
@@ -355,14 +364,34 @@ main( int argc, char* argv[] )
 
 
         DistTensor<int> A(args.tensorShape, args.tensorDist, g);
+        Unsigned order = A.Order();
+        ObjShape origShape = A.Shape();
         Permutation permA(A.Order());
         for(i = 0; i < A.Order(); i++)
             permA[i] = i;
-        A.SetLocalPermutation(permA);
-        A.ResizeToUnderPerm(A.Shape());
-        Set(A);
 
-        DistTensorTest<int>( A, args, g );
+        Unsigned count = 0;
+        do{
+            if(count <= 0)
+                count++;
+            else{
+                if(commRank == 0){
+                    printf("Testing ");
+                    PrintVector(permA, "Input Perm");
+                }
+
+                A.SetLocalPermutation(permA);
+                A.ResizeToUnderPerm(A.Shape());
+                Set(A);
+                DistTensorTest<int>(A, args, g);
+            }
+        }while(next_permutation(permA.begin(), permA.end()));
+
+//        A.SetLocalPermutation(permA);
+//        A.ResizeToUnderPerm(A.Shape());
+//        Set(A);
+
+//        DistTensorTest<int>( A, args, g );
 //        PerformTest<int>(A, args, g);
 
 //        if( commRank == 0 )

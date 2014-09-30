@@ -16,19 +16,25 @@ namespace tmen{
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>
 void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
-    Unsigned i;
+    Unsigned i, j;
     ModeArray sorted = unitModes;
     std::sort(sorted.begin(), sorted.end());
+
+    Permutation invPerm = DetermineInversePermutation(localPerm_);
     for(i = sorted.size() - 1; i < sorted.size(); i--){
         shape_.erase(shape_.begin() + sorted[i]);
         dist_.erase(dist_.begin() + sorted[i]);
         constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + sorted[i]);
         modeAlignments_.erase(modeAlignments_.begin() + sorted[i]);
         modeShifts_.erase(modeShifts_.begin() + sorted[i]);
+        for(j = 0; j < localPerm_.size(); j++)
+            if(localPerm_[j] > localPerm_[sorted[i]])
+                localPerm_[j] -= 1;
+        localPerm_.erase(localPerm_.begin() + sorted[i]);
     }
-    tensor_.RemoveUnitModes(unitModes);
+    tensor_.RemoveUnitModes(FilterVector(invPerm, unitModes));
     gridView_.RemoveUnitModes(unitModes);
-    ResizeTo(Shape());
+    ResizeToUnderPerm(Shape());
 }
 
 template<typename T>

@@ -125,10 +125,11 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
     DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
     tmp.AlignWith(A);
     tmp.SetDistribution(A.TensorDist());
-    tmp.ResizeTo(tmpShape);
+    tmp.SetLocalPermutation(A.localPerm_);
+    tmp.ResizeToUnderPerm(tmpShape);
     Zero(tmp);
 
-    LocalReduce(tmp, A, rModes);
+    LocalReduceWithPermutation(tmp, A, rModes, A.localPerm_);
 
     ObjShape tmp2Shape = A.Shape();
 
@@ -146,9 +147,10 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
 
     DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
     tmp2.AlignWith(tmp);
-    tmp2.ResizeTo(tmp2Shape);
-
+    tmp2.SetLocalPermutation(A.localPerm_);
+    tmp2.ResizeToUnderPerm(tmp2Shape);
     tmp2.SetDistribution(tmp2Dist);
+
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
         ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
@@ -160,7 +162,7 @@ void DistTensor<T>::ReduceToOneRedistFromWithPermutation(const DistTensor<T>& A,
 
     tmp2.RemoveUnitModesRedist(rModes);
 
-    ResizeToUnderPerm(tmp2);
+    ResizeToUnderPerm(tmp2.Shape());
     //NOTE: Permutation already performed in unpack of tmp2
     if(Participating()){
 

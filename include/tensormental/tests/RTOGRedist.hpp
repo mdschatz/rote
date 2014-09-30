@@ -62,14 +62,14 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
 
-//    if(commRank == 0){
+    if(commRank == 0){
         printf("Reducing to one modes (");
         if(rModes.size() > 0)
             printf("%d", rModes[0]);
         for(i = 1; i < rModes.size(); i++)
             printf(", %d", rModes[i]);
         printf("): %s <-- %s\n", (tmen::TensorDistToString(resDist)).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
-//    }
+    }
 
     ObjShape shapeB = A.Shape();
     ModeArray sortedRModes = rModes;

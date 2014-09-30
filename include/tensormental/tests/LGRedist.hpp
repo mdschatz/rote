@@ -52,7 +52,7 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 //    Print(A, "A before local redist");
 //    B.LocalRedistFrom(A, lModes, gridRedistModes);
 
-    DistTensor<T> check(A.Shape());
+    Tensor<T> check(A.Shape());
     Set(check);
 
     Permutation perm(order);
