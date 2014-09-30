@@ -40,14 +40,6 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 
     TensorDistribution lModeDist = A.TensorDist();
 
-    Permutation defaultPerm(order);
-    for(i = 0; i < order; i++)
-        defaultPerm[i] = i;
-    DistTensor<T> check(A.Shape(), distB, g);
-    check.SetLocalPermutation(defaultPerm);
-    check.ResizeLocalUnderPerm(defaultPerm);
-    Set(check);
-
     if(commRank == 0){
         printf("Locally redistributing modes (");
         if(lModes.size() > 0)
@@ -59,6 +51,14 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 
 //    Print(A, "A before local redist");
 //    B.LocalRedistFrom(A, lModes, gridRedistModes);
+
+    Permutation defaultPerm(order);
+    for(i = 0; i < order; i++)
+        defaultPerm[i] = i;
+    DistTensor<T> check(A.Shape(), distB, g);
+    check.SetLocalPermutation(defaultPerm);
+    check.ResizeLocalUnderPerm(defaultPerm);
+    Set(check);
 
     Permutation perm(order);
     for(i = 0; i < order; i++)

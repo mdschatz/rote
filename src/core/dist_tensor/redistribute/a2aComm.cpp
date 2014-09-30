@@ -305,6 +305,7 @@ void DistTensor<T>::PackA2ACommSendBufWithPermutation(const DistTensor<T>& A, co
         elemData.srcElem = zeros;
         elemData.srcStrides = A.LocalStrides();
         elemData.permutation = A.localPerm_;
+//        PrintVector(A.localPerm_, "pack perm");
 
         ElemSelectPackHelperWithPermutation(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
     }
@@ -382,15 +383,18 @@ void DistTensor<T>::UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf,
 
     Permutation invPerm = DetermineInversePermutation(localPerm_);
     PackData unpackData;
-    unpackData.loopShape = LocalShape();
+//    unpackData.loopShape = LocalShape();
+    unpackData.loopShape = PermuteVector(LocalShape(), invPerm);
 //    PrintVector(localPerm_, "localPerm_");
-    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
+//    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
+    unpackData.srcBufStrides = Dimensions2Strides(recvShape);
 //    unpackData.dstBufStrides = FilterVector(tmpStrides, invPerm);
-    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
+//    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
+    unpackData.dstBufStrides = ElemwiseProd(PermuteVector(LocalStrides(), invPerm), modeStrideFactor);
 //    unpackData.dstBufStrides = FilterVector(ElemwiseProd(LocalStrides(), modeStrideFactor), invPerm);
 
     unpackData.loopStarts = zeros;
-    unpackData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
+    unpackData.loopIncs = modeStrideFactor;
 
 //    PrintVector(recvShape, "srcShape");
 //    PrintVector(unpackData.loopShape, "unpackShape");
@@ -410,7 +414,7 @@ void DistTensor<T>::UnpackA2ACommRecvBufWithPermutation(const T * const recvBuf,
         elemData.dstElem = zeros;
         elemData.dstStrides = LocalStrides();
         elemData.permutation = localPerm_;
-
+//        PrintVector(localPerm_, "unpack perm");
         ElemSelectUnpackHelperWithPermutation(unpackData, elemData, order - 1, A, &(recvBuf[0]), &(dataBuf[0]));
     }
 

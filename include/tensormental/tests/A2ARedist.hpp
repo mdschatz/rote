@@ -142,11 +142,22 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
     for(i = 0; i < order; i++)
         perm[i] = i;
 
+    Unsigned count = 0;
     do{
-        B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
-        B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups);
-        CheckResult(B, check);
+        if(count < 6){
+            count++;
+        }else if(count > 6){
+            break;
+        }else{
+            if(commRank == 0){
+                printf("Testing ");
+                PrintVector(perm, "permB");
+            }
+            B.SetLocalPermutation(perm);
+            B.ResizeLocalUnderPerm(perm);
+            B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups);
+            CheckResult(B, check);
+        }
     }while(next_permutation(perm.begin(), perm.end()));
 
 //    Permutation perm(4);

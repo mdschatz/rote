@@ -170,7 +170,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
     Unsigned packSlice;
-
+//    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
         dstBuf[0] = srcBuf[0];
         return;
@@ -192,9 +192,11 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 
     if(packMode == 0){
         if(dstBufStride == 1 && srcBufStride == 1){
-//            std::cout << ident << "copying " << loopEnd << "elements" << std::endl;
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
+//            std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
+            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
         }else{
+//            PrintVector(packData.loopStarts, "loopStarts");
+//            printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
             for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
                 dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
 
@@ -538,8 +540,7 @@ void DistTensor<T>::ElemSelectPackHelperWithPermutation(const PackData& packData
 //            PrintVector(elem, "pack Global elem");
 //            PrintVector(data.loopStarts, "local location");
 
-//            std::cout << "offsetting dataBuf by: " << i * A.LocalModeStride(a2aModeTo) << std::endl;
-//            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
+
 //            printf("pack data:\n");
 //            PrintVector(data.loopShape, "  loop shape");
 //            PrintVector(data.loopStarts, "  loop starts");
@@ -547,9 +548,14 @@ void DistTensor<T>::ElemSelectPackHelperWithPermutation(const PackData& packData
 //            PrintVector(data.srcBufStrides, "  srcBufStrides");
 //            PrintVector(data.dstBufStrides, "  dstBufStrides");
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(srcElem, elemData.permutation), PermuteVector(srcStrides, elemData.permutation));
+//            std::cout << "offsetting dataBuf by: " << dataBufPtr << std::endl;
+//            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
             data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
             PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
-//            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
+//            printf("sendBuf:");
+//            for(i = 0; i < nElemsPerProc*prod(FilterVector(g.Shape(), commModes)); i++)
+//                printf(" %d", sendBuf[i]);
+//            printf("\n");
         }else{
             ElemSelectData newData = elemData;
             newData.packElem = elem;
@@ -600,17 +606,15 @@ void DistTensor<T>::ElemSelectUnpackHelperWithPermutation(const PackData& packDa
             Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
 
 //            printf("sMode: %d\n", a2aModeTo);
-//            PrintVector(ownerB, "ownerB");
+//            PrintVector(elem, "unpacking elem");
+//            PrintVector(ownerA, "ownerA");
 //            PrintVector(ownerGridLoc, "ownerGridLoc");
-//            PrintVector(commModes, "commModes");
 //            printf("commLinLoc: %d\n", commLinLoc);
 
 //            PrintVector(elem, "pack Global elem");
 //            PrintVector(data.loopStarts, "local location");
 
-//            std::cout << "offsetting dataBuf by: " << i * A.LocalModeStride(a2aModeTo) << std::endl;
-//            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
-//            printf("pack data:\n");
+//            printf("unpack data:\n");
 //            PrintVector(data.loopShape, "  loop shape");
 //            PrintVector(data.loopStarts, "  loop starts");
 //            PrintVector(data.loopIncs, "  loop incs");
@@ -619,11 +623,14 @@ void DistTensor<T>::ElemSelectUnpackHelperWithPermutation(const PackData& packDa
 //            PrintVector(dstElem, "dstElem");
 //            PrintVector(PermuteVector(dstElem, elemData.permutation), "permuted dstElem");
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(dstElem, elemData.permutation), dstStrides);
-            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
-//            printf("starting pack at lin loc: %d\n", dataBufPtr);
-//            printf("unpacking first element: %d\n", recvBuf[commLinLoc * nElemsPerProc]);
+//            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
+//            printf("unpacking from recvBuf loc: %d\n", commLinLoc * nElemsPerProc);
+//            printf("starting unpack at dataBuf loc: %d\n", dataBufPtr);
             PackCommHelper(data, order - 1, &(recvBuf[commLinLoc * nElemsPerProc]), &(dataBuf[dataBufPtr]));
-//            std::cout << "procs: " << prod(nProcsPerA2AMode) << std::endl;
+//            printf("dataBuf:");
+//            for(j = 0; j < prod(LocalShape()); j++)
+//                printf(" %d", dataBuf[j]);
+//            printf("\n");
         }else{
 //            printf("ping\n");
 //            printf("order: %d\n", order);

@@ -142,7 +142,7 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
     if(commRank == 0){
         printf("Performing All-to-all tests\n");
     }
-    for(i = 0; i < a2aTests.size(); i++){
+    for(i = 1; i < a2aTests.size(); i++){
         A2ATest thisTest = a2aTests[i];
         ModeArray a2aModesFrom = thisTest.first.first.first;
         ModeArray a2aModesTo = thisTest.first.first.second;
