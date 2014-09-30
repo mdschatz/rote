@@ -224,7 +224,7 @@ DistTensor<T>::GetLocal( const Location& loc ) const
     CallStackEntry entry("[MC,MR]::GetLocal");
     AssertValidEntry( loc );
 #endif
-    return tensor_.Get(loc);
+    return tensor_.Get(PermuteVector(loc, localPerm_));
 }
 
 template<typename T>
@@ -269,17 +269,27 @@ DistTensor<T>::Get( const Location& loc ) const
     CallStackEntry entry("[MC,MR]::Get");
     AssertValidEntry( loc );
 #endif
+    const tmen::Grid& g = Grid();
     const Location owningProc = DetermineOwner(loc);
 //    PrintVector(loc, "loc");
 //    PrintVector(owningProc, "owner");
+//    PrintVector(LocalShape(), "localShape");
+//    PrintVector(localPerm_, "localPerm");
 //    PrintVector(grid_->Loc(), "myLoc");
+
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
     if(Participating()){
-        if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
+//        PrintVector(gv.ParticipatingLoc(), "myParticipatingLoc");
+        const Location ownerGridLoc = GridViewLoc2GridLoc(owningProc, gv);
+//        PrintVector(ownerGridLoc, "ownerGridLoc");
+//        PrintVector(g.Loc(), "myGridLoc");
+        if(!AnyElemwiseNotEqual(g.Loc(), ownerGridLoc)){
 //            printf("thats me\n");
             const Location localLoc = Global2LocalIndex(loc);
+//            PrintVector(LocalShape(), "localShape");
+//            PrintVector(localPerm_, "localPerm");
 //            PrintVector(localLoc, "locally at");
             u = GetLocal(localLoc);
         }

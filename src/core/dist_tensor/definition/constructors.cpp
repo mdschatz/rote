@@ -20,6 +20,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
   modeShifts_(),
 
   tensor_(true),
+  localPerm_(),
 
   grid_(&grid),
   commMap_(&(DefaultCommMap())),
@@ -28,7 +29,7 @@ DistTensor<T>::DistTensor( const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ SetShifts(); SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
 DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
@@ -40,6 +41,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
   modeShifts_(order, 0),
 
   tensor_(order, false),
+  localPerm_(order),
 
   grid_(&grid),
   commMap_(&(DefaultCommMap())),
@@ -48,7 +50,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ SetShifts(); SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
 DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& grid )
@@ -60,6 +62,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& gri
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&grid),
   commMap_(&(DefaultCommMap())),
@@ -68,7 +71,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const tmen::Grid& gri
 
   viewType_(OWNER),
   auxMemory_()
-{ SetShifts(); SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
 DistTensor<T>::DistTensor
@@ -81,6 +84,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&grid),
   commMap_(&(DefaultCommMap())),
@@ -93,6 +97,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    SetDefaultPermutation();
     SetShifts();
     ResizeTo( shape );
     SetParticipatingComm();
@@ -110,6 +115,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -122,6 +128,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     Align( modeAlignments );
+    SetDefaultPermutation();
     dist_ = dist;
     ResizeTo( shape );
     SetParticipatingComm();
@@ -139,6 +146,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -151,6 +159,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     Align( modeAlignments );
+    SetDefaultPermutation();
     ResizeTo( shape, ldims );
     SetParticipatingComm();
 }
@@ -167,6 +176,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -179,6 +189,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    SetDefaultPermutation();
     LockedAttach
     ( shape, modeAlignments, buffer, ldims, g );
     SetParticipatingComm();
@@ -196,6 +207,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -208,6 +220,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    SetDefaultPermutation();
     Attach
     ( shape, modeAlignments, buffer, ldims, g );
     SetParticipatingComm();
@@ -227,6 +240,7 @@ DistTensor<T>::DistTensor( const std::string& dist, const tmen::Grid& grid )
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&grid),
   commMap_(&(DefaultCommMap())),
@@ -235,7 +249,7 @@ DistTensor<T>::DistTensor( const std::string& dist, const tmen::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ SetShifts(); SetParticipatingComm();}
+{ SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
 DistTensor<T>::DistTensor
@@ -248,6 +262,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&grid),
   commMap_(&(DefaultCommMap())),
@@ -260,6 +275,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    SetDefaultPermutation();
     SetShifts();
     ResizeTo( shape );
     SetParticipatingComm();
@@ -277,6 +293,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -289,6 +306,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     Align( modeAlignments );
+    SetDefaultPermutation();
     ResizeTo( shape );
     SetParticipatingComm();
 }
@@ -305,6 +323,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -317,6 +336,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
     Align( modeAlignments );
+    SetDefaultPermutation();
     ResizeTo( shape, ldims );
     SetParticipatingComm();
 }
@@ -333,6 +353,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -345,6 +366,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    SetDefaultPermutation();
     LockedAttach
     ( shape, modeAlignments, buffer, ldims, g );
     SetParticipatingComm();
@@ -362,6 +384,7 @@ DistTensor<T>::DistTensor
   modeShifts_(shape_.size(), 0),
 
   tensor_(shape_.size(), false),
+  localPerm_(shape_.size()),
 
   grid_(&g),
   commMap_(&(DefaultCommMap())),
@@ -374,6 +397,7 @@ DistTensor<T>::DistTensor
     if(shape_.size() + 1 != dist_.size())
         LogicError("Error: Distribution must be of same order as object");
 
+    SetDefaultPermutation();
     Attach
     ( shape, modeAlignments, buffer, ldims, g );
     SetParticipatingComm();
@@ -389,6 +413,7 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
   modeShifts_(),
 
   tensor_(true),
+  localPerm_(shape_.size()),
 
   grid_(&(A.Grid())),
   commMap_(&(DefaultCommMap())),
@@ -406,6 +431,7 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
         *this = A;
     else
         LogicError("Tried to construct [MC,MR] with itself");
+    SetDefaultPermutation();
     SetParticipatingComm();
 }
 
@@ -425,6 +451,7 @@ DistTensor<T>::Swap( DistTensor<T>& A )
     std::swap( modeShifts_, A.modeShifts_ );
 
     tensor_.Swap( A.tensor_ );
+    std::swap( localPerm_, A.localPerm_ );
 
     std::swap( grid_, A.grid_ );
     std::swap( gridView_, A.gridView_ );
@@ -471,6 +498,7 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
         {
             //dist_ = A.TensorDist();
             tensor_ = A.LockedTensor();
+            localPerm_ = A.localPerm_;
             gridView_ = A.gridView_;
             participatingComm_ = A.participatingComm_;
             grid_ = A.grid_;

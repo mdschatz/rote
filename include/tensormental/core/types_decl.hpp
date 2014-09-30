@@ -42,6 +42,7 @@ struct PackData
     std::vector<Unsigned> dstBufStrides;
     std::vector<Unsigned> loopStarts;
     std::vector<Unsigned> loopIncs;
+    Permutation permutation;
 };
 
 struct YAxpPxData{
@@ -54,6 +55,24 @@ struct YAxpPxData{
 struct YxpByData{
     ObjShape loopShape;
     std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> dstStrides;
+};
+
+struct AxpyData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> dstStrides;
+};
+
+struct ScalData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+};
+
+struct ElemScalData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
     std::vector<Unsigned> dstStrides;
 };
 
@@ -74,7 +93,7 @@ struct ElemSelectData{
     ModeArray changedModes;
     ModeArray commModes;
     Unsigned nElemsPerProc;
-
+    Permutation permutation;
 };
 
 template<typename Real>

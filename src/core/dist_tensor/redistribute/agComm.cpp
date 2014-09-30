@@ -79,6 +79,55 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 
+template<typename T>
+void
+DistTensor<T>::AllGatherCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& agModes, const ModeArray& commModes){
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::AllGatherCommRedist");
+//    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
+//        LogicError("AllGatherRedist: Invalid redistribution request");
+#endif
+    const tmen::Grid& g = A.Grid();
+
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+
+    if(!A.Participating())
+        return;
+
+    if(agModes.size() == 0){
+        CopyLocalBuffer(A);
+        return;
+    }
+    Unsigned sendSize, recvSize;
+
+    //Determine buffer sizes for communication
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
+    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+
+    sendSize = prod(maxLocalShapeA);
+    recvSize = sendSize * nRedistProcs;
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
+    PackAGCommSendBufWithPermutation(A, sendBuf);
+
+    //printf("Allgathering %d elements\n", sendSize);
+    mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
+
+    if(!(Participating()))
+        return;
+
+    //NOTE: AG and A2A unpack routines are the exact same
+    UnpackA2ACommRecvBufWithPermutation(recvBuf, agModes, commModes, maxLocalShapeA, A);
+    //Print(B.LockedTensor(), "A's local tensor after allgathering:");
+}
+
 template <typename T>
 void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
 {
@@ -91,6 +140,35 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   PackData packData;
   packData.loopShape = A.LocalShape();
   packData.srcBufStrides = A.LocalStrides();
+
+  packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
+
+  packData.loopStarts = zeros;
+  packData.loopIncs = ones;
+
+  PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+
+//  Unsigned i;
+//  printf("sendBuf:");
+//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+//      std::cout << " " << sendBuf[i];
+//  }
+//  std::cout << std::endl;
+}
+
+template <typename T>
+void DistTensor<T>::PackAGCommSendBufWithPermutation(const DistTensor<T>& A, T * const sendBuf)
+{
+  const Unsigned order = A.Order();
+  const T* dataBuf = A.LockedBuffer();
+
+  const Location zeros(order, 0);
+  const Location ones(order, 1);
+
+  Permutation invPerm = DetermineInversePermutation(A.localPerm_);
+  PackData packData;
+  packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+  packData.srcBufStrides = PermuteVector(A.LocalStrides(), invPerm);
 
   packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
 

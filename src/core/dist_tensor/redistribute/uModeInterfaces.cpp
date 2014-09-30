@@ -54,6 +54,11 @@ void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitMo
     ModeArray sorted = unitModes;
     ModeArray blank(0);
     std::sort(sorted.begin(), sorted.end());
+    shape_.reserve(shape_.size() + sorted.size());
+    dist_.reserve(dist_.size() + sorted.size());
+    constrainedModeAlignments_.reserve(constrainedModeAlignments_.size() + sorted.size());
+    modeAlignments_.reserve(modeAlignments_.size() + sorted.size());
+    modeShifts_.reserve(modeShifts_.size() + sorted.size());
     for(i = 0; i < sorted.size(); i++){
         shape_.insert(shape_.begin() + sorted[i], 1);
         dist_.insert(dist_.begin() + sorted[i], blank);

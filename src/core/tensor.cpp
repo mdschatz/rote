@@ -63,7 +63,7 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
             msg << ", " << loc[i];
         msg << ") of ";
         if(loc.size() > 0)
-            msg << loc[0];
+            msg << shape_[0];
         for(i = 1; i < order; i++)
             msg << " x " << shape_[i];
         msg << "Tensor.";
@@ -466,6 +466,9 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
     Unsigned i;
     ModeArray sorted = modes;
     std::sort(sorted.begin(), sorted.end());
+    shape_.reserve(shape_.size() + sorted.size());
+    strides_.reserve(strides_.size() + sorted.size());
+    ldims_.reserve(ldims_.size() + sorted.size());
     for(i = 0; i < sorted.size(); i++){
         shape_.insert(shape_.begin() + sorted[i], 1);
 
@@ -1116,6 +1119,43 @@ void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T 
 }
 
 template<typename T>
+void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, const Permutation& perm, T const * const srcBuf, T * const dstBuf){
+    Unsigned packSlice;
+
+    if(packData.loopShape.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+    }
+
+    const Unsigned permPackMode = perm[packMode];
+    const Unsigned loopEnd = packData.loopShape[permPackMode];
+    const Unsigned dstBufStride = packData.dstBufStrides[permPackMode];
+    const Unsigned srcBufStride = packData.srcBufStrides[permPackMode];
+    const Unsigned loopStart = packData.loopStarts[permPackMode];
+    const Unsigned loopInc = packData.loopIncs[permPackMode];
+    Unsigned dstBufPtr = 0;
+    Unsigned srcBufPtr = 0;
+
+    if(packMode == 0){
+        if(dstBufStride == 1 && srcBufStride == 1){
+            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
+        }else{
+            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+                dstBufPtr += dstBufStride;
+                srcBufPtr += srcBufStride;
+            }
+        }
+    }else{
+        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+            dstBufPtr += dstBufStride;
+            srcBufPtr += srcBufStride;
+        }
+    }
+}
+
+template<typename T>
 void
 Tensor<T>::CopyBuffer(const Tensor<T>& A)
 {
@@ -1134,6 +1174,34 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
     packData.loopShape = A.Shape();
     packData.srcBufStrides = A.Strides();
     packData.dstBufStrides = Strides();
+
+    packData.loopStarts = zeros;
+    packData.loopIncs = ones;
+
+    PackCommHelper(packData, order - 1, &(srcBuf[0]), &(thisBuf[0]));
+}
+
+template<typename T>
+void
+Tensor<T>::CopyBufferWithPermutation(const Tensor<T>& A, const Permutation& srcPerm, const Permutation& dstPerm)
+{
+#ifndef RELEASE
+    CallStackEntry cse("Tensor::CopyBuffer");
+#endif
+
+    const Unsigned order = A.Order();
+    const T* srcBuf = A.LockedBuffer();
+    T* thisBuf = Buffer();
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+
+    Permutation invPermSrc = DetermineInversePermutation(srcPerm);
+    Permutation invPermDst = DetermineInversePermutation(dstPerm);
+    PackData packData;
+    packData.loopShape = PermuteVector(A.Shape(), invPermSrc);
+    packData.srcBufStrides = PermuteVector(A.Strides(), invPermSrc);
+    packData.dstBufStrides = PermuteVector(Strides(), invPermDst);
 
     packData.loopStarts = zeros;
     packData.loopIncs = ones;

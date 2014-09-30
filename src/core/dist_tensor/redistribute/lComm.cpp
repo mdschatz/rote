@@ -138,6 +138,77 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
 //    printf("\n");
 }
 
+template<typename T>
+void DistTensor<T>::LocalCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& localModes){
+//    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
+//        LogicError("LocalRedist: Invalid redistribution request");
+    if(!(Participating()))
+        return;
+    //Packing is what is stored in memory
+    UnpackLocalCommRedistWithPermutation(A, localModes);
+}
+
+template <typename T>
+void DistTensor<T>::UnpackLocalCommRedistWithPermutation(const DistTensor<T>& A, const ModeArray& lModes)
+{
+    Unsigned i;
+    Unsigned order = A.Order();
+    T* dataBuf = Buffer();
+    const T* srcBuf = A.LockedBuffer();
+
+//    printf("srcBuf:");
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        printf(" %d", srcBuf[i]);
+//    }
+//    printf("\n");
+
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+
+    const tmen::Grid& g = Grid();
+    const ObjShape gridShape = g.Shape();
+    const Location gridLoc = g.Loc();
+
+    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
+    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+    Permutation invPermB = DetermineInversePermutation(localPerm_);
+    Permutation invPermA = DetermineInversePermutation(A.localPerm_);
+
+    PackData unpackData;
+    unpackData.loopShape = PermuteVector(LocalShape(), invPermB);
+//    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPerm);
+    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPermB);
+    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), invPermA);
+//    unpackData.srcBufStrides[lMode] *= nRedistProcs;
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
+
+//    PrintVector(A.LocalShape(), "srcLocalShape");
+//    PrintVector(LocalShape(), "dstLocalShape");
+//    PrintVector(unpackData.loopShape, "loopShape");
+//    PrintVector(unpackData.dstBufStrides, "dstStrides");
+//    PrintVector(unpackData.srcBufStrides, "srcStrides");
+    const Location myFirstElemLoc = ModeShifts();
+
+    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
+        const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);
+        Unsigned srcBufPtr = 0;
+        for(i = 0; i < lModes.size(); i++)
+            srcBufPtr += firstLocInA[lModes[i]] * A.LocalModeStride(lModes[i]);
+//        printf("copying from srcBuf: %d\n", srcBufPtr);
+        PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
+    }
+
+//    printf("dataBuf:");
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
+//        printf(" %d", dataBuf[i]);
+//    }
+//    printf("\n");
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

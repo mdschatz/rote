@@ -71,6 +71,9 @@ template<typename T>
 bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm);
+
+template<typename T>
 std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter);
 
 template<typename T>

@@ -83,20 +83,20 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     const ObjShape gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
 
-    const std::vector<Unsigned> permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
-    const std::vector<Unsigned> permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
+    const Permutation permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
+    const Permutation permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
 
     //Determine sendRank
     const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
-    const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(gridSliceShape, permA));
+    const Unsigned sendRank = Loc2LinearLoc(PermuteVector(sendLoc, permA), PermuteVector(gridSliceShape, permA));
 //    const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
 
     //Determine recvRank
     const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
-    const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(gridSliceShape, permB));
+    const Unsigned recvLinearLoc = Loc2LinearLoc(PermuteVector(myLoc, permB), PermuteVector(gridSliceShape, permB));
 //    const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteModeDistB));
     const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
-    const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(gridSliceShape, permA));
+    const Unsigned recvRank = Loc2LinearLoc(PermuteVector(recvLoc, permA), PermuteVector(gridSliceShape, permA));
 //    const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
 
     //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
@@ -108,6 +108,69 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     //Note: P and RS unpack routines are the exact same
     UnpackRSCommRecvBuf(recvBuf, A);
+}
+
+template <typename T>
+void DistTensor<T>::PermutationCommRedistWithPermutation(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& commModes){
+    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
+            LogicError("PermutationRedist: Invalid redistribution request");
+
+    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
+    if(!A.Participating())
+        return;
+
+    Unsigned sendSize, recvSize;
+
+    //Determine buffer sizes for communication
+    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
+    const ObjShape maxLocalShapeB = MaxLocalShape();
+    recvSize = prod(maxLocalShapeB);
+    sendSize = recvSize;
+
+    const int myRank = mpi::CommRank(comm);
+
+    Memory<T> auxMemory;
+    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    MemZero(&(auxBuf[0]), sendSize + recvSize);
+    T* sendBuf = &(auxBuf[0]);
+    T* recvBuf = &(auxBuf[sendSize]);
+
+    //NOTE: P and AG pack routines are the exact same
+    PackAGCommSendBufWithPermutation(A, sendBuf);
+
+    const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
+    const ModeDistribution permuteModeDistB = ModeDist(permuteMode);
+
+    ModeDistribution gridModesUsed(permuteModeDistB);
+    std::sort(gridModesUsed.begin(), gridModesUsed.end());
+
+    const ObjShape gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
+
+    const std::vector<Unsigned> permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
+    const std::vector<Unsigned> permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
+
+    //Determine sendRank
+    const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
+    const Unsigned sendRank = Loc2LinearLoc(PermuteVector(sendLoc, permA), PermuteVector(gridSliceShape, permA));
+//    const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
+
+    //Determine recvRank
+    const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
+    const Unsigned recvLinearLoc = Loc2LinearLoc(PermuteVector(myLoc, permB), PermuteVector(gridSliceShape, permB));
+//    const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteModeDistB));
+    const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
+    const Unsigned recvRank = Loc2LinearLoc(PermuteVector(recvLoc, permA), PermuteVector(gridSliceShape, permA));
+//    const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
+
+    //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
+    mpi::SendRecv(sendBuf, sendSize, sendRank,
+                  recvBuf, recvSize, recvRank, comm);
+
+    if(!(Participating()))
+        return;
+
+    //Note: P and RS unpack routines are the exact same
+    UnpackRSCommRecvBufWithPermutation(recvBuf, A);
 }
 
 #define PROTO(T) template class DistTensor<T>

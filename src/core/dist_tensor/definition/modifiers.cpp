@@ -242,6 +242,44 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
 
 template<typename T>
 void
+DistTensor<T>::ResizeLocalUnderPerm(const Permutation& perm)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ResizeLocalUnderPerm");
+#endif
+    if(Participating()){
+        tensor_.ResizeTo(PermuteVector(Lengths(shape_, modeShifts_, gridView_.ParticipatingShape()), perm));
+    }
+}
+
+template<typename T>
+void DistTensor<T>::ResizeToUnderPerm( const DistTensor<T>& A)
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::ResizeTo");
+    AssertNotLocked();
+#endif
+    ResizeToUnderPerm(A.Shape());
+}
+
+//TODO: FIX Participating
+template<typename T>
+void
+DistTensor<T>::ResizeToUnderPerm( const ObjShape& shape )
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::ResizeTo");
+    AssertNotLocked();
+#endif
+    shape_ = shape;
+    SetShifts();
+    if(Participating()){
+        tensor_.ResizeTo(PermuteVector(Lengths(shape, modeShifts_, gridView_.ParticipatingShape()), localPerm_));
+    }
+}
+
+template<typename T>
+void
 DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims )
 {
 #ifndef RELEASE
@@ -751,6 +789,28 @@ template<typename T>
 void
 DistTensor<T>::UpdateLocal( const Location& loc, T alpha )
 { tensor_.Update(loc,alpha); }
+
+template<typename T>
+void
+DistTensor<T>::SetLocalPermutation(const Permutation& perm)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::SetLocalPermutation");
+#endif
+    localPerm_ = perm;
+}
+
+template<typename T>
+void
+DistTensor<T>::SetDefaultPermutation()
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::SetDefaultPermutation");
+#endif
+    Unsigned i;
+    for(i = 0; i < Order(); i++)
+        localPerm_[i] = i;
+}
 
 #define FULL(T) \
     template class DistTensor<T>;

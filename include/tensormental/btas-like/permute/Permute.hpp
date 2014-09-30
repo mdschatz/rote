@@ -27,7 +27,7 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     PackData data;
     data.loopShape = A.Shape();
     data.srcBufStrides = A.Strides();
-    data.dstBufStrides = FilterVector(B.Strides(), invperm);
+    data.dstBufStrides = PermuteVector(B.Strides(), invperm);
     data.loopStarts = zeros;
     data.loopIncs = ones;
 

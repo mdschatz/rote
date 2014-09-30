@@ -41,7 +41,10 @@ Zero( Tensor<T>& A )
     CallStackEntry entry("Zero");
 #endif
     Unsigned order = A.Order();
-    ZeroHelper(order - 1, A.Shape(), A.Strides(), A.Buffer());
+    if(order == 0)
+        MemZero(A.Buffer(), 1);
+    else
+        ZeroHelper(order - 1, A.Shape(), A.Strides(), A.Buffer());
 //    const Int numElem = prod(A.Shape());
     //PARALLEL_FOR
 //    MemZero( A.Buffer(), numElem );
