@@ -790,7 +790,7 @@ inline Tensor<T> LockedViewAsHigherOrder
 template<typename T>
 inline void ViewAsMatrix
 ( Tensor<T>& A,
-  Tensor<T>& B,
+  const Tensor<T>& B,
   const Unsigned& nModesMergeCol )
 {
 #ifndef RELEASE
@@ -803,7 +803,7 @@ inline void ViewAsMatrix
 
 template<typename T>
 inline Tensor<T> ViewAsMatrix
-( Tensor<T>& B,
+( const Tensor<T>& B,
   const Unsigned& nModesMergeCol )
 {
    Tensor<T> A(2);

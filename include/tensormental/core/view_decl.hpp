@@ -195,12 +195,12 @@ void ViewAsMatrixHelper
 template<typename T>
 void ViewAsMatrix
 ( Tensor<T>& A,
-  Tensor<T>& B,
+  const Tensor<T>& B,
   const Unsigned& nModesMergeCol );
 
 template<typename T>
 Tensor<T> ViewAsMatrix
-( Tensor<T>& B,
+( const Tensor<T>& B,
   const Unsigned& nModesMergeCol );
 
 template<typename T>
