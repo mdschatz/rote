@@ -94,9 +94,7 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);

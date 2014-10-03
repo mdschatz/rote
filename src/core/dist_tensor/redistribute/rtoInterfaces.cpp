@@ -69,9 +69,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     tmp.ResizeToUnderPerm(tmpShape);
     Zero(tmp);
 
-    //Account for permuted local storage
-    Permutation invPermA = DetermineInversePermutation(A.localPerm_);
-    LocalReduce(tmp, A, FilterVector(invPermA, rModes));
+    LocalReduce(tmp, A, rModes);
 
     ObjShape tmp2Shape = A.Shape();
 

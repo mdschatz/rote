@@ -275,9 +275,8 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
 
     const ObjShape shape = A.Shape();
 
-    Permutation defaultPerm(order);
-    for(i = 0; i < order; i++)
-        defaultPerm[i] = i;
+    Permutation defaultPerm = DefaultPermutation(order);
+
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
     AT.SetLocalPermutation(defaultPerm);
     AB.SetLocalPermutation(defaultPerm);
@@ -366,9 +365,7 @@ main( int argc, char* argv[] )
         DistTensor<int> A(args.tensorShape, args.tensorDist, g);
         Unsigned order = A.Order();
         ObjShape origShape = A.Shape();
-        Permutation permA(A.Order());
-        for(i = 0; i < A.Order(); i++)
-            permA[i] = i;
+        Permutation permA = DefaultPermutation(A.Order());
 
         Unsigned count = 0;
         do{

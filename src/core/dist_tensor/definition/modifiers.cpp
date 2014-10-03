@@ -807,9 +807,7 @@ DistTensor<T>::SetDefaultPermutation()
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetDefaultPermutation");
 #endif
-    Unsigned i;
-    for(i = 0; i < Order(); i++)
-        localPerm_[i] = i;
+    localPerm_ = DefaultPermutation(Order());
 }
 
 #define FULL(T) \

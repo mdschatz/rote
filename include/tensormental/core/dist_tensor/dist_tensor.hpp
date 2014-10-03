@@ -499,6 +499,8 @@ private:
 #endif // ifndef SWIG
 };
 
+Permutation DefaultPermutation(Unsigned order);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_DISTTENSOR_DECL_HPP

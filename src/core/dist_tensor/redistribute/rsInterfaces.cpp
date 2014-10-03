@@ -96,8 +96,8 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 //    std::cout << std::endl;
 
     //Account for permuted local storage
-    Permutation invPermA = DetermineInversePermutation(A.localPerm_);
-    LocalReduce(tmp, A, FilterVector(invPermA, rModes));
+
+    LocalReduce(tmp, A, rModes);
 
 //    PrintVector(rModes, "reducing rModes");
 //    Print(tmp, "after localReduce");

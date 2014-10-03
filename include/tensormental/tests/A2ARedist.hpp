@@ -133,9 +133,7 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
     Tensor<T> check(A.Shape());
     Set(check);
 
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     Unsigned count = 0;
     do{

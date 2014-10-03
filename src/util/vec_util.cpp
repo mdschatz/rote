@@ -170,15 +170,7 @@ bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec
 
 template<typename T>
 std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm){
-    Unsigned i;
-    std::vector<T> ret;
-    for(i = 0; i < perm.size(); i++){
-        if(perm[i] < 0 || perm[i] >= vec.size())
-            continue;
-        else
-            ret.push_back(vec[perm[i]]);
-    }
-    return ret;
+    return FilterVector(vec, perm);
 }
 
 template<typename T>

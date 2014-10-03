@@ -1110,11 +1110,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");
 #endif
-    Unsigned i;
-    Unsigned order = A.Order();
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(A.Order());
     CopyBuffer(A, perm, perm);
 }
 

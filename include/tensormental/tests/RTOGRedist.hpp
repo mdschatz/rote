@@ -81,9 +81,7 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
     DistTensor<T> B(shapeB, resDist, NegFilterVector(A.Alignments(), rModes), g);
 
     Unsigned order = B.Order();
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);
