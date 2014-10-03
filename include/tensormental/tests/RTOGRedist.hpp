@@ -88,7 +88,7 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
     do{
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
-        B.ReduceToOneRedistFromWithPermutation(A, rModes);
+        B.ReduceToOneRedistFrom(A, rModes);
         Print(B, "B after reduce-to-one redist");
 //        CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));

@@ -43,6 +43,7 @@ inline void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked)
     A.shape_ = B.shape_;
     A.modeAlignments_ = B.modeAlignments_;
     A.dist_ = B.dist_;
+    A.localPerm_ = B.localPerm_;
     if(isLocked)
         A.viewType_ = LOCKED_VIEW;
     else
@@ -130,7 +131,7 @@ inline void ViewHelper
     A.gridView_ = B.gridView_;
     A.shape_ = shape;
     A.dist_ = B.dist_;
-
+    A.localPerm_ = B.localPerm_;
     for(i = 0; i < order; i++)
         A.modeAlignments_[i] = (B.ModeAlignment(i) + loc[i]) % modeWrapStrides[i];
 
@@ -208,6 +209,7 @@ inline void View2x1Helper
     A.dist_ = BT.dist_;
     A.shape_[mode] += BB.shape_[mode];
     A.modeAlignments_ = BT.modeAlignments_;
+    A.localPerm_ = BT.localPerm_;
     if(isLocked)
         A.viewType_ = LOCKED_VIEW;
     else
@@ -411,7 +413,6 @@ inline void ViewAsMatrixHelper
                 A.ldims_[1] = Max(1, stridesB[nModesMergeCol-1] * shapeB[nModesMergeCol - 1]);
             }
         }
-    //    A.data_     = B.data_;
         if(isLocked)
             A.viewType_ = LOCKED_VIEW;
         else
@@ -794,7 +795,7 @@ inline void ViewAsMatrix
   const Unsigned& nModesMergeCol )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ViewAsLowerOrder");
+    CallStackEntry entry("ViewAsMatrix");
 #endif
     ViewAsMatrixHelper(A, B, nModesMergeCol, false);
     //Set the data we can't set in helper

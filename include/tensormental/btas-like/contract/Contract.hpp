@@ -64,7 +64,6 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //NOTE: Get rid of memcopy
 template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
-
     LocalContractAndLocalEliminateDirect(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
 }
 
@@ -121,6 +120,10 @@ void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA
     const Permutation permC = contractPerms[2];
     const Unsigned nIndicesM = permA.size() - nIndicesContract;
 
+    Tensor<T> PA(PermuteVector(A.Shape(), permA));
+    Tensor<T> PB(PermuteVector(B.Shape(), permB));
+    Tensor<T> PC(PermuteVector(C.Shape(), permC));
+
     Tensor<T> MPA, MPB, MPC;
 
     //Permute A, B, C
@@ -140,25 +143,41 @@ void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA
 //    printf("]\n");
 
     if(permuteA){
-        Tensor<T> PA(PermuteVector(A.Shape(), permA));
+
         Permute(PA, A, permA);
+//        Print(PA, "PA");
+//        PrintData(PA, "PA data");
         ViewAsMatrix(MPA, PA, nIndicesM);
     }else{
         ViewAsMatrix(MPA, A, nIndicesM);
     }
     if(permuteB){
-        Tensor<T> PB(PermuteVector(B.Shape(), permB));
+
         Permute(PB, B, permB);
         ViewAsMatrix(MPB, PB, nIndicesContract);
     }else{
         ViewAsMatrix(MPB, B, nIndicesContract);
     }
     if(permuteC){
-        Tensor<T> PC(PermuteVector(C.Shape(), permC));
+
         Permute(PC, C, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
 
+//        PrintData(A, "AData");
+//        Print(A, "A");
+//        PrintData(B, "BData");
+//        Print(B, "B");
+
+//        PrintData(MPA, "MPAData");
+//        Print(MPA, "MPA");
+
+//        PrintData(MPB, "MPBData");
+//        Print(MPB, "MPB");
+
         Gemm(alpha, MPA, MPB, beta, MPC);
+
+//        PrintData(MPC, "MPCData");
+//        Print(MPC, "MPC");
 
         Tensor<T> IPC;
         const Permutation invPermC = DetermineInversePermutation(permC);
@@ -178,11 +197,20 @@ void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA
     //        printf(" %d", invPermC[i]);
     //    printf("]\n");
 
+//        PrintData(IPC, "IPCData");
+//        Print(IPC, "IPC");
+
         Permute(C, IPC, invPermC);
-    //    Print(C, "result C");
+
+//        PrintData(C, "CData");
+//        Print(C, "C");
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
         Gemm(alpha, MPA, MPB, beta, MPC);
+//        PrintData(MPC, "MPCData");
+//        Print(MPC, "MPC");
+//        PrintData(C, "CData");
+//        Print(C, "C");
     }
 
 //    PrintData(PA, "PA");
@@ -212,7 +240,6 @@ void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA
 //NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
 template <typename T>
 void LocalContractAndLocalEliminateDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
-
     Unsigned i;
     Unsigned order = C.Order();
     IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);

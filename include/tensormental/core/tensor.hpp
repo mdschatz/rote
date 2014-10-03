@@ -163,7 +163,7 @@ public:
     Unsigned NumElem() const;
     void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void CopyBuffer(const Tensor& A);
-    void CopyBufferWithPermutation(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
+    void CopyBuffer(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
 
 private:
     ObjShape shape_;

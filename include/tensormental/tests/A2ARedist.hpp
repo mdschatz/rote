@@ -145,24 +145,10 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
         }
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
-        B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups);
+        B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
         CheckResult(B, check);
 //            Print(B, "after a2a");
     }while(next_permutation(perm.begin(), perm.end()));
-
-//    Permutation perm(4);
-//    perm[0] = 3;
-//    perm[1] = 1;
-//    perm[2] = 0;
-//    perm[3] = 2;
-////    PrintVector(perm, "permutation");
-//    B.SetLocalPermutation(perm);
-//    B.ResizeToUnderPerm(A);
-////    PrintVector(B.LocalShape(), "local Shape before redist");
-//    B.AllToAllRedistFromWithPermutation(A, a2aModesFrom, a2aModesTo, commGroups );
-////    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
-////    PrintVector(B.LocalShape(), "local Shape after redist");
-//    Print(B, "B after a2a redist");
 }
 
 #endif // ifndef TMEN_TESTS_A2AREDIST_HPP

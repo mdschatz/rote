@@ -1110,28 +1110,17 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");
 #endif
-
-    const Unsigned order = A.Order();
-    const T* srcBuf = A.LockedBuffer();
-    T* thisBuf = Buffer();
-
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
-    PackData packData;
-    packData.loopShape = A.Shape();
-    packData.srcBufStrides = A.Strides();
-    packData.dstBufStrides = Strides();
-
-    packData.loopStarts = zeros;
-    packData.loopIncs = ones;
-
-    PackCommHelper(packData, order - 1, &(srcBuf[0]), &(thisBuf[0]));
+    Unsigned i;
+    Unsigned order = A.Order();
+    Permutation perm(order);
+    for(i = 0; i < order; i++)
+        perm[i] = i;
+    CopyBuffer(A, perm, perm);
 }
 
 template<typename T>
 void
-Tensor<T>::CopyBufferWithPermutation(const Tensor<T>& A, const Permutation& srcPerm, const Permutation& dstPerm)
+Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Permutation& dstPerm)
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");

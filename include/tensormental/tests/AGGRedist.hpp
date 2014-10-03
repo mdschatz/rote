@@ -125,7 +125,7 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
     do{
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
-        B.AllGatherRedistFromWithPermutation(A, agModes, redistGroups);
+        B.AllGatherRedistFrom(A, agModes, redistGroups);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 

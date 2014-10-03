@@ -63,7 +63,7 @@ TestPRedist( const DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist
     do{
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
-        B.PermutationRedistFromWithPermutation(A, pMode, resDist);
+        B.PermutationRedistFrom(A, pMode, resDist);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 

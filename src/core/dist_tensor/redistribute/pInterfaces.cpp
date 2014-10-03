@@ -15,18 +15,10 @@ namespace tmen{
 
 template <typename T>
 void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    ResizeTo(A);
-    ModeArray commModes = redistModes;
-    std::sort(commModes.begin(), commModes.end());
-    PermutationCommRedist(A, permuteMode, commModes);
-}
-
-template <typename T>
-void DistTensor<T>::PermutationRedistFromWithPermutation(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
     ResizeToUnderPerm(A);
     ModeArray commModes = redistModes;
     std::sort(commModes.begin(), commModes.end());
-    PermutationCommRedistWithPermutation(A, permuteMode, commModes);
+    PermutationCommRedist(A, permuteMode, commModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

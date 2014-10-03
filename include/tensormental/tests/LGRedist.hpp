@@ -62,7 +62,7 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
     do{
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
-        B.LocalRedistFromWithPermutation(A, lModes, gridRedistModes);
+        B.LocalRedistFrom(A, lModes, gridRedistModes);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 }

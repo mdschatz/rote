@@ -225,15 +225,6 @@ void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMod
         LocalReduce(B, A, modeArr);
     }
 }
-
-template <typename T>
-void LocalReduceWithPermutation(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes, const Permutation& perm){
-    if(B.Participating()){
-        Permutation invPerm = DetermineInversePermutation(perm);
-        LocalReduce(B.Tensor(), A.LockedTensor(), FilterVector(invPerm, reduceModes));
-    }
-}
-
 } // namespace tmen
 
 #endif // ifndef TMEN_BTAS_CONTRACT_HPP

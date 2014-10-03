@@ -101,22 +101,11 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
     do{
         B.SetLocalPermutation(perm);
         B.ResizeToUnderPerm(BShape);
-        B.ReduceScatterRedistFromWithPermutation(A, rModes, sModes);
+        B.ReduceScatterRedistFrom(A, rModes, sModes);
         Print(B, "B after rs redist");
 //        CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 
-//    Permutation perm(B.Order());
-//    for(i = 0; i < perm.size(); i++)
-//        perm[i] = (i + 1) % B.Order();
-////    PrintVector(perm, "permutation");
-////    PrintVector(B.LocalShape(), "LocalShape");
-//    B.SetLocalPermutation(perm);
-//    B.ResizeToUnderPerm(B.Shape());
-////    PrintVector(B.LocalShape(), "PLocalShape");
-//    B.ReduceScatterRedistFromWithPermutation(A, rModes, sModes);
-//
-//    Print(B, "B after rs redist");
 }
 
 #endif // ifndef TMEN_TESTS_RSGREDIST_HPP

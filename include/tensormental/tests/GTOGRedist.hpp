@@ -125,7 +125,7 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
     do{
         B.SetLocalPermutation(perm);
         B.ResizeLocalUnderPerm(perm);
-        B.GatherToOneRedistFromWithPermutation(A, gModes, gridGroups);
+        B.GatherToOneRedistFrom(A, gModes, gridGroups);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 
