@@ -240,8 +240,7 @@ public:
     void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void ElemSelectPackHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
     void ElemSelectUnpackHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const recvBuf, T * const dataBuf);
-    void ElemSelectHelper(const PackData& packData, const Mode mode, const ModeArray& commModes, const ModeArray& changedA2AModes, const Location& packElem, const std::vector<Unsigned>& nProcsPerA2AMode, const Unsigned& nElemsPerProc, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
-    void ElemSelectHelperT(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
+    void ElemSelectHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
 
     //
     // All-to-all workhorse routines
@@ -355,9 +354,6 @@ public:
 
     void ResizeTo( const DistTensor<T>& A);
     void ResizeTo( const ObjShape& shape );
-    void ResizeLocalUnderPerm( const Permutation& perm );
-    void ResizeToUnderPerm( const DistTensor<T>& A);
-    void ResizeToUnderPerm( const ObjShape& shape );
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
 
     // Distribution alignment

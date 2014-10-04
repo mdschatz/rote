@@ -38,7 +38,6 @@ void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const
 
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
-
     ModeArray reduceModes(1);
     ModeArray scatterModes(1);
 
@@ -55,7 +54,6 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
 #endif
-
     ModeArray reduceModes(1);
     ModeArray scatterModes(1);
 
@@ -83,7 +81,7 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
     tmp.AlignWith(A);
     tmp.SetDistribution(A.TensorDist());
     tmp.SetLocalPermutation(A.localPerm_);
-    tmp.ResizeToUnderPerm(tmpShape);
+    tmp.ResizeTo(tmpShape);
 
 //    PrintVector(tmp.Shape(), "tmpShapeAfterPerm");
     Zero(tmp);
@@ -114,7 +112,7 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
     DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
     tmp2.AlignWith(tmp);
     tmp2.SetLocalPermutation(A.localPerm_);
-    tmp2.ResizeToUnderPerm(tmp2Shape);
+    tmp2.ResizeTo(tmp2Shape);
     tmp2.SetDistribution(tmp2Dist);
 
 //    printf("tmpDist: %s\n", tmen::TensorDistToString(tmp.TensorDist()).c_str());
@@ -129,7 +127,9 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 
     tmp2.RemoveUnitModesRedist(rModes);
 
-    ResizeToUnderPerm(tmp2.Shape());
+    Permutation permB = localPerm_;
+
+    SetAlignmentsAndResize(tmp2.Alignments(), tmp2.Shape());
     if(Participating())
         CopyLocalBuffer(tmp2);
 }

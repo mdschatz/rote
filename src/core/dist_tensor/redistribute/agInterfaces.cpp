@@ -17,7 +17,6 @@ namespace tmen{
 template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
-    ResizeTo(A);
     ModeArray agModes(1);
     agModes[0] = allGatherMode;
     std::vector<ModeArray> commGroups(1);
@@ -29,8 +28,7 @@ template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups ){
     Unsigned i;
-//    ResizeTo(A);
-    ResizeToUnderPerm(A);
+    ResizeTo(A);
     ModeArray commModes;
     for(i = 0; i < redistGroups.size(); i++)
         commModes.insert(commModes.end(), redistGroups[i].begin(), redistGroups[i].end());

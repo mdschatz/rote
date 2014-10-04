@@ -142,7 +142,7 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //    if(commRank == 0){
 //        printf("Performing All-to-all tests\n");
 //    }
-//    for(i = 6; i < a2aTests.size(); i++){
+//    for(i = 0; i < a2aTests.size(); i++){
 //        A2ATest thisTest = a2aTests[i];
 //        ModeArray a2aModesFrom = thisTest.first.first.first;
 //        ModeArray a2aModesTo = thisTest.first.first.second;
@@ -155,7 +155,7 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //    if(commRank == 0){
 //        printf("Performing AllGatherG tests\n");
 //    }
-//    for(i = 1; i < aggTests.size(); i++){
+//    for(i = 0; i < aggTests.size(); i++){
 //        AGGTest thisTest = aggTests[i];
 //        ModeArray agModes = thisTest.first.first;
 //        std::vector<ModeArray> redistGroups = thisTest.first.second;
@@ -199,28 +199,28 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestPRedist(A, pMode, resDist);
 //    }
 //
-//    if(commRank == 0){
-//        printf("Performing ReduceScatterG tests\n");
-//    }
-//    for(i = 0; i < rsgTests.size(); i++){
-//        RSGTest thisTest = rsgTests[i];
-//        ModeArray rModes = thisTest.first.first;
-//        ModeArray sModes = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestRSGRedist(A, rModes, sModes, resDist);
-//    }
-//
     if(commRank == 0){
-            printf("Performing ReduceToOneG tests\n");
+        printf("Performing ReduceScatterG tests\n");
     }
-    for(i = 0; i < rtogTests.size(); i++){
-        RTOGTest thisTest = rtogTests[i];
-        ModeArray rModes = thisTest.first;
+    for(i = 0; i < rsgTests.size(); i++){
+        RSGTest thisTest = rsgTests[i];
+        ModeArray rModes = thisTest.first.first;
+        ModeArray sModes = thisTest.first.second;
         TensorDistribution resDist = thisTest.second;
 
-        TestRTOGRedist(A, rModes, resDist);
+        TestRSGRedist(A, rModes, sModes, resDist);
     }
+//
+//    if(commRank == 0){
+//            printf("Performing ReduceToOneG tests\n");
+//    }
+//    for(i = 0; i < rtogTests.size(); i++){
+//        RTOGTest thisTest = rtogTests[i];
+//        ModeArray rModes = thisTest.first;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestRTOGRedist(A, rModes, resDist);
+//    }
 //
 //
 
@@ -278,11 +278,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
     Permutation defaultPerm = DefaultPermutation(order);
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
-    AT.SetLocalPermutation(defaultPerm);
-    AB.SetLocalPermutation(defaultPerm);
-    A0.SetLocalPermutation(defaultPerm);
-    A1.SetLocalPermutation(defaultPerm);
-    A2.SetLocalPermutation(defaultPerm);
+
     for(i = 0; i < order; i++){
         Mode mode = i;
         printf("Iterating over mode: %d\n", mode);
@@ -290,9 +286,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
         A1.AlignWith(A);
         PartitionDown(A, AT, AB, mode, 0);
 
-        Unsigned count = 0;
         while(AT.Dimension(mode) < A.Dimension(mode)){
-            printf("  iteration: %d\n", count);
             RepartitionDown(AT,   A0,
                                   A1,
                            /**/  /**/
@@ -300,16 +294,13 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
             /////////////////////////////////
             A1.SetLocalPermutation(defaultPerm);
             Print(A1, "A1before");
-//            if(count == 1)
-                DistTensorTest<T>(A1, args, g);
-            count++;
+            DistTensorTest<T>(A1, args, g);
             /////////////////////////////////
             SlidePartitionDown(AT,  A0,
                                     A1,
                               /**/ /**/
                                AB,  A2, mode);
         }
-//        break;
     }
 
 }
@@ -378,9 +369,10 @@ main( int argc, char* argv[] )
                 }
 
                 A.SetLocalPermutation(permA);
-                A.ResizeToUnderPerm(A.Shape());
+                A.ResizeTo(A.Shape());
                 Set(A);
-                DistTensorTest<int>(A, args, g);
+//                DistTensorTest<int>(A, args, g);
+                PerformTest<int>(A, args, g);
             }
         }while(next_permutation(permA.begin(), permA.end()));
 

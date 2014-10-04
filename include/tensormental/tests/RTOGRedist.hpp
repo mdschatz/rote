@@ -78,14 +78,14 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
         shapeB.erase(shapeB.begin() + sortedRModes[i]);
     }
 
-    DistTensor<T> B(shapeB, resDist, NegFilterVector(A.Alignments(), rModes), g);
+    DistTensor<T> B(resDist, NegFilterVector(A.Alignments(), rModes), g);
 
     Unsigned order = B.Order();
     Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
+//        B.ResizeTo(B.Shape());
         B.ReduceToOneRedistFrom(A, rModes);
         Print(B, "B after reduce-to-one redist");
 //        CheckResult(B, check);

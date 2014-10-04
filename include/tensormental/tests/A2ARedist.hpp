@@ -108,9 +108,9 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
 
-    DistTensor<T> B(A.Shape(), resDist, g);
+    DistTensor<T> B(resDist, g);
     B.AlignWith(A);
-    B.ResizeTo(A);
+//    B.ResizeTo(A);
     B.SetDistribution(resDist);
 
     if(commRank == 0){
@@ -142,7 +142,7 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
             PrintVector(perm, "permB");
         }
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
+//        B.ResizeTo(B.Shape());
         B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
         CheckResult(B, check);
 //            Print(B, "after a2a");

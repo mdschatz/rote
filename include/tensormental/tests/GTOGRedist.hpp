@@ -101,9 +101,9 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
 
-    DistTensor<T> B(A.Shape(), resDist, g);
+    DistTensor<T> B(resDist, g);
     B.AlignWith(A);
-    B.ResizeTo(A);
+//    B.ResizeTo(A);
     B.SetDistribution(resDist);
 
     if(commRank == 0){
@@ -122,7 +122,7 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
+//        B.ResizeTo(B.Shape());
         B.GatherToOneRedistFrom(A, gModes, gridGroups);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));

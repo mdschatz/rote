@@ -141,7 +141,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 
 //        PrintPackData(packData, "packData");
 //        PrintElemSelectData(elemData, "elemData");
-        ElemSelectHelperT(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+        ElemSelectHelper(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
     }
 
 //    const tmen::Grid& g = A.Grid();
