@@ -11,8 +11,5 @@
 #define TMEN_BTAS_CONTRACT_IMPL_HPP
 
 #include "./contract/Contract.hpp"
-#include "./contract/ContractStatA.hpp"
-#include "./contract/ContractStatB.hpp"
-#include "./contract/ContractStatC.hpp"
 
 #endif // ifndef TMEN_BTAS_CONTRACT_IMPL_HPP

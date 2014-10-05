@@ -138,12 +138,9 @@ TestYAxpPx(const DistTensor<T>& A)
     CallStackEntry entry("TestyAxpPx");
 #endif
     Unsigned i;
-    Permutation perm(A.Order());
+    Permutation perm = DefaultPermutation(A.Order());
 
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
-
-    for(i = 0; i < B.Order(); i++)
-        perm[i] = i;
 
     std::sort(perm.begin(), perm.end());
     do{
@@ -163,8 +160,6 @@ TestZAxpBy(const DistTensor<T>& A)
 #ifndef RELEASE
     CallStackEntry entry("TestZAxpBy");
 #endif
-    Permutation perm(A.Order());
-
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
     MakeUniform(B);
 
@@ -180,7 +175,6 @@ TestAxpy(const DistTensor<T>& A)
 #ifndef RELEASE
     CallStackEntry entry("TestAxpy");
 #endif
-    Permutation perm(A.Order());
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
     MakeUniform(B);
 

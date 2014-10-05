@@ -43,9 +43,9 @@ TestPRedist( const DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist
     TensorDistribution BDist = A.TensorDist();
     BDist[pMode] = resDist;
 
-    DistTensor<T> B(A.Shape(), BDist, g);
+    DistTensor<T> B(BDist, g);
     B.AlignWith(A);
-    B.ResizeTo(A);
+//    B.ResizeTo(A);
     B.SetDistribution(BDist);
     //Print(B, "B before permute redist");
 
@@ -56,14 +56,12 @@ TestPRedist( const DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist
     Tensor<T> check(A.Shape());
     Set(check);
 
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
-        B.PermutationRedistFromWithPermutation(A, pMode, resDist);
+//        B.ResizeTo(B.Shape());
+        B.PermutationRedistFrom(A, pMode, resDist);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 

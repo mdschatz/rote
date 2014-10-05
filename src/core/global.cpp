@@ -236,6 +236,18 @@ void PushBlocksizeStack( Int blocksize )
 void PopBlocksizeStack()
 { ::blocksizeStack.pop(); }
 
+Permutation DefaultPermutation(Unsigned order)
+{
+#ifndef RELEASE
+    CallStackEntry entry("DefaultPermutation");
+#endif
+    Unsigned i;
+    Permutation ret(order);
+    for(i = 0; i < order; i++)
+        ret[i] = i;
+    return ret;
+}
+
 const Grid& DefaultGrid()
 {
 #ifndef RELEASE

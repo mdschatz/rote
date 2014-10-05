@@ -99,107 +99,6 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
     LocalReduceElemSelectHelper(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), A.Strides(), B.Buffer(), B.Strides());
 }
 
-//template <typename T>
-//void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes){
-//#ifndef RELEASE
-//    CallStackEntry("LocalReduce");
-//    if(reduceModes.size() > A.Order())
-//        LogicError("LocalReduce: modes must be of length <= order");
-//
-//    for(Unsigned i = 0; i < reduceModes.size(); i++)
-//        if(reduceModes[i] >= A.Order())
-//            LogicError("LocalReduce: Supplied mode is out of range");
-//#endif
-//    T* BBuf = B.Buffer();
-//    MemZero(&(BBuf[0]), prod(B.Shape()));
-//    Unsigned i, j;
-//    const Unsigned order = A.Order();
-//
-//    ModeArray nonReduceModes;
-//    for(i = 0; i < order; i++){
-//        if(std::find(reduceModes.begin(), reduceModes.end(), i) == reduceModes.end())
-//            nonReduceModes.push_back(i);
-//    }
-//
-//    ModeArray reduceOrder = ConcatenateVectors(reduceModes, nonReduceModes);
-//
-//    ModeArray origOrder(A.Order());
-//    for(i = 0; i < order; i++)
-//        origOrder[i] = i;
-//
-//     //Determine the permutations for each Tensor
-//     const std::vector<Unsigned> perm(reduceOrder);
-//     const std::vector<Unsigned> invPerm(DeterminePermutation(reduceOrder, origOrder));
-//
-//     Tensor<T> PA(FilterVector(A.Shape(), perm));
-//     Tensor<T> PB(FilterVector(B.Shape(), perm));
-//     Tensor<T> IPB, MPA, MPB;
-//
-//     //Permute A, B
-////     printf("\n\nPermuting A: [%d", perm[0]);
-////     for(i = 1; i < perm.size(); i++)
-////         printf(" %d", perm[i]);
-////     printf("]\n");
-////     PrintVector(A.Shape(), "shapeA");
-////     PrintVector(PA.Shape(), "shapePA");
-////     PrintVector(A.Strides(), "stridesA");
-////     PrintVector(PA.Strides(), "stridesPA");
-//
-//     Permute(PA, A, perm);
-//
-////     printf("\n\nPermuting B: [%d", perm[0]);
-////     for(i = 1; i < perm.size(); i++)
-////         printf(" %d", perm[i]);
-////     printf("]\n");
-////     PrintVector(B.Shape(), "shapeB");
-////     PrintVector(PB.Shape(), "shapePB");
-////     PrintVector(B.Strides(), "stridesB");
-////     PrintVector(PB.Strides(), "stridesPB");
-//     Permute(PB, B, perm);
-//     //     Print(PB, "PB");
-//
-//     //View as matrices
-//     ViewAsMatrix(MPA, PA, reduceModes.size() );
-//     ViewAsMatrix(MPB, PB, reduceModes.size() );
-//
-//     Print(MPA, "MPA");
-//     Print(MPB, "MPB");
-//
-//     const T* MPAData = MPA.LockedBuffer();
-//     T* MPBData = MPB.Buffer();
-//     if(A.Order() == 0)
-//         MPBData[0] = MPAData[0];
-//     else{
-//         for(i = 0; i < MPA.Dimension(1); i++){
-//             for(j = 0; j < MPA.Dimension(0); j++){
-//                 printf("MPBDataptr: %d, MPADataptr: %d\n", i, j + i*MPA.Dimension(0));
-//                 MPBData[i] += MPAData[j + i*MPA.Dimension(0)];
-//             }
-//         }
-//     }
-//
-////     Print(MPB, "MPB after reduce");
-//     //View as tensor
-////     ModeArray MPBModes(2);
-////     MPBModes[0] = 0;
-////     MPBModes[1] = 1;
-//
-////     std::vector<ObjShape> PBShape(2);
-////     PBShape[0] = FilterVector(PB.Shape(), reduceModes);
-////     PBShape[1] = FilterVector(PB.Shape(), nonReduceModes);
-//
-//     //ViewAsHigherOrder(PB, MPB, MPBModes, PBShape);
-////     Print(PB, "PB after higher order view");
-//
-//     //Permute back the data
-////     printf("\n\nPermuting PB: [%d", invPerm[0]);
-////     for(i = 1; i < invPerm.size(); i++)
-////         printf(" %d", invPerm[i]);
-////     printf("]\n");
-//     Permute(B, PB, invPerm);
-////     Print(B, "B after final permute");
-//}
-
 template <typename T>
 void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
     ModeArray modeArr(1);
@@ -211,10 +110,14 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
 // Global routines
 ////////////////////////////////////
 
+//NOTE: Should we account for A and B having different local permutations?
 template <typename T>
 void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes){
-    if(B.Participating())
-        LocalReduce(B.Tensor(), A.LockedTensor(), reduceModes);
+    if(B.Participating()){
+        //Account for the local data being permuted
+        Permutation invPermA = DetermineInversePermutation(A.LocalPermutation());
+        LocalReduce(B.Tensor(), A.LockedTensor(), FilterVector(invPermA, reduceModes));
+    }
 }
 
 template <typename T>
@@ -225,15 +128,6 @@ void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMod
         LocalReduce(B, A, modeArr);
     }
 }
-
-template <typename T>
-void LocalReduceWithPermutation(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes, const Permutation& perm){
-    if(B.Participating()){
-        Permutation invPerm = DetermineInversePermutation(perm);
-        LocalReduce(B.Tensor(), A.LockedTensor(), FilterVector(invPerm, reduceModes));
-    }
-}
-
 } // namespace tmen
 
 #endif // ifndef TMEN_BTAS_CONTRACT_HPP

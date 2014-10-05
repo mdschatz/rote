@@ -75,7 +75,8 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
     std::sort(redistModes.begin(), redistModes.end());
     for(i = redistModes.size() - 1; i < redistModes.size(); i--)
         BShape.erase(BShape.begin() + redistModes[i]);
-    DistTensor<T> B(BShape, resDist, NegFilterVector(A.Alignments(), rModes), g);
+//    DistTensor<T> B(resDist, NegFilterVector(A.Alignments(), rModes), g);
+    DistTensor<T> B(resDist, g);
 
     Unsigned order = B.Order();
 
@@ -94,29 +95,16 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeToUnderPerm(BShape);
-        B.ReduceScatterRedistFromWithPermutation(A, rModes, sModes);
+//        B.ResizeTo(BShape);
+        B.ReduceScatterRedistFrom(A, rModes, sModes);
         Print(B, "B after rs redist");
 //        CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 
-//    Permutation perm(B.Order());
-//    for(i = 0; i < perm.size(); i++)
-//        perm[i] = (i + 1) % B.Order();
-////    PrintVector(perm, "permutation");
-////    PrintVector(B.LocalShape(), "LocalShape");
-//    B.SetLocalPermutation(perm);
-//    B.ResizeToUnderPerm(B.Shape());
-////    PrintVector(B.LocalShape(), "PLocalShape");
-//    B.ReduceScatterRedistFromWithPermutation(A, rModes, sModes);
-//
-//    Print(B, "B after rs redist");
 }
 
 #endif // ifndef TMEN_TESTS_RSGREDIST_HPP

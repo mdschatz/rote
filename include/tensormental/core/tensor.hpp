@@ -76,7 +76,6 @@ public:
 
     Unsigned MemorySize() const;
 
-    Unsigned LinearOffset(const Location& loc) const;
     T* Buffer();
     T* Buffer( const Location& loc );
 
@@ -163,9 +162,8 @@ public:
 
     Unsigned NumElem() const;
     void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
-    void PackCommHelper(const PackData& packData, const Mode packMode, const Permutation& perm, T const * const srcBuf, T * const dstBuf);
     void CopyBuffer(const Tensor& A);
-    void CopyBufferWithPermutation(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
+    void CopyBuffer(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
 
 private:
     ObjShape shape_;
@@ -250,7 +248,7 @@ private:
     friend
     void ViewAsMatrix<T>
     ( Tensor<T>& A,
-      Tensor<T>& B,
+      const Tensor<T>& B,
       const Unsigned& nModesMergeCol );
     friend
     void LockedViewAsMatrix<T>

@@ -33,9 +33,9 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 
     TensorDistribution distB = resDist;
 
-    DistTensor<T> B(A.Shape(), distB, g);
+    DistTensor<T> B(distB, g);
     B.AlignWith(A);
-    B.ResizeTo(A);
+//    B.ResizeTo(A);
     B.SetDistribution(distB);
 
     TensorDistribution lModeDist = A.TensorDist();
@@ -55,14 +55,12 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
     Tensor<T> check(A.Shape());
     Set(check);
 
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
-        B.LocalRedistFromWithPermutation(A, lModes, gridRedistModes);
+//        B.ResizeTo(B.Shape());
+        B.LocalRedistFrom(A, lModes, gridRedistModes);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 }

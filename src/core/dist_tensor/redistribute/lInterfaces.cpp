@@ -15,8 +15,6 @@ namespace tmen{
 
 template<typename T>
 void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    ResizeTo(A);
-//    LocalCommRedist(A, localMode, gridRedistModes);
     ModeArray lModes(1);
     lModes[0] = localMode;
     std::vector<ModeArray> commGroups(1);
@@ -28,13 +26,6 @@ template<typename T>
 void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
     ResizeTo(A);
     LocalCommRedist(A, localModes);
-}
-
-template<typename T>
-void DistTensor<T>::LocalRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
-    ResizeTo(A);
-    ResizeLocalUnderPerm(localPerm_);
-    LocalCommRedistWithPermutation(A, localModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

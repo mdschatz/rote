@@ -20,19 +20,15 @@ DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode)
 #ifndef RELEASE
     CallStackEntry cse("DistTesnor::GatherToOneRedistFrom");
 #endif
-    ModeArray gModeDist = A.ModeDist(gMode);
-//    GatherToOneRedistFrom(A, gMode, gModeDist);
     ModeArray gModes(1);
     gModes[0] = gMode;
     std::vector<ModeArray> commGroups(1);
-    commGroups[0] = gModeDist;
+    commGroups[0] = A.ModeDist(gMode);
     GatherToOneRedistFrom(A, gModes, commGroups);
 }
 
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes){
-    ResizeTo(A);
-//    GatherToOneCommRedist(A, gMode, gridModes);
     ModeArray gModes(1);
     gModes[0] = gMode;
     std::vector<ModeArray> commGroups(1);
@@ -49,17 +45,6 @@ void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArra
         commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
     std::sort(commModes.begin(), commModes.end());
     GatherToOneCommRedist(A, gModes, commModes);
-}
-
-template <typename T>
-void DistTensor<T>::GatherToOneRedistFromWithPermutation(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes){
-    Unsigned i;
-    ResizeToUnderPerm(A);
-    ModeArray commModes;
-    for(i = 0; i < gridModes.size(); i++)
-        commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
-    std::sort(commModes.begin(), commModes.end());
-    GatherToOneCommRedistWithPermutation(A, gModes, commModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

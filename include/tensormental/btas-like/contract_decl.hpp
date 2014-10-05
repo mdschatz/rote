@@ -23,20 +23,14 @@ template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
 
 ///////////////////////
-// Distributed routines
+// Direct routines
 ///////////////////////
 
 template <typename T>
-void Contract(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
+void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
 
 template <typename T>
-void ContractStatA(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
-
-template <typename T>
-void ContractStatB(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
-
-template <typename T>
-void ContractStatC(T alpha, const DistTensor<T>& A, const DistTensor<T>& B, T beta, DistTensor<T>& C, const std::vector<IndexArray>& indices);
+void LocalContractAndLocalEliminateDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
 
 } // namespace tmen
 

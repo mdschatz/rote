@@ -34,7 +34,7 @@ void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
     }
     tensor_.RemoveUnitModes(FilterVector(invPerm, unitModes));
     gridView_.RemoveUnitModes(unitModes);
-    ResizeToUnderPerm(Shape());
+    ResizeTo(Shape());
 }
 
 template<typename T>

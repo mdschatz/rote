@@ -45,6 +45,7 @@ YAxpPxHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Per
 
 //NOTE: Place appropriate guards
 //NOTE: Make this more efficient
+//NOTE: Account for permutations
 template<typename T>
 inline void
 YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutation& perm, Tensor<T>& Y )

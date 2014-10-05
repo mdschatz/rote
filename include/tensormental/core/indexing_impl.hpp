@@ -301,8 +301,19 @@ inline
 Unsigned
 Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
 {
-    if(strides.size() != 0 && (loc.size() != strides.size() || shape.size() != loc.size()))
+    if(strides.size() != 0 && (loc.size() != strides.size() || shape.size() != loc.size())){
+//        Unsigned i;
+//        printf("loc:");
+//        for(i = 0; i < loc.size(); i++)
+//            printf(" %d", loc[i]);
+//        printf("\n");
+//        printf("strides:");
+//        for(i = 0; i < strides.size(); i++)
+//            printf(" %d", strides[i]);
+//        printf("\n");
         LogicError( "Invalid index+stride combination");
+    }
+
     return Loc2LinearLoc_(loc, shape, strides);
 }
 
@@ -332,8 +343,9 @@ inline
 Unsigned
 LinearLocFromStrides(const Location& loc, const std::vector<Unsigned>& strides)
 {
-    if(strides.size() != 0 && (loc.size() != strides.size()))
+    if(strides.size() != 0 && (loc.size() != strides.size())){
         LogicError( "Invalid index+stride combination");
+    }
     return LinearLocFromStrides_(loc, strides);
 }
 

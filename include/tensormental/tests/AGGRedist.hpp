@@ -101,9 +101,9 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
     //const int order = A.Order();
     const Grid& g = A.Grid();
 
-    DistTensor<T> B(A.Shape(), resDist, g);
+    DistTensor<T> B(resDist, g);
     B.AlignWith(A);
-    B.ResizeTo(A.Shape());
+//    B.ResizeTo(A.Shape());
     B.SetDistribution(resDist);
 
     if(commRank == 0){
@@ -118,14 +118,12 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
     Tensor<T> check(A.Shape());
     Set(check);
 
-    Permutation perm(order);
-    for(i = 0; i < order; i++)
-        perm[i] = i;
+    Permutation perm = DefaultPermutation(order);
 
     do{
         B.SetLocalPermutation(perm);
-        B.ResizeLocalUnderPerm(perm);
-        B.AllGatherRedistFromWithPermutation(A, agModes, redistGroups);
+//        B.ResizeTo(B.Shape());
+        B.AllGatherRedistFrom(A, agModes, redistGroups);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 
