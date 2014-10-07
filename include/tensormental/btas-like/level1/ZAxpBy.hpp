@@ -52,11 +52,35 @@ ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
+    Permutation perm = DefaultPermutation(X.Order());
+    ZAxpBy(alpha, X, perm, beta, Y, perm, Z);
+//    Unsigned order = Z.Order();
+//    ZAxpByData data;
+//    data.loopShape = Z.Shape();
+//    data.src1Strides = X.Strides();
+//    data.src2Strides = Y.Strides();
+//    data.dstStrides = Z.Strides();
+//
+//    const T* src1Buf = X.LockedBuffer();
+//    const T* src2Buf = Y.LockedBuffer();
+//    T* dstBuf = Z.Buffer();
+//
+//    ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
+
+}
+
+template<typename T>
+inline void
+ZAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const Tensor<T>& Y, const Permutation& permYToZ, Tensor<T>& Z )
+{
+#ifndef RELEASE
+    CallStackEntry entry("ZAxpBy");
+#endif
     Unsigned order = Z.Order();
     ZAxpByData data;
     data.loopShape = Z.Shape();
-    data.src1Strides = X.Strides();
-    data.src2Strides = Y.Strides();
+    data.src1Strides = PermuteVector(X.Strides(), permXToZ);
+    data.src2Strides = PermuteVector(Y.Strides(), permYToZ);
     data.dstStrides = Z.Strides();
 
     const T* src1Buf = X.LockedBuffer();
@@ -80,7 +104,9 @@ ZAxpBy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTen
         LogicError
         ("X and Y must be distributed over the same grid");
 #endif
-    ZAxpBy(alpha, X.LockedTensor(), beta, Y.LockedTensor(), Z.Tensor());
+    Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
+    Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
+    ZAxpBy(alpha, X.LockedTensor(), permXToZ, beta, Y.LockedTensor(), permYToZ, Z.Tensor());
 }
 
 } // namespace tmen

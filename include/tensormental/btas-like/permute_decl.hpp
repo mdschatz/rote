@@ -23,6 +23,8 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm);
 // Distributed routines
 ///////////////////////
 
+template<typename T>
+void Permute(DistTensor<T>& B, const DistTensor<T>& A);
 
 } // namespace tmen
 

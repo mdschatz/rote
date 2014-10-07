@@ -48,11 +48,32 @@ YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
 #ifndef RELEASE
     CallStackEntry entry("YxpBy");
 #endif
-    Unsigned order = Y.Order();
+    Permutation permXToY = DefaultPermutation(X.Order());
+    YxpBy(X, permXToY, beta, Y);
 
+//    Unsigned order = Y.Order();
+//    YxpByData data;
+//    data.loopShape = Y.Shape();
+//    data.srcStrides = X.Strides();
+//    data.dstStrides = Y.Strides();
+//
+//    const T* srcBuf = X.LockedBuffer();
+//    T* dstBuf = Y.Buffer();
+//
+//    YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
+
+}
+
+template<typename T>
+inline void
+YxpBy( const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Unsigned order = Y.Order();
     YxpByData data;
     data.loopShape = Y.Shape();
-    data.srcStrides = X.Strides();
+    data.srcStrides = PermuteVector(X.Strides(), permXToY);
     data.dstStrides = Y.Strides();
 
     const T* srcBuf = X.LockedBuffer();
@@ -62,7 +83,6 @@ YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
         dstBuf[0] = srcBuf[0] + beta*dstBuf[0];
     else
         YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
-
 }
 
 template<typename T>
@@ -75,7 +95,8 @@ YxpBy( const DistTensor<T>& X, T beta, DistTensor<T>& Y )
         LogicError
         ("X and Y must be distributed over the same grid");
 #endif
-    YxpBy(X.LockedTensor(), beta, Y.Tensor());
+    Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
+    YxpBy(X.LockedTensor(), permXToY, beta, Y.Tensor());
 }
 
 } // namespace tmen

@@ -46,11 +46,31 @@ Axpy( T alpha, const Tensor<T>& X, Tensor<T>& Y )
 #ifndef RELEASE
     CallStackEntry entry("Axpy");
 #endif
+    Permutation perm = DefaultPermutation(X.Order());
+    Axpy(alpha, X, perm, Y);
+//    Unsigned order = Y.Order();
+//    AxpyData data;
+//    data.loopShape = Y.Shape();
+//    data.srcStrides = X.Strides();
+//
+//    const T* srcBuf = X.LockedBuffer();
+//    T* dstBuf = Y.Buffer();
+//
+//    AxpyHelper(alpha, X, Y, order-1, srcBuf, dstBuf, data);
+}
+
+template<typename T>
+void
+Axpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y )
+{
+#ifndef RELEASE
+    CallStackEntry entry("Axpy");
+#endif
 
     Unsigned order = Y.Order();
     AxpyData data;
     data.loopShape = Y.Shape();
-    data.srcStrides = X.Strides();
+    data.srcStrides = PermuteVector(X.Strides(), permXToY);
 
     const T* srcBuf = X.LockedBuffer();
     T* dstBuf = Y.Buffer();
@@ -72,7 +92,8 @@ Axpy( T alpha, const DistTensor<T>& X, DistTensor<T>& Y )
         LogicError
         ("X and Y must be distributed over the same grid");
 #endif
-    Axpy(alpha, X.LockedTensor(), Y.Tensor());
+    Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
+    Axpy(alpha, X.LockedTensor(), permXToY, Y.Tensor());
 }
 
 } // namespace tmen

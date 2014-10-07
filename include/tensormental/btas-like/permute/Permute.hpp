@@ -40,6 +40,12 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
     B.PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
 }
 
+template<typename T>
+void Permute(DistTensor<T>& B, const DistTensor<T>& A){
+    Permutation perm = DeterminePermutation(A.LocalPermutation(), B.LocalPermutation());
+    Permute(B.Tensor(), A.LockedTensor(), perm);
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_BTAS_PERMUTE_HPP
