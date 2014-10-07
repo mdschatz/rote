@@ -174,6 +174,18 @@ DistTensor<T>::AlignModeWith( Mode mode, const DistTensor<T>& A )
 
 template<typename T>
 void
+DistTensor<T>::AlignModeWith(Mode mode, const DistTensor<T>& A, Mode modeA)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::AlignModeWith");
+#endif
+    modeAlignments_[mode] = A.modeAlignments_[modeA] % ModeStride(mode);
+    constrainedModeAlignments_[mode] = true;
+    SetModeShift(mode);
+}
+
+template<typename T>
+void
 DistTensor<T>::Attach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )

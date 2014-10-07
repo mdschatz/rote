@@ -51,7 +51,7 @@ inline void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked)
     if( A.Participating() )
     {
         A.modeShifts_ = B.ModeShifts();
-//        ViewHelper(A.Tensor(), B.LockedTensor(), isLocked);
+        ViewHelper(A.Tensor(), B.LockedTensor(), isLocked);
 //        if(isLocked)
 //            LockedView( A.Tensor(), B.LockedTensor() );
 //        else
@@ -149,7 +149,7 @@ inline void ViewHelper
 
         const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
 
-//        ViewHelper(A.Tensor(), B.LockedTensor(), localShapeBehind, localShape, isLocked);
+        ViewHelper(A.Tensor(), B.LockedTensor(), localShapeBehind, localShape, isLocked);
 //        if(isLocked){
 //            LockedView( A.Tensor(), B.LockedTensor(), localShapeBehind, localShape );
 //        }else{
@@ -217,7 +217,7 @@ inline void View2x1Helper
     if( A.Participating() )
     {
         A.modeShifts_ = BT.modeShifts_;
-//        View2x1Helper(A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), mode, isLocked);
+        View2x1Helper(A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), mode, isLocked);
 //        if(isLocked)
 //            LockedView2x1( A.Tensor(), BT.LockedTensor(), BB.LockedTensor(), mode );
 //        else

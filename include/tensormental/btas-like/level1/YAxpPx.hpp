@@ -64,7 +64,11 @@ YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutat
     const T* permSrcBuf = PX.LockedBuffer();
     T* dstBuf = Y.Buffer();
 
-    YAxpPxHelper(alpha, X, beta, PX, perm, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
+    if(order == 0){
+        dstBuf[0] = alpha*srcBuf[0] + beta*permSrcBuf[0];
+    }else{
+        YAxpPxHelper(alpha, X, beta, PX, perm, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
+    }
 
 }
 

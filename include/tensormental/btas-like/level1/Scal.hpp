@@ -14,7 +14,7 @@ namespace tmen {
 
 template<typename T>
 inline void
-ScalHelper(T alpha, Tensor<T>& X, Mode mode, T const * srcBuf, const ScalData& data ){
+ScalHelper(T alpha, Tensor<T>& X, Mode mode, T * srcBuf, const ScalData& data ){
     Unsigned i;
     const Unsigned loopEnd = data.loopShape[mode];
     const Unsigned srcStride = data.srcStrides[mode];
@@ -37,20 +37,24 @@ ScalHelper(T alpha, Tensor<T>& X, Mode mode, T const * srcBuf, const ScalData& d
 //NOTE: Place appropriate guards
 template<typename T>
 void
-Scal( T alpha, const Tensor<T>& X )
+Scal( T alpha, Tensor<T>& X )
 {
 #ifndef RELEASE
     CallStackEntry entry("Axpy");
 #endif
 
     Unsigned order = X.Order();
-    AxpyData data;
+    ScalData data;
     data.loopShape = X.Shape();
     data.srcStrides = X.Strides();
 
-    const T* srcBuf = X.Buffer();
+    T* srcBuf = X.Buffer();
 
-    ScalHelper(alpha, X, order-1, srcBuf, data);
+    if(order == 0){
+        srcBuf[0] *= alpha;
+    }else{
+        ScalHelper(alpha, X, order-1, srcBuf, data);
+    }
 }
 
 template<typename T>

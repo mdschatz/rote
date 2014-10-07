@@ -109,6 +109,25 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     }
 }
 
+template<typename T>
+void
+DistTensor<T>::ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ReduceToOneUpdateRedistFrom");
+#endif
+
+    ObjShape tmpShape = Shape();
+    DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
+    Zero(tmp);
+
+    tmp.ReduceToOneRedistFrom(A, reduceModes);
+
+    ResizeTo(tmpShape);
+
+    YxpBy(tmp, beta, *this);
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

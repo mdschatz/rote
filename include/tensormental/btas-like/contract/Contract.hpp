@@ -58,13 +58,13 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //    }
 #endif
 
-    LocalContractDirect(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
+    LocalContract(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
 }
 
 //NOTE: Get rid of memcopy
 template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
-    LocalContractAndLocalEliminateDirect(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
+    LocalContractAndLocalEliminate(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
 }
 
 ////////////////////////////////////
@@ -73,7 +73,7 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
 
 //NOTE: Assumes A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
 template <typename T>
-void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
 #ifndef RELEASE
     CallStackEntry("LocalContract");
 
@@ -239,7 +239,7 @@ void LocalContractDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA
 
 //NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
 template <typename T>
-void LocalContractAndLocalEliminateDirect(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
     Unsigned i;
     Unsigned order = C.Order();
     IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
@@ -252,7 +252,7 @@ void LocalContractAndLocalEliminateDirect(T alpha, const Tensor<T>& A, const Ind
 
     C.IntroduceUnitModes(uModes);
 
-    LocalContractDirect(alpha, A, indicesA, permuteA, B, indicesB, permuteB, beta, C, CIndices, permuteC);
+    LocalContract(alpha, A, indicesA, permuteA, B, indicesB, permuteB, beta, C, CIndices, permuteC);
 
     C.RemoveUnitModes(uModes);
 

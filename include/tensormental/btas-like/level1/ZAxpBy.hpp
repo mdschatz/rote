@@ -63,8 +63,11 @@ ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
     const T* src2Buf = Y.LockedBuffer();
     T* dstBuf = Z.Buffer();
 
-    ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
-
+    if(order == 0){
+        dstBuf[0] = alpha * src1Buf[0] + beta * src2Buf[0];
+    }else{
+        ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
+    }
 }
 
 template<typename T>

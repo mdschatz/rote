@@ -45,7 +45,7 @@ Zero( Tensor<T>& A )
         MemZero(A.Buffer(), 1);
     else
         ZeroHelper(order - 1, A.Shape(), A.Strides(), A.Buffer());
-//    const Int numElem = prod(A.Shape());
+
     //PARALLEL_FOR
 //    MemZero( A.Buffer(), numElem );
 }

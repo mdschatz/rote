@@ -49,6 +49,7 @@ YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
     CallStackEntry entry("YxpBy");
 #endif
     Unsigned order = Y.Order();
+
     YxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = X.Strides();
@@ -57,7 +58,10 @@ YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
     const T* srcBuf = X.LockedBuffer();
     T* dstBuf = Y.Buffer();
 
-    YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
+    if(order == 0)
+        dstBuf[0] = srcBuf[0] + beta*dstBuf[0];
+    else
+        YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
 
 }
 

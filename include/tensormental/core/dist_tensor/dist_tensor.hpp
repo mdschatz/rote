@@ -335,6 +335,7 @@ public:
     void PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
     void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
     void ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes);
+    void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& rModes);
 
     //
     //Unit mode intro/remove routines
@@ -361,6 +362,7 @@ public:
     void AlignWith( const DistTensor<T>& A );
     void AlignModeWith( Mode mode, const tmen::DistData& data );
     void AlignModeWith( Mode mode, const DistTensor<T>& A );
+    void AlignModeWith( Mode mode, const DistTensor<T>& A, Mode modeA );
 
     //
     // Though the following routines are meant for complex data, all but two

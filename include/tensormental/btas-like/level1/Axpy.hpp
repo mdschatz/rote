@@ -55,7 +55,11 @@ Axpy( T alpha, const Tensor<T>& X, Tensor<T>& Y )
     const T* srcBuf = X.LockedBuffer();
     T* dstBuf = Y.Buffer();
 
-    AxpyHelper(alpha, X, Y, order-1, srcBuf, dstBuf, data);
+    if(order == 0){
+        dstBuf[0] = alpha * srcBuf[0];
+    }else{
+        AxpyHelper(alpha, X, Y, order-1, srcBuf, dstBuf, data);
+    }
 }
 
 template<typename T>
