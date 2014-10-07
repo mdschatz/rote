@@ -108,7 +108,7 @@ YAxpPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& PX, const 
         ("X and Y must be distributed over the same grid");
 #endif
     Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
-    Permutation permPXToY = DeterminePermutation(PX.Permutation(), Y.LocalPermutation());
+    Permutation permPXToY = DeterminePermutation(PX.LocalPermutation(), Y.LocalPermutation());
     //NOTE: Before change to utilize local permutation
     YAxpPx(alpha, X.LockedTensor(), permXToY, beta, PX.LockedTensor(), perm, Y.Tensor());
 }

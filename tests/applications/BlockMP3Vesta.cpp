@@ -175,6 +175,8 @@ void Load_Tensor_Helper(ifstream& fid, Mode mode, const Location& curLoc, DistTe
 //			printf("newVal %.03f\n", val);
 			A.Set(newCurLoc, val);
 		}else{	
+			if(mode == 3)
+				printf("loading mode 3 index: %d\n", i);
 			Load_Tensor_Helper(fid, mode - 1, newCurLoc, A);
 		}
 	}
@@ -240,7 +242,6 @@ template<typename T>
 void Load_Tensor_aijb_Helper(ifstream& fid, Mode mode, const Location& curLoc, DistTensor<T>& A){
 	Unsigned i;
 	Unsigned dim;
-	printf("unpack Mode: %d\n", mode);
 	if(mode == 3)
 		dim = A.Dimension(0);
 	else if(mode == 2)
@@ -249,7 +250,6 @@ void Load_Tensor_aijb_Helper(ifstream& fid, Mode mode, const Location& curLoc, D
 		dim = A.Dimension(3);
 	else if (mode == 0)
 		dim = A.Dimension(1);
-	printf("size: %d\n", dim);
 	Location newCurLoc = curLoc;
 	for(i = 0; i < dim; i++){
 		if(mode == 3)
@@ -851,6 +851,7 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 	   // t_efmn[D0,D1,D3,D2] <- t_efmn[D0,D1,D2,D3]
 	t_efmn__D_0__D_1__D_3__D_2.AllToAllRedistFrom( t_efmn__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
 	YAxpPx( 2.0, t_efmn__D_0__D_1__D_2__D_3, -1.0, t_efmn__D_0__D_1__D_3__D_2, perm_0_1_3_2, axppx2_temp__D_0__D_1__D_2__D_3 );
+//	Print(axppx2_temp__D_0__D_1__D_2__D_3, "After YAxpPx: axppx2_temp__D_0__D_1__D_2__D_3");
 
 	//------------------------------------//
 
@@ -859,6 +860,7 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 	//------------------------------------//
 
 	ZAxpBy( 2.0, v_oegm__D_0__D_1__D_2__D_3, -1.0, v2_oegm__D_0__D_1__D_2__D_3, axppx3_temp__D_0__D_1__D_2__D_3 );
+//	Print(axppx3_temp__D_0__D_1__D_2__D_3, "axppx3_temp__D_0__D_1__D_2__D_3");
 
 	//------------------------------------//
 
@@ -877,6 +879,15 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 //	t_efmn_part0_1__D_0__D_1__D_3__D_2.AlignWith(t_efmn__D_0__D_1__D_2__D_3);
 //	v2_oegm_part2_1__S__D_0__S__D_2.AlignWith(v2_oegm__D_0__D_1__D_2__D_3);
 //	t_efmn_part0_1__S__D_1__D_3__S.AlignWith(t_efmn__D_0__D_1__D_2__D_3);
+	v2_oegm_part2_1__D_1__D_0__D_2__D_3.AlignWith(cont1_temp__D_0__D_1__D_2__D_3);
+	v2_oegm_part2_1__D_1__D_0__D_3__D_2.AlignWith(cont1_temp__D_0__D_1__D_2__D_3);
+	t_efmn_part0_1__D_0__D_1__D_3__D_2.AlignWith(cont1_temp__D_0__D_1__D_2__D_3);
+	v2_oegm_part2_1__S__D_0__S__D_2.AlignWith(cont1_temp__D_0__D_1__D_2__D_3);
+	t_efmn_part0_1__S__D_1__D_3__S.AlignWith(cont1_temp__D_0__D_1__D_2__D_3);
+
+//	Print(v2_oegm__D_0__D_1__D_2__D_3, "Incoming v2_oegm");
+//	Print(t_efmn__D_0__D_1__D_2__D_3, "Incoming t_efmn");
+//	Print(cont1_temp__D_0__D_1__D_2__D_3, "Incoming cont1");
 
 	PartitionDown(v2_oegm__D_0__D_1__D_2__D_3, v2_oegm_part2T__D_0__D_1__D_2__D_3, v2_oegm_part2B__D_0__D_1__D_2__D_3, 2, 0);
 	PartitionDown(t_efmn__D_0__D_1__D_2__D_3, t_efmn_part0T__D_0__D_1__D_2__D_3, t_efmn_part0B__D_0__D_1__D_2__D_3, 0, 0);
@@ -895,9 +906,13 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 		//------------------------------------//
 
 		   // v2_oegm_part2_1[D1,D0,D2,D3] <- v2_oegm_part2_1[D0,D1,D2,D3]
+//		Print(v2_oegm_part2_1__D_0__D_1__D_2__D_3, "v2_oegm[D_0,D_1,D_2,D_3]");
+		v2_oegm_part2_1__D_1__D_0__D_2__D_3.AlignWith(v2_oegm_part2_1__D_0__D_1__D_2__D_3);
 		v2_oegm_part2_1__D_1__D_0__D_2__D_3.AllToAllRedistFrom( v2_oegm_part2_1__D_0__D_1__D_2__D_3, modes_0_1, modes_1_0, modeArrayArray___0___1 );
+//		Print(v2_oegm_part2_1__D_1__D_0__D_2__D_3, "v2_oegm[D_1,D_0,D_2,D_3]");
 		   // v2_oegm_part2_1[D1,D0,D3,D2] <- v2_oegm_part2_1[D1,D0,D2,D3]
 		v2_oegm_part2_1__D_1__D_0__D_3__D_2.AllToAllRedistFrom( v2_oegm_part2_1__D_1__D_0__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
+//		Print(v2_oegm_part2_1__D_1__D_0__D_3__D_2, "v2_oegm[D_1,D_0,D_3,D_2]");
 		   // t_efmn_part0_1[D0,D1,D3,D2] <- t_efmn_part0_1[D0,D1,D2,D3]
 		t_efmn_part0_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( t_efmn_part0_1__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
 		   // v2_oegm_part2_1[*,D0,*,D2] <- v2_oegm_part2_1[D1,D0,D3,D2]
@@ -914,6 +929,9 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 //		PrintData(t_efmn_part0_1__S__D_1__D_3__S, "t_efmn_part");
 //		PrintData(cont1_temp__D_0__D_1__D_2__D_3, "cont1_temp_part");
 
+//		PrintData(v2_oegm_part2_1__S__D_0__S__D_2, "contrib v2_oegm data");
+//		Print(v2_oegm_part2_1__S__D_0__S__D_2, "contrib v2_oegm");
+//		Print(t_efmn_part0_1__S__D_1__D_3__S, "contrib t_efmn");
 		LocalContractAndLocalEliminate(1.0, v2_oegm_part2_1__S__D_0__S__D_2.LockedTensor(), indices_oegm, true,
 			t_efmn_part0_1__S__D_1__D_3__S.LockedTensor(), indices_gfno, true,
 			1.0, cont1_temp__D_0__D_1__D_2__D_3.Tensor(), indices_efmn, true);
@@ -992,6 +1010,7 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 		tempShape.push_back( g.Shape()[2] );
 		accum_temp_part0_1__S__D_1__S__D_3__D_0__D_2.ResizeTo( tempShape );
 		   // axppx3_temp_part1_1[D2,D1,D0,D3] <- axppx3_temp_part1_1[D0,D1,D2,D3]
+		axppx3_temp_part1_1__D_2__D_1__D_0__D_3.AlignWith(axppx3_temp_part1_1__D_0__D_1__D_2__D_3);
 		axppx3_temp_part1_1__D_2__D_1__D_0__D_3.AllToAllRedistFrom( axppx3_temp_part1_1__D_0__D_1__D_2__D_3, modes_0_2, modes_2_0, modeArrayArray___0___2 );
 		   // axppx3_temp_part1_1[D2,*,D0,*] <- axppx3_temp_part1_1[D2,D1,D0,D3]
 		axppx3_temp_part1_1__D_2__S__D_0__S.AllGatherRedistFrom( axppx3_temp_part1_1__D_2__D_1__D_0__D_3, modes_1_3, modeArrayArray___1___3 );
@@ -1040,8 +1059,10 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 		//------------------------------------//
 
 		   // v_efgh_part2_1[D0,D1,*,*] <- v_efgh_part2_1[D0,D1,D2,D3]
+		v_efgh_part2_1__D_0__D_1__S__S.AlignWith(v_efgh_part2_1__D_0__D_1__D_2__D_3);
 		v_efgh_part2_1__D_0__D_1__S__S.AllGatherRedistFrom( v_efgh_part2_1__D_0__D_1__D_2__D_3, modes_2_3, modeArrayArray___2___3 );
 		   // t_efmn_part0_1[*,*,D2,D3] <- t_efmn_part0_1[D0,D1,D2,D3]
+		t_efmn_part0_1__S__S__D_2__D_3.AlignWith(t_efmn_part0_1__D_0__D_1__D_2__D_3);
 		t_efmn_part0_1__S__S__D_2__D_3.AllGatherRedistFrom( t_efmn_part0_1__D_0__D_1__D_2__D_3, modes_0_1, modeArrayArray___0___1 );
 		   // 0.5 * v_efgh_part2_1[D0,D1,*,*]_efgh * t_efmn_part0_1[*,*,D2,D3]_ghmn + 0.0 * accum_temp[D0,D1,D2,D3]_efmn
 		LocalContractAndLocalEliminate(0.5, v_efgh_part2_1__D_0__D_1__S__S.LockedTensor(), indices_efgh, true,
@@ -1087,8 +1108,10 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 		//------------------------------------//
 
 		   // v_opmn[*,*,D2,D3] <- v_opmn[D0,D1,D2,D3]
+		v_opmn__S__S__D_2__D_3.AlignWith(v_opmn__D_0__D_1__D_2__D_3);
 		v_opmn__S__S__D_2__D_3.AllGatherRedistFrom( v_opmn__D_0__D_1__D_2__D_3, modes_0_1, modeArrayArray___0___1 );
 		   // t_efmn_part0_1[D0,D1,*,*] <- t_efmn_part0_1[D0,D1,D2,D3]
+		t_efmn_part0_1__D_0__D_1__S__S.AlignWith(t_efmn_part0_1__D_0__D_1__D_2__D_3);
 		t_efmn_part0_1__D_0__D_1__S__S.AllGatherRedistFrom( t_efmn_part0_1__D_0__D_1__D_2__D_3, modes_2_3, modeArrayArray___2___3 );
 		   // 0.5 * v_opmn[*,*,D2,D3]_opmn * t_efmn_part0_1[D0,D1,*,*]_efop + 1.0 * accum_temp_part0_1[D0,D1,D2,D3]_efmn
 		LocalContractAndLocalEliminate(0.5, v_opmn__S__S__D_2__D_3.LockedTensor(), indices_opmn, true,
@@ -1115,7 +1138,7 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 		//Outputs:
 		//  E_MP3____N_D_0_1_2_3
 
-	E_MP3__D_0__D_1__D_2__D_3.AlignWith(axppx2_temp__D_0__D_1__D_2__D_3);
+	//E_MP3__D_0__D_1__D_2__D_3.AlignWith(axppx2_temp__D_0__D_1__D_2__D_3);
 	PartitionDown(axppx2_temp__D_0__D_1__D_2__D_3, axppx2_temp_part0T__D_0__D_1__D_2__D_3, axppx2_temp_part0B__D_0__D_1__D_2__D_3, 0, 0);
 	PartitionDown(accum_temp__D_0__D_1__D_2__D_3, accum_temp_part0T__D_0__D_1__D_2__D_3, accum_temp_part0B__D_0__D_1__D_2__D_3, 0, 0);
 	while(axppx2_temp_part0T__D_0__D_1__D_2__D_3.Dimension(0) < axppx2_temp__D_0__D_1__D_2__D_3.Dimension(0))
@@ -1144,6 +1167,7 @@ GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 			0.0, E_MP3__D_0__D_1__D_2__D_3.Tensor(), indices_efmn, true);
 		   // E_MP3[] | {0,1,2,3} <- E_MP3[D0,D1,D2,D3] (with SumScatter on (D0)(D1)(D2)(D3))
 		E_MP3____N_D_0_1_2_3.ReduceToOneUpdateRedistFrom( E_MP3__D_0__D_1__D_2__D_3, 1.0, modes_0_1_2_3 );
+//		PrintData(E_MP3____N_D_0_1_2_3, "EMP3 accum data");
 
 		//------------------------------------//
 		SlidePartitionDown

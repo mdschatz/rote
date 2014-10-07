@@ -51,7 +51,7 @@ inline void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked)
     if( A.Participating() )
     {
         A.modeShifts_ = B.ModeShifts();
-        ViewHelper(A.Tensor(), B.LockedTensor(), isLocked);
+//        ViewHelper(A.Tensor(), B.LockedTensor(), isLocked);
 //        if(isLocked)
 //            LockedView( A.Tensor(), B.LockedTensor() );
 //        else
@@ -145,11 +145,10 @@ inline void ViewHelper
         const std::vector<Unsigned> modeRanks = B.GridViewLoc();
         A.modeShifts_ = Shifts(modeRanks, A.Alignments(), modeWrapStrides);
 
-        const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
-
-        const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
-
-        ViewHelper(A.Tensor(), B.LockedTensor(), localShapeBehind, localShape, isLocked);
+//        const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
+//        const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
+//
+//        ViewHelper(A.Tensor(), B.LockedTensor(), localShapeBehind, localShape, isLocked);
 //        if(isLocked){
 //            LockedView( A.Tensor(), B.LockedTensor(), localShapeBehind, localShape );
 //        }else{

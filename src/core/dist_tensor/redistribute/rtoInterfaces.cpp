@@ -71,6 +71,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     LocalReduce(tmp, A, rModes);
 
+
     ObjShape tmp2Shape = A.Shape();
 
     TensorDistribution tmp2Dist =   A.TensorDist();
@@ -90,6 +91,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     tmp2.SetLocalPermutation(A.localPerm_);
     tmp2.ResizeTo(tmp2Shape);
     tmp2.SetDistribution(tmp2Dist);
+
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
