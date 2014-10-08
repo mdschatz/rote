@@ -977,7 +977,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         std::cout << "FLOPS " << flops << std::endl;
         std::cout << "GFLOPS " << gflops << std::endl;
     }
-
+    E_MP3____N_D_0_1_2_3.ClearCommMap();
 }
 
 int 
