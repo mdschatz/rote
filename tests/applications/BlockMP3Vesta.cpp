@@ -604,6 +604,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	   // t_efmn[D0,D1,D3,D2] <- t_efmn[D0,D1,D2,D3]
 	t_efmn__D_0__D_1__D_3__D_2.AllToAllRedistFrom( t_efmn__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
 	YAxpPx( 2.0, t_efmn__D_0__D_1__D_2__D_3, -1.0, t_efmn__D_0__D_1__D_3__D_2, perm_0_1_3_2, axppx2_temp__D_0__D_1__D_2__D_3 );
+	t_efmn__D_0__D_1__D_3__D_2.Empty();
 //	Print(axppx2_temp__D_0__D_1__D_2__D_3, "After YAxpPx: axppx2_temp__D_0__D_1__D_2__D_3");
 
 	//------------------------------------//
@@ -702,6 +703,11 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 		  t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0 );
 
 	}
+	v2_oegm_part2_1__D_1__D_0__D_2__D_3.Empty();
+	v2_oegm_part2_1__D_1__D_0__D_3__D_2.Empty();
+	v2_oegm_part2_1__S__D_0__S__D_2.Empty();
+	t_efmn_part0_1__D_0__D_1__D_3__D_2.Empty();
+	t_efmn_part0_1__S__D_1__D_3__S.Empty();
 	//****
 
 //	Print(cont1_temp__D_0__D_1__D_2__D_3, "After Contract: cont1_temp__D_0__D_1__D_2__D_3");
@@ -714,6 +720,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	   // cont1_temp[D0,D1,D3,D2] <- cont1_temp[D0,D1,D2,D3]
 	cont1_temp__D_0__D_1__D_3__D_2.AllToAllRedistFrom( cont1_temp__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
 	YAxpPx( 0.5, cont1_temp__D_0__D_1__D_2__D_3, 1.0, cont1_temp__D_0__D_1__D_3__D_2, perm_0_1_3_2, accum_temp__D_0__D_1__D_2__D_3 );
+	cont1_temp__D_0__D_1__D_3__D_2.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After YAxpPx: accum_temp__D_0__D_1__D_2__D_3");
 
 	//------------------------------------//
@@ -787,6 +794,9 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 		  accum_temp_part0B__D_0__D_1__D_2__D_3, accum_temp_part0_2__D_0__D_1__D_2__D_3, 0 );
 
 	}
+	axppx3_temp_part1_1__D_2__D_1__D_0__D_3.Empty();
+	axppx3_temp_part1_1__D_2__S__D_0__S.Empty();
+	accum_temp_part0_1__S__D_1__S__D_3__D_0__D_2.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After YxpBy: accum_temp__D_0__D_1__D_2__D_3");
 	//****
 	//**** (out of 10)
@@ -835,6 +845,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 		  t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0 );
 
 	}
+	v_efgh_part2_1__D_0__D_1__S__S.Empty();
+	t_efmn_part0_1__S__S__D_2__D_3.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After One Contract: accum_temp__D_0__D_1__D_2__D_3");
 	//****
 	//**** (out of 10)
@@ -884,6 +896,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 		  accum_temp_part0B__D_0__D_1__D_2__D_3, accum_temp_part0_2__D_0__D_1__D_2__D_3, 0 );
 
 	}
+	v_opmn__S__S__D_2__D_3.Empty();
+	t_efmn_part0_1__D_0__D_1__S__S.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After Two Contract: accum_temp__D_0__D_1__D_2__D_3");
 	//****
 	//**** (out of 1)
