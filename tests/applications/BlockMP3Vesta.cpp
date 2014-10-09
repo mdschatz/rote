@@ -80,6 +80,173 @@ void ProcessInput(int argc,  char** const argv, Params& args){
   args.tenDimFiftyThree = atoi(argv[++argCount]);
 }
 
+//template<typename T>
+//void Load_Tensor_Helper(ifstream& fid, Mode mode, const Location& curLoc, DistTensor<T>& A){
+//    Unsigned i;
+//    Unsigned dim = A.Dimension(mode);
+//    Location newCurLoc = curLoc;
+//    for(i = 0; i < dim; i++){
+//        newCurLoc[mode] = i;
+//        if(mode == 0){
+//            char* valS = new char[8];
+//            fid.read(valS, 8);
+//            double val = *reinterpret_cast<double*>(valS);
+////          std::cout << "val: " << val << std::endl;
+////          std::memcpy(&val, &(valS[0]), sizeof(double));
+////          printf("newVal %.03f\n", val);
+//            A.Set(newCurLoc, val);
+//        }else{
+//            if(mode == 3)
+//                printf("loading mode 3 index: %d\n", i);
+//            Load_Tensor_Helper(fid, mode - 1, newCurLoc, A);
+//        }
+//    }
+//}
+//
+//template<typename T>
+//void Load_Tensor(DistTensor<T>& A, const std::string& filename){
+//    printf("Loading tensor\n");
+//    PrintVector(A.Shape(), "of size");
+//    Unsigned order = A.Order();
+//    ifstream fid;
+//    fid.open(filename, std::ios::in | std::ios::binary);
+//    //Skip 4 bytes of Fortran
+//    fid.seekg(4);
+//    Location zeros(order, 0);
+//    Load_Tensor_Helper(fid, order - 1, zeros, A);
+//    fid.close();
+//}
+//
+//template<typename T>
+//void Load_Tensor_efgh_Helper(ifstream& fid, Mode mode, const Location& curLoc, DistTensor<T>& A){
+//    Unsigned i;
+//    Unsigned dim = A.Dimension(mode);
+//    Location newCurLoc = curLoc;
+//    for(i = 0; i < dim; i++){
+//        if(mode == 3)
+//            newCurLoc[2] = i;
+//        else if(mode == 2)
+//            newCurLoc[3] = i;
+//        else
+//            newCurLoc[mode] = i;
+//        if(mode == 0){
+//            char* valS = new char[8];
+//            fid.read(valS, 8);
+//            double val = *reinterpret_cast<double*>(valS);
+////          PrintVector(newCurLoc, "Setting loc");
+////          std::cout << "to val: " << val << std::endl;
+////          std::cout << "val: " << val << std::endl;
+////          std::memcpy(&val, &(valS[0]), sizeof(double));
+////          printf("newVal %.03f\n", val);
+//            A.Set(newCurLoc, -val);
+//        }else{
+//            Load_Tensor_efgh_Helper(fid, mode - 1, newCurLoc, A);
+//        }
+//    }
+//}
+//
+//template<typename T>
+//void Load_Tensor_efgh(DistTensor<T>& A, const std::string& filename){
+//    printf("Loading tensor\n");
+//    PrintVector(A.Shape(), "of size");
+//    Unsigned order = A.Order();
+//    ifstream fid;
+//    fid.open(filename, std::ios::in | std::ios::binary);
+//    //Skip 4 bytes of Fortran
+//    fid.seekg(4);
+//    Location zeros(order, 0);
+//    Load_Tensor_efgh_Helper(fid, order - 1, zeros, A);
+//    fid.close();
+//}
+//
+//template<typename T>
+//void Load_Tensor_aijb_Helper(ifstream& fid, Mode mode, const Location& curLoc, DistTensor<T>& A){
+//    Unsigned i;
+//    Unsigned dim;
+//    if(mode == 3)
+//        dim = A.Dimension(0);
+//    else if(mode == 2)
+//        dim = A.Dimension(2);
+//    else if(mode == 1)
+//        dim = A.Dimension(3);
+//    else if (mode == 0)
+//        dim = A.Dimension(1);
+//    Location newCurLoc = curLoc;
+//    for(i = 0; i < dim; i++){
+//        if(mode == 3)
+//            newCurLoc[0] = i;
+//        else if(mode == 2)
+//            newCurLoc[2] = i;
+//        else if(mode == 1)
+//            newCurLoc[3] = i;
+//        else if(mode == 0)
+//            newCurLoc[1] = i;
+//        if(mode == 0){
+//            char* valS = new char[8];
+//            fid.read(valS, 8);
+//            double val = *reinterpret_cast<double*>(valS);
+////          PrintVector(newCurLoc, "Setting loc");
+////          std::cout << "to val: " << val << std::endl;
+////          std::cout << "val: " << val << std::endl;
+////          std::memcpy(&val, &(valS[0]), sizeof(double));
+////          printf("newVal %.03f\n", val);
+//            A.Set(newCurLoc, val);
+//        }else{
+//            Load_Tensor_aijb_Helper(fid, mode - 1, newCurLoc, A);
+//        }
+//    }
+//}
+//
+//template<typename T>
+//void Load_Tensor_aijb(DistTensor<T>& A, const std::string& filename){
+//    printf("Loading tensor\n");
+//    PrintVector(A.Shape(), "of size");
+//    Unsigned order = A.Order();
+//    ifstream fid;
+//    fid.open(filename, std::ios::in | std::ios::binary);
+//    //Skip 4 bytes of Fortran
+//    fid.seekg(4);
+//    Location zeros(order, 0);
+//    Load_Tensor_aijb_Helper(fid, order - 1, zeros, A);
+//    fid.close();
+//}
+//
+//template<typename T>
+//void Form_D_abij_Helper(const DistTensor<T>& epsilonA, const DistTensor<T>& epsilonB, Mode mode, const Location& loc, DistTensor<T>& D_abij){
+//    Unsigned i;
+//    Unsigned dim = D_abij.Dimension(mode);
+//    Location newCurLoc = loc;
+//    for(i = 0; i < dim; i++){
+//        newCurLoc[mode] = i;
+//        if(mode == 0){
+//            Location epsLoc(1);
+//            epsLoc[0] = newCurLoc[0];
+//            double e_a = epsilonA.Get(epsLoc);
+//
+//            epsLoc[0] = newCurLoc[1];
+//            double e_b = epsilonA.Get(epsLoc);
+//
+//            epsLoc[0] = newCurLoc[2];
+//            double e_i = epsilonB.Get(epsLoc);
+//
+//            epsLoc[0] = newCurLoc[3];
+//            double e_j = epsilonB.Get(epsLoc);
+//            double val = -1.0 / (e_a + e_b - e_i - e_j);
+//            D_abij.Set(newCurLoc, val);
+//        }else{
+//            Form_D_abij_Helper(epsilonA, epsilonB, mode - 1, newCurLoc, D_abij);
+//        }
+//    }
+//}
+//
+//template<typename T>
+//void Form_D_abij(const DistTensor<T>& epsilonA, const DistTensor<T>& epsilonB, DistTensor<T>& D_abij){
+//    Unsigned order = D_abij.Order();
+//
+//    Location zeros(order, 0);
+//    Form_D_abij_Helper(epsilonA, epsilonB, order - 1, zeros, D_abij);
+//}
+
 template<typename T>
 void
 DistTensorTest( const Grid& g, Unsigned tenDimFive, Unsigned tenDimFiftyThree )
@@ -556,9 +723,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 //  printf("loading v_efgh\n");
 //  Load_Tensor(v_efgh__D_0__D_1__D_2__D_3, v_efghFilename);
 //  //Print(v_efgh__D_0__D_1__D_2__D_3, "v_efgh");
-//  double runLoadTime = mpi::Time() - startLoadTime;
 //
-//  printf("load time: %d\n", runLoadTime);
 //  printf("elemScaling\n");
 //  Form_D_abij(epsilonA, epsilonB, D_abij);
 //  tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
@@ -614,6 +779,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	//------------------------------------//
 
 	ZAxpBy( 2.0, v_oegm__D_0__D_1__D_2__D_3, -1.0, v2_oegm__D_0__D_1__D_2__D_3, axppx3_temp__D_0__D_1__D_2__D_3 );
+	v_oegm__D_0__D_1__D_2__D_3.Empty();
 //	Print(axppx3_temp__D_0__D_1__D_2__D_3, "axppx3_temp__D_0__D_1__D_2__D_3");
 
 	//------------------------------------//
@@ -708,6 +874,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	v2_oegm_part2_1__S__D_0__S__D_2.Empty();
 	t_efmn_part0_1__D_0__D_1__D_3__D_2.Empty();
 	t_efmn_part0_1__S__D_1__D_3__S.Empty();
+	v2_oegm__D_0__D_1__D_2__D_3.Empty();
 	//****
 
 //	Print(cont1_temp__D_0__D_1__D_2__D_3, "After Contract: cont1_temp__D_0__D_1__D_2__D_3");
@@ -721,6 +888,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	cont1_temp__D_0__D_1__D_3__D_2.AllToAllRedistFrom( cont1_temp__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
 	YAxpPx( 0.5, cont1_temp__D_0__D_1__D_2__D_3, 1.0, cont1_temp__D_0__D_1__D_3__D_2, perm_0_1_3_2, accum_temp__D_0__D_1__D_2__D_3 );
 	cont1_temp__D_0__D_1__D_3__D_2.Empty();
+	cont1_temp__D_0__D_1__D_2__D_3.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After YAxpPx: accum_temp__D_0__D_1__D_2__D_3");
 
 	//------------------------------------//
@@ -797,6 +965,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	axppx3_temp_part1_1__D_2__D_1__D_0__D_3.Empty();
 	axppx3_temp_part1_1__D_2__S__D_0__S.Empty();
 	accum_temp_part0_1__S__D_1__S__D_3__D_0__D_2.Empty();
+	axppx3_temp__D_0__D_1__D_2__D_3.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After YxpBy: accum_temp__D_0__D_1__D_2__D_3");
 	//****
 	//**** (out of 10)
@@ -847,6 +1016,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	}
 	v_efgh_part2_1__D_0__D_1__S__S.Empty();
 	t_efmn_part0_1__S__S__D_2__D_3.Empty();
+	v_efgh__D_0__D_1__D_2__D_3.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After One Contract: accum_temp__D_0__D_1__D_2__D_3");
 	//****
 	//**** (out of 10)
@@ -898,6 +1068,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 	}
 	v_opmn__S__S__D_2__D_3.Empty();
 	t_efmn_part0_1__D_0__D_1__S__S.Empty();
+	t_efmn__D_0__D_1__D_2__D_3.Empty();
 //	Print(accum_temp__D_0__D_1__D_2__D_3, "After Two Contract: accum_temp__D_0__D_1__D_2__D_3");
 	//****
 	//**** (out of 1)

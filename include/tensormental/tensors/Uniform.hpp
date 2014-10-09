@@ -107,13 +107,13 @@ struct MakeUniformHelper
 //        }
 
         //Pack
-        const Unsigned bufSize = prod(A.LocalShape());
-        std::vector<T> buffer(bufSize);
-        MemCopy(&(buffer[0]), A.LockedBuffer(), bufSize);
+//        const Unsigned bufSize = prod(A.LocalShape());
+//        std::vector<T> buffer(bufSize);
+//        MemCopy(&(buffer[0]), A.LockedBuffer(), bufSize);
 
         //BCast result
         mpi::Comm comm = A.GetCommunicatorForModes(A.GetGridView().FreeModes(), A.Grid());
-        mpi::Broadcast(&(buffer[0]), bufSize, 0, comm);
+        mpi::Broadcast(A.Buffer(), prod(A.LocalShape()), 0, comm);
 
 //        std::cout << "recv'd random buffer: ";
 //        for(Unsigned i = 0; i < bufSize; i++)
@@ -121,8 +121,8 @@ struct MakeUniformHelper
 //        std::cout << "\n";
 
         //Unpack
-        T* localBuffer = A.Buffer();
-        MemCopy(&(localBuffer[0]), &(buffer[0]), bufSize);
+//        T* localBuffer = A.Buffer();
+//        MemCopy(&(localBuffer[0]), &(buffer[0]), bufSize);
     };
 };
 
