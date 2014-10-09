@@ -86,12 +86,35 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     //--------------------------------
     //--------------------------------
 
-    DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
-    tmp2.AlignWith(tmp);
-    tmp2.SetLocalPermutation(A.localPerm_);
-    tmp2.ResizeTo(tmp2Shape);
-    tmp2.SetDistribution(tmp2Dist);
+    DistTensor<T> tmp2(tmp2Dist, g);
 
+    Permutation tmp2Perm = DefaultPermutation(tmp2.Order());
+    for(i = 0; i < localPerm_.size(); i++)
+        tmp2Perm[i] = localPerm_[i];
+    tmp2.SetLocalPermutation(tmp2Perm);
+
+
+    std::vector<Unsigned> tmp2Strides = LocalStrides();
+    ModeArray sortedRModes = rModes;
+    std::sort(sortedRModes.begin(), sortedRModes.end());
+
+    Unsigned val;
+    if(sortedRModes.size() != 0){
+        if(sortedRModes[0] == 0){
+            if(tmp2Strides.size() == 0){
+                val = 1;
+            }else{
+                val = tmp2Strides[sortedRModes[0]];
+            }
+        }else{
+            val = tmp2Strides[sortedRModes[0]-1];
+        }
+        tmp2Strides.insert(tmp2Strides.begin() + sortedRModes[0], val);
+        for(i = 1; i < sortedRModes.size(); i++){
+            tmp2Strides.insert(tmp2Strides.begin() + sortedRModes[i], tmp2Strides[sortedRModes[i]-1]);
+        }
+    }
+    tmp2.Attach(tmp2Shape, tmp.Alignments(), Buffer(), tmp2Strides, g);
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
@@ -102,13 +125,31 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
 
     tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
 
-    tmp2.RemoveUnitModesRedist(rModes);
-
-    SetAlignmentsAndResize(tmp2.Alignments(), tmp2.Shape());
-    //NOTE: Permutation already performed in unpack of tmp2
-    if(Participating()){
-        CopyLocalBuffer(tmp2);
-    }
+    /////////////////////////////////////////
+    /////////////////////////////////////////
+    //OLD CODE
+//    DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
+//    tmp2.AlignWith(tmp);
+//    tmp2.SetLocalPermutation(A.localPerm_);
+//    tmp2.ResizeTo(tmp2Shape);
+//    tmp2.SetDistribution(tmp2Dist);
+//
+//    ModeArray commModes;
+//    for(i = 0; i < rModes.size(); i++){
+//        ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
+//        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+//    }
+//    std::sort(commModes.begin(), commModes.end());
+//
+//    tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
+//
+//    tmp2.RemoveUnitModesRedist(rModes);
+//
+//    SetAlignmentsAndResize(tmp2.Alignments(), tmp2.Shape());
+//    //NOTE: Permutation already performed in unpack of tmp2
+//    if(Participating()){
+//        CopyLocalBuffer(tmp2);
+//    }
 }
 
 template<typename T>
