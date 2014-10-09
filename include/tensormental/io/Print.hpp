@@ -34,6 +34,7 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     int ptr = 0;
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     while(!done){
+        os.precision(16);
         os << A.Get(curLoc) << " ";
         if(order == 0)
             break;
@@ -79,6 +80,7 @@ Print
     	u = A.Get(curLoc);
 
     	if(A.Grid().LinearRank() == 0){
+    	    os.precision(16);
     		os << u << " ";
     	}
 
