@@ -749,7 +749,6 @@ void
 DistTensor<T>::EmptyData()
 {
     std::fill(shape_.begin(), shape_.end(), 0);
-    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
     tensor_.Empty_();
     viewType_ = OWNER;
