@@ -45,6 +45,14 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
 }
 
 template <typename T>
+void DistTensor<T>::ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode rMode){
+    ModeArray rModes(1);
+    rModes[0] = rMode;
+
+    ReduceToOneUpdateRedistFrom(A, beta, rModes);
+}
+
+template <typename T>
 void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
     Unsigned i;
     Unsigned order = A.Order();
