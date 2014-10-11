@@ -731,7 +731,7 @@ void
 DistTensor<T>::Empty()
 {
     std::fill(shape_.begin(), shape_.end(), 0);
-    std::fill(dist_.begin(), dist_.end(), ModeArray());
+//    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
     std::fill(modeAlignments_.begin(), modeAlignments_.end(), 0);
     //NOTE: C++ complains if I fill with 'false' for the boolean vector
