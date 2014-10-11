@@ -1086,7 +1086,7 @@ void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T 
 
     if(packMode == 0){
         if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd);
+            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
         }else{
             for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
                 dstBuf[dstBufPtr] = srcBuf[srcBufPtr];

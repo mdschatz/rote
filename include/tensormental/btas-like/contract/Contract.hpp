@@ -120,9 +120,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     const Permutation permC = contractPerms[2];
     const Unsigned nIndicesM = permA.size() - nIndicesContract;
 
-    Tensor<T> PA(PermuteVector(A.Shape(), permA));
-    Tensor<T> PB(PermuteVector(B.Shape(), permB));
-    Tensor<T> PC(PermuteVector(C.Shape(), permC));
+    Tensor<T> PA(A.Order());
+    Tensor<T> PB(B.Order());
+    Tensor<T> PC(C.Order());
 
     Tensor<T> MPA, MPB, MPC;
 
@@ -143,23 +143,21 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //    printf("]\n");
 
     if(permuteA){
-
+        PA.ResizeTo(PermuteVector(A.Shape(), permA));
         Permute(PA, A, permA);
-//        Print(PA, "PA");
-//        PrintData(PA, "PA data");
         ViewAsMatrix(MPA, PA, nIndicesM);
     }else{
         ViewAsMatrix(MPA, A, nIndicesM);
     }
     if(permuteB){
-
+        PB.ResizeTo(PermuteVector(B.Shape(), permB));
         Permute(PB, B, permB);
         ViewAsMatrix(MPB, PB, nIndicesContract);
     }else{
         ViewAsMatrix(MPB, B, nIndicesContract);
     }
     if(permuteC){
-
+        PC.ResizeTo(PermuteVector(C.Shape(), permC));
         Permute(PC, C, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
 

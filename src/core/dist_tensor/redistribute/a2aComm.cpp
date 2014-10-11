@@ -48,7 +48,19 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
         const ObjShape maxLocalShapeA = A.MaxLocalShape();
         const ObjShape maxLocalShapeB = MaxLocalShape();
-        const ObjShape commDataShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
+        ///////////////////////////////////////////////
+//        const ObjShape commDataShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
+        ///////////////////////////////////////////////
+        const tmen::GridView gvA = A.GetGridView();
+        const tmen::GridView gvB = GetGridView();
+        const ObjShape gvAShape = gvA.ParticipatingShape();
+        const ObjShape gvBShape = gvB.ParticipatingShape();
+        Unsigned packDivisor;
+        ObjShape commDataShape(maxLocalShapeA.size());
+        for(Unsigned i = 0; i < maxLocalShapeA.size(); i++){
+            commDataShape[i] = Min(maxLocalShapeA[i], maxLocalShapeB[i]);
+        }
+        ///////////////////////////////////////////////
 
         sendSize = prod(commDataShape);
         recvSize = sendSize;
@@ -81,6 +93,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //    std::cout << std::endl;
 
     const Location zeros(order, 0);
+    const Location ones(order, 1);
 
     //----------------------------------------
     //----------------------------------------
@@ -97,17 +110,22 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     Permutation invPerm = DetermineInversePermutation(A.localPerm_);
     PackData packData;
     packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+//    packData.loopShape = sendShape;
     packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
 
     packData.dstBufStrides = Dimensions2Strides(sendShape);
 
     packData.loopStarts = zeros;
     packData.loopIncs = modeStrideFactor;
+//    packData.loopIncs = ones;
 
     const Location myFirstElemLoc = A.ModeShifts();
 
-//    PrintVector(packElem, "packElem");
-//    PrintVector(changedA2AModes, "changedA2AModes");
+//    PrintVector(sendShape, "commModeShape");
+//    PrintVector(packData.loopShape, "loopShape");
+//    PrintVector(packData.srcBufStrides, "srcBufStrides");
+//    PrintVector(packData.dstBufStrides, "dstBufStrides");
+//    PrintVector(packData.loopIncs, "loopIncs");
 //    PrintVector(A.Shape(), "shapeA");
 //    PrintVector(A.LocalShape(), "localShapeA");
 //    PrintVector(modeStrideFactor, "modeStrideFactor");
@@ -133,7 +151,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
 //    printf("sendBuf:");
 //    for(i = 0; i < prod(sendShape)*nRedistProcs; i++)
-//        printf(" %d", sendBuf[i]);
+//        std::cout << " " << sendBuf[i];
 //    printf("\n");
 }
 
@@ -239,22 +257,8 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     Unsigned i;
 //    printf("dataBuf:");
 //    for(i = 0; i < prod(LocalShape()); i++)
-//        printf(" %d", dataBuf[i]);
+//        std::cout << " " << dataBuf[i];
 //    printf("\n");
-
-//    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
-////        A2AUnpackTestHelper(unpackData, changedA2AModes.size() - 1, commModesAll, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(recvShape), A, &(recvBuf[0]), &(dataBuf[0]));
-//        ElemSelectData elemData;
-//        elemData.commModes = commModesAll;
-//        elemData.changedModes = changedA2AModes;
-//        elemData.packElem = myFirstElemLoc;
-//        elemData.loopShape = modeStrideFactor;
-//        elemData.nElemsPerProc = prod(recvShape);
-//        elemData.dstElem = zeros;
-//        elemData.dstStrides = LocalStrides();
-//
-//        ElemSelectUnpackHelperWithPermutation(unpackData, elemData, changedA2AModes.size() - 1, A, &(recvBuf[0]), &(dataBuf[0]));
-//    }
 
 }
 
