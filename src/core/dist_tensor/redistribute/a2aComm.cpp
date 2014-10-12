@@ -65,8 +65,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         sendSize = prod(commDataShape);
         recvSize = sendSize;
 
-        Memory<T> auxMemory;
-        T* auxBuf = auxMemory.Require((sendSize + recvSize) * nRedistProcs);
+        T* auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
         MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
 
         T* sendBuf = &(auxBuf[0]);
@@ -76,9 +75,12 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
 
-        if(!(Participating()))
+        if(!(Participating())){
+            this->auxMemory_.Release();
             return;
+        }
         UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
+        this->auxMemory_.Release();
 }
 
 template <typename T>

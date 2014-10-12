@@ -58,8 +58,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
 
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     MemZero(&(auxBuf[0]), sendSize + recvSize);
 
     T* sendBuf = &(auxBuf[0]);
@@ -71,11 +70,14 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     //printf("Allgathering %d elements\n", sendSize);
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
 
-    if(!(Participating()))
+    if(!(Participating())){
+        this->auxMemory_.Release();
         return;
+    }
 
     //NOTE: AG and A2A unpack routines are the exact same
     UnpackA2ACommRecvBuf(recvBuf, agModes, commModes, maxLocalShapeA, A);
+    this->auxMemory_.Release();
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }
 

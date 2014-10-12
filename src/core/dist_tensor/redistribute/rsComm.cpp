@@ -71,8 +71,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
     sendSize = recvSize * nRedistProcs;
 
 //    PrintVector(maxLocalShapeB, "sendShape");
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
@@ -81,9 +80,13 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
 
-    if(!(Participating()))
+    if(!Participating()){
+        this->auxMemory_.Release();
         return;
+    }
+
     UnpackRSCommRecvBuf(recvBuf, A);
+    this->auxMemory_.Release();
 }
 
 template <typename T>

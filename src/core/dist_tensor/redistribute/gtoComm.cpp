@@ -71,8 +71,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize;
 
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + nRedistProcs*recvSize);
+    T* auxBuf = this->auxMemory_.Require(sendSize + nRedistProcs*recvSize);
     MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
@@ -82,11 +81,14 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 
-    if(!(Participating()))
+    if(!(Participating())){
+        this->auxMemory_.Release();
         return;
+    }
 
     //NOTE: AG, A2A, and GTO unpack routines are the exact same
     UnpackA2ACommRecvBuf(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
+    this->auxMemory_.Release();
 }
 
 #define PROTO(T) template class DistTensor<T>

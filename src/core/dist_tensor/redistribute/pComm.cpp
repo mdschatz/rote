@@ -66,8 +66,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     const int myRank = mpi::CommRank(comm);
 
-    Memory<T> auxMemory;
-    T* auxBuf = auxMemory.Require(sendSize + recvSize);
+    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
@@ -103,11 +102,14 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     mpi::SendRecv(sendBuf, sendSize, sendRank,
                   recvBuf, recvSize, recvRank, comm);
 
-    if(!(Participating()))
+    if(!(Participating())){
+        this->auxMemory_.Release();
         return;
+    }
 
     //Note: P and RS unpack routines are the exact same
     UnpackRSCommRecvBuf(recvBuf, A);
+    this->auxMemory_.Release();
 }
 
 #define PROTO(T) template class DistTensor<T>
