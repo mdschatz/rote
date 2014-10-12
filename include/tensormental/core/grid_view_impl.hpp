@@ -280,7 +280,7 @@ inline
 void
 GridView::IntroduceUnitModes(const ModeArray& unitModes)
 {
-    Unsigned i;
+    Unsigned i, j;
     ModeArray sorted = unitModes;
     std::sort(sorted.begin(), sorted.end());
     ModeArray blank(0);
@@ -288,6 +288,18 @@ GridView::IntroduceUnitModes(const ModeArray& unitModes)
         shape_.insert(shape_.begin() + sorted[i], 1);
         loc_.insert(loc_.begin() + sorted[i], 0);
         dist_.insert(dist_.begin() + sorted[i], blank);
+
+        for(j = 0; j < freeModes_.size(); j++)
+            if(freeModes_[j] >= sorted[i])
+                freeModes_[j] += 1;
+        for(j = 0; j < boundModes_.size(); j++)
+            if(boundModes_[j] >= sorted[i])
+                boundModes_[j] += 1;
+        boundModes_.insert(boundModes_.begin(), sorted[i]);
+        for(j = 0; j < unusedModes_.size(); j++)
+            if(unusedModes_[j] == sorted[i])
+                unusedModes_[j] += 1;
+
     }
 }
 

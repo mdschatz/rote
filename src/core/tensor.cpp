@@ -455,8 +455,6 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
     strides_.reserve(strides_.size() + sorted.size());
     ldims_.reserve(ldims_.size() + sorted.size());
     for(i = 0; i < sorted.size(); i++){
-        shape_.insert(shape_.begin() + sorted[i], 1);
-
         Unsigned newStrideVal;
         if(sorted[i] == strides_.size()){
             if(sorted[i] == 0){
@@ -470,6 +468,7 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
 
         strides_.insert(strides_.begin() + sorted[i], newStrideVal);
         ldims_.insert(ldims_.begin() + sorted[i], newStrideVal);
+        shape_.insert(shape_.begin() + sorted[i], 1);
     }
     ResizeTo(shape_);
 }

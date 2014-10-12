@@ -49,14 +49,8 @@ template<typename T>
 void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitModes){
 //    if(!CheckIntroduceUnitModesRedist(B, A, newModePositions))
 //        LogicError("IntroduceUnitModesRedist: Invalid redistribution request");
-//
-//    const Unsigned order = A.Order();
-//    const Location start(order, 0);
-//    T* dst = B.Buffer(start);
-//    const T* src = A.LockedBuffer(start);
-//    MemCopy(&(dst[0]), &(src[0]), prod(A.LocalShape()));
 
-    Unsigned i;
+    Unsigned i, j;
     ModeArray sorted = unitModes;
     ModeArray blank(0);
     std::sort(sorted.begin(), sorted.end());
@@ -65,14 +59,20 @@ void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitMo
     constrainedModeAlignments_.reserve(constrainedModeAlignments_.size() + sorted.size());
     modeAlignments_.reserve(modeAlignments_.size() + sorted.size());
     modeShifts_.reserve(modeShifts_.size() + sorted.size());
+    localPerm_.reserve(localPerm_.size() + sorted.size());
+    Permutation invPerm = DetermineInversePermutation(localPerm_);
     for(i = 0; i < sorted.size(); i++){
         shape_.insert(shape_.begin() + sorted[i], 1);
         dist_.insert(dist_.begin() + sorted[i], blank);
         constrainedModeAlignments_.insert(constrainedModeAlignments_.begin() + sorted[i], false);
         modeAlignments_.insert(modeAlignments_.begin() + sorted[i], 0);
         modeShifts_.insert(modeShifts_.begin() + sorted[i], 0);
+        for(j = 0; j < localPerm_.size(); j++)
+            if(localPerm_[j] >= localPerm_[sorted[i]])
+                localPerm_[j] += 1;
+        localPerm_.insert(localPerm_.begin() + sorted[i], sorted[i]);
     }
-    tensor_.IntroduceUnitModes(unitModes);
+    tensor_.IntroduceUnitModes(FilterVector(invPerm, unitModes));
     gridView_.IntroduceUnitModes(unitModes);
     ResizeTo(Shape());
 }
