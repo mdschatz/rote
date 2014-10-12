@@ -966,12 +966,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         ( v2_oegm_part2T__D_0__D_1__D_2__D_3,  v2_oegm_part2_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                v2_oegm_part2_1__D_0__D_1__D_2__D_3,
-          v2_oegm_part2B__D_0__D_1__D_2__D_3, v2_oegm_part2_2__D_0__D_1__D_2__D_3, 2, 16 );
+          v2_oegm_part2B__D_0__D_1__D_2__D_3, v2_oegm_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
         RepartitionDown
         ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                t_efmn_part0_1__D_0__D_1__D_2__D_3,
-          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         //------------------------------------//
 
         //**** (out of 8)
@@ -986,12 +986,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( v2_oegm_part2_1_part0T__D_0__D_1__D_2__D_3,  v2_oegm_part2_1_part0_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    v2_oegm_part2_1_part0_1__D_0__D_1__D_2__D_3,
-              v2_oegm_part2_1_part0B__D_0__D_1__D_2__D_3, v2_oegm_part2_1_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+              v2_oegm_part2_1_part0B__D_0__D_1__D_2__D_3, v2_oegm_part2_1_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
             RepartitionDown
             ( t_efmn_part0_1_part3T__D_0__D_1__D_2__D_3,  t_efmn_part0_1_part3_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    t_efmn_part0_1_part3_1__D_0__D_1__D_2__D_3,
-              t_efmn_part0_1_part3B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part3_2__D_0__D_1__D_2__D_3, 3, 16 );
+              t_efmn_part0_1_part3B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
             //------------------------------------//
 
                // v2_oegm_part2_1_part0_1[D0,D1,D3,D2] <- v2_oegm_part2_1_part0_1[D0,D1,D2,D3]
@@ -1059,12 +1059,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         ( cont1_temp_part0T__D_0__D_1__D_2__D_3,  cont1_temp_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                cont1_temp_part0_1__D_0__D_1__D_2__D_3,
-          cont1_temp_part0B__D_0__D_1__D_2__D_3, cont1_temp_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          cont1_temp_part0B__D_0__D_1__D_2__D_3, cont1_temp_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         RepartitionDown
         ( accum_temp_part0T__D_0__D_1__D_2__D_3,  accum_temp_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                accum_temp_part0_1__D_0__D_1__D_2__D_3,
-          accum_temp_part0B__D_0__D_1__D_2__D_3, accum_temp_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          accum_temp_part0B__D_0__D_1__D_2__D_3, accum_temp_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         //------------------------------------//
 
         //**** (out of 1)
@@ -1079,12 +1079,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( cont1_temp_part0_1_part1T__D_0__D_1__D_2__D_3,  cont1_temp_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    cont1_temp_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              cont1_temp_part0_1_part1B__D_0__D_1__D_2__D_3, cont1_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              cont1_temp_part0_1_part1B__D_0__D_1__D_2__D_3, cont1_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             RepartitionDown
             ( accum_temp_part0_1_part1T__D_0__D_1__D_2__D_3,  accum_temp_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    accum_temp_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              accum_temp_part0_1_part1B__D_0__D_1__D_2__D_3, accum_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              accum_temp_part0_1_part1B__D_0__D_1__D_2__D_3, accum_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             //------------------------------------//
 
                // cont1_temp_part0_1_part1_1[D0,D1,D3,D2] <- cont1_temp_part0_1_part1_1[D0,D1,D2,D3]
@@ -1139,17 +1139,17 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         ( axppx3_temp_part2T__D_0__D_1__D_2__D_3,  axppx3_temp_part2_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                axppx3_temp_part2_1__D_0__D_1__D_2__D_3,
-          axppx3_temp_part2B__D_0__D_1__D_2__D_3, axppx3_temp_part2_2__D_0__D_1__D_2__D_3, 2, 16 );
+          axppx3_temp_part2B__D_0__D_1__D_2__D_3, axppx3_temp_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
         RepartitionDown
         ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                t_efmn_part0_1__D_0__D_1__D_2__D_3,
-          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         RepartitionDown
         ( axppx2_temp_part0T__D_0__D_1__D_2__D_3,  axppx2_temp_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                axppx2_temp_part0_1__D_0__D_1__D_2__D_3,
-          axppx2_temp_part0B__D_0__D_1__D_2__D_3, axppx2_temp_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          axppx2_temp_part0B__D_0__D_1__D_2__D_3, axppx2_temp_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         //------------------------------------//
 
         //**** (out of 1)
@@ -1164,12 +1164,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3,  t_efmn_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             RepartitionDown
             ( axppx2_temp_part0_1_part1T__D_0__D_1__D_2__D_3,  axppx2_temp_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    axppx2_temp_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              axppx2_temp_part0_1_part1B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              axppx2_temp_part0_1_part1B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             //------------------------------------//
 
                // t_efmn_part0_1_part1_1[D0,D1,D3,D2] <- t_efmn_part0_1_part1_1[D0,D1,D2,D3]
@@ -1203,12 +1203,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( axppx3_temp_part2_1_part0T__D_0__D_1__D_2__D_3,  axppx3_temp_part2_1_part0_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    axppx3_temp_part2_1_part0_1__D_0__D_1__D_2__D_3,
-              axppx3_temp_part2_1_part0B__D_0__D_1__D_2__D_3, axppx3_temp_part2_1_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+              axppx3_temp_part2_1_part0B__D_0__D_1__D_2__D_3, axppx3_temp_part2_1_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
             RepartitionDown
             ( axppx2_temp_part0_1_part2T__D_0__D_1__D_2__D_3,  axppx2_temp_part0_1_part2_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    axppx2_temp_part0_1_part2_1__D_0__D_1__D_2__D_3,
-              axppx2_temp_part0_1_part2B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part2_2__D_0__D_1__D_2__D_3, 2, 16 );
+              axppx2_temp_part0_1_part2B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
             //------------------------------------//
 
                // axppx3_temp_part2_1_part0_1[D0,D1,D3,D2] <- axppx3_temp_part2_1_part0_1[D0,D1,D2,D3]
@@ -1277,12 +1277,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         ( v_efgh_part2T__D_0__D_1__D_2__D_3,  v_efgh_part2_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                v_efgh_part2_1__D_0__D_1__D_2__D_3,
-          v_efgh_part2B__D_0__D_1__D_2__D_3, v_efgh_part2_2__D_0__D_1__D_2__D_3, 2, 16 );
+          v_efgh_part2B__D_0__D_1__D_2__D_3, v_efgh_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
         RepartitionDown
         ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                t_efmn_part0_1__D_0__D_1__D_2__D_3,
-          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         //------------------------------------//
 
         //**** (out of 22)
@@ -1297,12 +1297,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( v_efgh_part2_1_part3T__D_0__D_1__D_2__D_3,  v_efgh_part2_1_part3_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    v_efgh_part2_1_part3_1__D_0__D_1__D_2__D_3,
-              v_efgh_part2_1_part3B__D_0__D_1__D_2__D_3, v_efgh_part2_1_part3_2__D_0__D_1__D_2__D_3, 3, 16 );
+              v_efgh_part2_1_part3B__D_0__D_1__D_2__D_3, v_efgh_part2_1_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
             RepartitionDown
             ( t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3,  t_efmn_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             //------------------------------------//
 
                // v_efgh_part2_1_part3_1[D0,D1,*,*] <- v_efgh_part2_1_part3_1[D0,D1,D2,D3]
@@ -1359,12 +1359,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         ( v_opmn_part0T__D_0__D_1__D_2__D_3,  v_opmn_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                v_opmn_part0_1__D_0__D_1__D_2__D_3,
-          v_opmn_part0B__D_0__D_1__D_2__D_3, v_opmn_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          v_opmn_part0B__D_0__D_1__D_2__D_3, v_opmn_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         RepartitionDown
         ( t_efmn_part2T__D_0__D_1__D_2__D_3,  t_efmn_part2_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                t_efmn_part2_1__D_0__D_1__D_2__D_3,
-          t_efmn_part2B__D_0__D_1__D_2__D_3, t_efmn_part2_2__D_0__D_1__D_2__D_3, 2, 16 );
+          t_efmn_part2B__D_0__D_1__D_2__D_3, t_efmn_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
         //------------------------------------//
 
         //**** (out of 22)
@@ -1379,12 +1379,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( v_opmn_part0_1_part1T__D_0__D_1__D_2__D_3,  v_opmn_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    v_opmn_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              v_opmn_part0_1_part1B__D_0__D_1__D_2__D_3, v_opmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              v_opmn_part0_1_part1B__D_0__D_1__D_2__D_3, v_opmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             RepartitionDown
             ( t_efmn_part2_1_part3T__D_0__D_1__D_2__D_3,  t_efmn_part2_1_part3_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    t_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3,
-              t_efmn_part2_1_part3B__D_0__D_1__D_2__D_3, t_efmn_part2_1_part3_2__D_0__D_1__D_2__D_3, 3, 16 );
+              t_efmn_part2_1_part3B__D_0__D_1__D_2__D_3, t_efmn_part2_1_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
             //------------------------------------//
 
                // v_opmn_part0_1_part1_1[*,*,D2,D3] <- v_opmn_part0_1_part1_1[D0,D1,D2,D3]
@@ -1443,12 +1443,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         ( axppx2_temp_part0T__D_0__D_1__D_2__D_3,  axppx2_temp_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                axppx2_temp_part0_1__D_0__D_1__D_2__D_3,
-          axppx2_temp_part0B__D_0__D_1__D_2__D_3, axppx2_temp_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          axppx2_temp_part0B__D_0__D_1__D_2__D_3, axppx2_temp_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         RepartitionDown
         ( accum_temp_part0T__D_0__D_1__D_2__D_3,  accum_temp_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
                accum_temp_part0_1__D_0__D_1__D_2__D_3,
-          accum_temp_part0B__D_0__D_1__D_2__D_3, accum_temp_part0_2__D_0__D_1__D_2__D_3, 0, 16 );
+          accum_temp_part0B__D_0__D_1__D_2__D_3, accum_temp_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         //------------------------------------//
 
         //**** (out of 1)
@@ -1463,12 +1463,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             ( axppx2_temp_part0_1_part1T__D_0__D_1__D_2__D_3,  axppx2_temp_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    axppx2_temp_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              axppx2_temp_part0_1_part1B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              axppx2_temp_part0_1_part1B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             RepartitionDown
             ( accum_temp_part0_1_part1T__D_0__D_1__D_2__D_3,  accum_temp_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
                    accum_temp_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              accum_temp_part0_1_part1B__D_0__D_1__D_2__D_3, accum_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 16 );
+              accum_temp_part0_1_part1B__D_0__D_1__D_2__D_3, accum_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             //------------------------------------//
 
             tempShape = E_MP3____N_D_0_1_2_3.Shape();
