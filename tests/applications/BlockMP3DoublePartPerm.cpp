@@ -1012,6 +1012,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     cont1_temp__D_0__D_1__D_2__D_3.ResizeTo( cont1_temp__D_0__D_1__D_2__D_3_tempShape );
     Zero(cont1_temp__D_0__D_1__D_2__D_3);
     cont1_temp_perm0213__D_0__D_2__D_1__D_3.ResizeTo( cont1_temp__D_0__D_1__D_2__D_3_tempShape );
+    Permute( cont1_temp_perm0213__D_0__D_2__D_1__D_3, cont1_temp__D_0__D_1__D_2__D_3 );
     PartitionDown(v2_oegm__D_0__D_1__D_2__D_3, v2_oegm_part2T__D_0__D_1__D_2__D_3, v2_oegm_part2B__D_0__D_1__D_2__D_3, 2, 0);
     PartitionDown(t_efmn__D_0__D_1__D_2__D_3, t_efmn_part0T__D_0__D_1__D_2__D_3, t_efmn_part0B__D_0__D_1__D_2__D_3, 0, 0);
     while(v2_oegm_part2T__D_0__D_1__D_2__D_3.Dimension(2) < v2_oegm__D_0__D_1__D_2__D_3.Dimension(2))
@@ -1066,7 +1067,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2.EmptyData();
 //            Permute( cont1_temp__D_0__D_1__D_2__D_3, cont1_temp_perm0213__D_0__D_2__D_1__D_3 );
 
-            Permute( cont1_temp_perm0213__D_0__D_2__D_1__D_3, cont1_temp__D_0__D_1__D_2__D_3 );
+
                // 1.0 * v2_oegm_part2_1_part0_1[*,D0,*,D2]_emgo * t_efmn_part0_1_part3_1[*,D1,D3,*]_gofn + 1.0 * cont1_temp[D0,D1,D2,D3]_emfn
 
             LocalContractAndLocalEliminate(1.0, v2_oegm_part2_1_part0_1_perm1320__D_0__D_2__S__S.LockedTensor(), indices_emgo, false,
@@ -1075,11 +1076,6 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             t_efmn_part0_1_part3_1_perm0312__S__S__D_1__D_3.EmptyData();
             v2_oegm_part2_1_part0_1_perm1320__D_0__D_2__S__S.EmptyData();
 //            Permute( cont1_temp_perm0213__D_0__D_2__D_1__D_3, cont1_temp__D_0__D_1__D_2__D_3 );
-
-            Permute( cont1_temp__D_0__D_1__D_2__D_3, cont1_temp_perm0213__D_0__D_2__D_1__D_3 );
-
-//            cont1_temp_perm0213__D_0__D_2__D_1__D_3.EmptyData();
-
 
             //------------------------------------//
             SlidePartitionDown
@@ -1109,6 +1105,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
           t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0 );
 
     }
+    Permute( cont1_temp__D_0__D_1__D_2__D_3, cont1_temp_perm0213__D_0__D_2__D_1__D_3 );
+    cont1_temp_perm0213__D_0__D_2__D_1__D_3.EmptyData();
     v2_oegm__D_0__D_1__D_2__D_3.EmptyData();
 
     //****
@@ -1200,6 +1198,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     axppx2_temp_part0_1_part2_1_perm2013__S__S__D_1__D_3.ResizeTo(axppx2_temp__D_0__D_1__D_2__D_3_tempShape);
     axppx3_temp_part2_1_part0_1_perm1302__D_0__D_2__S__S.ResizeTo(axppx3_temp__D_0__D_1__D_2__D_3_tempShape);
     accum_temp_perm0213__D_0__D_2__D_1__D_3.ResizeTo(accum_temp__D_0__D_1__D_2__D_3_tempShape);
+    Permute( accum_temp_perm0213__D_0__D_2__D_1__D_3, accum_temp__D_0__D_1__D_2__D_3 );
     Zero(axppx2_temp__D_0__D_1__D_2__D_3);
     PartitionDown(axppx3_temp__D_0__D_1__D_2__D_3, axppx3_temp_part2T__D_0__D_1__D_2__D_3, axppx3_temp_part2B__D_0__D_1__D_2__D_3, 2, 0);
     PartitionDown(t_efmn__D_0__D_1__D_2__D_3, t_efmn_part0T__D_0__D_1__D_2__D_3, t_efmn_part0B__D_0__D_1__D_2__D_3, 0, 0);
@@ -1297,15 +1296,14 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
                // axppx2_temp_part0_1_part2_1[*,D1,*,D3] <- axppx2_temp_part0_1_part2_1[D0,D1,D2,D3]
             axppx2_temp_part0_1_part2_1_perm2013__S__S__D_1__D_3.AlignWith(axppx2_temp_part0_1_part2_1__D_0__D_1__D_2__D_3);
             axppx2_temp_part0_1_part2_1_perm2013__S__S__D_1__D_3.AllGatherRedistFrom( axppx2_temp_part0_1_part2_1__D_0__D_1__D_2__D_3, modes_0_2, modeArrayArray___0___2 );
-            Permute( accum_temp_perm0213__D_0__D_2__D_1__D_3, accum_temp__D_0__D_1__D_2__D_3 );
+
                // 0.5 * axppx3_temp_part2_1_part0_1[*,D0,*,D2]_emog * axppx2_temp_part0_1_part2_1[*,D1,*,D3]_ogfn + 1.0 * accum_temp[D0,D1,D2,D3]_emfn
             LocalContractAndLocalEliminate(0.5, axppx3_temp_part2_1_part0_1_perm1302__D_0__D_2__S__S.LockedTensor(), indices_emog, false,
                 axppx2_temp_part0_1_part2_1_perm2013__S__S__D_1__D_3.LockedTensor(), indices_ogfn, false,
                 1.0, accum_temp_perm0213__D_0__D_2__D_1__D_3.Tensor(), indices_emfn, false);
             axppx2_temp_part0_1_part2_1_perm2013__S__S__D_1__D_3.EmptyData();
             axppx3_temp_part2_1_part0_1_perm1302__D_0__D_2__S__S.EmptyData();
-            Permute( accum_temp__D_0__D_1__D_2__D_3, accum_temp_perm0213__D_0__D_2__D_1__D_3 );
-//            accum_temp_perm0213__D_0__D_2__D_1__D_3.EmptyData();
+
 
             //------------------------------------//
             SlidePartitionDown
@@ -1340,6 +1338,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
           t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0 );
 
     }
+    Permute( accum_temp__D_0__D_1__D_2__D_3, accum_temp_perm0213__D_0__D_2__D_1__D_3 );
+    accum_temp_perm0213__D_0__D_2__D_1__D_3.EmptyData();
     axppx3_temp__D_0__D_1__D_2__D_3.EmptyData();
 
     //****
@@ -1428,6 +1428,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         //Outputs:
         //  accum_temp__D_0__D_1__D_2__D_3
     accum_temp_perm2301__D_2__D_3__D_0__D_1.ResizeTo(accum_temp__D_0__D_1__D_2__D_3_tempShape);
+    Permute( accum_temp_perm2301__D_2__D_3__D_0__D_1, accum_temp__D_0__D_1__D_2__D_3 );
     PartitionDown(v_opmn__D_0__D_1__D_2__D_3, v_opmn_part0T__D_0__D_1__D_2__D_3, v_opmn_part0B__D_0__D_1__D_2__D_3, 0, 0);
     PartitionDown(t_efmn__D_0__D_1__D_2__D_3, t_efmn_part2T__D_0__D_1__D_2__D_3, t_efmn_part2B__D_0__D_1__D_2__D_3, 2, 0);
     while(v_opmn_part0T__D_0__D_1__D_2__D_3.Dimension(0) < v_opmn__D_0__D_1__D_2__D_3.Dimension(0))
@@ -1468,15 +1469,14 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             v_opmn_part0_1_part1_1_perm2301__D_2__D_3__S__S.AllGatherRedistFrom( v_opmn_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1, modeArrayArray___0___1 );
                // t_efmn_part2_1_part3_1[D0,D1,*,*] <- t_efmn_part2_1_part3_1[D0,D1,D2,D3]
             t_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AllGatherRedistFrom( t_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3, modeArrayArray___2___3 );
-            Permute( accum_temp_perm2301__D_2__D_3__D_0__D_1, accum_temp__D_0__D_1__D_2__D_3 );
+
                // 0.5 * v_opmn_part0_1_part1_1[*,*,D2,D3]_mnop * t_efmn_part2_1_part3_1[D0,D1,*,*]_opef + 1.0 * accum_temp[D0,D1,D2,D3]_mnef
             LocalContractAndLocalEliminate(0.5, v_opmn_part0_1_part1_1_perm2301__D_2__D_3__S__S.LockedTensor(), indices_mnop, false,
                 t_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.LockedTensor(), indices_opef, false,
                 1.0, accum_temp_perm2301__D_2__D_3__D_0__D_1.Tensor(), indices_mnef, false);
             t_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.EmptyData();
             v_opmn_part0_1_part1_1_perm2301__D_2__D_3__S__S.EmptyData();
-            Permute( accum_temp__D_0__D_1__D_2__D_3, accum_temp_perm2301__D_2__D_3__D_0__D_1 );
-//            accum_temp_perm2301__D_2__D_3__D_0__D_1.EmptyData();
+
 
             //------------------------------------//
             SlidePartitionDown
@@ -1506,6 +1506,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
           t_efmn_part2B__D_0__D_1__D_2__D_3, t_efmn_part2_2__D_0__D_1__D_2__D_3, 2 );
 
     }
+    Permute( accum_temp__D_0__D_1__D_2__D_3, accum_temp_perm2301__D_2__D_3__D_0__D_1 );
+    accum_temp_perm2301__D_2__D_3__D_0__D_1.EmptyData();
     //****
     //**** (out of 3)
     //**** Is real  0 shadows
