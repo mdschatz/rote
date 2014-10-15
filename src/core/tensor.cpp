@@ -1068,6 +1068,79 @@ Tensor<T>::NumElem() const
 
 template<typename T>
 void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::PackCommHelper");
+#endif
+
+#ifndef RELEASE
+    PackCommHelper_ref(packData, packMode, srcBuf, dstBuf);
+#else
+    PackCommHelper_fast(packData, packMode, srcBuf, dstBuf);
+#endif
+}
+
+template<typename T>
+void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+
+    Unsigned packSlice;
+//    printf("ping packcommHelper\n");
+    if(packData.loopShape.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+    }
+
+    const std::vector<Unsigned> loopEnd = packData.loopShape;
+    const std::vector<Unsigned> dstBufStrides = packData.dstBufStrides;
+    const std::vector<Unsigned> srcBufStrides = packData.srcBufStrides;
+    const std::vector<Unsigned> loopStart = packData.loopStarts;
+    const std::vector<Unsigned> loopIncs = packData.loopIncs;
+    Unsigned order = loopEnd.size();
+    Location curLoc = loopStart;
+    Unsigned dstBufPtr = 0;
+    Unsigned srcBufPtr = 0;
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr] += loopIncs[ptr];
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = loopStart[ptr];
+
+            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            srcBufPtr -= srcBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr] += loopIncs[ptr];
+                dstBufPtr += dstBufStrides[ptr];
+                srcBufPtr += srcBufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
+template<typename T>
+void Tensor<T>::PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
     Unsigned packSlice;
 
     if(packData.loopShape.size() == 0){

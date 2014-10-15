@@ -61,6 +61,11 @@ void PopBlocksizeStack();
 
 std::mt19937& Generator();
 
+inline Unsigned IntCeil(Unsigned m, Unsigned n)
+{
+    return ( m > 0 ? (m - 1)/n + 1 : 0 );
+}
+
 inline double Ceil(double m)
 { return std::ceil(m); }
 

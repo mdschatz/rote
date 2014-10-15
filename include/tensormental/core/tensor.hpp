@@ -183,6 +183,8 @@ private:
     void SetStrides(const ObjShape& shape);
     void SetLDims(const ObjShape& shape);
 
+    void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
+    void PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();

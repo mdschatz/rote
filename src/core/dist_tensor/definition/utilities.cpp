@@ -161,6 +161,111 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
+
+#ifndef RELEASE
+    PackCommHelper_ref(packData, packMode, srcBuf, dstBuf);
+#else
+    PackCommHelper_fast(packData, packMode, srcBuf, dstBuf);
+#endif
+}
+
+template<typename T>
+void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::PackCommHelper_fast");
+#endif
+
+    Unsigned packSlice;
+//    printf("ping packcommHelper\n");
+    if(packData.loopShape.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+    }
+
+    const std::vector<Unsigned> loopEnd = packData.loopShape;
+    const std::vector<Unsigned> dstBufStrides = packData.dstBufStrides;
+    const std::vector<Unsigned> srcBufStrides = packData.srcBufStrides;
+    const std::vector<Unsigned> loopStart = packData.loopStarts;
+    const std::vector<Unsigned> loopIncs = packData.loopIncs;
+    Unsigned order = loopEnd.size();
+    Location curLoc = loopStart;
+    Unsigned dstBufPtr = 0;
+    Unsigned srcBufPtr = 0;
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr] += loopIncs[ptr];
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = loopStart[ptr];
+
+            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            srcBufPtr -= srcBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr] += loopIncs[ptr];
+                dstBufPtr += dstBufStrides[ptr];
+                srcBufPtr += srcBufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+
+//    if(packMode == 0){
+//        if(dstBufStride == 1 && srcBufStride == 1){
+////            std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
+//            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
+//        }else{
+////            PrintVector(packData.loopStarts, "loopStarts");
+////            printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
+//            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+//                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+//
+////                std::cout << ident << "Packing mode: " << packMode << "iteration: " << packSlice << "of: " << loopEnd << "by: " << loopInc << std::endl;
+////                std::cout << ident << "copying elem " << srcBuf[srcBufPtr] << std::endl;
+////                std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
+////                std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
+//                dstBufPtr += dstBufStride;
+//                srcBufPtr += srcBufStride;
+//            }
+//        }
+//    }else{
+//        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
+//            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+//
+////            std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
+////            std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
+//            dstBufPtr += dstBufStride;
+//            srcBufPtr += srcBufStride;
+//        }
+//    }
+}
+
+template<typename T>
+void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::PackCommHelper_ref");
+#endif
     Unsigned packSlice;
 //    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
@@ -211,6 +316,8 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
         }
     }
 }
+
+////////////////////////////////////////////
 
 template<typename T>
 void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){

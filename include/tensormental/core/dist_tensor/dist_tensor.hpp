@@ -458,6 +458,8 @@ protected:
     Memory<T> auxMemory_;
 
 private:
+    void PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
+    void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void CopyFromDifferentGrid( const DistTensor<T>& A );
 
     void SetShifts();
