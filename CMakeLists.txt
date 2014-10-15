@@ -150,7 +150,7 @@ if(NOT WIN32) # I forget why we need this guard
           set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -Wall -Wunreachable-code -ggdb -std=c++11" CACHE STRING
           "${LANG} optimization/debug flags for ${UPPER_BUILD_TYPE} mode")
       else()
-        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O3 -Wall -std=c++11" CACHE STRING
+        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-pg -O3 -Wall -std=c++11" CACHE STRING
           "${LANG} optimization flags for ${UPPER_BUILD_TYPE} mode")
       endif()
     endif()
@@ -471,7 +471,7 @@ if(TMEN_TESTS)
 
   set(core_TESTS DistTensor Views Grids Woody)
   set(btas_TESTS Level1 Contract)
-  set(applications_TESTS MP3 MP3Vesta Test3 BlockMP3Vesta BlockMP3VestaBlkYAxpPx BlockMP3VestaLargeSize BlockMP3VestaLargeReorderTemp BlockMP3VestaDoublePart BlockMP3WithEmptyDoublePart BlockMP3DoublePartPerm)
+  set(applications_TESTS MP3 MP3Vesta Test3 BlockMP3Vesta BlockMP3VestaBlkYAxpPx BlockMP3VestaLargeSize BlockMP3VestaLargeReorderTemp BlockMP3WithEmptyDoublePart BlockMP3DoublePartPerm BryanMP3)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")
