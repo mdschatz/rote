@@ -39,6 +39,57 @@ YxpByHelper(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const
     }
 }
 
+template<typename T>
+inline void
+YxpBy_fast(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
+    const std::vector<Unsigned> loopEnd = data.loopShape;
+    const std::vector<Unsigned> srcBufStrides = data.srcStrides;
+    const std::vector<Unsigned> dstBufStrides = data.dstStrides;
+    Unsigned srcBufPtr = 0;
+    Unsigned dstBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] = srcBuf[0] + beta * dstBuf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta * dstBuf[dstBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                dstBufPtr += dstBufStrides[ptr];
+                srcBufPtr += srcBufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
 //NOTE: Place appropriate guards
 //NOTE: Make this more efficient
 template<typename T>
@@ -81,8 +132,13 @@ YxpBy( const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
 
     if(order == 0)
         dstBuf[0] = srcBuf[0] + beta*dstBuf[0];
-    else
+    else{
+#ifndef RELEASE
         YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
+#else
+        YxpBy_fast(X, beta, Y, order - 1, srcBuf, dstBuf, data);
+#endif
+    }
 }
 
 template<typename T>

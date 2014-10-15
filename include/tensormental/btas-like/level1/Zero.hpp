@@ -34,6 +34,52 @@ void ZeroHelper(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& s
 }
 
 template<typename T>
+void Zero_fast(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& strides, T * const buf){
+    const std::vector<Unsigned> loopEnd = shape;
+    const std::vector<Unsigned> bufStrides = strides;
+    Unsigned bufPtr = 0;
+    Unsigned dstBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        buf[0] = 0;
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        buf[bufPtr] = 0;
+        //Update
+        curLoc[ptr]++;
+        bufPtr += bufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            bufPtr -= bufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                bufPtr += bufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
+template<typename T>
 inline void
 Zero( Tensor<T>& A )
 {
@@ -43,8 +89,14 @@ Zero( Tensor<T>& A )
     Unsigned order = A.Order();
     if(order == 0)
         MemZero(A.Buffer(), 1);
-    else
+    else{
+#ifndef RELEASE
         ZeroHelper(order - 1, A.Shape(), A.Strides(), A.Buffer());
+#else
+        Zero_fast(order - 1, A.Shape(), A.Strides(), A.Buffer());
+#endif
+    }
+
 
     //PARALLEL_FOR
 //    MemZero( A.Buffer(), numElem );

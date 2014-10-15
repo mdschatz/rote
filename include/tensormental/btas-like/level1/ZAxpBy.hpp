@@ -43,6 +43,62 @@ ZAxpByHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode,
     }
 }
 
+template<typename T>
+inline void
+ZAxpBy_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ZAxpByData& data ){
+    const std::vector<Unsigned> loopEnd = data.loopShape;
+    const std::vector<Unsigned> src1BufStrides = data.src1Strides;
+    const std::vector<Unsigned> src2BufStrides = data.src2Strides;
+    const std::vector<Unsigned> dstBufStrides = data.dstStrides;
+    Unsigned src1BufPtr = 0;
+    Unsigned src2BufPtr = 0;
+    Unsigned dstBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] = alpha * src1Buf[0] + beta * src2Buf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[dstBufPtr] = alpha * src1Buf[src1BufPtr] + beta * src2Buf[src2BufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        src1BufPtr += src1BufStrides[ptr];
+        src2BufPtr += src2BufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+            src1BufPtr -= src1BufStrides[ptr] * (loopEnd[ptr]);
+            src2BufPtr -= src2BufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                dstBufPtr += dstBufStrides[ptr];
+                src1BufPtr += src1BufStrides[ptr];
+                src2BufPtr += src2BufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
 //NOTE: Place appropriate guards
 //NOTE: Make this more efficient
 template<typename T>
@@ -90,7 +146,11 @@ ZAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const 
     if(order == 0){
         dstBuf[0] = alpha * src1Buf[0] + beta * src2Buf[0];
     }else{
+#ifndef RELEASE
         ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
+#else
+        ZAxpBy_fast(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
+#endif
     }
 }
 

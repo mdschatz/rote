@@ -43,6 +43,62 @@ YAxpPxHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, Tensor<T>
     }
 }
 
+template<typename T>
+inline void
+YAxpPx_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, Tensor<T>& Y, Mode mode, T const * const srcBuf, T const * const permSrcBuf, T * const dstBuf, const YAxpPxData& data ){
+    const std::vector<Unsigned> loopEnd = data.loopShape;
+    const std::vector<Unsigned> srcBufStrides = data.srcStrides;
+    const std::vector<Unsigned> permBufStrides = data.permSrcStrides;
+    const std::vector<Unsigned> dstBufStrides = data.dstStrides;
+    Unsigned srcBufPtr = 0;
+    Unsigned permSrcBufPtr = 0;
+    Unsigned dstBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] = alpha * srcBuf[0] + beta * permSrcBuf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[dstBufPtr] = alpha * srcBuf[srcBufPtr] + beta * permSrcBuf[permSrcBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        permSrcBufPtr += permBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+            permSrcBufPtr -= permBufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                dstBufPtr += dstBufStrides[ptr];
+                srcBufPtr += srcBufStrides[ptr];
+                permSrcBufPtr += permBufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
 //NOTE: Place appropriate guards
 //NOTE: Make this more efficient
 //NOTE: Account for permutations
@@ -93,7 +149,11 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
     if(order == 0){
         dstBuf[0] = alpha*srcBuf[0] + beta*permSrcBuf[0];
     }else{
+#ifndef RELEASE
         YAxpPxHelper(alpha, X, beta, PX, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
+#else
+        YAxpPx_fast(alpha, X, beta, PX, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
+#endif
     }
 }
 

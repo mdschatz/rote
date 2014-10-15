@@ -52,6 +52,51 @@ void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const 
 }
 
 template <typename T>
+void LocalReduce_fast(const Unsigned mode, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
+    const std::vector<Unsigned> loopEnd = reduceShape;
+
+    Unsigned srcBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] += srcBuf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[0] += srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr]++;
+        srcBufPtr += srcStrides[reduceModes[ptr]];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            srcBufPtr -= srcStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                srcBufPtr += srcStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
+template <typename T>
 void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonReduceModes, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
     Unsigned i;
     if(nonReduceModes.size() == 0){
@@ -63,7 +108,11 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
 
         for(i = 0; i < reduceShape[nonReduceMode]; i++){
             if(elemMode == 0){
+#ifndef RELEASE
                 LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
+#else
+                LocalReduce_fast(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), FilterVector(srcStrides, reduceModes), &(dstBuf[dstBufPtr]), dstStrides);
+#endif
             }else{
                 LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
             }
