@@ -1195,8 +1195,6 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
         //  accum_temp__D_0__D_1__D_2__D_3
 //    Print(accum_temp__D_0__D_1__D_2__D_3, "accum after scal");
     axppx2_temp__D_0__D_1__D_2__D_3.ResizeTo( axppx2_temp__D_0__D_1__D_2__D_3_tempShape );
-    axppx2_temp_part0_1_part2_1_perm2013__S__S__D_1__D_3.ResizeTo(axppx2_temp__D_0__D_1__D_2__D_3_tempShape);
-    axppx3_temp_part2_1_part0_1_perm1302__D_0__D_2__S__S.ResizeTo(axppx3_temp__D_0__D_1__D_2__D_3_tempShape);
     accum_temp_perm0213__D_0__D_2__D_1__D_3.ResizeTo(accum_temp__D_0__D_1__D_2__D_3_tempShape);
     Permute( accum_temp_perm0213__D_0__D_2__D_1__D_3, accum_temp__D_0__D_1__D_2__D_3 );
     Zero(axppx2_temp__D_0__D_1__D_2__D_3);
