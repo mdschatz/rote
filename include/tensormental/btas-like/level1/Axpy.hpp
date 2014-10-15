@@ -38,6 +38,57 @@ AxpyHelper(T alpha, const Tensor<T>& X, const Tensor<T>& Y, Mode mode, T const *
     }
 }
 
+template<typename T>
+inline void
+Axpy_fast(T alpha, const Tensor<T>& X, const Tensor<T>& Y, Mode mode, T const * const srcBuf,  T * const dstBuf, const AxpyData& data){
+    const std::vector<Unsigned> loopEnd = data.loopShape;
+    const std::vector<Unsigned> srcBufStrides = data.srcStrides;
+    const std::vector<Unsigned> dstBufStrides = data.dstStrides;
+    Unsigned srcBufPtr = 0;
+    Unsigned dstBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    Unsigned i;
+//    std::string ident = "";
+//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
+//        ident += "  ";
+
+    if(loopEnd.size() == 0){
+        dstBuf[0] = alpha * srcBuf[0];
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        dstBuf[dstBufPtr] = alpha * srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                dstBufPtr += dstBufStrides[ptr];
+                srcBufPtr += srcBufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
 //NOTE: Place appropriate guards
 template<typename T>
 void
@@ -78,7 +129,11 @@ Axpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y )
     if(order == 0){
         dstBuf[0] = alpha * srcBuf[0];
     }else{
+#ifndef RELEASE
         AxpyHelper(alpha, X, Y, order-1, srcBuf, dstBuf, data);
+#else
+        Axpy_fast(alpha, X, Y, order - 1, srcBuf, dstBuf, data);
+#endif
     }
 }
 
