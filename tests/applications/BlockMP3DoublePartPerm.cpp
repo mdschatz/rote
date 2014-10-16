@@ -1053,17 +1053,18 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2.AlignWith(v2_oegm_part2_1_part0_1__D_0__D_1__D_2__D_3);
             v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( v2_oegm_part2_1_part0_1__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
                // v2_oegm_part2_1_part0_1[D1,D0,D3,D2] <- v2_oegm_part2_1_part0_1[D0,D1,D3,D2]
+            v2_oegm_part2_1_part0_1__D_1__D_0__D_3__D_2.AlignWith(v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2);
             v2_oegm_part2_1_part0_1__D_1__D_0__D_3__D_2.AllToAllRedistFrom( v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2, modes_0_1, modes_1_0, modeArrayArray___0___1 );
             v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2.EmptyData();
                // t_efmn_part0_1_part3_1[D0,D1,D3,D2] <- t_efmn_part0_1_part3_1[D0,D1,D2,D3]
             t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2.AlignWith(t_efmn_part0_1_part3_1__D_0__D_1__D_2__D_3);
             t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( t_efmn_part0_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
                // v2_oegm_part2_1_part0_1[*,D0,*,D2] <- v2_oegm_part2_1_part0_1[D1,D0,D3,D2]
-
+            v2_oegm_part2_1_part0_1_perm1320__D_0__D_2__S__S.AlignWith(v2_oegm_part2_1_part0_1__D_1__D_0__D_3__D_2);
             v2_oegm_part2_1_part0_1_perm1320__D_0__D_2__S__S.AllGatherRedistFrom( v2_oegm_part2_1_part0_1__D_1__D_0__D_3__D_2, modes_0_2, modeArrayArray___1___3 );
-
             v2_oegm_part2_1_part0_1__D_1__D_0__D_3__D_2.EmptyData();
                // t_efmn_part0_1_part3_1[*,D1,D3,*] <- t_efmn_part0_1_part3_1[D0,D1,D3,D2]
+            t_efmn_part0_1_part3_1_perm0312__S__S__D_1__D_3.AlignWith(t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2);
             t_efmn_part0_1_part3_1_perm0312__S__S__D_1__D_3.AllGatherRedistFrom( t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2, modes_0_3, modeArrayArray___0___2 );
             t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2.EmptyData();
 //            Permute( cont1_temp__D_0__D_1__D_2__D_3, cont1_temp_perm0213__D_0__D_2__D_1__D_3 );
@@ -1261,6 +1262,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
               axppx2_temp_part0_1_part1B__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1_2__D_0__D_1__D_2__D_3, 1 );
 
         }
+
         //****
         //**** (out of 20)
         //**** Is real  0 shadows
@@ -1288,9 +1290,11 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             axppx3_temp_part2_1_part0_1__D_0__D_1__D_3__D_2.AlignWith(axppx3_temp_part2_1_part0_1__D_0__D_1__D_2__D_3);
             axppx3_temp_part2_1_part0_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( axppx3_temp_part2_1_part0_1__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
                // axppx3_temp_part2_1_part0_1[D1,D0,D3,D2] <- axppx3_temp_part2_1_part0_1[D0,D1,D3,D2]
+            axppx3_temp_part2_1_part0_1__D_1__D_0__D_3__D_2.AlignWith(axppx3_temp_part2_1_part0_1__D_0__D_1__D_3__D_2);
             axppx3_temp_part2_1_part0_1__D_1__D_0__D_3__D_2.AllToAllRedistFrom( axppx3_temp_part2_1_part0_1__D_0__D_1__D_3__D_2, modes_0_1, modes_1_0, modeArrayArray___0___1 );
             axppx3_temp_part2_1_part0_1__D_0__D_1__D_3__D_2.EmptyData();
                // axppx3_temp_part2_1_part0_1[*,D0,*,D2] <- axppx3_temp_part2_1_part0_1[D1,D0,D3,D2]
+            axppx3_temp_part2_1_part0_1_perm1302__D_0__D_2__S__S.AlignWith(axppx3_temp_part2_1_part0_1__D_1__D_0__D_3__D_2);
             axppx3_temp_part2_1_part0_1_perm1302__D_0__D_2__S__S.AllGatherRedistFrom( axppx3_temp_part2_1_part0_1__D_1__D_0__D_3__D_2, modes_0_2, modeArrayArray___1___3 );
             axppx3_temp_part2_1_part0_1__D_1__D_0__D_3__D_2.EmptyData();
                // axppx2_temp_part0_1_part2_1[*,D1,*,D3] <- axppx2_temp_part0_1_part2_1[D0,D1,D2,D3]
@@ -1387,6 +1391,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             v_efgh_part2_1_part3_1__D_0__D_1__S__S.AlignWith(v_efgh_part2_1_part3_1__D_0__D_1__D_2__D_3);
             v_efgh_part2_1_part3_1__D_0__D_1__S__S.AllGatherRedistFrom( v_efgh_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3, modeArrayArray___2___3 );
                // t_efmn_part0_1_part1_1[*,*,D2,D3] <- t_efmn_part0_1_part1_1[D0,D1,D2,D3]
+            t_efmn_part0_1_part1_1__S__S__D_2__D_3.AlignWith(t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3);
             t_efmn_part0_1_part1_1__S__S__D_2__D_3.AllGatherRedistFrom( t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1, modeArrayArray___0___1 );
                // 0.5 * v_efgh_part2_1_part3_1[D0,D1,*,*]_efgh * t_efmn_part0_1_part1_1[*,*,D2,D3]_ghmn + 1.0 * accum_temp[D0,D1,D2,D3]_efmn
             LocalContractAndLocalEliminate(0.5, v_efgh_part2_1_part3_1__D_0__D_1__S__S.LockedTensor(), indices_efgh, false,
