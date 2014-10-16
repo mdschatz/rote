@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <mpi.h>
+#include <time.h>
 
 #ifdef PROFILE
 
