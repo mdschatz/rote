@@ -117,4 +117,6 @@
 
 //#include "tensormental/core/ReduceComm.hpp"
 
+#include "tensormental/core/time.hpp"
+
 #endif // ifndef TMEN_CORE_HPP
