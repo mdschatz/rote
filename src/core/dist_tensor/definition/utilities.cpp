@@ -162,10 +162,10 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
     PackData newData = packData;
-//    newData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
+    newData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
     Location ones(packData.loopStarts.size(), 1);
     Location zeros(packData.loopStarts.size(), 0);
-//    newData.loopIncs = ones;
+    newData.loopIncs = ones;
     newData.loopStarts = zeros;
 #ifndef RELEASE
     PackCommHelper_ref(newData, packMode, srcBuf, dstBuf);
@@ -211,11 +211,18 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
 
     while(!done){
 
-        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-        //Update
-        curLoc[ptr] += loopIncs[ptr];
-        dstBufPtr += dstBufStrides[ptr];
-        srcBufPtr += srcBufStrides[ptr];
+        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
+            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[ptr] - loopStart[ptr]);
+            curLoc[0] += loopEnd[ptr] - loopStart[ptr];
+            srcBufPtr += srcBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
+            dstBufPtr += dstBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
+        }else{
+            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+            //Update
+            curLoc[ptr] += loopIncs[ptr];
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+        }
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
             curLoc[ptr] = loopStart[ptr];
 
