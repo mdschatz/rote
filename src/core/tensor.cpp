@@ -1112,12 +1112,18 @@ void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMod
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     while(!done){
-
-        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-        //Update
-        curLoc[ptr] += loopIncs[ptr];
-        dstBufPtr += dstBufStrides[ptr];
-        srcBufPtr += srcBufStrides[ptr];
+        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
+            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[ptr] - loopStart[ptr]);
+            curLoc[0] += loopEnd[ptr] - loopStart[ptr];
+            srcBufPtr += srcBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
+            dstBufPtr += dstBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
+        }else{
+            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+            //Update
+            curLoc[ptr] += loopIncs[ptr];
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+        }
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
             curLoc[ptr] = loopStart[ptr];
 
