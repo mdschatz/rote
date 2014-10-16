@@ -575,6 +575,17 @@ GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const Te
     return ret;
 }
 
+inline
+std::vector<Unsigned>
+IntCeils( const std::vector<Unsigned>& ms, const std::vector<Unsigned>& ns)
+{
+    Unsigned i;
+    std::vector<Unsigned> ret(ms.size());
+    for(i = 0; i < ret.size(); i++)
+        ret[i] = IntCeil(ms[i], ns[i]);
+    return ret;
+}
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_IMPL_HPP
