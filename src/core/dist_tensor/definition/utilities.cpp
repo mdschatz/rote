@@ -162,10 +162,14 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
 
+
+    PackData newData = packData;
+    Location zeros(packData.loopStarts.size(), 0);
+    newData.loopStarts = zeros;
 #ifndef RELEASE
-    PackCommHelper_ref(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_ref(newData, packMode, srcBuf, dstBuf);
 #else
-    PackCommHelper_fast(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
 }
 
@@ -358,7 +362,8 @@ void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSel
 //            printf("continuing\n");
             continue;
         }
-        data.loopStarts[changedA2AMode] = i;
+//        data.loopStarts[changedA2AMode] = i;
+        data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
 
         if(mode == 0){
 //            printf("hmm\n");
@@ -433,7 +438,8 @@ void DistTensor<T>::ElemSelectUnpackHelper(const PackData& packData, const ElemS
 //            printf("continuing\n");
             continue;
         }
-        data.loopStarts[changedA2AMode] = i;
+//        data.loopStarts[changedA2AMode] = i;
+        data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
         dstElem[changedA2AMode] = i;
 
         if(mode == 0){
@@ -514,7 +520,8 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const ElemSelectD
     //            printf("continuing\n");
                 continue;
             }
-            data.loopStarts[changedA2AMode] = i;
+//            data.loopStarts[changedA2AMode] = i;
+            data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
 
             if(mode == 0){
     //            printf("hmm\n");
