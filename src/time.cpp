@@ -32,7 +32,7 @@ Interval Interval::time()
 //    int ret = MPI_Wtime();
 //    if (ret != 0) ERROR("clock_gettime");
 //    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
-    return Interval((double)end.tv_sec + (double)end.tv_usec/1e9, 0);
+    return Interval((double)end.tv_sec + (double)end.tv_usec/1e6, 0);
     #endif
 }
 
@@ -61,7 +61,7 @@ Interval Interval::cputime()
     int ret = gettimeofday(&end, NULL);
 //    if (ret != 0) ERROR("clock_gettime");
 //    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
-    return Interval((double)end.tv_sec + (double)end.tv_usec/1e9, 0);
+    return Interval((double)end.tv_sec + (double)end.tv_usec/1e6, 0);
     #endif
 }
 
