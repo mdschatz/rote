@@ -1345,7 +1345,9 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     Permute( accum_temp__D_0__D_1__D_2__D_3, accum_temp_perm0213__D_0__D_2__D_1__D_3 );
     accum_temp_perm0213__D_0__D_2__D_1__D_3.EmptyData();
     axppx3_temp__D_0__D_1__D_2__D_3.EmptyData();
+//    Print(accum_temp__D_0__D_1__D_2__D_3, "accum LC1");
 
+//    printf("startTRACKING\n");
     //****
     //**** (out of 1)
     //**** Is real  0 shadows
@@ -1428,6 +1430,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
           t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0 );
 
     }
+//    printf("endTRACKING\n");
+//    Print(accum_temp__D_0__D_1__D_2__D_3, "accum LC2");
     //****
     //**** (out of 1)
     //**** Is real  0 shadows

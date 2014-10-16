@@ -161,12 +161,61 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
-    PackData newData = packData;
-    newData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
+    PackData modifiedData = packData;
+    modifiedData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
     Location ones(packData.loopStarts.size(), 1);
     Location zeros(packData.loopStarts.size(), 0);
-    newData.loopIncs = ones;
-    newData.loopStarts = zeros;
+    modifiedData.loopIncs = ones;
+    modifiedData.loopStarts = zeros;
+
+
+    //Attempt to merge modes
+    PackData newData;
+    Unsigned i;
+    Unsigned oldOrder = packData.loopShape.size();
+
+    if(oldOrder == 0){
+        newData = modifiedData;
+    }else{
+        newData.loopShape.push_back(modifiedData.loopShape[0]);
+        newData.srcBufStrides.push_back(modifiedData.srcBufStrides[0]);
+        newData.dstBufStrides.push_back(modifiedData.dstBufStrides[0]);
+        Unsigned srcStrideToMatch = modifiedData.srcBufStrides[0] * modifiedData.loopShape[0];
+        Unsigned dstStrideToMatch = modifiedData.dstBufStrides[0] * modifiedData.loopShape[0];
+
+//        PrintPackData(modifiedData, "moded data");
+
+        Unsigned mergeMode = 0;
+        for(i = 1; i < oldOrder; i++){
+//            std::cout << "srcStrideToMatch: " << srcStrideToMatch << " dstStrideToMatch: " << dstStrideToMatch << std::endl;
+//            PrintPackData(newData, "before");
+//            std::cout << "check1: " <<  (modifiedData.srcBufStrides[i] == srcStrideToMatch) << std::endl;
+//            std::cout << "check2: " <<  (modifiedData.dstBufStrides[i] == dstStrideToMatch) << std::endl;
+            if(modifiedData.srcBufStrides[i] == srcStrideToMatch &&
+               modifiedData.dstBufStrides[i] == dstStrideToMatch){
+//                std::cout << "adding to mode: " << mergeMode << std::endl;
+                newData.loopShape[mergeMode] *= modifiedData.loopShape[i];
+                srcStrideToMatch *= modifiedData.loopShape[i];
+                dstStrideToMatch *= modifiedData.loopShape[i];
+            }else{
+                newData.loopShape.push_back(modifiedData.loopShape[i]);
+                newData.srcBufStrides.push_back(modifiedData.srcBufStrides[i]);
+                newData.dstBufStrides.push_back(modifiedData.dstBufStrides[i]);
+                srcStrideToMatch = modifiedData.srcBufStrides[i] * modifiedData.loopShape[i];
+                dstStrideToMatch = modifiedData.dstBufStrides[i] * modifiedData.loopShape[i];
+//                std::cout << "forming new mode with srcStrideToMatch: " << srcStrideToMatch << " dstStrideToMatch: " << dstStrideToMatch << std::endl;
+                mergeMode++;
+            }
+//            PrintPackData(newData, "after");
+//            std::cout << std::endl;
+        }
+        std::vector<Unsigned> newones(newData.loopShape.size(), 1);
+        std::vector<Unsigned> newzeros(newData.loopShape.size(), 0);
+        newData.loopIncs = newones;
+        newData.loopStarts = newzeros;
+    }
+//    PrintPackData(newData, "new data");
+
 #ifndef RELEASE
     PackCommHelper_ref(newData, packMode, srcBuf, dstBuf);
 #else
