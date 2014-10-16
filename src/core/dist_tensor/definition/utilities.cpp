@@ -161,6 +161,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
+    PROFILE_SECTION("DistTensorPACK");
     Unsigned commRank = mpi::CommRank(MPI_COMM_WORLD);
     //Make loopIncs 1s
     std::vector<Unsigned> ones(packData.loopIncs.size(), 1);
@@ -211,6 +212,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #else
     PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
+    PROFILE_STOP;
 }
 
 template<typename T>
@@ -249,15 +251,21 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     while(!done){
-
-        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-        //Update
-//        curLoc[ptr]+= loopIncs[ptr];
-//        dstBufPtr += dstBufStrides[ptr];
-//        srcBufPtr += srcBufStrides[ptr];
-        curLoc[0]++;
-        dstBufPtr += dstBufStrides[0];
-        srcBufPtr += srcBufStrides[0];
+        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
+            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
+            curLoc[0] += loopEnd[0];
+            dstBufPtr += dstBufStrides[0] * loopEnd[0];
+            srcBufPtr += srcBufStrides[0] * loopEnd[0];
+        }else{
+            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+            //Update
+    //        curLoc[ptr]+= loopIncs[ptr];
+    //        dstBufPtr += dstBufStrides[ptr];
+    //        srcBufPtr += srcBufStrides[ptr];
+            curLoc[0]++;
+            dstBufPtr += dstBufStrides[0];
+            srcBufPtr += srcBufStrides[0];
+        }
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
 //            curLoc[ptr] = loopStart[ptr];
 //            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
@@ -396,10 +404,16 @@ void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSel
         if(mode == 0){
 //            printf("hmm\n");
 //            PrintVector(elem, "packing elem");
-            Location ownerB = DetermineOwner(elem);
+            Location ownerB;
+            PROFILE_SECTION("DETERMINE OWNER");
+            ownerB = DetermineOwner(elem);
+            PROFILE_STOP;
             Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
 //            PrintVector(ownerB, "owner loc");
-            Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
+            Unsigned commLinLoc;
+            PROFILE_SECTION("LINLOC");
+            commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
+            PROFILE_STOP;
 //            printf("owner lin loc %d\n", commLinLoc);
 //            printf("sMode: %d\n", a2aModeTo);
 //            PrintVector(ownerB, "ownerB");
@@ -421,7 +435,10 @@ void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSel
 //            std::cout << "offsetting dataBuf by: " << dataBufPtr << std::endl;
 //            std::cout << "offsetting sendBuf by: " << commLinLoc * nElemsPerProc << std::endl;
 //            data.loopStarts = PermuteVector(data.loopStarts, elemData.permutation);
+
+            PROFILE_SECTION("ELEMSELECT PACK");
             PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
+            PROFILE_STOP;
 //            printf("sendBuf:");
 //            for(i = 0; i < nElemsPerProc*prod(FilterVector(g.Shape(), commModes)); i++)
 //                printf(" %d", sendBuf[i]);
