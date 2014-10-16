@@ -914,66 +914,66 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 //Performance testing
 ////////////////////////////////
 
-//  DistTensor<T> epsilonA( tmen::StringToTensorDist("[(0)]|()"), g);
-//  ObjShape epsilonAShape;
-//  epsilonAShape.push_back(tenDimFiftyThree);
-//  epsilonA.ResizeTo(epsilonAShape);
-//  std::string epsilonAFilename = "data/ea";
-//  printf("loading epsilonA\n");
-//  Load_Tensor(epsilonA, epsilonAFilename);
-//  //Print(epsilonA, "eps_a");
-//
-//  DistTensor<T> epsilonB( tmen::StringToTensorDist("[(0)]|()"), g);
-//  ObjShape epsilonBShape;
-//  epsilonBShape.push_back(tenDimFive);
-//  epsilonB.ResizeTo(epsilonBShape);
-//  std::string epsilonBFilename = "data/ei";
-//  printf("loading epsilonB\n");
-//  Load_Tensor(epsilonB, epsilonBFilename);
-//  //Print(epsilonB, "eps_b");
-//
-//  DistTensor<T> D_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
-//  ObjShape D_abijShape;
-//  D_abijShape.push_back(tenDimFiftyThree);
-//  D_abijShape.push_back(tenDimFiftyThree);
-//  D_abijShape.push_back(tenDimFive);
-//  D_abijShape.push_back(tenDimFive);
-//  D_abij.ResizeTo(D_abijShape);
-//
-//  DistTensor<T> V_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
-//  V_abij.ResizeTo(D_abijShape);
-//  std::string v_abijFilename = "data/abij";
-//  printf("loading V_abij\n");
-//  Load_Tensor(V_abij, v_abijFilename);
-//  //Print(V_abij, "v_abij");
-//
-//  std::string v_opmnFilename = "data/ijkl";
-//  printf("loading v_opmn\n");
-//  Load_Tensor(v_opmn__D_0__D_1__D_2__D_3, v_opmnFilename);
-//  //Print(v_opmn__D_0__D_1__D_2__D_3, "v_opmn");
-//
-//  printf("loading 4\n");
-//  std::string v_oegmFilename = "data/aijb";
-//  printf("loading v_oegm\n");
-//  Load_Tensor_aijb(v_oegm__D_0__D_1__D_2__D_3, v_oegmFilename);
-//  //Print(v_oegm__D_0__D_1__D_2__D_3, "v_oegm");
-//
-//  printf("loading 5\n");
-//  std::string v2_oegmFilename = "data/aibj";
-//  printf("loading v2_oegm\n");
-//  Load_Tensor_aijb(v2_oegm__D_0__D_1__D_2__D_3, v2_oegmFilename);
-//  //Print(v2_oegm__D_0__D_1__D_2__D_3, "v2_oegm");
-//
-//  printf("loading 3\n");
-//  std::string v_efghFilename = "data/abcd";
-//  printf("loading v_efgh\n");
-//  Load_Tensor(v_efgh__D_0__D_1__D_2__D_3, v_efghFilename);
-//  //Print(v_efgh__D_0__D_1__D_2__D_3, "v_efgh");
-//
-//  printf("elemScaling\n");
-//  Form_D_abij(epsilonA, epsilonB, D_abij);
-//  tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
-////  Print(t_efmn__D_0__D_1__D_2__D_3, "t_efmn");
+  DistTensor<T> epsilonA( tmen::StringToTensorDist("[(0)]|()"), g);
+  ObjShape epsilonAShape;
+  epsilonAShape.push_back(tenDimFiftyThree);
+  epsilonA.ResizeTo(epsilonAShape);
+  std::string epsilonAFilename = "data/ea";
+  printf("loading epsilonA\n");
+  Load_Tensor(epsilonA, epsilonAFilename);
+  //Print(epsilonA, "eps_a");
+
+  DistTensor<T> epsilonB( tmen::StringToTensorDist("[(0)]|()"), g);
+  ObjShape epsilonBShape;
+  epsilonBShape.push_back(tenDimFive);
+  epsilonB.ResizeTo(epsilonBShape);
+  std::string epsilonBFilename = "data/ei";
+  printf("loading epsilonB\n");
+  Load_Tensor(epsilonB, epsilonBFilename);
+  //Print(epsilonB, "eps_b");
+
+  DistTensor<T> D_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
+  ObjShape D_abijShape;
+  D_abijShape.push_back(tenDimFiftyThree);
+  D_abijShape.push_back(tenDimFiftyThree);
+  D_abijShape.push_back(tenDimFive);
+  D_abijShape.push_back(tenDimFive);
+  D_abij.ResizeTo(D_abijShape);
+
+  DistTensor<T> V_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
+  V_abij.ResizeTo(D_abijShape);
+  std::string v_abijFilename = "data/abij";
+  printf("loading V_abij\n");
+  Load_Tensor(V_abij, v_abijFilename);
+  //Print(V_abij, "v_abij");
+
+  std::string v_opmnFilename = "data/ijkl";
+  printf("loading v_opmn\n");
+  Load_Tensor(v_opmn__D_0__D_1__D_2__D_3, v_opmnFilename);
+  //Print(v_opmn__D_0__D_1__D_2__D_3, "v_opmn");
+
+  printf("loading 4\n");
+  std::string v_oegmFilename = "data/aijb";
+  printf("loading v_oegm\n");
+  Load_Tensor_aijb(v_oegm__D_0__D_1__D_2__D_3, v_oegmFilename);
+  //Print(v_oegm__D_0__D_1__D_2__D_3, "v_oegm");
+
+  printf("loading 5\n");
+  std::string v2_oegmFilename = "data/aibj";
+  printf("loading v2_oegm\n");
+  Load_Tensor_aijb(v2_oegm__D_0__D_1__D_2__D_3, v2_oegmFilename);
+  //Print(v2_oegm__D_0__D_1__D_2__D_3, "v2_oegm");
+
+  printf("loading 3\n");
+  std::string v_efghFilename = "data/abcd";
+  printf("loading v_efgh\n");
+  Load_Tensor(v_efgh__D_0__D_1__D_2__D_3, v_efghFilename);
+  //Print(v_efgh__D_0__D_1__D_2__D_3, "v_efgh");
+
+  printf("elemScaling\n");
+  Form_D_abij(epsilonA, epsilonB, D_abij);
+  tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
+//  Print(t_efmn__D_0__D_1__D_2__D_3, "t_efmn");
 
 //******************************
 //* Load tensors
@@ -1056,6 +1056,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             v2_oegm_part2_1_part0_1__D_1__D_0__D_3__D_2.AllToAllRedistFrom( v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2, modes_0_1, modes_1_0, modeArrayArray___0___1 );
             v2_oegm_part2_1_part0_1__D_0__D_1__D_3__D_2.EmptyData();
                // t_efmn_part0_1_part3_1[D0,D1,D3,D2] <- t_efmn_part0_1_part3_1[D0,D1,D2,D3]
+            t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2.AlignWith(t_efmn_part0_1_part3_1__D_0__D_1__D_2__D_3);
             t_efmn_part0_1_part3_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( t_efmn_part0_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
                // v2_oegm_part2_1_part0_1[*,D0,*,D2] <- v2_oegm_part2_1_part0_1[D1,D0,D3,D2]
 
@@ -1154,6 +1155,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             //------------------------------------//
 
                // cont1_temp_part0_1_part1_1[D0,D1,D3,D2] <- cont1_temp_part0_1_part1_1[D0,D1,D2,D3]
+            cont1_temp_part0_1_part1_1__D_0__D_1__D_3__D_2.AlignWith(cont1_temp_part0_1_part1_1__D_0__D_1__D_2__D_3);
             cont1_temp_part0_1_part1_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( cont1_temp_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_2_3, modes_3_2, modeArrayArray___2___3 );
             YAxpPx( 0.5, cont1_temp_part0_1_part1_1__D_0__D_1__D_2__D_3, 1.0, cont1_temp_part0_1_part1_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, accum_temp_part0_1_part1_1__D_0__D_1__D_2__D_3 );
             cont1_temp_part0_1_part1_1__D_0__D_1__D_3__D_2.EmptyData();
@@ -1382,6 +1384,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             //------------------------------------//
 
                // v_efgh_part2_1_part3_1[D0,D1,*,*] <- v_efgh_part2_1_part3_1[D0,D1,D2,D3]
+            v_efgh_part2_1_part3_1__D_0__D_1__S__S.AlignWith(v_efgh_part2_1_part3_1__D_0__D_1__D_2__D_3);
             v_efgh_part2_1_part3_1__D_0__D_1__S__S.AllGatherRedistFrom( v_efgh_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3, modeArrayArray___2___3 );
                // t_efmn_part0_1_part1_1[*,*,D2,D3] <- t_efmn_part0_1_part1_1[D0,D1,D2,D3]
             t_efmn_part0_1_part1_1__S__S__D_2__D_3.AllGatherRedistFrom( t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1, modeArrayArray___0___1 );
@@ -1464,8 +1467,10 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
             //------------------------------------//
 
                // v_opmn_part0_1_part1_1[*,*,D2,D3] <- v_opmn_part0_1_part1_1[D0,D1,D2,D3]
+            v_opmn_part0_1_part1_1_perm2301__D_2__D_3__S__S.AlignWith(v_opmn_part0_1_part1_1__D_0__D_1__D_2__D_3);
             v_opmn_part0_1_part1_1_perm2301__D_2__D_3__S__S.AllGatherRedistFrom( v_opmn_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1, modeArrayArray___0___1 );
                // t_efmn_part2_1_part3_1[D0,D1,*,*] <- t_efmn_part2_1_part3_1[D0,D1,D2,D3]
+            t_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AlignWith(t_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3);
             t_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AllGatherRedistFrom( t_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3, modeArrayArray___2___3 );
 
                // 0.5 * v_opmn_part0_1_part1_1[*,*,D2,D3]_mnop * t_efmn_part2_1_part3_1[D0,D1,*,*]_opef + 1.0 * accum_temp[D0,D1,D2,D3]_mnef
@@ -1610,7 +1615,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 
 Print(E_MP3____N_D_0_1_2_3, "E_MP3");
 
-Timer::printTimers();
+
   //****
     if(commRank == 0){
         std::cout << "RUNTIME " << runTime << std::endl;
