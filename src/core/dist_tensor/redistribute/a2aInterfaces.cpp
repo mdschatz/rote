@@ -42,9 +42,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     std::sort(changedA2AModes.begin(), changedA2AModes.end());
     changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
 
-    PROFILE_SECTION("A2A");
     AllToAllCommRedist(A, changedA2AModes, commModes);
-    PROFILE_STOP;
 }
 
 #define PROTO(T) template class DistTensor<T>

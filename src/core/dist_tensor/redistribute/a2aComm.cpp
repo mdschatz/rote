@@ -71,21 +71,15 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
-        PROFILE_SECTION("A2APACK");
         PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
-        PROFILE_STOP;
 
-        PROFILE_SECTION("A2ACOMM");
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
-        PROFILE_STOP;
 
         if(!(Participating())){
             this->auxMemory_.Release();
             return;
         }
-        PROFILE_SECTION("A2AUNPACK");
         UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
-        PROFILE_STOP;
         this->auxMemory_.Release();
 }
 
@@ -117,11 +111,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
     Permutation invPerm = DetermineInversePermutation(A.localPerm_);
     PackData packData;
-//    PrintVector(PermuteVector(A.LocalShape(), invPerm), "before divide, loops");
-//    PrintVector(modeStrideFactor, "modeStride");
     packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
-//    packData.loopShape = ElemwiseDivide(PermuteVector(A.LocalShape(), invPerm), modeStrideFactor);
-
 //    packData.loopShape = sendShape;
     packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
 
@@ -154,9 +144,8 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         elemData.srcStrides = A.LocalStrides();
         elemData.permutation = A.localPerm_;
 //        PrintVector(A.localPerm_, "pack perm");
-        PROFILE_SECTION("ELEMSELECT");
+
         ElemSelectPackHelper(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
-        PROFILE_STOP;
     }
 
 //    Unsigned i;

@@ -67,9 +67,6 @@ Location GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridVi
 
 Location GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist);
 
-std::vector<Unsigned> IntCeils(const std::vector<Unsigned>& ms, const std::vector<Unsigned>& ns);
-std::vector<Unsigned> IntFloors(const std::vector<Unsigned>& ms, const std::vector<Unsigned>& ns);
-
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_INDEXING_DECL_HPP
