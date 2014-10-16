@@ -109,6 +109,8 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //        }
 //    }
 #endif
+    PROFILE_SECTION("Contract");
+
     Unsigned i;
     const std::vector<ModeArray> contractPerms(DetermineContractModes(indicesA, indicesB, indicesC));
     const IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
@@ -233,6 +235,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //    Print(MPA, "MPA");
 //    Print(MPB, "MPB");
 //    Print(MPC, "MPC");
+    PROFILE_STOP;
 }
 
 //NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;

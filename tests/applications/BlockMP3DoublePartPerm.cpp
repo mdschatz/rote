@@ -1610,7 +1610,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 
 Print(E_MP3____N_D_0_1_2_3, "E_MP3");
 
-
+Timer::printTimers();
   //****
     if(commRank == 0){
         std::cout << "RUNTIME " << runTime << std::endl;
