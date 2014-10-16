@@ -161,8 +161,6 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
-
-
     PackData newData = packData;
 //    newData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
     Location ones(packData.loopStarts.size(), 1);
@@ -172,7 +170,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     PackCommHelper_ref(newData, packMode, srcBuf, dstBuf);
 #else
-    PackCommHelper_fast(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
 }
 
@@ -213,18 +211,11 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
 
     while(!done){
 
-        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
-            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[ptr] - loopStart[ptr]);
-            curLoc[0] += loopEnd[ptr] - loopStart[ptr];
-            srcBufPtr += srcBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
-            dstBufPtr += dstBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
-        }else{
-            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-            //Update
-            curLoc[ptr] += loopIncs[ptr];
-            dstBufPtr += dstBufStrides[ptr];
-            srcBufPtr += srcBufStrides[ptr];
-        }
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr] += loopIncs[ptr];
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
             curLoc[ptr] = loopStart[ptr];
 
@@ -365,8 +356,8 @@ void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSel
 //            printf("continuing\n");
             continue;
         }
-        data.loopStarts[changedA2AMode] = i;
-//        data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
+//        data.loopStarts[changedA2AMode] = i;
+        data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
 
         if(mode == 0){
 //            printf("hmm\n");
@@ -441,8 +432,8 @@ void DistTensor<T>::ElemSelectUnpackHelper(const PackData& packData, const ElemS
 //            printf("continuing\n");
             continue;
         }
-        data.loopStarts[changedA2AMode] = i;
-//        data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
+//        data.loopStarts[changedA2AMode] = i;
+        data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
         dstElem[changedA2AMode] = i;
 
         if(mode == 0){
@@ -523,8 +514,8 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const ElemSelectD
     //            printf("continuing\n");
                 continue;
             }
-            data.loopStarts[changedA2AMode] = i;
-//            data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
+//            data.loopStarts[changedA2AMode] = i;
+            data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
 
             if(mode == 0){
     //            printf("hmm\n");
