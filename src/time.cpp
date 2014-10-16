@@ -30,7 +30,8 @@ Interval Interval::time()
 //    int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
     int ret = MPI_Wtime();
 //    if (ret != 0) ERROR("clock_gettime");
-    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
+//    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
+    return Interval(ret, 0);
     #endif
 }
 
@@ -57,7 +58,8 @@ Interval Interval::cputime()
 //    int ret = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
     int ret = MPI_Wtime();
 //    if (ret != 0) ERROR("clock_gettime");
-    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
+//    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
+    return Interval(ret, 0);
     #endif
 }
 
