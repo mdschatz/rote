@@ -208,7 +208,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //        Print(C, "C");
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
+        PROFILE_SECTION("Gemm");
         Gemm(alpha, MPA, MPB, beta, MPC);
+        PROFILE_STOP;
 //        PrintData(MPC, "MPCData");
 //        Print(MPC, "MPC");
 //        PrintData(C, "CData");
