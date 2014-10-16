@@ -65,10 +65,15 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     T* recvBuf = &(auxBuf[sendSize]);
 
     //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
+    PROFILE_SECTION("AGPack");
     PackAGCommSendBuf(A, sendBuf);
+    PROFILE_STOP;
+
 
     //printf("Allgathering %d elements\n", sendSize);
+    PROFILE_SECTION("AGComm");
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
+    PROFILE_STOP;
 
     if(!(Participating())){
         this->auxMemory_.Release();
@@ -76,7 +81,9 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     }
 
     //NOTE: AG and A2A unpack routines are the exact same
+    PROFILE_SECTION("AGUnpack");
     UnpackA2ACommRecvBuf(recvBuf, agModes, commModes, maxLocalShapeA, A);
+    PROFILE_STOP;
     this->auxMemory_.Release();
     //Print(B.LockedTensor(), "A's local tensor after allgathering:");
 }

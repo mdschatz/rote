@@ -42,8 +42,10 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
 
 template<typename T>
 void Permute(DistTensor<T>& B, const DistTensor<T>& A){
+    PROFILE_SECTION("Permute");
     Permutation perm = DeterminePermutation(A.LocalPermutation(), B.LocalPermutation());
     Permute(B.Tensor(), A.LockedTensor(), perm);
+    PROFILE_STOP;
 }
 
 } // namespace tmen

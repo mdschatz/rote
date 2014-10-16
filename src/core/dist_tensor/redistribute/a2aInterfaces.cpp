@@ -31,6 +31,7 @@ void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const s
 
 template <typename T>
 void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups){
+    PROFILE_SECTION("A2ARedist");
     Unsigned i;
     ResizeTo(A);
     ModeArray commModes;
@@ -43,6 +44,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
 
     AllToAllCommRedist(A, changedA2AModes, commModes);
+    PROFILE_STOP;
 }
 
 #define PROTO(T) template class DistTensor<T>

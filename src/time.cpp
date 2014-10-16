@@ -1,5 +1,7 @@
 #include "tensormental/core/time.hpp"
+#ifdef __MACH__
 #include <mach/mach_time.h>
+#endif
 
 using namespace std;
 
@@ -26,7 +28,7 @@ Interval Interval::time()
     #else
     timespec ts;
     int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
-    if (ret != 0) ERROR("clock_gettime");
+//    if (ret != 0) ERROR("clock_gettime");
     return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
     #endif
 }
@@ -52,7 +54,7 @@ Interval Interval::cputime()
     #else
     timespec ts;
     int ret = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-    if (ret != 0) ERROR("clock_gettime");
+//    if (ret != 0) ERROR("clock_gettime");
     return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
     #endif
 }

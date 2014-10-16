@@ -65,6 +65,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes){
+    PROFILE_SECTION("RSRedist");
     Unsigned i;
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
@@ -174,6 +175,7 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeAr
 //    SetAlignmentsAndResize(tmp2.Alignments(), tmp2.Shape());
 //    if(Participating())
 //        CopyLocalBuffer(tmp2);
+    PROFILE_STOP;
 }
 
 template<typename T>
@@ -184,16 +186,20 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
 #endif
 
+    PROFILE_SECTION("RSURedist");
     ObjShape tmpShape = Shape();
     DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
     T* tmpBuf = tmp.Buffer();
     MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
 
+    PROFILE_SECTION("RSURSRedist");
     tmp.ReduceScatterRedistFrom(A, reduceModes, scatterModes);
+    PROFILE_STOP;
 
     ResizeTo(tmpShape);
 
     YxpBy(tmp, beta, *this);
+    PROFILE_STOP;
 }
 
 

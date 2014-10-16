@@ -913,7 +913,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 ////////////////////////////////
 //Performance testing
 ////////////////////////////////
-
+#ifdef CORRECTNESS
   DistTensor<T> epsilonA( tmen::StringToTensorDist("[(0)]|()"), g);
   ObjShape epsilonAShape;
   epsilonAShape.push_back(tenDimFiftyThree);
@@ -974,7 +974,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
   Form_D_abij(epsilonA, epsilonB, D_abij);
   tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
 //  Print(t_efmn__D_0__D_1__D_2__D_3, "t_efmn");
-
+#endif
 //******************************
 //* Load tensors
 //******************************
@@ -1621,6 +1621,10 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     //------------------------------------//
 
 //****
+
+    if(commRank == 0)
+        Timer::printTimers();
+
 
 Print(E_MP3____N_D_0_1_2_3, "E_MP3");
 

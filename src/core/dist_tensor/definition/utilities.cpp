@@ -161,6 +161,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
+    PROFILE_SECTION("DistTensor Pack");
     PackData modifiedData = packData;
     modifiedData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
     Location ones(packData.loopStarts.size(), 1);
@@ -217,10 +218,11 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 //    PrintPackData(newData, "new data");
 
 #ifndef RELEASE
-    PackCommHelper_ref(newData, packMode, srcBuf, dstBuf);
+    PackCommHelper_ref(newData, newData.loopShape.size() - 1, srcBuf, dstBuf);
 #else
     PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
+    PROFILE_STOP;
 }
 
 template<typename T>
@@ -261,28 +263,28 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
     while(!done){
 
         if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
-            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[ptr] - loopStart[ptr]);
-            curLoc[0] += loopEnd[ptr] - loopStart[ptr];
-            srcBufPtr += srcBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
-            dstBufPtr += dstBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
+            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
+            curLoc[0] += loopEnd[0];
+            srcBufPtr += srcBufStrides[0] * (loopEnd[0]);
+            dstBufPtr += dstBufStrides[0] * (loopEnd[0]);
         }else{
             dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
             //Update
-            curLoc[ptr] += loopIncs[ptr];
-            dstBufPtr += dstBufStrides[ptr];
-            srcBufPtr += srcBufStrides[ptr];
+            curLoc[0]++;
+            dstBufPtr += dstBufStrides[0];
+            srcBufPtr += srcBufStrides[0];
         }
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-            curLoc[ptr] = loopStart[ptr];
+            curLoc[ptr] = 0;
 
-            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
-            srcBufPtr -= srcBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+            srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
             ptr++;
             if(ptr >= order){
                 done = true;
                 break;
             }else{
-                curLoc[ptr] += loopIncs[ptr];
+                curLoc[ptr]++;
                 dstBufPtr += dstBufStrides[ptr];
                 srcBufPtr += srcBufStrides[ptr];
             }

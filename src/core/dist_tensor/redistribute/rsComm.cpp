@@ -76,16 +76,22 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
+    PROFILE_SECTION("RSPack");
     PackRSCommSendBuf(A, reduceModes, scatterModes, commModes, sendBuf);
+    PROFILE_STOP;
 
+    PROFILE_SECTION("RSComm");
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
+    PROFILE_STOP;
 
     if(!Participating()){
         this->auxMemory_.Release();
         return;
     }
 
+    PROFILE_SECTION("RSUnpack");
     UnpackRSCommRecvBuf(recvBuf, A);
+    PROFILE_STOP;
     this->auxMemory_.Release();
 }
 

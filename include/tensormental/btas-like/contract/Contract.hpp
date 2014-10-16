@@ -174,7 +174,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //        PrintData(MPB, "MPBData");
 //        Print(MPB, "MPB");
 
+        PROFILE_SECTION("Gemm");
         Gemm(alpha, MPA, MPB, beta, MPC);
+        PROFILE_STOP;
 
 //        PrintData(MPC, "MPCData");
 //        Print(MPC, "MPC");
@@ -241,6 +243,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
 template <typename T>
 void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+    PROFILE_SECTION("LCLE");
     Unsigned i;
     Unsigned order = C.Order();
     IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
@@ -285,7 +288,7 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
 ////    tmp.CopyBuffer(C);
 ////    LocalContract(alpha, A, indicesA, B, indicesB, beta, tmp, tmpIndices);
 ////    C.CopyBuffer(tmp);
-
+    PROFILE_STOP;
 }
 
 } // namespace tmen

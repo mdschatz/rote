@@ -1071,12 +1071,67 @@ void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T 
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
+    PROFILE_SECTION("Tensor Pack");
+    PackData modifiedData = packData;
+    modifiedData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
+    Location ones(packData.loopStarts.size(), 1);
+    Location zeros(packData.loopStarts.size(), 0);
+    modifiedData.loopIncs = ones;
+    modifiedData.loopStarts = zeros;
+
+
+    //Attempt to merge modes
+    PackData newData;
+    Unsigned i;
+    Unsigned oldOrder = packData.loopShape.size();
+
+    if(oldOrder == 0){
+        newData = modifiedData;
+    }else{
+        newData.loopShape.push_back(modifiedData.loopShape[0]);
+        newData.srcBufStrides.push_back(modifiedData.srcBufStrides[0]);
+        newData.dstBufStrides.push_back(modifiedData.dstBufStrides[0]);
+        Unsigned srcStrideToMatch = modifiedData.srcBufStrides[0] * modifiedData.loopShape[0];
+        Unsigned dstStrideToMatch = modifiedData.dstBufStrides[0] * modifiedData.loopShape[0];
+
+//        PrintPackData(modifiedData, "moded data");
+
+        Unsigned mergeMode = 0;
+        for(i = 1; i < oldOrder; i++){
+//            std::cout << "srcStrideToMatch: " << srcStrideToMatch << " dstStrideToMatch: " << dstStrideToMatch << std::endl;
+//            PrintPackData(newData, "before");
+//            std::cout << "check1: " <<  (modifiedData.srcBufStrides[i] == srcStrideToMatch) << std::endl;
+//            std::cout << "check2: " <<  (modifiedData.dstBufStrides[i] == dstStrideToMatch) << std::endl;
+            if(modifiedData.srcBufStrides[i] == srcStrideToMatch &&
+               modifiedData.dstBufStrides[i] == dstStrideToMatch){
+//                std::cout << "adding to mode: " << mergeMode << std::endl;
+                newData.loopShape[mergeMode] *= modifiedData.loopShape[i];
+                srcStrideToMatch *= modifiedData.loopShape[i];
+                dstStrideToMatch *= modifiedData.loopShape[i];
+            }else{
+                newData.loopShape.push_back(modifiedData.loopShape[i]);
+                newData.srcBufStrides.push_back(modifiedData.srcBufStrides[i]);
+                newData.dstBufStrides.push_back(modifiedData.dstBufStrides[i]);
+                srcStrideToMatch = modifiedData.srcBufStrides[i] * modifiedData.loopShape[i];
+                dstStrideToMatch = modifiedData.dstBufStrides[i] * modifiedData.loopShape[i];
+//                std::cout << "forming new mode with srcStrideToMatch: " << srcStrideToMatch << " dstStrideToMatch: " << dstStrideToMatch << std::endl;
+                mergeMode++;
+            }
+//            PrintPackData(newData, "after");
+//            std::cout << std::endl;
+        }
+        std::vector<Unsigned> newones(newData.loopShape.size(), 1);
+        std::vector<Unsigned> newzeros(newData.loopShape.size(), 0);
+        newData.loopIncs = newones;
+        newData.loopStarts = newzeros;
+    }
 
 #ifndef RELEASE
-    PackCommHelper_ref(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_ref(newData, newData.loopShape.size() - 1, srcBuf, dstBuf);
 #else
-    PackCommHelper_fast(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
+    PROFILE_STOP;
 }
 
 template<typename T>
@@ -1113,28 +1168,28 @@ void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMod
 
     while(!done){
         if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
-            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[ptr] - loopStart[ptr]);
-            curLoc[0] += loopEnd[ptr] - loopStart[ptr];
-            srcBufPtr += srcBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
-            dstBufPtr += dstBufStrides[0] * (loopEnd[ptr] - loopStart[ptr]);
+            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
+            curLoc[0] += loopEnd[0];
+            srcBufPtr += srcBufStrides[0] * loopEnd[0];
+            dstBufPtr += dstBufStrides[0] * loopEnd[0];
         }else{
             dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
             //Update
-            curLoc[ptr] += loopIncs[ptr];
+            curLoc[ptr]++;
             dstBufPtr += dstBufStrides[ptr];
             srcBufPtr += srcBufStrides[ptr];
         }
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
             curLoc[ptr] = loopStart[ptr];
 
-            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
-            srcBufPtr -= srcBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+            srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
             ptr++;
             if(ptr >= order){
                 done = true;
                 break;
             }else{
-                curLoc[ptr] += loopIncs[ptr];
+                curLoc[ptr]++;
                 dstBufPtr += dstBufStrides[ptr];
                 srcBufPtr += srcBufStrides[ptr];
             }

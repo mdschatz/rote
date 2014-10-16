@@ -162,11 +162,13 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
 //NOTE: Should we account for A and B having different local permutations?
 template <typename T>
 void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes){
+    PROFILE_SECTION("LocalReduce");
     if(B.Participating()){
         //Account for the local data being permuted
         Permutation invPermA = DetermineInversePermutation(A.LocalPermutation());
         LocalReduce(B.Tensor(), A.LockedTensor(), FilterVector(invPermA, reduceModes));
     }
+    PROFILE_STOP;
 }
 
 template <typename T>

@@ -71,15 +71,21 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
+        PROFILE_SECTION("A2APack");
         PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
+        PROFILE_STOP;
 
+        PROFILE_SECTION("A2AComm");
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
+        PROFILE_STOP;
 
         if(!(Participating())){
             this->auxMemory_.Release();
             return;
         }
+        PROFILE_SECTION("A2AUnack");
         UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
+        PROFILE_STOP;
         this->auxMemory_.Release();
 }
 

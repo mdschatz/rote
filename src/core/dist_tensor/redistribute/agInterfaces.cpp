@@ -27,6 +27,7 @@ DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGather
 template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups ){
+    PROFILE_SECTION("AGRedist");
     Unsigned i;
     ResizeTo(A);
     ModeArray commModes;
@@ -34,6 +35,7 @@ DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allG
         commModes.insert(commModes.end(), redistGroups[i].begin(), redistGroups[i].end());
     std::sort(commModes.begin(), commModes.end());
     AllGatherCommRedist(A, allGatherModes, commModes);
+    PROFILE_STOP;
 }
 
 #define PROTO(T) template class DistTensor<T>
