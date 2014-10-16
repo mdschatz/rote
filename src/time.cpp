@@ -27,7 +27,8 @@ Interval Interval::time()
     return Interval(conv*(double)nsec/1e9, 0);
     #else
     timespec ts;
-    int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
+//    int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
+    int ret = MPI_Wtime();
 //    if (ret != 0) ERROR("clock_gettime");
     return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
     #endif
@@ -53,7 +54,8 @@ Interval Interval::cputime()
     return Interval(conv*(double)nsec/1e9, 0);
     #else
     timespec ts;
-    int ret = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+//    int ret = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    int ret = MPI_Wtime();
 //    if (ret != 0) ERROR("clock_gettime");
     return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
     #endif
