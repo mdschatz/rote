@@ -161,11 +161,55 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
+    Unsigned commRank = mpi::CommRank(MPI_COMM_WORLD);
+    //Make loopIncs 1s
+    std::vector<Unsigned> ones(packData.loopIncs.size(), 1);
+    PackData modified = packData;
+    modified.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
+    modified.loopIncs = ones;
 
+    //Attempt to merge modes
+    PackData newData;
+    Unsigned i;
+    Unsigned oldOrder = packData.loopShape.size();
+
+    Unsigned oldSrcStride = modified.srcBufStrides[0];
+    Unsigned oldDstStride = modified.dstBufStrides[0];
+    newData.loopShape.push_back(modified.loopShape[0]);
+    newData.srcBufStrides.push_back(modified.srcBufStrides[0]);
+    newData.dstBufStrides.push_back(modified.dstBufStrides[0]);
+
+    Unsigned mergeMode = 0;
+    for(i = 1; i < oldOrder; i++){
+        if(modified.srcBufStrides[i] == modified.loopShape[i-1] * oldSrcStride &&
+           modified.dstBufStrides[i] == modified.loopShape[i-1] * oldDstStride){
+            newData.loopShape[mergeMode] *= modified.loopShape[i];
+            oldSrcStride *= modified.srcBufStrides[i];
+            oldDstStride *= modified.dstBufStrides[i];
+        }else{
+            oldSrcStride = modified.srcBufStrides[i];
+            oldDstStride = modified.dstBufStrides[i];
+            newData.loopShape.push_back(modified.loopShape[i]);
+            newData.srcBufStrides.push_back(oldSrcStride);
+            newData.dstBufStrides.push_back(oldDstStride);
+            mergeMode++;
+        }
+    }
+    std::vector<Unsigned> newones(newData.loopShape.size(), 1);
+    std::vector<Unsigned> zeros(newData.loopShape.size(), 0);
+    newData.loopIncs = newones;
+    newData.loopStarts = zeros;
+
+
+//    if(commRank == 0){
+////        PrintPackData(packData, "orig");
+//        PrintPackData(modified, "modified");
+//        PrintPackData(newData, "new");
+//    }
 #ifndef RELEASE
-    PackCommHelper_ref(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_ref(newData, newData.loopShape.size()-1, srcBuf, dstBuf);
 #else
-    PackCommHelper_fast(packData, packMode, srcBuf, dstBuf);
+    PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
 }
 
@@ -208,20 +252,26 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
 
         dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
         //Update
-        curLoc[ptr] += loopIncs[ptr];
-        dstBufPtr += dstBufStrides[ptr];
-        srcBufPtr += srcBufStrides[ptr];
+//        curLoc[ptr]+= loopIncs[ptr];
+//        dstBufPtr += dstBufStrides[ptr];
+//        srcBufPtr += srcBufStrides[ptr];
+        curLoc[0]++;
+        dstBufPtr += dstBufStrides[0];
+        srcBufPtr += srcBufStrides[0];
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-            curLoc[ptr] = loopStart[ptr];
-
-            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
-            srcBufPtr -= srcBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+//            curLoc[ptr] = loopStart[ptr];
+//            dstBufPtr -= dstBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+//            srcBufPtr -= srcBufStrides[ptr] * (IntCeil(loopEnd[ptr] - loopStart[ptr], loopIncs[ptr]));
+            curLoc[ptr] = 0;
+            dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+            srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
             ptr++;
             if(ptr >= order){
                 done = true;
                 break;
             }else{
-                curLoc[ptr] += loopIncs[ptr];
+//                curLoc[ptr] += loopIncs[ptr];
+                curLoc[ptr]++;
                 dstBufPtr += dstBufStrides[ptr];
                 srcBufPtr += srcBufStrides[ptr];
             }
@@ -230,35 +280,6 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
             break;
         ptr = 0;
     }
-
-//    if(packMode == 0){
-//        if(dstBufStride == 1 && srcBufStride == 1){
-////            std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
-//            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
-//        }else{
-////            PrintVector(packData.loopStarts, "loopStarts");
-////            printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
-//            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-//                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-//
-////                std::cout << ident << "Packing mode: " << packMode << "iteration: " << packSlice << "of: " << loopEnd << "by: " << loopInc << std::endl;
-////                std::cout << ident << "copying elem " << srcBuf[srcBufPtr] << std::endl;
-////                std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
-////                std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
-//                dstBufPtr += dstBufStride;
-//                srcBufPtr += srcBufStride;
-//            }
-//        }
-//    }else{
-//        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-//            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-//
-////            std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
-////            std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
-//            dstBufPtr += dstBufStride;
-//            srcBufPtr += srcBufStride;
-//        }
-//    }
 }
 
 template<typename T>
@@ -266,6 +287,7 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper_ref");
 #endif
+    Unsigned commRank = mpi::CommRank(MPI_COMM_WORLD);
     Unsigned packSlice;
 //    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
@@ -281,19 +303,34 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
 
-    Unsigned i;
+
+//    Unsigned i;
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";
 
+//    if(commRank == 0){
+//        std::cout << ident << " investing mode: " << packMode << "\n";
+//        PrintPackData(packData, "packData");
+//    }
+//    if(packMode == 3){
+//        PrintVector(packData.loopShape, "loopEnd");
+//        PrintVector(packData.loopStarts, "loopStart");
+//        PrintVector(packData.loopIncs, "loopInc");
+//    }
 
     if(packMode == 0){
         if(dstBufStride == 1 && srcBufStride == 1){
-//            std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
+//            if(commRank == 0){
+//                std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
+//            }
+
             MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
         }else{
 //            PrintVector(packData.loopStarts, "loopStarts");
-//            printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
+//            if(commRank == 0){
+//                printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
+//            }
             for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
                 dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
 
@@ -307,7 +344,10 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
         }
     }else{
         for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
+//            if(commRank == 0){
+//                std::cout << ident << " recurring on mode: " << packMode-1 << "\n";
+//            }
+            PackCommHelper_ref(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
 
 //            std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
 //            std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
@@ -351,7 +391,7 @@ void DistTensor<T>::ElemSelectPackHelper(const PackData& packData, const ElemSel
 //            printf("continuing\n");
             continue;
         }
-        data.loopStarts[changedA2AMode] = i;
+        data.loopShape[changedA2AMode] = data.loopShape[changedA2AMode] - i;
 
         if(mode == 0){
 //            printf("hmm\n");
@@ -426,7 +466,7 @@ void DistTensor<T>::ElemSelectUnpackHelper(const PackData& packData, const ElemS
 //            printf("continuing\n");
             continue;
         }
-        data.loopStarts[changedA2AMode] = i;
+        data.loopShape[changedA2AMode] = data.loopShape[changedA2AMode] - i;
         dstElem[changedA2AMode] = i;
 
         if(mode == 0){
@@ -507,7 +547,7 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const ElemSelectD
     //            printf("continuing\n");
                 continue;
             }
-            data.loopStarts[changedA2AMode] = i;
+            data.loopShape[changedA2AMode] = data.loopShape[changedA2AMode] - i;
 
             if(mode == 0){
     //            printf("hmm\n");

@@ -111,7 +111,11 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
     Permutation invPerm = DetermineInversePermutation(A.localPerm_);
     PackData packData;
+//    PrintVector(PermuteVector(A.LocalShape(), invPerm), "before divide, loops");
+//    PrintVector(modeStrideFactor, "modeStride");
     packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+//    packData.loopShape = ElemwiseDivide(PermuteVector(A.LocalShape(), invPerm), modeStrideFactor);
+
 //    packData.loopShape = sendShape;
     packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
 

@@ -66,6 +66,11 @@ inline Unsigned IntCeil(Unsigned m, Unsigned n)
     return ( m > 0 ? (m - 1)/n + 1 : 0 );
 }
 
+inline Unsigned IntFloor(Unsigned m, Unsigned n)
+{
+    return ( m > 0 ? (m - 1)/n + 1 : 0 );
+}
+
 inline double Ceil(double m)
 { return std::ceil(m); }
 
