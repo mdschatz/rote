@@ -873,8 +873,11 @@ void Gemm
 {
     const char fixedTransA = ( transA == 'C' ? 'T' : transA );
     const char fixedTransB = ( transB == 'C' ? 'T' : transB );
+
+    PROFILE_SECTION("Gemm");
     BLAS(dgemm)( &fixedTransA, &fixedTransB, &m, &n, &k,
                  &alpha, A, &lda, B, &ldb, &beta, C, &ldc );
+    PROFILE_STOP;
 }
 
 void Gemm

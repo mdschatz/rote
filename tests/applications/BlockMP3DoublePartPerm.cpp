@@ -20,6 +20,10 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
+#ifdef BGQ
+#include <spi/include/kernel/memory.h>
+#endif
+
 using namespace tmen;
 using namespace std;
 
@@ -982,8 +986,12 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     double gflops;
     double startTime;
     double runTime;
-    if(commRank == 0)
+    if(commRank == 0){
         std::cout << "starting\n";
+#ifdef BGQ
+        printf("Allocated heap: %.2f MB, avail. heap: %.2f MB\n", (double)heap/(1024*1024),(double)heapavail/(1024*1024));
+#endif
+    }
 //    printf("starting\n");
     mpi::Barrier(g.OwningComm());
     startTime = mpi::Time();

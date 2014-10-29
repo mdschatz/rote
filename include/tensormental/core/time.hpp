@@ -118,18 +118,18 @@ class Timer
         void stop()
         {
             #ifdef _OPENMP
-            if (!omp_in_parallel())
-            {
-                interval += toc()*omp_get_max_threads();
-                count++;
-            }
-            else
+//            if (!omp_in_parallel())
+  //          {
+    //            interval += toc()*omp_get_max_threads();
+      //          count++;
+        //    }
+          //  else
             #pragma omp critical
             #endif
-            {
+//            {
                 interval += toc();
                 count++;
-            }
+  //          }
         }
 
         static void printTimers();

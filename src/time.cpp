@@ -10,11 +10,11 @@ static std::vector<Interval> *tics[128];
 
 Interval Interval::time()
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    #else
+//    #ifdef _OPENMP
+//    int tid = omp_get_thread_num();
+ //   #else
     int tid = 0;
-    #endif
+//    #endif
 
     #ifdef __MACH__
     static double conv = -1.0;
@@ -38,11 +38,11 @@ Interval Interval::time()
 
 Interval Interval::cputime()
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    #else
+//    #ifdef _OPENMP
+  //  int tid = omp_get_thread_num();
+    //#else
     int tid = 0;
-    #endif
+//    #endif
 
     #ifdef __MACH__
     static double conv = -1.0;
@@ -189,13 +189,13 @@ void Timer::clearTimers()
 
 void tic()
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
-    #else
+//    #ifdef _OPENMP
+//    int tid = omp_get_thread_num();
+//    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
+//    #else
     int tid = 0;
     int ntd = 1;
-    #endif
+//    #endif
     for (int td = tid;td < tid+ntd;td++)
     {
         if (tics[td] == 0) tics[td] = new vector<Interval>();
@@ -205,13 +205,13 @@ void tic()
 
 Interval toc()
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
-    #else
+//    #ifdef _OPENMP
+//    int tid = omp_get_thread_num();
+//    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
+//    #else
     int tid = 0;
     int ntd = 1;
-    #endif
+//    #endif
 //    ASSERT(!tics[tid]->empty(), "Too many tocs");
     Interval dt = Interval::time();
     dt -= tics[tid]->back();
@@ -228,13 +228,13 @@ Interval toc()
 
 void cputic()
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
-    #else
+//    #ifdef _OPENMP
+//    int tid = omp_get_thread_num();
+//    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
+//    #else
     int tid = 0;
     int ntd = 1;
-    #endif
+//    #endif
     for (int td = tid;td < tid+ntd;td++)
     {
         if (tics[td] == 0) tics[td] = new vector<Interval>();
@@ -244,13 +244,13 @@ void cputic()
 
 Interval cputoc()
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
-    #else
+//    #ifdef _OPENMP
+//    int tid = omp_get_thread_num();
+//    int ntd = (omp_in_parallel() ? 1 : omp_get_max_threads());
+//    #else
     int tid = 0;
     int ntd = 1;
-    #endif
+//    #endif
 //    ASSERT(!tics[tid]->empty(), "Too many tocs");
     Interval dt = Interval::cputime();
     dt -= tics[tid]->back();
@@ -267,11 +267,11 @@ Interval cputoc()
 
 void do_flops(int64_t flops)
 {
-    #ifdef _OPENMP
-    int tid = omp_get_thread_num();
-    #else
+//    #ifdef _OPENMP
+//    int tid = omp_get_thread_num();
+//    #else
     int tid = 0;
-    #endif
+//    #endif
     if (tics[tid] != 0 && !tics[tid]->empty())
         tics[tid]->back().flops -= flops;
 }
