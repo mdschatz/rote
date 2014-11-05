@@ -20,8 +20,11 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
+
+#ifdef PROFILE
 #ifdef BGQ
 #include <spi/include/kernel/memory.h>
+#endif
 #endif
 
 using namespace tmen;
@@ -988,11 +991,13 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     double runTime;
     if(commRank == 0){
         std::cout << "starting\n";
+#ifdef PROFILE
 #ifdef BGQ
         uint64_t heap, heapavail;
         Kernel_GetMemorySize(KERNEL_MEMSIZE_HEAP, &heap);
         Kernel_GetMemorySize(KERNEL_MEMSIZE_HEAPAVAIL, &heapavail);
         printf("Allocated heap: %.2f MB, avail. heap: %.2f MB\n", (double)heap/(1024*1024),(double)heapavail/(1024*1024));
+#endif
 #endif
     }
 //    printf("starting\n");

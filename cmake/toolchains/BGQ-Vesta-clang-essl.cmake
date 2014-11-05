@@ -48,9 +48,9 @@ set(MPI_CXX_LIBRARIES     "${MPI_CXX_LINK_FLAGS} -lmpichcxx-xl ${MPI_C_LIBRARIES
 
 if(CMAKE_BUILD_TYPE MATCHES PureDebug OR
    CMAKE_BUILD_TYPE MATCHES HybridDebug)
-  set(CXX_FLAGS "-g -DPROFILE -DBGQ")
+  set(CXX_FLAGS "${CXX_FLAGS} -g -DBGQ")
 else()
-  set(CXX_FLAGS "-g -O3 -DPROFILE -DBGQ")
+  set(CXX_FLAGS "${CXX_FLAGS} -g -O3 -DBGQ")
 endif()
 
 set(CMAKE_THREAD_LIBS_INIT "-fopenmp")
