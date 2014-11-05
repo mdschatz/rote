@@ -16,7 +16,7 @@ namespace tmen{
 template <typename T>
 void DistTensor<T>::PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode){
 
-    Unsigned i;
+//    Unsigned i;
     //ObjShape tmpShape = A.Shape();
     //tmpShape[reduceScatterMode] = A.GetGridView().Dimension(reduceScatterMode);
     //ResizeTo(tmpShape);

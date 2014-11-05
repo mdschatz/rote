@@ -50,7 +50,7 @@ YxpBy_fast(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const 
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-    Unsigned i;
+
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";

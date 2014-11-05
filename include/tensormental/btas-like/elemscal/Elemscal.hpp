@@ -53,7 +53,6 @@ ElemScalHelper(const Tensor<T>& A, const Tensor<T>& B, Mode mode, T const * cons
 template<typename T>
 inline void
 ElemScal_fast(const Tensor<T>& A, const Tensor<T>& B, Mode mode, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ElemScalData& data ){
-    Unsigned packSlice;
 //    printf("ping packcommHelper\n");
 
     const std::vector<Unsigned> loopEnd = data.loopShape;
@@ -66,7 +65,7 @@ ElemScal_fast(const Tensor<T>& A, const Tensor<T>& B, Mode mode, T const * const
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-    Unsigned i;
+
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";

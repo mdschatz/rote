@@ -129,7 +129,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     packData.dstBufStrides = Dimensions2Strides(sendShape);
     packData.loopStarts = zeros;
     packData.loopIncs = modeStrideFactor;
-    const Unsigned nCommElemsPerProc = prod(sendShape);
 
     const Location myFirstElemLoc = A.ModeShifts();
     Location packElem = myFirstElemLoc;

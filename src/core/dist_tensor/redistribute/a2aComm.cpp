@@ -55,7 +55,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         const tmen::GridView gvB = GetGridView();
         const ObjShape gvAShape = gvA.ParticipatingShape();
         const ObjShape gvBShape = gvB.ParticipatingShape();
-        Unsigned packDivisor;
+
         ObjShape commDataShape(maxLocalShapeA.size());
         for(Unsigned i = 0; i < maxLocalShapeA.size(); i++){
             commDataShape[i] = Min(maxLocalShapeA[i], maxLocalShapeB[i]);
@@ -83,7 +83,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             this->auxMemory_.Release();
             return;
         }
-        PROFILE_SECTION("A2AUnack");
+        PROFILE_SECTION("A2AUnpack");
         UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
         PROFILE_STOP;
         this->auxMemory_.Release();
@@ -262,7 +262,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         ElemSelectUnpackHelper(unpackData, elemData, order - 1, A, &(recvBuf[0]), &(dataBuf[0]));
     }
 
-    Unsigned i;
+//    Unsigned i;
 //    printf("dataBuf:");
 //    for(i = 0; i < prod(LocalShape()); i++)
 //        std::cout << " " << dataBuf[i];

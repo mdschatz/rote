@@ -38,11 +38,10 @@ void Zero_fast(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& st
     const std::vector<Unsigned> loopEnd = shape;
     const std::vector<Unsigned> bufStrides = strides;
     Unsigned bufPtr = 0;
-    Unsigned dstBufPtr = 0;
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-    Unsigned i;
+
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";

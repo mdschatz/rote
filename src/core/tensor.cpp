@@ -1136,8 +1136,6 @@ void Tensor<T>::PackCommHelper(const PackData& packData, const Mode packMode, T 
 
 template<typename T>
 void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-
-    Unsigned packSlice;
 //    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
         dstBuf[0] = srcBuf[0];
@@ -1154,7 +1152,7 @@ void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMod
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
     Unsigned ptr = 0;
-    Unsigned i;
+
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";

@@ -13,7 +13,7 @@ Interval Interval::time()
 //    #ifdef _OPENMP
 //    int tid = omp_get_thread_num();
  //   #else
-    int tid = 0;
+//    int tid = 0;
 //    #endif
 
     #ifdef __MACH__
@@ -41,7 +41,7 @@ Interval Interval::cputime()
 //    #ifdef _OPENMP
   //  int tid = omp_get_thread_num();
     //#else
-    int tid = 0;
+//    int tid = 0;
 //    #endif
 
     #ifdef __MACH__

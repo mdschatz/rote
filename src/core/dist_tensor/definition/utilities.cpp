@@ -230,8 +230,6 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper_fast");
 #endif
-
-    Unsigned packSlice;
 //    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
         dstBuf[0] = srcBuf[0];
@@ -248,7 +246,6 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
     Unsigned ptr = 0;
-    Unsigned i;
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";
@@ -344,7 +341,6 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
 
-    Unsigned i;
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";
@@ -474,7 +470,7 @@ void DistTensor<T>::ElemSelectUnpackHelper(const PackData& packData, const ElemS
     std::vector<Unsigned> nProcsPerA2AMode = elemData.loopShape;
     ModeArray commModes = elemData.commModes;
     Unsigned nElemsPerProc = elemData.nElemsPerProc;
-    Unsigned i, j;
+    Unsigned i;
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
     const tmen::Grid& g = Grid();

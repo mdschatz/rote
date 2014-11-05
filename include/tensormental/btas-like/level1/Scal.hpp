@@ -40,11 +40,10 @@ Scal_fast(T alpha, Tensor<T>& X, Mode mode, T * srcBuf, const ScalData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     Unsigned srcBufPtr = 0;
-    Unsigned dstBufPtr = 0;
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-    Unsigned i;
+
 //    std::string ident = "";
 //    for(i = 0; i < packData.loopShape.size() - packMode; i++)
 //        ident += "  ";
