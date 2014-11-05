@@ -161,7 +161,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper");
 #endif
-    PROFILE_SECTION("DistTensor Pack");
+//    PROFILE_SECTION("DistTensor Pack");
     PackData modifiedData = packData;
     modifiedData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
     Location ones(packData.loopStarts.size(), 1);
@@ -222,7 +222,7 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 #else
     PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 #endif
-    PROFILE_STOP;
+//    PROFILE_STOP;
 }
 
 template<typename T>
