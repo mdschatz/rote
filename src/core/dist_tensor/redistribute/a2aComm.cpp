@@ -72,6 +72,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
         PROFILE_SECTION("A2APack");
+        PROFILE_FLOPS(sendSize * nRedistProcs);
         PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
 
@@ -84,6 +85,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             return;
         }
         PROFILE_SECTION("A2AUnpack");
+        PROFILE_FLOPS(recvSize * nRedistProcs);
         UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
         PROFILE_STOP;
         this->auxMemory_.Release();
