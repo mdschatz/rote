@@ -257,67 +257,93 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
 
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-    while(!done){
-
-        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
+    if (srcBufStrides[0] == 1 && dstBufStrides[0] == 1) {
+        while (!done) {
             MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
             curLoc[0] += loopEnd[0];
             srcBufPtr += srcBufStrides[0] * (loopEnd[0]);
             dstBufPtr += dstBufStrides[0] * (loopEnd[0]);
-        }else{
+
+            while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+                ptr++;
+                if (ptr >= order) {
+                    done = true;
+                    break;
+                } else {
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
+            }
+            if (done)
+                break;
+            ptr = 0;
+        }
+    } else {
+        while (!done) {
             dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
             //Update
             curLoc[0]++;
             dstBufPtr += dstBufStrides[0];
             srcBufPtr += srcBufStrides[0];
-        }
-        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-            curLoc[ptr] = 0;
 
-            dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
-            srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
-            ptr++;
-            if(ptr >= order){
-                done = true;
-                break;
-            }else{
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
+            while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+                ptr++;
+                if (ptr >= order) {
+                    done = true;
+                    break;
+                } else {
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
             }
+            if (done)
+                break;
+            ptr = 0;
         }
-        if(done)
-            break;
-        ptr = 0;
     }
 
-//    if(packMode == 0){
-//        if(dstBufStride == 1 && srcBufStride == 1){
-////            std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
-//            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
-//        }else{
-////            PrintVector(packData.loopStarts, "loopStarts");
-////            printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
-//            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-//                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+//    while(!done){
 //
-////                std::cout << ident << "Packing mode: " << packMode << "iteration: " << packSlice << "of: " << loopEnd << "by: " << loopInc << std::endl;
-////                std::cout << ident << "copying elem " << srcBuf[srcBufPtr] << std::endl;
-////                std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
-////                std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
-//                dstBufPtr += dstBufStride;
-//                srcBufPtr += srcBufStride;
+//        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
+//            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
+//            curLoc[0] += loopEnd[0];
+//            srcBufPtr += srcBufStrides[0] * (loopEnd[0]);
+//            dstBufPtr += dstBufStrides[0] * (loopEnd[0]);
+//        }else{
+//            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+//            //Update
+//            curLoc[0]++;
+//            dstBufPtr += dstBufStrides[0];
+//            srcBufPtr += srcBufStrides[0];
+//        }
+//        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+//            curLoc[ptr] = 0;
+//
+//            dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+//            srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+//            ptr++;
+//            if(ptr >= order){
+//                done = true;
+//                break;
+//            }else{
+//                curLoc[ptr]++;
+//                dstBufPtr += dstBufStrides[ptr];
+//                srcBufPtr += srcBufStrides[ptr];
 //            }
 //        }
-//    }else{
-//        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-//            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-//
-////            std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
-////            std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
-//            dstBufPtr += dstBufStride;
-//            srcBufPtr += srcBufStride;
-//        }
+//        if(done)
+//            break;
+//        ptr = 0;
 //    }
 }
 

@@ -1164,37 +1164,59 @@ void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMod
 
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-    while(!done){
-        if(srcBufStrides[0] == 1 && dstBufStrides[0] == 1){
+    if (srcBufStrides[0] == 1 && dstBufStrides[0] == 1) {
+        while (!done) {
             MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
             curLoc[0] += loopEnd[0];
-            srcBufPtr += srcBufStrides[0] * loopEnd[0];
-            dstBufPtr += dstBufStrides[0] * loopEnd[0];
-        }else{
+            srcBufPtr += srcBufStrides[0] * (loopEnd[0]);
+            dstBufPtr += dstBufStrides[0] * (loopEnd[0]);
+
+            while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+                ptr++;
+                if (ptr >= order) {
+                    done = true;
+                    break;
+                } else {
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
+            }
+            if (done)
+                break;
+            ptr = 0;
+        }
+    } else {
+        while (!done) {
             dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
             //Update
-            curLoc[ptr]++;
-            dstBufPtr += dstBufStrides[ptr];
-            srcBufPtr += srcBufStrides[ptr];
-        }
-        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-            curLoc[ptr] = loopStart[ptr];
+            curLoc[0]++;
+            dstBufPtr += dstBufStrides[0];
+            srcBufPtr += srcBufStrides[0];
 
-            dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
-            srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
-            ptr++;
-            if(ptr >= order){
-                done = true;
-                break;
-            }else{
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
+            while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+                ptr++;
+                if (ptr >= order) {
+                    done = true;
+                    break;
+                } else {
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
             }
+            if (done)
+                break;
+            ptr = 0;
         }
-        if(done)
-            break;
-        ptr = 0;
     }
 }
 
