@@ -66,7 +66,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         recvSize = sendSize;
 
         T* auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
-        MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
+//        MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);

@@ -72,7 +72,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     recvSize = sendSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + nRedistProcs*recvSize);
-    MemZero(&(auxBuf[0]), sendSize + recvSize);
+//    MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 

@@ -67,7 +67,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     const int myRank = mpi::CommRank(comm);
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-    MemZero(&(auxBuf[0]), sendSize + recvSize);
+//    MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
