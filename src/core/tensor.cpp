@@ -1141,7 +1141,7 @@ void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMod
         dstBuf[0] = srcBuf[0];
         return;
     }
-    Unsigned i, j;
+
     const std::vector<Unsigned> loopEnd = packData.loopShape;
     const std::vector<Unsigned> dstBufStrides = packData.dstBufStrides;
     const std::vector<Unsigned> srcBufStrides = packData.srcBufStrides;
@@ -1165,117 +1165,57 @@ void Tensor<T>::PackCommHelper_fast(const PackData& packData, const Mode packMod
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     if (srcBufStrides[0] == 1 && dstBufStrides[0] == 1) {
-        if(order == 1){
+        while (!done) {
             MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
-        }else if(order == 2){
-            PARALLEL_FOR
-            for(i = 0; i < loopEnd[1]; i++){
-                MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
-                srcBufPtr += srcBufStrides[1];
-                dstBufPtr += dstBufStrides[1];
-            }
-        }else{
-            ptr = 2;
-            while (!done) {
-                PARALLEL_FOR
-                for(i = 0; i < loopEnd[1]; i++){
-                    MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[0]);
-                    srcBufPtr += srcBufStrides[1];
-                    dstBufPtr += dstBufStrides[1];
-                }
+            curLoc[0] += loopEnd[0];
+            srcBufPtr += srcBufStrides[0] * (loopEnd[0]);
+            dstBufPtr += dstBufStrides[0] * (loopEnd[0]);
 
-                dstBufPtr -= dstBufStrides[1] * loopEnd[1];
-                srcBufPtr -= srcBufStrides[1] * loopEnd[1];
+            while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
+                curLoc[ptr] = 0;
 
-                //Update
-                curLoc[2]++;
-                dstBufPtr += dstBufStrides[2];
-                srcBufPtr += srcBufStrides[2];
-
-                while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
-                    srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
-                    ptr++;
-                    if (ptr >= order) {
-                        done = true;
-                        break;
-                    } else {
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if (done)
+                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+                ptr++;
+                if (ptr >= order) {
+                    done = true;
                     break;
-                ptr = 2;
+                } else {
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
             }
+            if (done)
+                break;
+            ptr = 0;
         }
     } else {
-        if(order == 1){
-            for(i = 0; i < loopEnd[0]; i++){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                dstBufPtr += dstBufStrides[0];
-                srcBufPtr += srcBufStrides[0];
-            }
-        }else if(order == 2){
-            PARALLEL_FOR
-            for(i = 0; i < loopEnd[1]; i++){
-                for(j = 0; j < loopEnd[0]; j++){
-                    dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                    dstBufPtr += dstBufStrides[0];
-                    srcBufPtr += srcBufStrides[0];
-                }
-                dstBufPtr -= dstBufStrides[0] * loopEnd[0];
-                srcBufPtr -= srcBufStrides[0] * loopEnd[0];
+        while (!done) {
+            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+            //Update
+            curLoc[0]++;
+            dstBufPtr += dstBufStrides[0];
+            srcBufPtr += srcBufStrides[0];
 
-                srcBufPtr += srcBufStrides[1];
-                dstBufPtr += dstBufStrides[1];
-            }
-        }else{
-            ptr = 2;
-            while (!done) {
-                PARALLEL_FOR
-                for(i = 0; i < loopEnd[1]; i++){
-                    for(j = 0; j < loopEnd[0]; j++){
-                        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                        dstBufPtr += dstBufStrides[0];
-                        srcBufPtr += srcBufStrides[0];
-                    }
-                    dstBufPtr -= dstBufStrides[0] * loopEnd[0];
-                    srcBufPtr -= srcBufStrides[0] * loopEnd[0];
+            while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
+                curLoc[ptr] = 0;
 
-                    srcBufPtr += srcBufStrides[1];
-                    dstBufPtr += dstBufStrides[1];
-                }
-                dstBufPtr -= dstBufStrides[1] * loopEnd[1];
-                srcBufPtr -= srcBufStrides[1] * loopEnd[1];
-
-                //Update
-                curLoc[2]++;
-                dstBufPtr += dstBufStrides[2];
-                srcBufPtr += srcBufStrides[2];
-
-                while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
-                    srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
-                    ptr++;
-                    if (ptr >= order) {
-                        done = true;
-                        break;
-                    } else {
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if (done)
+                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
+                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
+                ptr++;
+                if (ptr >= order) {
+                    done = true;
                     break;
-                ptr = 2;
+                } else {
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
             }
+            if (done)
+                break;
+            ptr = 0;
         }
     }
 }
