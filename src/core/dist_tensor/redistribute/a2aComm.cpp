@@ -65,14 +65,18 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         sendSize = prod(commDataShape);
         recvSize = sendSize;
 
-        T* auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
+        T* auxBuf;
+        PROFILE_SECTION("A2ARequire");
+        PROFILE_FLOPS((sendSize + recvSize) * nRedistProcs);
+        auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
+        PROFILE_STOP;
 //        MemZero(&(auxBuf[0]), (sendSize + recvSize) * nRedistProcs);
 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
         PROFILE_SECTION("A2APack");
-        PROFILE_FLOPS(sendSize * nRedistProcs);
+        PROFILE_FLOPS(prod(maxLocalShapeA));
         PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
 
@@ -85,7 +89,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             return;
         }
         PROFILE_SECTION("A2AUnpack");
-        PROFILE_FLOPS(recvSize * nRedistProcs);
+        PROFILE_FLOPS(prod(MaxLocalShape()));
         UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
         PROFILE_STOP;
         this->auxMemory_.Release();

@@ -58,7 +58,11 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     sendSize = prod(maxLocalShapeA);
     recvSize = sendSize * nRedistProcs;
 
-    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    T* auxBuf;
+    PROFILE_SECTION("AGRequire")
+    PROFILE_FLOPS(sendSize + recvSize);
+    auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    PROFILE_STOP;
 //    MemZero(&(auxBuf[0]), sendSize + recvSize);
 
     T* sendBuf = &(auxBuf[0]);
@@ -66,7 +70,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
 
     //printf("Alloc'd %d elems to send and %d elems to receive\n", sendSize, recvSize);
     PROFILE_SECTION("AGPack");
-    PROFILE_FLOPS(sendSize);
+    PROFILE_FLOPS(prod(maxLocalShapeA));
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
@@ -83,7 +87,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
 
     //NOTE: AG and A2A unpack routines are the exact same
     PROFILE_SECTION("AGUnpack");
-    PROFILE_FLOPS(recvSize);
+    PROFILE_FLOPS(prod(MaxLocalShape()));
     UnpackA2ACommRecvBuf(recvBuf, agModes, commModes, maxLocalShapeA, A);
     PROFILE_STOP;
     this->auxMemory_.Release();
