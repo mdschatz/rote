@@ -27,6 +27,12 @@ template<typename T>
 void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>
+void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
+
+template<typename T>
+std::vector<T> ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2);
+
+template<typename T>
 void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>

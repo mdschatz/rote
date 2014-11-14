@@ -576,6 +576,27 @@ GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const Te
 }
 
 inline
+Location
+GridLoc2ParticipatingGridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist)
+{
+    Unsigned i;
+    const Unsigned order = tensorDist.size() - 1;
+    Location ret(order);
+
+    for(i = 0; i < order; i++){
+        ModeDistribution modeDist = tensorDist[i];
+        Location gridSliceLoc(modeDist.size());
+        ObjShape gridSliceShape(modeDist.size());
+
+        gridSliceLoc = PermuteVector(gridLoc, modeDist);
+        gridSliceShape = PermuteVector(gridShape, modeDist);
+
+        ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
+    }
+    return ret;
+}
+
+inline
 std::vector<Unsigned>
 IntCeils( const std::vector<Unsigned>& ms, const std::vector<Unsigned>& ns)
 {

@@ -66,6 +66,7 @@ Location GridViewLoc2ParticipatingLoc(const Location& gridViewLoc, const GridVie
 Location GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridView);
 
 Location GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist);
+Location GridLoc2ParticipatingGridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist);
 
 std::vector<Unsigned> IntCeils(const std::vector<Unsigned>& ms, const std::vector<Unsigned>& ns);
 

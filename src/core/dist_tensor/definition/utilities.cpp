@@ -657,6 +657,21 @@ DistTensor<T>::CommMapSize()
     return commMap_->size();
 }
 
+template<typename T>
+Location
+DistTensor<T>::DetermineFirstElem(const Location& gridViewLoc) const
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::DetermineFirstElem");
+#endif
+    Unsigned i;
+    Location ret(gridViewLoc.size());
+    for(i = 0; i < gridViewLoc.size(); i++){
+        ret[i] = Shift(gridViewLoc[i], modeAlignments_[i], ModeStride(i));
+    }
+    return ret;
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )

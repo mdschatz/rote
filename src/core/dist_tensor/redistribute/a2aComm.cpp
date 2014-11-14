@@ -147,8 +147,12 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
 //        ElemSelectHelper(packData, changedA2AModes.size() - 1, commModes, changedA2AModes, myFirstElemLoc, modeStrideFactor, prod(sendShape), A, &(dataBuf[0]), &(sendBuf[0]));
         ElemSelectData elemData;
-        elemData.commModes = commModes;
-        elemData.changedModes = changedA2AModes;
+        ModeArray sortedCommModes = commModes;
+        std::sort(sortedCommModes.begin(), sortedCommModes.end());
+        ModeArray sortedChangedA2AModes = changedA2AModes;
+        std::sort(sortedChangedA2AModes.begin(), sortedChangedA2AModes.end());
+        elemData.commModes = sortedCommModes;
+        elemData.changedModes = sortedChangedA2AModes;
         elemData.packElem = myFirstElemLoc;
         elemData.loopShape = modeStrideFactor;
         elemData.nElemsPerProc = prod(sendShape);
@@ -171,6 +175,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
 template<typename T>
 void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModesAll, const ObjShape& recvShape, const DistTensor<T>& A){
+    Unsigned i, j;
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();
 
@@ -202,10 +207,11 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 //    const ObjShape maxLocalShapeB = MaxLocalShape();
 //    const ObjShape recvShape = prod(maxLocalShapeA) < prod(maxLocalShapeB) ? maxLocalShapeA : maxLocalShapeB;
 
-//    const tmen::Grid& g = Grid();
-//    const Unsigned nRedistProcsAll = prod(FilterVector(g.Shape(), commModesAll));
+    const tmen::Grid& g = Grid();
+    const Location myGridLoc = g.Loc();
+    const Unsigned nRedistProcsAll = prod(FilterVector(g.Shape(), commModesAll));
 //    std::cout << "recvBuf:";
-//    for(Unsigned i = 0; i < nRedistProcsAll * prod(recvShape); i++){
+//    for(i = 0; i < nRedistProcsAll * prod(recvShape); i++){
 //        std::cout << " " << recvBuf[i];
 //    }
 //    std::cout << std::endl;
@@ -231,20 +237,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
     //Local storage is permuted.  That is why tmpStrides not LocalStrides()
 
-    Permutation invPerm = DetermineInversePermutation(localPerm_);
-    PackData unpackData;
-//    unpackData.loopShape = LocalShape();
-    unpackData.loopShape = PermuteVector(LocalShape(), invPerm);
-//    PrintVector(localPerm_, "localPerm_");
-//    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
-    unpackData.srcBufStrides = Dimensions2Strides(recvShape);
-//    unpackData.dstBufStrides = FilterVector(tmpStrides, invPerm);
-//    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
-    unpackData.dstBufStrides = ElemwiseProd(PermuteVector(LocalStrides(), invPerm), modeStrideFactor);
-//    unpackData.dstBufStrides = FilterVector(ElemwiseProd(LocalStrides(), modeStrideFactor), invPerm);
 
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = modeStrideFactor;
 
 //    PrintVector(recvShape, "srcShape");
 //    PrintVector(unpackData.loopShape, "unpackShape");
@@ -253,22 +246,109 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 //    PrintVector(unpackData.dstBufStrides, "dstStrides");
 //    PrintVector(LocalStrides(), "Bs local strides");
 
-    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
-//        A2AUnpackTestHelper(unpackData, changedA2AModes.size() - 1, commModesAll, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(recvShape), A, &(recvBuf[0]), &(dataBuf[0]));
-        ElemSelectData elemData;
-        elemData.commModes = commModesAll;
-//        elemData.changedModes = FilterVector(localPerm_, changedA2AModes);
-        elemData.packElem = myFirstElemLoc;
-        elemData.loopShape = modeStrideFactor;
-        elemData.nElemsPerProc = prod(recvShape);
-        elemData.dstElem = zeros;
-        elemData.dstStrides = LocalStrides();
-        elemData.permutation = localPerm_;
-//        PrintVector(localPerm_, "unpack perm");
-        ElemSelectUnpackHelper(unpackData, elemData, order - 1, A, &(recvBuf[0]), &(dataBuf[0]));
+    const Unsigned nElemsPerProc = prod(recvShape);
+    ModeArray sortedCommModes = commModesAll;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    const ObjShape commShape = FilterVector(g.Shape(), sortedCommModes);
+    Permutation commModesPerm = DeterminePermutation(sortedCommModes, commModesAll);
+    const ObjShape distCommShape = PermuteVector(commShape, commModesPerm);
+
+//    PrintData(A, "input");
+//    PrintData(*this, "output");
+
+    PARALLEL_FOR
+    for(i = 0; i < nRedistProcsAll; i++){
+        Location sortedCommLoc = LinearLoc2Loc(i, commShape);
+        Location procGridLoc = myGridLoc;
+
+        for(j = 0; j < sortedCommModes.size(); j++){
+            procGridLoc[sortedCommModes[j]] = sortedCommLoc[j];
+        }
+
+//        PrintVector(procGridLoc, "procGridLoc");
+        Location procGridViewLoc = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
+        Location procFirstElemLoc = A.DetermineFirstElem(procGridViewLoc);
+
+//        printf("i: %d\n", i);
+//        PrintVector(procGridLoc, "recvProc");
+//        PrintVector(procGridViewLoc, "recvProcView");
+
+        //Determine the first element I own of recvProc
+        //My first loc under B is:
+        Location myFirstLoc = ModeShifts();
+        //Iterate to figure out the first elem I got from recvProc
+        Location firstRecvLoc(order,0);
+
+//        PrintVector(myFirstLoc, "myFirstLoc");
+//        PrintVector(procFirstElemLoc, "procFirstElemLoc");
+//        PrintVector(ModeStrides(), "myStrides");
+//        PrintVector(A.ModeStrides(), "recvStrides");
+
+        bool found = true;
+        for(j = 0; j < myFirstLoc.size(); j++){
+            Unsigned myFirstIndex = myFirstLoc[j];
+            Unsigned recvFirstIndex = procFirstElemLoc[j];
+            Unsigned myModeStride = ModeStride(j);
+            Unsigned recvProcModeStride = A.ModeStride(j);
+
+            while(myFirstIndex != recvFirstIndex && myFirstIndex < Dimension(j)){
+                if(myFirstIndex < recvFirstIndex)
+                    myFirstIndex += myModeStride;
+                else
+                    recvFirstIndex += recvProcModeStride;
+            }
+            if(myFirstIndex >= Dimension(j)){
+                found &= false;
+                break;
+            }
+            firstRecvLoc[j] = myFirstIndex;
+        }
+
+
+//        PrintVector(firstRecvLoc, "firstRecvLoc");
+        //Cobble into .Buffer()
+        if(found && ElemwiseLessThan(firstRecvLoc, Shape())){
+            const Location localLoc = Global2LocalIndex(firstRecvLoc);
+//            PrintVector(localLoc, "localLoc");
+            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, localPerm_), LocalStrides());
+//            printf("dataBufPtr: %d\n", dataBufPtr);
+
+            Permutation invPerm = DetermineInversePermutation(localPerm_);
+            PackData unpackData;
+        //    unpackData.loopShape = LocalShape();
+            unpackData.loopShape = ElemwiseSubtract(PermuteVector(LocalShape(), invPerm), localLoc);
+
+        //    PrintVector(localPerm_, "localPerm_");
+        //    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
+            unpackData.srcBufStrides = Dimensions2Strides(recvShape);
+        //    unpackData.dstBufStrides = FilterVector(tmpStrides, invPerm);
+        //    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
+            unpackData.dstBufStrides = ElemwiseProd(PermuteVector(LocalStrides(), invPerm), modeStrideFactor);
+        //    unpackData.dstBufStrides = FilterVector(ElemwiseProd(LocalStrides(), modeStrideFactor), invPerm);
+
+            unpackData.loopStarts = zeros;
+            unpackData.loopIncs = modeStrideFactor;
+
+            PackCommHelper(unpackData, order - 1, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
+        }
+//        printf("done\n");
     }
 
-//    Unsigned i;
+//    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
+////        A2AUnpackTestHelper(unpackData, changedA2AModes.size() - 1, commModesAll, changedA2AModes, myFirstElemLoc, myFirstElemLoc, modeStrideFactor, prod(recvShape), A, &(recvBuf[0]), &(dataBuf[0]));
+//        ElemSelectData elemData;
+//        elemData.commModes = commModesAll;
+////        elemData.changedModes = FilterVector(localPerm_, changedA2AModes);
+//        elemData.packElem = myFirstElemLoc;
+//        elemData.loopShape = modeStrideFactor;
+//        elemData.nElemsPerProc = prod(recvShape);
+//        elemData.dstElem = zeros;
+//        elemData.dstStrides = LocalStrides();
+//        elemData.permutation = localPerm_;
+////        PrintVector(localPerm_, "unpack perm");
+//        ElemSelectUnpackHelper(unpackData, elemData, order - 1, A, &(recvBuf[0]), &(dataBuf[0]));
+//    }
+
 //    printf("dataBuf:");
 //    for(i = 0; i < prod(LocalShape()); i++)
 //        std::cout << " " << dataBuf[i];

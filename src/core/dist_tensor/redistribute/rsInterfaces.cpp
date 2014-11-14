@@ -190,7 +190,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     ObjShape tmpShape = Shape();
     DistTensor<T> tmp(tmpShape, TensorDist(), Grid());
     Zero(tmp);
-    T* tmpBuf = tmp.Buffer();
+//    T* tmpBuf = tmp.Buffer();
 //    MemZero(&(tmpBuf[0]), prod(tmp.LocalShape()));
 
     PROFILE_SECTION("RSURSRedist");

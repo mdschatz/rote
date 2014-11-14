@@ -27,6 +27,18 @@ void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::ve
 }
 
 template<typename T>
+void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
+  std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::minus<T>());
+}
+
+template<typename T>
+std::vector<T> ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2){
+  std::vector<T> ret(src1.size());
+  ElemwiseSubtract(src1, src2, ret);
+  return ret;
+}
+
+template<typename T>
 void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
   std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::multiplies<T>());
 }
@@ -268,6 +280,8 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template T prod(const std::vector<T>& src, const Unsigned startIndex); \
     template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+	template void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+	template std::vector<T> ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template std::vector<T> ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template void ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
