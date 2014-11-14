@@ -100,19 +100,19 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
 
-  PrintData(A, "input");
-  PrintData(*this, "output");
-
-  std::cout << "dataBuf:";
-  for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-      std::cout << " " <<  dataBuf[i];
-  }
-  std::cout << std::endl;
+//  PrintData(A, "input");
+//  PrintData(*this, "output");
+//
+//  std::cout << "dataBuf:";
+//  for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//      std::cout << " " <<  dataBuf[i];
+//  }
+//  std::cout << std::endl;
 
   const Location zeros(order, 0);
   const Location ones(order, 1);
 
-  T* checkBuf = this->auxMemory_.Require(prod(A.MaxLocalShape()));
+//  T* checkBuf = this->auxMemory_.Require(prod(A.MaxLocalShape()));
 
   Permutation invPerm = DetermineInversePermutation(A.localPerm_);
 //  PackData packData;
@@ -131,25 +131,30 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   newpackData.loopShape = A.LocalShape();
   newpackData.srcBufStrides = A.LocalStrides();
 
-  newpackData.dstBufStrides = PermuteVector(Dimensions2Strides(A.MaxLocalShape()), A.localPerm_);
+  ObjShape finalShape = PermuteVector(A.MaxLocalShape(), localPerm_);
+  std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
+
+  Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, localPerm_));
+
+  newpackData.dstBufStrides = PermuteVector(finalStrides, out2in);
 
   newpackData.loopStarts = zeros;
   newpackData.loopIncs = ones;
 
   PackCommHelper(newpackData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 
-  Unsigned i;
-  printf("sendBuf:");
-  for(i = 0; i < prod(A.MaxLocalShape()); i++){
-      std::cout << " " << sendBuf[i];
-  }
-  std::cout << std::endl;
-
-  printf("checkBuf:");
-  for(i = 0; i < prod(A.MaxLocalShape()); i++){
-      std::cout << " " << checkBuf[i];
-  }
-  std::cout << std::endl;
+//  Unsigned i;
+//  printf("sendBuf:");
+//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+//      std::cout << " " << sendBuf[i];
+//  }
+//  std::cout << std::endl;
+//
+//  printf("checkBuf:");
+//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+//      std::cout << " " << checkBuf[i];
+//  }
+//  std::cout << std::endl;
 
 //  this->auxMemory_.Release(checkBuf);
 }

@@ -101,14 +101,14 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
 
-    PrintData(A, "input");
-    PrintData(*this, "output");
-
-    std::cout << "dataBuf:";
-    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-        std::cout << " " <<  dataBuf[i];
-    }
-    std::cout << std::endl;
+//    PrintData(A, "input");
+//    PrintData(*this, "output");
+//
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        std::cout << " " <<  dataBuf[i];
+//    }
+//    std::cout << std::endl;
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -157,7 +157,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //    PrintVector(A.LocalShape(), "localShapeA");
 //    PrintVector(modeStrideFactor, "modeStrideFactor");
 
-    T* checkBuf = this->auxMemory_.Require(nElemsPerProc * nRedistProcsAll);
+//    T* checkBuf = this->auxMemory_.Require(nElemsPerProc * nRedistProcsAll);
 
     PARALLEL_FOR
     for(i = 0; i < nRedistProcsAll; i++){
@@ -241,7 +241,12 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         //    packData.loopShape = sendShape;
             newpackData.srcBufStrides = ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_));
 
-            newpackData.dstBufStrides = PermuteVector(Dimensions2Strides(sendShape), A.localPerm_);
+            ObjShape finalShape = PermuteVector(sendShape, localPerm_);
+            std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
+
+            //Permute the finalStrides to match local permutation strides
+            Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, localPerm_));
+            newpackData.dstBufStrides = PermuteVector(finalStrides, out2in);
 
             newpackData.loopStarts = zeros;
             newpackData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
@@ -251,15 +256,15 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //        printf("done\n");
     }
 
-    printf("sendBuf:");
-    for(i = 0; i < prod(sendShape)*nRedistProcsAll; i++)
-        std::cout << " " << sendBuf[i];
-    printf("\n");
-
-    printf("checkBuf:");
-    for(i = 0; i < prod(sendShape)*nRedistProcsAll; i++)
-        std::cout << " " << checkBuf[i];
-    printf("\n");
+//    printf("sendBuf:");
+//    for(i = 0; i < prod(sendShape)*nRedistProcsAll; i++)
+//        std::cout << " " << sendBuf[i];
+//    printf("\n");
+//
+//    printf("checkBuf:");
+//    for(i = 0; i < prod(sendShape)*nRedistProcsAll; i++)
+//        std::cout << " " << checkBuf[i];
+//    printf("\n");
 
 //    this->auxMemory_.Release(checkBuf);
 
@@ -304,10 +309,10 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    PrintData(A, "input");
-    PrintData(*this, "output");
-
-    T* checkBuf = this->auxMemory_.Require(prod(LocalShape()));
+//    PrintData(A, "input");
+//    PrintData(*this, "output");
+//
+//    T* checkBuf = this->auxMemory_.Require(prod(LocalShape()));
     //------------------------------------
     //------------------------------------
     //------------------------------------
@@ -333,11 +338,11 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const tmen::Grid& g = Grid();
     const Location myGridLoc = g.Loc();
     const Unsigned nRedistProcsAll = prod(FilterVector(g.Shape(), commModesAll));
-    std::cout << "recvBuf:";
-    for(i = 0; i < nRedistProcsAll * prod(recvShape); i++){
-        std::cout << " " << recvBuf[i];
-    }
-    std::cout << std::endl;
+//    std::cout << "recvBuf:";
+//    for(i = 0; i < nRedistProcsAll * prod(recvShape); i++){
+//        std::cout << " " << recvBuf[i];
+//    }
+//    std::cout << std::endl;
 
 //    PrintVector(modeStrideFactor, "modeStrideFactor");
 //    PackData unpackData;
@@ -460,7 +465,8 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
         //    PrintVector(localPerm_, "localPerm_");
         //    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
-            newunpackData.srcBufStrides = PermuteVector(Dimensions2Strides(recvShape), localPerm_);
+            ObjShape actualRecvShape = PermuteVector(recvShape, localPerm_);
+            newunpackData.srcBufStrides = Dimensions2Strides(actualRecvShape);
         //    unpackData.dstBufStrides = FilterVector(tmpStrides, invPerm);
         //    unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
             newunpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
@@ -474,15 +480,15 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 //        printf("done\n");
     }
 
-    printf("dataBuf:");
-    for(i = 0; i < prod(LocalShape()); i++)
-        std::cout << " " << dataBuf[i];
-    printf("\n");
-
-    printf("checkBuf:");
-    for(i = 0; i < prod(LocalShape()); i++)
-        std::cout << " " << checkBuf[i];
-    printf("\n");
+//    printf("dataBuf:");
+//    for(i = 0; i < prod(LocalShape()); i++)
+//        std::cout << " " << dataBuf[i];
+//    printf("\n");
+//
+//    printf("checkBuf:");
+//    for(i = 0; i < prod(LocalShape()); i++)
+//        std::cout << " " << checkBuf[i];
+//    printf("\n");
 
 //    this->auxMemory_.Release(checkBuf);
 
