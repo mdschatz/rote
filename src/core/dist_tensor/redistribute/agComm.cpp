@@ -100,27 +100,58 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
 
+  PrintData(A, "input");
+  PrintData(*this, "output");
+
+  std::cout << "dataBuf:";
+  for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+      std::cout << " " <<  dataBuf[i];
+  }
+  std::cout << std::endl;
+
   const Location zeros(order, 0);
   const Location ones(order, 1);
 
+  T* checkBuf = this->auxMemory_.Require(prod(A.MaxLocalShape()));
+
   Permutation invPerm = DetermineInversePermutation(A.localPerm_);
-  PackData packData;
-  packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
-  packData.srcBufStrides = PermuteVector(A.LocalStrides(), invPerm);
+//  PackData packData;
+//  packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+//  packData.srcBufStrides = PermuteVector(A.LocalStrides(), invPerm);
+//
+//  packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
+//
+//  packData.loopStarts = zeros;
+//  packData.loopIncs = ones;
 
-  packData.dstBufStrides = Dimensions2Strides(A.MaxLocalShape());
+//  PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
 
-  packData.loopStarts = zeros;
-  packData.loopIncs = ones;
+  //Check
+  PackData newpackData;
+  newpackData.loopShape = A.LocalShape();
+  newpackData.srcBufStrides = A.LocalStrides();
 
-  PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+  newpackData.dstBufStrides = PermuteVector(Dimensions2Strides(A.MaxLocalShape()), A.localPerm_);
 
-//  Unsigned i;
-//  printf("sendBuf:");
-//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
-//      std::cout << " " << sendBuf[i];
-//  }
-//  std::cout << std::endl;
+  newpackData.loopStarts = zeros;
+  newpackData.loopIncs = ones;
+
+  PackCommHelper(newpackData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+
+  Unsigned i;
+  printf("sendBuf:");
+  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+      std::cout << " " << sendBuf[i];
+  }
+  std::cout << std::endl;
+
+  printf("checkBuf:");
+  for(i = 0; i < prod(A.MaxLocalShape()); i++){
+      std::cout << " " << checkBuf[i];
+  }
+  std::cout << std::endl;
+
+//  this->auxMemory_.Release(checkBuf);
 }
 
 #define PROTO(T) template class DistTensor<T>
