@@ -280,15 +280,10 @@ DistTensor<T>::Set( const Location& loc, T u )
     const Location owningProc = DetermineOwner(loc);
     const GridView gv = GetGridView();
 
-//    printf("Setting\n");
-//    printf("val: %.3f\n", u);
-//    PrintVector(owningProc, "owner");
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
-//        printf("I'm the owner\n");
         const Location localLoc = Global2LocalIndex(loc);
         SetLocal(localLoc, u);
     }
-//    printf("Exiting\n");
 }
 
 template<typename T>
@@ -731,11 +726,10 @@ void
 DistTensor<T>::Empty()
 {
     std::fill(shape_.begin(), shape_.end(), 0);
-//    std::fill(dist_.begin(), dist_.end(), ModeArray());
 
     std::fill(modeAlignments_.begin(), modeAlignments_.end(), 0);
     //NOTE: C++ complains if I fill with 'false' for the boolean vector
-    std::fill(constrainedModeAlignments_.begin(), constrainedModeAlignments_.end(), 0);
+    std::fill(constrainedModeAlignments_.begin(), constrainedModeAlignments_.end(), false);
     std::fill(modeShifts_.begin(), modeShifts_.end(), 0);
 
     tensor_.Empty_();

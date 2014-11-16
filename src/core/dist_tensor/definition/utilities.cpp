@@ -36,6 +36,7 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
     return ownerLoc;
 }
 
+//TODO: Change Global2LocalIndex to incorporate localPerm_ info
 template<typename T>
 Location
 DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
@@ -49,27 +50,7 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
     for(i = 0; i < globalLoc.size(); i++){
         localLoc[i] = (globalLoc[i]-ModeShift(i)) / ModeStride(i);
     }
-//    PrintVector(localLoc, "Unpermuted loc");
     return localLoc;
-}
-
-//TODO: Differentiate between index and mode
-template<typename T>
-mpi::Comm
-DistTensor<T>::GetCommunicator(Mode mode) const
-{
-    mpi::Comm comm;
-    ObjShape gridViewSliceShape = GridViewShape();
-    Location gridViewSliceLoc = GridViewLoc();
-    const Unsigned commKey = gridViewSliceLoc[mode];
-
-    //Color is defined by the linear index into the logical grid EXCLUDING the index being distributed
-    gridViewSliceShape.erase(gridViewSliceShape.begin() + mode);
-    gridViewSliceLoc.erase(gridViewSliceLoc.begin() + mode);
-    const Unsigned commColor = Loc2LinearLoc(gridViewSliceLoc, gridViewSliceShape);
-
-    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
-    return comm;
 }
 
 template<typename T>
@@ -78,43 +59,26 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::G
 {
     ModeArray sortedCommModes = commModes;
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
-//    return grid_->GetCommunicatorForModes(commModes);
-//    mpi::Comm comm;
-//    const Location gridLoc = grid_->Loc();
-//    const ObjShape gridShape = grid_->Shape();
-//
-//    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
-//    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
-//    Location gridSliceLoc = FilterVector(gridLoc, commModes);
-//    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
-//
-//    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
-//    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
-//
-//    mpi::CommSplit(participatingComm_, commColor, commKey, comm);
+
     if(commMap_->count(sortedCommModes) == 0){
         mpi::Comm comm;
         const Location gridLoc = grid.Loc();
         const ObjShape gridShape = grid.Shape();
 
-        ObjShape gridSliceShape = FilterVector(gridShape, sortedCommModes);
+        //Determine which communicator subgroup I belong to
         ObjShape gridSliceNegShape = NegFilterVector(gridShape, sortedCommModes);
-        Location gridSliceLoc = FilterVector(gridLoc, sortedCommModes);
         Location gridSliceNegLoc = NegFilterVector(gridLoc, sortedCommModes);
 
-//        PrintVector(gridSliceShape, "gridSliceShape");
-//        PrintVector(gridSliceNegShape, "gridSliceNegShape");
-//        PrintVector(gridSliceLoc, "gridSliceLoc");
-//        PrintVector(gridSliceNegLoc, "gridSliceNegLoc");
+        //Determine my rank within the communicator subgroup I belong to
+        ObjShape gridSliceShape = FilterVector(gridShape, sortedCommModes);
+        Location gridSliceLoc = FilterVector(gridLoc, sortedCommModes);
+
+        //Set the comm key and color for splitting
         const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
         const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
-//        printf("myKey: %d myColor: %d\n", commKey, commColor);
 
-        //Check this, original was commented line with participating
         mpi::CommSplit(grid.OwningComm(), commColor, commKey, comm);
-//        std::cout << "made size " << mpi::CommSize(comm) << " comm\n";
         (*commMap_)[sortedCommModes] = comm;
-
     }
     return (*commMap_)[sortedCommModes];
 }
@@ -131,20 +95,6 @@ DistTensor<T>::SetParticipatingComm()
 
     const tmen::Grid& grid = Grid();
     participatingComm_ = GetCommunicatorForModes(commModes, grid);
-//    mpi::Comm comm;
-//    const Location gridLoc = grid_->Loc();
-//    const ObjShape gridShape = grid_->Shape();
-//
-//    ObjShape gridSliceShape = FilterVector(gridShape, commModes);
-//    ObjShape gridSliceNegShape = NegFilterVector(gridShape, commModes);
-//    Location gridSliceLoc = FilterVector(gridLoc, commModes);
-//    Location gridSliceNegLoc = NegFilterVector(gridLoc, commModes);
-//
-//    const Unsigned commKey = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
-//    const Unsigned commColor = Loc2LinearLoc(gridSliceNegLoc, gridSliceNegShape);
-//
-//    mpi::CommSplit(Grid().OwningComm(), commColor, commKey, comm);
-//    participatingComm_ = comm;
 }
 
 template<typename T>
@@ -189,13 +139,8 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
 
         Unsigned mergeMode = 0;
         for(i = 1; i < oldOrder; i++){
-//            std::cout << "srcStrideToMatch: " << srcStrideToMatch << " dstStrideToMatch: " << dstStrideToMatch << std::endl;
-//            PrintPackData(newData, "before");
-//            std::cout << "check1: " <<  (modifiedData.srcBufStrides[i] == srcStrideToMatch) << std::endl;
-//            std::cout << "check2: " <<  (modifiedData.dstBufStrides[i] == dstStrideToMatch) << std::endl;
             if(modifiedData.srcBufStrides[i] == srcStrideToMatch &&
                modifiedData.dstBufStrides[i] == dstStrideToMatch){
-//                std::cout << "adding to mode: " << mergeMode << std::endl;
                 newData.loopShape[mergeMode] *= modifiedData.loopShape[i];
                 srcStrideToMatch *= modifiedData.loopShape[i];
                 dstStrideToMatch *= modifiedData.loopShape[i];
@@ -205,18 +150,14 @@ void DistTensor<T>::PackCommHelper(const PackData& packData, const Mode packMode
                 newData.dstBufStrides.push_back(modifiedData.dstBufStrides[i]);
                 srcStrideToMatch = modifiedData.srcBufStrides[i] * modifiedData.loopShape[i];
                 dstStrideToMatch = modifiedData.dstBufStrides[i] * modifiedData.loopShape[i];
-//                std::cout << "forming new mode with srcStrideToMatch: " << srcStrideToMatch << " dstStrideToMatch: " << dstStrideToMatch << std::endl;
                 mergeMode++;
             }
-//            PrintPackData(newData, "after");
-//            std::cout << std::endl;
         }
         std::vector<Unsigned> newones(newData.loopShape.size(), 1);
         std::vector<Unsigned> newzeros(newData.loopShape.size(), 0);
         newData.loopIncs = newones;
         newData.loopStarts = newzeros;
     }
-//    PrintPackData(newData, "new data");
 
 #ifndef RELEASE
     PackCommHelper_ref(newData, newData.loopShape.size() - 1, srcBuf, dstBuf);
@@ -231,7 +172,6 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::PackCommHelper_fast");
 #endif
-//    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
         dstBuf[0] = srcBuf[0];
         return;
@@ -247,9 +187,6 @@ void DistTensor<T>::PackCommHelper_fast(const PackData& packData, const Mode pac
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
     Unsigned ptr = 0;
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
 
     if(loopEnd.size() == 0){
         dstBuf[0] = srcBuf[0];
@@ -354,7 +291,6 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
     CallStackEntry cse("DistTensor::PackCommHelper_ref");
 #endif
     Unsigned packSlice;
-//    printf("ping packcommHelper\n");
     if(packData.loopShape.size() == 0){
         dstBuf[0] = srcBuf[0];
         return;
@@ -368,25 +304,13 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
 
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
-
-
     if(packMode == 0){
         if(dstBufStride == 1 && srcBufStride == 1){
-//            std::cout << ident << "copying " << loopEnd - loopStart << "elements" << std::endl;
             MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
         }else{
-//            PrintVector(packData.loopStarts, "loopStarts");
-//            printf("loopStart: %d, loopInc: %d, loopEnd: %d\n", loopStart, loopInc, loopEnd);
             for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
                 dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
 
-//                std::cout << ident << "Packing mode: " << packMode << "iteration: " << packSlice << "of: " << loopEnd << "by: " << loopInc << std::endl;
-//                std::cout << ident << "copying elem " << srcBuf[srcBufPtr] << std::endl;
-//                std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
-//                std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
                 dstBufPtr += dstBufStride;
                 srcBufPtr += srcBufStride;
             }
@@ -395,8 +319,6 @@ void DistTensor<T>::PackCommHelper_ref(const PackData& packData, const Mode pack
         for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
             PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
 
-//            std::cout << ident << "incrementing dstBuf by " << dstBufStride << std::endl;
-//            std::cout << ident << "incrementing srcBuf by " << srcBufStride << std::endl;
             dstBufPtr += dstBufStride;
             srcBufPtr += srcBufStride;
         }

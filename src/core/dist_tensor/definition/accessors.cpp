@@ -271,62 +271,20 @@ DistTensor<T>::Get( const Location& loc ) const
 #endif
     const tmen::Grid& g = Grid();
     const Location owningProc = DetermineOwner(loc);
-//    PrintVector(loc, "loc");
-//    PrintVector(owningProc, "owner");
-//    PrintVector(LocalShape(), "localShape");
-//    PrintVector(localPerm_, "localPerm");
-//    PrintVector(grid_->Loc(), "myLoc");
 
     const tmen::GridView& gv = GetGridView();
     Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
     if(Participating()){
-//        PrintVector(gv.ParticipatingLoc(), "myParticipatingLoc");
         const Location ownerGridLoc = GridViewLoc2GridLoc(owningProc, gv);
-//        PrintVector(ownerGridLoc, "ownerGridLoc");
-//        PrintVector(g.Loc(), "myGridLoc");
+
         if(!AnyElemwiseNotEqual(g.Loc(), ownerGridLoc)){
-//            printf("thats me\n");
             const Location localLoc = Global2LocalIndex(loc);
-//            PrintVector(LocalShape(), "localShape");
-//            PrintVector(localPerm_, "localPerm");
-//            PrintVector(localLoc, "locally at");
             u = GetLocal(localLoc);
         }
 
-//        //Get the lin loc of the owner
-//        Unsigned i, j;
-//        int ownerLinearLoc = 0;
-//        const TensorDistribution dist = gv.Distribution();
-//        const tmen::Grid* g = gv.Grid();
-//        const Unsigned participatingOrder = gv.ParticipatingOrder();
-//        ModeArray participatingComms = ConcatenateVectors(gv.FreeModes(), gv.BoundModes());
-//        std::sort(participatingComms.begin(), participatingComms.end());
-//        const Location gvParticipatingLoc = gv.ParticipatingLoc();
-//
-//        ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
-//        Location participatingGridLoc(gridSlice.size());
-//
-//        for(i = 0; i < participatingOrder; i++){
-//            ModeDistribution modeDist = dist[i];
-//            ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
-//            const Location modeSliceLoc = LinearLoc2Loc(owningProc[i], modeSliceShape);
-//
-//            for(j = 0; j < modeDist.size(); j++){
-//                int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
-//                participatingGridLoc[indexOfMode] = modeSliceLoc[j];
-//            }
-//        }
-//        ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
         int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);
-//        printf("ownerLinLoc: %d\n", ownerLinearLoc);
-        //
-
-        //const int ownerLinearLoc = GridViewLoc2GridLinearLoc(owningProc, gv);
-//        std::cout << "owner linloc" << ownerLinearLoc << std::endl;
-//        std::cout << "bcastComm size" << mpi::CommSize(participatingComm_) << std::endl;
         mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
-//        printf("got val: %d\n", u);
     }
 
     return u;
