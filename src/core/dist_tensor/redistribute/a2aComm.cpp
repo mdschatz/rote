@@ -56,10 +56,14 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         const ObjShape gvAShape = gvA.ParticipatingShape();
         const ObjShape gvBShape = gvB.ParticipatingShape();
 
+        std::vector<Unsigned> elemJumps(maxLocalShapeA.size());
+        elemJumps = ElemwiseDivide(LCMs(gvBShape, gvAShape), gvAShape);
         ObjShape commDataShape(maxLocalShapeA.size());
-        for(Unsigned i = 0; i < maxLocalShapeA.size(); i++){
-            commDataShape[i] = Min(maxLocalShapeA[i], maxLocalShapeB[i]);
-        }
+        commDataShape = IntCeils(maxLocalShapeA, elemJumps);
+
+//        for(Unsigned i = 0; i < maxLocalShapeA.size(); i++){
+//            commDataShape[i] = Min(maxLocalShapeA[i], maxLocalShapeB[i]);
+//        }
         ///////////////////////////////////////////////
 
         sendSize = prod(commDataShape);
