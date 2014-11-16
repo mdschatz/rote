@@ -32,7 +32,7 @@ DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allG
 
 template<typename T>
 void
-DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agModes, const ModeArray& commModes){
+DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AllGatherCommRedist");
 //    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
@@ -45,10 +45,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     if(!A.Participating())
         return;
 
-    if(agModes.size() == 0){
-        CopyLocalBuffer(A);
-        return;
-    }
     Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication

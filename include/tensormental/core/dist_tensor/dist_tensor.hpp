@@ -259,7 +259,7 @@ public:
     // Allgather workhorse routines
     //
     Int CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
-    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& redistModes, const ModeArray& commModes);
+    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
     void PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
 
     //
@@ -272,7 +272,7 @@ public:
     // Gather-to-one workhorse routines
     //
     Int  CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gModes, const ModeArray& commModes);
+    void GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
     // Gather-to-one interface routines

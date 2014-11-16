@@ -53,7 +53,7 @@ Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
-void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& gatherModes, const ModeArray& commModes){
+void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
 //    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
 //      LogicError("GatherToOneRedist: Invalid redistribution request");
 

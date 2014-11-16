@@ -44,7 +44,7 @@ void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     for(i = 0; i < gridModes.size(); i++)
         commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
     std::sort(commModes.begin(), commModes.end());
-    GatherToOneCommRedist(A, gModes, commModes);
+    GatherToOneCommRedist(A, commModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

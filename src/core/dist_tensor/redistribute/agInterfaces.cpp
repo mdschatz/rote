@@ -34,7 +34,7 @@ DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allG
     for(i = 0; i < redistGroups.size(); i++)
         commModes.insert(commModes.end(), redistGroups[i].begin(), redistGroups[i].end());
     std::sort(commModes.begin(), commModes.end());
-    AllGatherCommRedist(A, allGatherModes, commModes);
+    AllGatherCommRedist(A, commModes);
     PROFILE_STOP;
 }
 
