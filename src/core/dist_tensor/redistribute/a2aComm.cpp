@@ -121,14 +121,15 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
     //Grid information
     const tmen::Grid& g = Grid();
+    const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
-    const Unsigned nRedistProcsAll = prod(FilterVector(g.Shape(), commModes));
+    const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
-    const ObjShape commShape = FilterVector(g.Shape(), sortedCommModes);
+    const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     //For each process we send to, we need to determine the first element we need to send them
     PARALLEL_FOR
@@ -142,7 +143,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
             procGridLoc[sortedCommModes[j]] = sortedCommLoc[j];
         }
 
-        Location procGridViewLoc = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), TensorDist());
+        Location procGridViewLoc = GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist());
         //This is the first element p_i needs.
         Location procFirstElemLoc = DetermineFirstElem(procGridViewLoc);
 
@@ -230,9 +231,10 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
     //Grid information
     const tmen::Grid& g = Grid();
+    const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
-    const Unsigned nRedistProcsAll = prod(FilterVector(g.Shape(), commModes));
+    const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
 
 //    std::cout << "recvBuf:";
 //    for(i = 0; i < nRedistProcsAll * prod(recvShape); i++){
@@ -243,7 +245,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     //Redistribute information
     ModeArray sortedCommModes = commModes;
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
-    const ObjShape commShape = FilterVector(g.Shape(), sortedCommModes);
+    const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     //For each process we recv from, we need to determine the first element we get from them
     PARALLEL_FOR
@@ -257,7 +259,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             procGridLoc[sortedCommModes[j]] = sortedCommLoc[j];
         }
 
-        Location procGridViewLoc = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
+        Location procGridViewLoc = GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, A.TensorDist());
         //This is the first element p_i owns.
         Location procFirstElemLoc = A.DetermineFirstElem(procGridViewLoc);
 

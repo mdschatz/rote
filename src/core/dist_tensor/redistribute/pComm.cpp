@@ -67,13 +67,13 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     const int myRank = mpi::CommRank(comm);
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-//    MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    //NOTE: P and AG pack routines are the exact same
+    //Pack the data
     PackAGCommSendBuf(A, sendBuf);
 
+    //Determine who I send+recv data from
     const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
     const ModeDistribution permuteModeDistB = ModeDist(permuteMode);
 
@@ -88,17 +88,14 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     //Determine sendRank
     const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
     const Unsigned sendRank = Loc2LinearLoc(PermuteVector(sendLoc, permA), PermuteVector(gridSliceShape, permA));
-//    const Unsigned sendRank = Loc2LinearLoc(FilterVector(sendLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
 
     //Determine recvRank
     const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
     const Unsigned recvLinearLoc = Loc2LinearLoc(PermuteVector(myLoc, permB), PermuteVector(gridSliceShape, permB));
-//    const Unsigned recvLinearLoc = Loc2LinearLoc(FilterVector(myLoc, permB), FilterVector(A.Grid().Shape(), permuteModeDistB));
     const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
     const Unsigned recvRank = Loc2LinearLoc(PermuteVector(recvLoc, permA), PermuteVector(gridSliceShape, permA));
-//    const Unsigned recvRank = Loc2LinearLoc(FilterVector(recvLoc, permA), FilterVector(A.Grid().Shape(), permuteModeDistA));
 
-    //printf("myRank: %d sending to rank: %d, receiving from rank: %d\n", myRank, sendRank, recvRank);
+    //Communicate the data
     mpi::SendRecv(sendBuf, sendSize, sendRank,
                   recvBuf, recvSize, recvRank, comm);
 
@@ -107,7 +104,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
         return;
     }
 
-    //Note: P and RS unpack routines are the exact same
+    //Unpack the data (if participating)
     UnpackRSCommRecvBuf(recvBuf, A);
     this->auxMemory_.Release();
 }

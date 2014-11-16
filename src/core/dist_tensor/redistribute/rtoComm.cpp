@@ -57,8 +57,6 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
 //    if(!CheckReduceToOneCommRedist(A, reduceMode))
 //      LogicError("ReduceToOneRedist: Invalid redistribution request");
 
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
     const tmen::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
@@ -73,13 +71,13 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     recvSize = sendSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-//    MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    //NOTE: RS and AG pack routines are the exact same
+    //Pack the data
     PackAGCommSendBuf(A, sendBuf);
 
+    //Communicate the data
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
 
     if(!(Participating())){
@@ -87,7 +85,7 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
         return;
     }
 
-    //NOTE: RS and RTO unpack routines are the exact same
+    //Unpack the data (if participating)
     UnpackRSCommRecvBuf(recvBuf, A);
     this->auxMemory_.Release();
 }

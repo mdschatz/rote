@@ -57,8 +57,6 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 //    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
 //      LogicError("GatherToOneRedist: Invalid redistribution request");
 
-    //NOTE: Hack for testing.  We actually need to let the user specify the commModes
-    //NOTE: THIS NEEDS TO BE BEFORE Participating() OTHERWISE PROCESSES GET OUT OF SYNC
     const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
@@ -72,13 +70,13 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     recvSize = sendSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + nRedistProcs*recvSize);
-//    MemZero(&(auxBuf[0]), sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-    //NOTE: AG and GTO pack routines are the exact same
+    //Pack the data
     PackAGCommSendBuf(A, sendBuf);
 
+    //Communicate the data
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 
     if(!(Participating())){
@@ -86,7 +84,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
         return;
     }
 
-    //NOTE: AG, A2A, and GTO unpack routines are the exact same
+    //Unpack the data (if participating)
     UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
     this->auxMemory_.Release();
 }

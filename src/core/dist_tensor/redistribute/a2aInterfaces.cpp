@@ -39,10 +39,6 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
         commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());
     std::sort(commModes.begin(), commModes.end());
 
-    ModeArray changedA2AModes = ConcatenateVectors(a2aModesFrom, a2aModesTo);
-    std::sort(changedA2AModes.begin(), changedA2AModes.end());
-    changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
-
     AllToAllCommRedist(A, commModes);
     PROFILE_STOP;
 }

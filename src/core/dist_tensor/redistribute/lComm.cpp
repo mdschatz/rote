@@ -61,6 +61,9 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& loc
     UnpackLocalCommRedist(A, localModes);
 }
 
+
+//TODO: Optimize strides when unpacking
+//TODO: Check that logic works out (modeStrides being global info applied to local info)
 template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArray& lModes)
 {
@@ -75,15 +78,20 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
 //    }
 //    printf("\n");
 
+    //GridView information
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
+    const ObjShape gvAShape = gvA.ParticipatingShape();
+    const ObjShape gvBShape = gvB.ParticipatingShape();
 
+    //Different striding information
+    std::vector<Unsigned> commLCMs = tmen::LCMs(gvAShape, gvBShape);
+    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
+
+    //Grid information
     const tmen::Grid& g = Grid();
     const ObjShape gridShape = g.Shape();
     const Location gridLoc = g.Loc();
-
-    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
-    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -99,11 +107,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
-//    PrintVector(A.LocalShape(), "srcLocalShape");
-//    PrintVector(LocalShape(), "dstLocalShape");
-//    PrintVector(unpackData.loopShape, "loopShape");
-//    PrintVector(unpackData.dstBufStrides, "dstStrides");
-//    PrintVector(unpackData.srcBufStrides, "srcStrides");
     const Location myFirstElemLoc = ModeShifts();
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
@@ -111,7 +114,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
         Unsigned srcBufPtr = 0;
         for(i = 0; i < lModes.size(); i++)
             srcBufPtr += firstLocInA[lModes[i]] * A.LocalModeStride(lModes[i]);
-//        printf("copying from srcBuf: %d\n", srcBufPtr);
         PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
     }
 
