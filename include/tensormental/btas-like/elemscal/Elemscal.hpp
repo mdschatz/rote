@@ -109,7 +109,6 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 #ifndef RELEASE
     CallStackEntry("Elemscal");
 #endif
-    Unsigned order = C.Order();
     ElemScalData data;
     data.loopShape = C.Shape();
     data.src1Strides = A.Strides();
@@ -121,7 +120,7 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
     T* dstBuf = C.Buffer();
 
 #ifndef RELEASE
-    ElemScalHelper(A, B, order-1, src1Buf, src2Buf, dstBuf, data);
+    ElemScalHelper(A, B, C.Order()-1, src1Buf, src2Buf, dstBuf, data);
 #else
     ElemScal_fast(src1Buf, src2Buf, dstBuf, data);
 #endif

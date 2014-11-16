@@ -135,7 +135,6 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
 
     Permutation perm = DefaultPermutation(order);
 
-    Unsigned count = 0;
     do{
         if(commRank == 0){
             printf("Testing ");

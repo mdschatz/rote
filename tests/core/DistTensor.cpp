@@ -354,7 +354,6 @@ main( int argc, char* argv[] )
 
 
         DistTensor<int> A(args.tensorShape, args.tensorDist, g);
-        Unsigned order = A.Order();
         ObjShape origShape = A.Shape();
         Permutation permA = DefaultPermutation(A.Order());
 

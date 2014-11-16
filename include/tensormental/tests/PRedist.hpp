@@ -35,7 +35,6 @@ TestPRedist( const DistTensor<T>& A, Mode pMode, const ModeDistribution& resDist
     CallStackEntry entry("TestPRedist");
 #endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    Unsigned i;
     Unsigned order = A.Order();
     //const int order = A.Order();
     const Grid& g = A.Grid();
