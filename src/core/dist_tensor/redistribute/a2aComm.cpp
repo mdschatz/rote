@@ -29,7 +29,7 @@ Int DistTensor<T>::CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, con
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes){
+void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
     //    if(!CheckAllToAllDoubleModeCommRedist(A, a2aModes, a2aCommGroups))
     //        LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
@@ -71,7 +71,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         //Pack the data
         PROFILE_SECTION("A2APack");
         PROFILE_FLOPS(prod(maxLocalShapeA));
-        PackA2ACommSendBuf(A, changedA2AModes, commModes, commDataShape, sendBuf);
+        PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
 
         //Communicate the data
@@ -87,13 +87,13 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         //Unpack the data (if participating)
         PROFILE_SECTION("A2AUnpack");
         PROFILE_FLOPS(prod(MaxLocalShape()));
-        UnpackA2ACommRecvBuf(recvBuf, changedA2AModes, commModes, commDataShape, A);
+        UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
         PROFILE_STOP;
         this->auxMemory_.Release();
 }
 
 template <typename T>
-void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf){
+void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf){
     Unsigned i,j;
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
@@ -208,7 +208,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 }
 
 template<typename T>
-void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A){
+void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A){
     Unsigned i, j;
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();

@@ -245,9 +245,9 @@ public:
     // All-to-all workhorse routines
     //
     Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
-    void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes);
-    void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
-    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& changedA2AModes, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
+    void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
+    void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
+    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
 
     //
     // All-to-all interface routines

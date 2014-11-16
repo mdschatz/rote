@@ -86,7 +86,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& agMo
     //Unpack the data (if participating)
     PROFILE_SECTION("AGUnpack");
     PROFILE_FLOPS(prod(MaxLocalShape()));
-    UnpackA2ACommRecvBuf(recvBuf, agModes, commModes, maxLocalShapeA, A);
+    UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
     PROFILE_STOP;
     this->auxMemory_.Release();
 }

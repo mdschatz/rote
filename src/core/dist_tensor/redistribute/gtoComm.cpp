@@ -87,7 +87,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     }
 
     //NOTE: AG, A2A, and GTO unpack routines are the exact same
-    UnpackA2ACommRecvBuf(recvBuf, gatherModes, commModes, maxLocalShapeA, A);
+    UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
     this->auxMemory_.Release();
 }
 

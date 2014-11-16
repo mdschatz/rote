@@ -43,7 +43,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     std::sort(changedA2AModes.begin(), changedA2AModes.end());
     changedA2AModes.erase(std::unique(changedA2AModes.begin(), changedA2AModes.end()), changedA2AModes.end());
 
-    AllToAllCommRedist(A, changedA2AModes, commModes);
+    AllToAllCommRedist(A, commModes);
     PROFILE_STOP;
 }
 
