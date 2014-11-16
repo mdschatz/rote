@@ -52,9 +52,7 @@ ElemScalHelper(const Tensor<T>& A, const Tensor<T>& B, Mode mode, T const * cons
 
 template<typename T>
 inline void
-ElemScal_fast(const Tensor<T>& A, const Tensor<T>& B, Mode mode, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ElemScalData& data ){
-//    printf("ping packcommHelper\n");
-
+ElemScal_fast(T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ElemScalData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> src1BufStrides = data.src1Strides;
     const std::vector<Unsigned> src2BufStrides = data.src2Strides;
@@ -65,10 +63,6 @@ ElemScal_fast(const Tensor<T>& A, const Tensor<T>& B, Mode mode, T const * const
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
 
     if(loopEnd.size() == 0){
         dstBuf[0] = src1Buf[0] * src2Buf[0];
@@ -129,7 +123,7 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 #ifndef RELEASE
     ElemScalHelper(A, B, order-1, src1Buf, src2Buf, dstBuf, data);
 #else
-    ElemScal_fast(A, B, order - 1, src1Buf, src2Buf, dstBuf, data);
+    ElemScal_fast(src1Buf, src2Buf, dstBuf, data);
 #endif
 }
 
@@ -137,7 +131,6 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 // Global routines
 ////////////////////////////////////
 //NOTE: Add checks for conforming dists and shapes
-//NOTE: Convert to incorporate blocked tensors.
 template<typename T>
 void ElemScal(const DistTensor<T>& A, const DistTensor<T>& B, DistTensor<T>& C){
 #ifndef RELEASE

@@ -41,7 +41,7 @@ YxpByHelper(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const
 
 template<typename T>
 inline void
-YxpBy_fast(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
+YxpBy_fast(T beta, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     const std::vector<Unsigned> dstBufStrides = data.dstStrides;
@@ -91,7 +91,6 @@ YxpBy_fast(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const 
 }
 
 //NOTE: Place appropriate guards
-//NOTE: Make this more efficient
 template<typename T>
 inline void
 YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
@@ -101,18 +100,6 @@ YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
 #endif
     Permutation permXToY = DefaultPermutation(X.Order());
     YxpBy(X, permXToY, beta, Y);
-
-//    Unsigned order = Y.Order();
-//    YxpByData data;
-//    data.loopShape = Y.Shape();
-//    data.srcStrides = X.Strides();
-//    data.dstStrides = Y.Strides();
-//
-//    const T* srcBuf = X.LockedBuffer();
-//    T* dstBuf = Y.Buffer();
-//
-//    YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
-
 }
 
 template<typename T>
@@ -136,7 +123,7 @@ YxpBy( const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
 #ifndef RELEASE
         YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
 #else
-        YxpBy_fast(X, beta, Y, order - 1, srcBuf, dstBuf, data);
+        YxpBy_fast(beta, srcBuf, dstBuf, data);
 #endif
     }
 }

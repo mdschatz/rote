@@ -45,7 +45,7 @@ YAxpPxHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, Tensor<T>
 
 template<typename T>
 inline void
-YAxpPx_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, Tensor<T>& Y, Mode mode, T const * const srcBuf, T const * const permSrcBuf, T * const dstBuf, const YAxpPxData& data ){
+YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf, T * const dstBuf, const YAxpPxData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     const std::vector<Unsigned> permBufStrides = data.permSrcStrides;
@@ -100,8 +100,6 @@ YAxpPx_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, Tensor<T>&
 }
 
 //NOTE: Place appropriate guards
-//NOTE: Make this more efficient
-//NOTE: Account for permutations
 template<typename T>
 inline void
 YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutation& perm, Tensor<T>& Y )
@@ -110,21 +108,7 @@ YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutat
     CallStackEntry entry("YAxpPx");
 #endif
     Permutation permXToY = DefaultPermutation(X.Order());
-
     YAxpPx(alpha, X, permXToY, beta, PX, perm, Y);
-//
-//    Unsigned order = X.Order();
-//    YAxpPxData data;
-//    data.loopShape = X.Shape();
-//    data.srcStrides = X.Strides();
-//    data.permSrcStrides = PermuteVector(PX.Strides(), perm);
-//    data.dstStrides = Y.Strides();
-//
-//    const T* srcBuf = X.LockedBuffer();
-//    const T* permSrcBuf = PX.LockedBuffer();
-//    T* dstBuf = Y.Buffer();
-//
-//    YAxpPxHelper(alpha, X, beta, PX, perm, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
 }
 
 template<typename T>
@@ -152,7 +136,7 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
 #ifndef RELEASE
         YAxpPxHelper(alpha, X, beta, PX, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
 #else
-        YAxpPx_fast(alpha, X, beta, PX, Y, order-1, srcBuf, permSrcBuf, dstBuf, data);
+        YAxpPx_fast(alpha, beta, srcBuf, permSrcBuf, dstBuf, data);
 #endif
     }
 }

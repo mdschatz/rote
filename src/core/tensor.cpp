@@ -268,7 +268,7 @@ void
 Tensor<T>::SetStrides(const ObjShape& shape)
 {
   Unsigned i;
-  const int order = Order();
+  const Unsigned order = Order();
   if(shape.size() != order){
       LogicError("SetLDims requires that shape order matches object order");
   }

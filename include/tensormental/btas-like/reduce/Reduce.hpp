@@ -48,11 +48,10 @@ void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const 
             }
         }
     }
-//    std::cout << "after: " << dstBuf[0] << std::endl;
 }
 
 template <typename T>
-void LocalReduce_fast(const Unsigned mode, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
+void LocalReduce_fast(const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf){
     const std::vector<Unsigned> loopEnd = reduceShape;
 
     Unsigned srcBufPtr = 0;
@@ -60,9 +59,6 @@ void LocalReduce_fast(const Unsigned mode, const ModeArray& reduceModes, const O
     Location curLoc(order, 0);
     Unsigned ptr = 0;
 
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
 
     if(loopEnd.size() == 0){
         dstBuf[0] += srcBuf[0];
@@ -111,7 +107,7 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
 #ifndef RELEASE
                 LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
 #else
-                LocalReduce_fast(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), FilterVector(srcStrides, reduceModes), &(dstBuf[dstBufPtr]), dstStrides);
+                LocalReduce_fast(reduceModes, reduceShape, &(srcBuf[srcBufPtr]), FilterVector(srcStrides, reduceModes), &(dstBuf[dstBufPtr]));
 #endif
             }else{
                 LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
@@ -135,7 +131,6 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
 #endif
     Unsigned i;
     Unsigned order = A.Order();
-//    MakeZero(B);
 
     ModeArray tensorModes(order);
     for(i = 0; i < order; i++)
@@ -159,7 +154,6 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
 // Global routines
 ////////////////////////////////////
 
-//NOTE: Should we account for A and B having different local permutations?
 template <typename T>
 void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes){
     PROFILE_SECTION("LocalReduce");

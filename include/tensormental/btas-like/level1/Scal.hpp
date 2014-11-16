@@ -36,17 +36,13 @@ ScalHelper(T alpha, Tensor<T>& X, Mode mode, T * srcBuf, const ScalData& data ){
 
 template<typename T>
 inline void
-Scal_fast(T alpha, Tensor<T>& X, Mode mode, T * srcBuf, const ScalData& data ){
+Scal_fast(T alpha, T * srcBuf, const ScalData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     Unsigned srcBufPtr = 0;
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
 
     if(loopEnd.size() == 0){
         srcBuf[0] *= alpha;
@@ -102,7 +98,7 @@ Scal( T alpha, Tensor<T>& X )
 #ifndef RELEASE
         ScalHelper(alpha, X, order-1, srcBuf, data);
 #else
-        Scal_fast(alpha, X, order - 1, srcBuf, data);
+        Scal_fast(alpha, srcBuf, data);
 #endif
     }
 }

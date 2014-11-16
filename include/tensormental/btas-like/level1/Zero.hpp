@@ -34,7 +34,7 @@ void ZeroHelper(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& s
 }
 
 template<typename T>
-void Zero_fast(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& strides, T * const buf){
+void Zero_fast(const ObjShape& shape, const std::vector<Unsigned>& strides, T * const buf){
     const std::vector<Unsigned> loopEnd = shape;
     const std::vector<Unsigned> bufStrides = strides;
     Unsigned bufPtr = 0;
@@ -92,7 +92,7 @@ Zero( Tensor<T>& A )
 #ifndef RELEASE
         ZeroHelper(order - 1, A.Shape(), A.Strides(), A.Buffer());
 #else
-        Zero_fast(order - 1, A.Shape(), A.Strides(), A.Buffer());
+        Zero_fast(A.Shape(), A.Strides(), A.Buffer());
 #endif
     }
 

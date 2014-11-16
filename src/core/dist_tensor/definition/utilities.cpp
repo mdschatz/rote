@@ -26,10 +26,11 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
     CallStackEntry entry("DistTensor::DetermineOwner");
     AssertValidEntry( loc );
 #endif
+    Unsigned i;
     const tmen::GridView gv = GetGridView();
     Location ownerLoc(gv.ParticipatingOrder());
 
-    for(Int i = 0; i < gv.ParticipatingOrder(); i++){
+    for(i = 0; i < gv.ParticipatingOrder(); i++){
         ownerLoc[i] = (loc[i] + ModeAlignment(i)) % ModeStride(i);
     }
     return ownerLoc;

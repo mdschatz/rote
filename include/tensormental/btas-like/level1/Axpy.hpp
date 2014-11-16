@@ -40,7 +40,7 @@ AxpyHelper(T alpha, const Tensor<T>& X, const Tensor<T>& Y, Mode mode, T const *
 
 template<typename T>
 inline void
-Axpy_fast(T alpha, const Tensor<T>& X, const Tensor<T>& Y, Mode mode, T const * const srcBuf,  T * const dstBuf, const AxpyData& data){
+Axpy_fast(T alpha, T const * const srcBuf,  T * const dstBuf, const AxpyData& data){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     const std::vector<Unsigned> dstBufStrides = data.dstStrides;
@@ -49,10 +49,6 @@ Axpy_fast(T alpha, const Tensor<T>& X, const Tensor<T>& Y, Mode mode, T const * 
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
 
     if(loopEnd.size() == 0){
         dstBuf[0] = alpha * srcBuf[0];
@@ -99,15 +95,6 @@ Axpy( T alpha, const Tensor<T>& X, Tensor<T>& Y )
 #endif
     Permutation perm = DefaultPermutation(X.Order());
     Axpy(alpha, X, perm, Y);
-//    Unsigned order = Y.Order();
-//    AxpyData data;
-//    data.loopShape = Y.Shape();
-//    data.srcStrides = X.Strides();
-//
-//    const T* srcBuf = X.LockedBuffer();
-//    T* dstBuf = Y.Buffer();
-//
-//    AxpyHelper(alpha, X, Y, order-1, srcBuf, dstBuf, data);
 }
 
 template<typename T>
@@ -132,7 +119,7 @@ Axpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y )
 #ifndef RELEASE
         AxpyHelper(alpha, X, Y, order-1, srcBuf, dstBuf, data);
 #else
-        Axpy_fast(alpha, X, Y, order - 1, srcBuf, dstBuf, data);
+        Axpy_fast(alpha, srcBuf, dstBuf, data);
 #endif
     }
 }

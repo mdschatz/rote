@@ -45,7 +45,7 @@ ZAxpByHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode,
 
 template<typename T>
 inline void
-ZAxpBy_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ZAxpByData& data ){
+ZAxpBy_fast(T alpha, T beta, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ZAxpByData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> src1BufStrides = data.src1Strides;
     const std::vector<Unsigned> src2BufStrides = data.src2Strides;
@@ -56,10 +56,6 @@ ZAxpBy_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode, 
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
 
     if(loopEnd.size() == 0){
         dstBuf[0] = alpha * src1Buf[0] + beta * src2Buf[0];
@@ -100,7 +96,6 @@ ZAxpBy_fast(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode, 
 }
 
 //NOTE: Place appropriate guards
-//NOTE: Make this more efficient
 template<typename T>
 inline void
 ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
@@ -110,19 +105,6 @@ ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
 #endif
     Permutation perm = DefaultPermutation(X.Order());
     ZAxpBy(alpha, X, perm, beta, Y, perm, Z);
-//    Unsigned order = Z.Order();
-//    ZAxpByData data;
-//    data.loopShape = Z.Shape();
-//    data.src1Strides = X.Strides();
-//    data.src2Strides = Y.Strides();
-//    data.dstStrides = Z.Strides();
-//
-//    const T* src1Buf = X.LockedBuffer();
-//    const T* src2Buf = Y.LockedBuffer();
-//    T* dstBuf = Z.Buffer();
-//
-//    ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
-
 }
 
 template<typename T>
@@ -149,7 +131,7 @@ ZAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const 
 #ifndef RELEASE
         ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
 #else
-        ZAxpBy_fast(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
+        ZAxpBy_fast(alpha, beta, src1Buf, src2Buf, dstBuf, data);
 #endif
     }
 }
