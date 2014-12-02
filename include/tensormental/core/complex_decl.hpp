@@ -19,44 +19,44 @@
 namespace tmen {
 
 template<typename Real>
-std::ostream& operator<<( std::ostream& os, Complex<Real> alpha );
+std::ostream& operator<<( std::ostream& os, std::complex<Real> alpha );
 
 // For querying whether or not a scalar is complex,
-// e.g., IsComplex<Scalar>::val
+// e.g., Isstd::complex<Scalar>::val
 template<typename Real>
 struct IsComplex { enum { val=0 }; };
 template<typename Real>
-struct IsComplex<Complex<Real> > { enum { val=1 }; };
+struct IsComplex<std::complex<Real> > { enum { val=1 }; };
 
 // Return the real/imaginary part of a real or complex number
 template<typename Real>
 Real RealPart( const Real& alpha );
 template<typename Real>
-Real RealPart( const Complex<Real>& alpha );
+Real RealPart( const std::complex<Real>& alpha );
 template<typename Real>
 Real ImagPart( const Real& alpha );
 template<typename Real>
-Real ImagPart( const Complex<Real>& alpha );
+Real ImagPart( const std::complex<Real>& alpha );
 
 // Set the real/imaginary part of a real or complex number
 template<typename Real>
 void SetRealPart( Real& alpha, const Real& beta );
 template<typename Real>
-void SetRealPart( Complex<Real>& alpha, const Real& beta );
+void SetRealPart( std::complex<Real>& alpha, const Real& beta );
 template<typename Real>
 void SetImagPart( Real& alpha, const Real& beta );
 template<typename Real>
-void SetImagPart( Complex<Real>& alpha, const Real& beta );
+void SetImagPart( std::complex<Real>& alpha, const Real& beta );
 
 // Update the real/imaginary part of a real or complex number
 template<typename Real>
 void UpdateRealPart( Real& alpha, const Real& beta );
 template<typename Real>
-void UpdateRealPart( Complex<Real>& alpha, const Real& beta );
+void UpdateRealPart( std::complex<Real>& alpha, const Real& beta );
 template<typename Real>
 void UpdateImagPart( Real& alpha, const Real& beta );
 template<typename Real>
-void UpdateImagPart( Complex<Real>& alpha, const Real& beta );
+void UpdateImagPart( std::complex<Real>& alpha, const Real& beta );
 
 // Euclidean (l_2) magnitudes
 template<typename F>
@@ -70,7 +70,7 @@ BASE(F) FastAbs( const F& alpha );
 template<typename Real>
 Real Conj( const Real& alpha );
 template<typename Real>
-Complex<Real> Conj( const Complex<Real>& alpha );
+std::complex<Real> Conj( const std::complex<Real>& alpha );
 
 // Square root
 template<typename F>
@@ -131,7 +131,7 @@ F Arg( const F& alpha );
 #ifndef SWIG
 // Convert polar coordinates to the complex number
 template<typename Real>
-Complex<Real> Polar( const Real& r, const Real& theta=0 );
+std::complex<Real> Polar( const Real& r, const Real& theta=0 );
 #endif
 
 // Exponential

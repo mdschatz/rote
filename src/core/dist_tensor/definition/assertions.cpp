@@ -159,9 +159,9 @@ FULL(double);
 
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-FULL(Complex<float>);
+FULL(std::complex<float>);
 #endif
-FULL(Complex<double>);
+FULL(std::complex<double>);
 #endif
 
 
@@ -177,9 +177,9 @@ CONFORMING(float);
 CONFORMING(double);
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-CONFORMING(Complex<float>);
+CONFORMING(std::complex<float>);
 #endif // ifndef DISABLE_FLOAT
-CONFORMING(Complex<double>);
+CONFORMING(std::complex<double>);
 #endif // ifndef DISABLE_COMPLEX
 
 #endif

@@ -105,9 +105,9 @@ FULL(double);
 
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-FULL(Complex<float>);
+FULL(std::complex<float>);
 #endif
-FULL(Complex<double>);
+FULL(std::complex<double>);
 #endif
 
 } //namespace tmen

@@ -1302,9 +1302,9 @@ template class Tensor<float>;
 template class Tensor<double>;
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-template class Tensor<Complex<float> >;
+template class Tensor<std::complex<float> >;
 #endif // ifndef DISABLE_FLOAT
-template class Tensor<Complex<double> >;
+template class Tensor<std::complex<double> >;
 #endif // ifndef DISABLE_COMPLEX
 
 } // namespace tmen

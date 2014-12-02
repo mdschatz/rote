@@ -145,7 +145,7 @@ int GetCount( Status& status );
 template<typename R>
 void TaggedSend( const R* buf, int count, int to, int tag, Comm comm );
 template<typename R>
-void TaggedSend( const Complex<R>* buf, int count, int to, int tag, Comm comm );
+void TaggedSend( const std::complex<R>* buf, int count, int to, int tag, Comm comm );
 // If the tag is irrelevant
 template<typename T>
 void Send( const T* buf, int count, int to, Comm comm );
@@ -163,7 +163,7 @@ void TaggedISend
 ( const R* buf, int count, int to, int tag, Comm comm, Request& request );
 template<typename R>
 void TaggedISend
-( const Complex<R>* buf, int count, int to, int tag, Comm comm, 
+( const std::complex<R>* buf, int count, int to, int tag, Comm comm,
   Request& request );
 // If the tag is irrelevant
 template<typename T>
@@ -182,7 +182,7 @@ void TaggedISSend
 ( const R* buf, int count, int to, int tag, Comm comm, Request& request );
 template<typename R>
 void TaggedISSend
-( const Complex<R>* buf, int count, int to, int tag, Comm comm, 
+( const std::complex<R>* buf, int count, int to, int tag, Comm comm,
   Request& request );
 // If the tag is irrelevant
 template<typename T>
@@ -199,7 +199,7 @@ void ISSend( T b, int to, Comm comm, Request& request );
 template<typename R>
 void TaggedRecv( R* buf, int count, int from, int tag, Comm comm );
 template<typename R>
-void TaggedRecv( Complex<R>* buf, int count, int from, int tag, Comm comm );
+void TaggedRecv( std::complex<R>* buf, int count, int from, int tag, Comm comm );
 // If the tag is irrelevant
 template<typename T>
 void Recv( T* buf, int count, int from, Comm comm );
@@ -217,7 +217,7 @@ void TaggedIRecv
 ( R* buf, int count, int from, int tag, Comm comm, Request& request );
 template<typename R>
 void TaggedIRecv
-( Complex<R>* buf, int count, int from, int tag, Comm comm, Request& request );
+( std::complex<R>* buf, int count, int from, int tag, Comm comm, Request& request );
 // If the tag is irrelevant
 template<typename T>
 void IRecv( T* buf, int count, int from, Comm comm, Request& request );
@@ -236,8 +236,8 @@ void TaggedSendRecv
         R* rbuf, int rc, int from, int rtag, Comm comm );
 template<typename R>
 void TaggedSendRecv
-( const Complex<R>* sbuf, int sc, int to,   int stag,
-        Complex<R>* rbuf, int rc, int from, int rtag, Comm comm );
+( const std::complex<R>* sbuf, int sc, int to,   int stag,
+        std::complex<R>* rbuf, int rc, int from, int rtag, Comm comm );
 // If the tags are irrelevant
 template<typename T>
 void SendRecv
@@ -257,7 +257,7 @@ void TaggedSendRecv
 ( R* buf, int count, int to, int stag, int from, int rtag, Comm comm );
 template<typename R>
 void TaggedSendRecv
-( Complex<R>* buf, int count, int to, int stag, int from, int rtag, Comm comm );
+( std::complex<R>* buf, int count, int to, int stag, int from, int rtag, Comm comm );
 // If the tags don't matter
 template<typename T>
 void SendRecv( T* buf, int count, int to, int from, Comm comm );
@@ -270,7 +270,7 @@ void SendRecv( T* buf, int count, int to, int from, Comm comm );
 template<typename R>
 void Broadcast( R* buf, int count, int root, Comm comm );
 template<typename R>
-void Broadcast( Complex<R>* buf, int count, int root, Comm comm );
+void Broadcast( std::complex<R>* buf, int count, int root, Comm comm );
 // If the message length is one
 template<typename T>
 void Broadcast( T& b, int root, Comm comm );
@@ -283,7 +283,7 @@ void IBroadcast
 ( R* buf, int count, int root, Comm comm, Request& request );
 template<typename R>
 void IBroadcast
-( Complex<R>* buf, int count, int root, Comm comm, Request& request );
+( std::complex<R>* buf, int count, int root, Comm comm, Request& request );
 // If the message length is one
 template<typename T>
 void IBroadcast( T& b, int root, Comm comm, Request& request );
@@ -297,8 +297,8 @@ void Gather
         R* rbuf, int rc, int root, Comm comm );
 template<typename R>
 void  Gather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, int root, Comm comm );
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, int root, Comm comm );
 
 #ifdef HAVE_NONBLOCKING_COLLECTIVES
 // Non-blocking gather
@@ -309,8 +309,8 @@ void IGather
         R* rbuf, int rc, int root, Comm comm, Request& request );
 template<typename R>
 void IGather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, int root, Comm comm, Request& request );
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, int root, Comm comm, Request& request );
 #endif
 
 // Gather with variable recv sizes
@@ -321,8 +321,8 @@ void Gather
         R* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template<typename R>
 void Gather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, const int* rcs, const int* rds, 
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, const int* rcs, const int* rds,
   int root, Comm comm );
 
 // AllGather
@@ -333,8 +333,8 @@ void AllGather
         R* rbuf, int rc, Comm comm );
 template<typename R>
 void AllGather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, Comm comm );
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, Comm comm );
 
 // AllGather with variable recv sizes
 // ----------------------------------
@@ -344,8 +344,8 @@ void AllGather
         R* rbuf, const int* rcs, const int* rds, Comm comm );
 template<typename R>
 void AllGather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, const int* rcs, const int* rds, Comm comm );
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, const int* rcs, const int* rds, Comm comm );
 
 // Scatter
 // -------
@@ -355,13 +355,13 @@ void Scatter
         R* rbuf, int rc, int root, Comm comm );
 template<typename R>
 void Scatter
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, int root, Comm comm );
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, int root, Comm comm );
 // In-place option
 template<typename R>
 void Scatter( R* buf, int sc, int rc, int root, Comm comm );
 template<typename R>
-void Scatter( Complex<R>* buf, int sc, int rc, int root, Comm comm );
+void Scatter( std::complex<R>* buf, int sc, int rc, int root, Comm comm );
 
 // AllToAll
 // --------
@@ -371,8 +371,8 @@ void AllToAll
         R* rbuf, int rc, Comm comm );
 template<typename R>
 void AllToAll
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, Comm comm );
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, Comm comm );
 
 // AllToAll with non-uniform send/recv sizes
 // -----------------------------------------
@@ -382,8 +382,8 @@ void AllToAll
         R* rbuf, const int* rcs, const int* rds, Comm comm );
 template<typename R>
 void AllToAll
-( const Complex<R>* sbuf, const int* scs, const int* sds,
-        Complex<R>* rbuf, const int* rcs, const int* rds, Comm comm );
+( const std::complex<R>* sbuf, const int* scs, const int* sds,
+        std::complex<R>* rbuf, const int* rcs, const int* rds, Comm comm );
 
 // Reduce
 // ------
@@ -392,7 +392,7 @@ void Reduce
 ( const T* sbuf, T* rbuf, int count, Op op, int root, Comm comm );
 template<typename R>
 void Reduce
-( const Complex<R>* sbuf, Complex<R>* rbuf, int count, Op op, 
+( const std::complex<R>* sbuf, std::complex<R>* rbuf, int count, Op op,
   int root, Comm comm );
 // Default to mpi::SUM
 template<typename T>
@@ -409,7 +409,7 @@ T Reduce( T sb, int root, Comm comm );
 template<typename T>
 void Reduce( T* buf, int count, Op op, int root, Comm comm );
 template<typename R>
-void Reduce( Complex<R>* buf, int count, Op op, int root, Comm comm );
+void Reduce( std::complex<R>* buf, int count, Op op, int root, Comm comm );
 // Default to mpi::SUM
 template<typename T>
 void Reduce( T* buf, int count, int root, Comm comm );
@@ -420,7 +420,7 @@ template<typename T>
 void AllReduce( const T* sbuf, T* rbuf, int count, Op op, Comm comm );
 template<typename R>
 void AllReduce
-( const Complex<R>* sbuf, Complex<R>* rbuf, int count, Op op, Comm comm );
+( const std::complex<R>* sbuf, std::complex<R>* rbuf, int count, Op op, Comm comm );
 // Default to mpi::SUM
 template<typename T>
 void AllReduce( const T* sbuf, T* rbuf, int count, Comm comm );
@@ -436,7 +436,7 @@ T AllReduce( T sb, Comm comm );
 template<typename T>
 void AllReduce( T* buf, int count, Op op, Comm comm );
 template<typename R>
-void AllReduce( Complex<R>* buf, int count, Op op, Comm comm );
+void AllReduce( std::complex<R>* buf, int count, Op op, Comm comm );
 // Default to mpi::SUM
 template<typename T>
 void AllReduce( T* buf, int count, Comm comm );
@@ -448,7 +448,7 @@ void ReduceScatter
 ( R* sbuf, R* rbuf, int rc, Op op, Comm comm );
 template<typename R>
 void ReduceScatter
-( Complex<R>* sbuf, Complex<R>* rbuf, int rc, Op op, Comm comm );
+( std::complex<R>* sbuf, std::complex<R>* rbuf, int rc, Op op, Comm comm );
 // Default to mpi::SUM
 template<typename T>
 void ReduceScatter( T* sbuf, T* rbuf, int rc, Comm comm );
@@ -458,7 +458,7 @@ void ReduceScatter( T* sbuf, T* rbuf, int rc, Comm comm );
 template<typename R>
 void ReduceScatter( R* buf, int rc, Op op, Comm comm );
 template<typename R>
-void ReduceScatter( Complex<R>* buf, int rc, Op op, Comm comm );
+void ReduceScatter( std::complex<R>* buf, int rc, Op op, Comm comm );
 // Default to mpi::SUM
 template<typename T>
 void ReduceScatter( T* buf, int rc, Comm comm );
@@ -470,7 +470,7 @@ void ReduceScatter
 ( const R* sbuf, R* rbuf, const int* rcs, Op op, Comm comm );
 template<typename R>
 void ReduceScatter
-( const Complex<R>* sbuf, Complex<R>* rbuf, const int* rcs, Op op, Comm comm );
+( const std::complex<R>* sbuf, std::complex<R>* rbuf, const int* rcs, Op op, Comm comm );
 // Default to mpi::SUM
 template<typename T>
 void ReduceScatter( const T* sbuf, T* rbuf, const int* rcs, Comm comm );
@@ -555,9 +555,9 @@ inline Datatype TypeMap<unsigned long long>()
 }
 template<> inline Datatype TypeMap<float>() { return MPI_FLOAT; }
 template<> inline Datatype TypeMap<double>() { return MPI_DOUBLE; }
-template<> inline Datatype TypeMap<Complex<float> >()
+template<> inline Datatype TypeMap<std::complex<float> >()
 { return MPI_COMPLEX; }
-template<> inline Datatype TypeMap<Complex<double> >()
+template<> inline Datatype TypeMap<std::complex<double> >()
 { return MPI_DOUBLE_COMPLEX; }
 
 template<> inline Datatype TypeMap<ValueInt<Int> >()

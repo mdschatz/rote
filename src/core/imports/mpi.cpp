@@ -371,8 +371,8 @@ template int GetCount<unsigned long long>( Status& status );
 #endif
 template int GetCount<float>( Status& status );
 template int GetCount<double>( Status& status );
-template int GetCount<Complex<float> >( Status& status );
-template int GetCount<Complex<double> >( Status& status );
+template int GetCount<std::complex<float> >( Status& status );
+template int GetCount<std::complex<double> >( Status& status );
 
 template<typename R>
 void TaggedSend( const R* buf, int count, int to, int tag, Comm comm )
@@ -385,7 +385,7 @@ void TaggedSend( const R* buf, int count, int to, int tag, Comm comm )
 }
 
 template<typename R>
-void TaggedSend( const Complex<R>* buf, int count, int to, int tag, Comm comm )
+void TaggedSend( const std::complex<R>* buf, int count, int to, int tag, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Send");
@@ -393,13 +393,13 @@ void TaggedSend( const Complex<R>* buf, int count, int to, int tag, Comm comm )
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Send
-      ( const_cast<Complex<R>*>(buf), 2*count, TypeMap<R>(), to, 
+      ( const_cast<std::complex<R>*>(buf), 2*count, TypeMap<R>(), to,
         tag, comm ) );
 #else
     SafeMpi
     ( MPI_Send
-      ( const_cast<Complex<R>*>(buf), count, 
-        TypeMap<Complex<R> >(), to, tag, comm ) );
+      ( const_cast<std::complex<R>*>(buf), count,
+        TypeMap<std::complex<R> >(), to, tag, comm ) );
 #endif
 }
 
@@ -414,8 +414,8 @@ template void TaggedSend( const unsigned long long* buf, int count, int to, int 
 #endif
 template void TaggedSend( const float* buf, int count, int to, int tag, Comm comm );
 template void TaggedSend( const double* buf, int count, int to, int tag, Comm comm );
-template void TaggedSend( const Complex<float>* buf, int count, int to, int tag, Comm comm );
-template void TaggedSend( const Complex<double>* buf, int count, int to, int tag, Comm comm );
+template void TaggedSend( const std::complex<float>* buf, int count, int to, int tag, Comm comm );
+template void TaggedSend( const std::complex<double>* buf, int count, int to, int tag, Comm comm );
 
 template<typename T>
 void Send( const T* buf, int count, int to, Comm comm )
@@ -432,8 +432,8 @@ template void Send( const unsigned long long* buf, int count, int to, Comm comm 
 #endif
 template void Send( const float* buf, int count, int to, Comm comm );
 template void Send( const double* buf, int count, int to, Comm comm );
-template void Send( const Complex<float>* buf, int count, int to, Comm comm );
-template void Send( const Complex<double>* buf, int count, int to, Comm comm );
+template void Send( const std::complex<float>* buf, int count, int to, Comm comm );
+template void Send( const std::complex<double>* buf, int count, int to, Comm comm );
 
 template<typename T>
 void TaggedSend( T b, int to, int tag, Comm comm )
@@ -450,8 +450,8 @@ template void TaggedSend( unsigned long long b, int to, int tag, Comm comm );
 #endif
 template void TaggedSend( float b, int to, int tag, Comm comm );
 template void TaggedSend( double b, int to, int tag, Comm comm );
-template void TaggedSend( Complex<float> b, int to, int tag, Comm comm );
-template void TaggedSend( Complex<double> b, int to, int tag, Comm comm );
+template void TaggedSend( std::complex<float> b, int to, int tag, Comm comm );
+template void TaggedSend( std::complex<double> b, int to, int tag, Comm comm );
 
 template<typename T>
 void Send( T b, int to, Comm comm )
@@ -468,8 +468,8 @@ template void Send( unsigned long long b, int to, Comm comm );
 #endif
 template void Send( float b, int to, Comm comm );
 template void Send( double b, int to, Comm comm );
-template void Send( Complex<float> b, int to, Comm comm );
-template void Send( Complex<double> b, int to, Comm comm );
+template void Send( std::complex<float> b, int to, Comm comm );
+template void Send( std::complex<double> b, int to, Comm comm );
 
 template<typename R>
 void TaggedISend
@@ -486,7 +486,7 @@ void TaggedISend
 
 template<typename R>
 void TaggedISend
-( const Complex<R>* buf, int count, int to, int tag, Comm comm, 
+( const std::complex<R>* buf, int count, int to, int tag, Comm comm,
   Request& request )
 {
 #ifndef RELEASE
@@ -495,13 +495,13 @@ void TaggedISend
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Isend
-      ( const_cast<Complex<R>*>(buf), 2*count, TypeMap<R>(), to, tag, comm,
+      ( const_cast<std::complex<R>*>(buf), 2*count, TypeMap<R>(), to, tag, comm,
         &request ) );
 #else
     SafeMpi
     ( MPI_Isend
-      ( const_cast<Complex<R>*>(buf), count, 
-        TypeMap<Complex<R> >(), to, tag, comm, &request ) );
+      ( const_cast<std::complex<R>*>(buf), count,
+        TypeMap<std::complex<R> >(), to, tag, comm, &request ) );
 #endif
 }
 
@@ -516,8 +516,8 @@ template void TaggedISend( const unsigned long long* buf, int count, int to, int
 #endif
 template void TaggedISend( const float* buf, int count, int to, int tag, Comm comm, Request& request );
 template void TaggedISend( const double* buf, int count, int to, int tag, Comm comm, Request& request );
-template void TaggedISend( const Complex<float>* buf, int count, int to, int tag, Comm comm, Request& request );
-template void TaggedISend( const Complex<double>* buf, int count, int to, int tag, Comm comm, Request& request );
+template void TaggedISend( const std::complex<float>* buf, int count, int to, int tag, Comm comm, Request& request );
+template void TaggedISend( const std::complex<double>* buf, int count, int to, int tag, Comm comm, Request& request );
 
 template<typename T>
 void ISend
@@ -535,8 +535,8 @@ template void ISend( const unsigned long long* buf, int count, int to, Comm comm
 #endif
 template void ISend( const float* buf, int count, int to, Comm comm, Request& request );
 template void ISend( const double* buf, int count, int to, Comm comm, Request& request );
-template void ISend( const Complex<float>* buf, int count, int to, Comm comm, Request& request );
-template void ISend( const Complex<double>* buf, int count, int to, Comm comm, Request& request );
+template void ISend( const std::complex<float>* buf, int count, int to, Comm comm, Request& request );
+template void ISend( const std::complex<double>* buf, int count, int to, Comm comm, Request& request );
 
 template<typename T>
 void TaggedISend( T b, int to, int tag, Comm comm, Request& request )
@@ -553,8 +553,8 @@ template void TaggedISend( unsigned long long buf, int to, int tag, Comm comm, R
 #endif
 template void TaggedISend( float buf, int to, int tag, Comm comm, Request& request );
 template void TaggedISend( double buf, int to, int tag, Comm comm, Request& request );
-template void TaggedISend( Complex<float> buf, int to, int tag, Comm comm, Request& request );
-template void TaggedISend( Complex<double> buf, int to, int tag, Comm comm, Request& request );
+template void TaggedISend( std::complex<float> buf, int to, int tag, Comm comm, Request& request );
+template void TaggedISend( std::complex<double> buf, int to, int tag, Comm comm, Request& request );
 
 template<typename T>
 void ISend( T b, int to, Comm comm, Request& request )
@@ -571,8 +571,8 @@ template void ISend( unsigned long long buf, int to, Comm comm, Request& request
 #endif
 template void ISend( float buf, int to, Comm comm, Request& request );
 template void ISend( double buf, int to, Comm comm, Request& request );
-template void ISend( Complex<float> buf, int to, Comm comm, Request& request );
-template void ISend( Complex<double> buf, int to, Comm comm, Request& request );
+template void ISend( std::complex<float> buf, int to, Comm comm, Request& request );
+template void ISend( std::complex<double> buf, int to, Comm comm, Request& request );
 
 template<typename R>
 void TaggedISSend
@@ -589,7 +589,7 @@ void TaggedISSend
 
 template<typename R>
 void TaggedISSend
-( const Complex<R>* buf, int count, int to, int tag, Comm comm, 
+( const std::complex<R>* buf, int count, int to, int tag, Comm comm,
   Request& request )
 {
 #ifndef RELEASE
@@ -598,13 +598,13 @@ void TaggedISSend
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Issend
-      ( const_cast<Complex<R>*>(buf), 2*count, TypeMap<R>(), to, tag, comm,
+      ( const_cast<std::complex<R>*>(buf), 2*count, TypeMap<R>(), to, tag, comm,
         &request ) );
 #else
     SafeMpi
     ( MPI_Issend
-      ( const_cast<Complex<R>*>(buf), count, 
-        TypeMap<Complex<R> >(), to, tag, comm, &request ) );
+      ( const_cast<std::complex<R>*>(buf), count,
+        TypeMap<std::complex<R> >(), to, tag, comm, &request ) );
 #endif
 }
 
@@ -619,8 +619,8 @@ template void TaggedISSend( const unsigned long long* buf, int count, int to, in
 #endif
 template void TaggedISSend( const float* buf, int count, int to, int tag, Comm comm, Request& request );
 template void TaggedISSend( const double* buf, int count, int to, int tag, Comm comm, Request& request );
-template void TaggedISSend( const Complex<float>* buf, int count, int to, int tag, Comm comm, Request& request );
-template void TaggedISSend( const Complex<double>* buf, int count, int to, int tag, Comm comm, Request& request );
+template void TaggedISSend( const std::complex<float>* buf, int count, int to, int tag, Comm comm, Request& request );
+template void TaggedISSend( const std::complex<double>* buf, int count, int to, int tag, Comm comm, Request& request );
 
 template<typename T>
 void ISSend( const T* buf, int count, int to, Comm comm, Request& request )
@@ -637,8 +637,8 @@ template void ISSend( const unsigned long long* buf, int count, int to, Comm com
 #endif
 template void ISSend( const float* buf, int count, int to, Comm comm, Request& request );
 template void ISSend( const double* buf, int count, int to, Comm comm, Request& request );
-template void ISSend( const Complex<float>* buf, int count, int to, Comm comm, Request& request );
-template void ISSend( const Complex<double>* buf, int count, int to, Comm comm, Request& request );
+template void ISSend( const std::complex<float>* buf, int count, int to, Comm comm, Request& request );
+template void ISSend( const std::complex<double>* buf, int count, int to, Comm comm, Request& request );
 
 template<typename T>
 void TaggedISSend( T b, int to, int tag, Comm comm, Request& request )
@@ -655,8 +655,8 @@ template void TaggedISSend( unsigned long long b, int to, int tag, Comm comm, Re
 #endif
 template void TaggedISSend( float b, int to, int tag, Comm comm, Request& request );
 template void TaggedISSend( double b, int to, int tag, Comm comm, Request& request );
-template void TaggedISSend( Complex<float> b, int to, int tag, Comm comm, Request& request );
-template void TaggedISSend( Complex<double> b, int to, int tag, Comm comm, Request& request );
+template void TaggedISSend( std::complex<float> b, int to, int tag, Comm comm, Request& request );
+template void TaggedISSend( std::complex<double> b, int to, int tag, Comm comm, Request& request );
 
 template<typename R>
 void TaggedRecv( R* buf, int count, int from, int tag, Comm comm )
@@ -670,7 +670,7 @@ void TaggedRecv( R* buf, int count, int from, int tag, Comm comm )
 }
 
 template<typename R>
-void TaggedRecv( Complex<R>* buf, int count, int from, int tag, Comm comm )
+void TaggedRecv( std::complex<R>* buf, int count, int from, int tag, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Recv");
@@ -682,7 +682,7 @@ void TaggedRecv( Complex<R>* buf, int count, int from, int tag, Comm comm )
 #else
     SafeMpi
     ( MPI_Recv
-      ( buf, count, TypeMap<Complex<R> >(), from, tag, comm, &status ) );
+      ( buf, count, TypeMap<std::complex<R> >(), from, tag, comm, &status ) );
 #endif
 }
 
@@ -697,8 +697,8 @@ template void TaggedRecv( unsigned long long* buf, int count, int from, int tag,
 #endif
 template void TaggedRecv( float* buf, int count, int from, int tag, Comm comm );
 template void TaggedRecv( double* buf, int count, int from, int tag, Comm comm );
-template void TaggedRecv( Complex<float>* buf, int count, int from, int tag, Comm comm );
-template void TaggedRecv( Complex<double>* buf, int count, int from, int tag, Comm comm );
+template void TaggedRecv( std::complex<float>* buf, int count, int from, int tag, Comm comm );
+template void TaggedRecv( std::complex<double>* buf, int count, int from, int tag, Comm comm );
 
 template<typename T>
 void Recv( T* buf, int count, int from, Comm comm )
@@ -715,8 +715,8 @@ template void Recv( unsigned long long* buf, int count, int from, Comm comm );
 #endif
 template void Recv( float* buf, int count, int from, Comm comm );
 template void Recv( double* buf, int count, int from, Comm comm );
-template void Recv( Complex<float>* buf, int count, int from, Comm comm );
-template void Recv( Complex<double>* buf, int count, int from, Comm comm );
+template void Recv( std::complex<float>* buf, int count, int from, Comm comm );
+template void Recv( std::complex<double>* buf, int count, int from, Comm comm );
 
 template<typename T>
 T TaggedRecv( int from, int tag, Comm comm )
@@ -733,8 +733,8 @@ template unsigned long long TaggedRecv( int from, int tag, Comm comm );
 #endif
 template float TaggedRecv( int from, int tag, Comm comm );
 template double TaggedRecv( int from, int tag, Comm comm );
-template Complex<float> TaggedRecv( int from, int tag, Comm comm );
-template Complex<double> TaggedRecv( int from, int tag, Comm comm );
+template std::complex<float> TaggedRecv( int from, int tag, Comm comm );
+template std::complex<double> TaggedRecv( int from, int tag, Comm comm );
 
 template<typename T>
 T Recv( int from, Comm comm )
@@ -751,8 +751,8 @@ template unsigned long long Recv( int from, Comm comm );
 #endif
 template float Recv( int from, Comm comm );
 template double Recv( int from, Comm comm );
-template Complex<float> Recv( int from, Comm comm );
-template Complex<double> Recv( int from, Comm comm );
+template std::complex<float> Recv( int from, Comm comm );
+template std::complex<double> Recv( int from, Comm comm );
 
 template<typename R>
 void TaggedIRecv
@@ -767,7 +767,7 @@ void TaggedIRecv
 
 template<typename R>
 void TaggedIRecv
-( Complex<R>* buf, int count, int from, int tag, Comm comm, Request& request )
+( std::complex<R>* buf, int count, int from, int tag, Comm comm, Request& request )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::IRecv");
@@ -778,7 +778,7 @@ void TaggedIRecv
 #else
     SafeMpi
     ( MPI_Irecv
-      ( buf, count, TypeMap<Complex<R> >(), from, tag, comm, &request ) );
+      ( buf, count, TypeMap<std::complex<R> >(), from, tag, comm, &request ) );
 #endif
 }
 
@@ -793,8 +793,8 @@ template void TaggedIRecv( unsigned long long* buf, int count, int from, int tag
 #endif
 template void TaggedIRecv( float* buf, int count, int from, int tag, Comm comm, Request& request );
 template void TaggedIRecv( double* buf, int count, int from, int tag, Comm comm, Request& request );
-template void TaggedIRecv( Complex<float>* buf, int count, int from, int tag, Comm comm, Request& request );
-template void TaggedIRecv( Complex<double>* buf, int count, int from, int tag, Comm comm, Request& request );
+template void TaggedIRecv( std::complex<float>* buf, int count, int from, int tag, Comm comm, Request& request );
+template void TaggedIRecv( std::complex<double>* buf, int count, int from, int tag, Comm comm, Request& request );
 
 template<typename T>
 void IRecv( T* buf, int count, int from, Comm comm, Request& request )
@@ -811,8 +811,8 @@ template void IRecv( unsigned long long* buf, int count, int from, Comm comm, Re
 #endif
 template void IRecv( float* buf, int count, int from, Comm comm, Request& request );
 template void IRecv( double* buf, int count, int from, Comm comm, Request& request );
-template void IRecv( Complex<float>* buf, int count, int from, Comm comm, Request& request );
-template void IRecv( Complex<double>* buf, int count, int from, Comm comm, Request& request );
+template void IRecv( std::complex<float>* buf, int count, int from, Comm comm, Request& request );
+template void IRecv( std::complex<double>* buf, int count, int from, Comm comm, Request& request );
 
 template<typename T>
 T TaggedIRecv( int from, int tag, Comm comm, Request& request )
@@ -829,8 +829,8 @@ template unsigned long long TaggedIRecv( int from, int tag, Comm comm, Request& 
 #endif
 template float TaggedIRecv( int from, int tag, Comm comm, Request& request );
 template double TaggedIRecv( int from, int tag, Comm comm, Request& request );
-template Complex<float> TaggedIRecv( int from, int tag, Comm comm, Request& request );
-template Complex<double> TaggedIRecv( int from, int tag, Comm comm, Request& request );
+template std::complex<float> TaggedIRecv( int from, int tag, Comm comm, Request& request );
+template std::complex<double> TaggedIRecv( int from, int tag, Comm comm, Request& request );
 
 template<typename T>
 T IRecv( int from, Comm comm, Request& request )
@@ -847,8 +847,8 @@ template unsigned long long IRecv( int from, Comm comm, Request& request );
 #endif
 template float IRecv( int from, Comm comm, Request& request );
 template double IRecv( int from, Comm comm, Request& request );
-template Complex<float> IRecv( int from, Comm comm, Request& request );
-template Complex<double> IRecv( int from, Comm comm, Request& request );
+template std::complex<float> IRecv( int from, Comm comm, Request& request );
+template std::complex<double> IRecv( int from, Comm comm, Request& request );
 
 template<typename R>
 void TaggedSendRecv
@@ -868,8 +868,8 @@ void TaggedSendRecv
 
 template<typename R>
 void TaggedSendRecv
-( const Complex<R>* sbuf, int sc, int to,   int stag,
-        Complex<R>* rbuf, int rc, int from, int rtag, Comm comm )
+( const std::complex<R>* sbuf, int sc, int to,   int stag,
+        std::complex<R>* rbuf, int rc, int from, int rtag, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::SendRecv");
@@ -878,16 +878,16 @@ void TaggedSendRecv
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Sendrecv
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(), to,   stag,
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(), to,   stag,
         rbuf,                          2*rc, TypeMap<R>(), from, rtag, 
         comm, &status ) );
 #else
     SafeMpi
     ( MPI_Sendrecv
-      ( const_cast<Complex<R>*>(sbuf), 
-        sc, TypeMap<Complex<R> >(), to,   stag,
+      ( const_cast<std::complex<R>*>(sbuf),
+        sc, TypeMap<std::complex<R> >(), to,   stag,
         rbuf,                          
-        rc, TypeMap<Complex<R> >(), from, rtag, comm, &status ) );
+        rc, TypeMap<std::complex<R> >(), from, rtag, comm, &status ) );
 #endif
 }
 
@@ -921,11 +921,11 @@ template void TaggedSendRecv
 ( const double* sbuf, int sc, int to, int stag, 
         double* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const Complex<float>* sbuf, int sc, int to, int stag, 
-        Complex<float>* rbuf, int rc, int from, int rtag, Comm comm );
+( const std::complex<float>* sbuf, int sc, int to, int stag,
+        std::complex<float>* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const Complex<double>* sbuf, int sc, int to, int stag, 
-        Complex<double>* rbuf, int rc, int from, int rtag, Comm comm );
+( const std::complex<double>* sbuf, int sc, int to, int stag,
+        std::complex<double>* rbuf, int rc, int from, int rtag, Comm comm );
 
 template<typename T>
 void SendRecv
@@ -963,11 +963,11 @@ template void SendRecv
 ( const double* sbuf, int sc, int to,
         double* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const Complex<float>* sbuf, int sc, int to, 
-        Complex<float>* rbuf, int rc, int from, Comm comm );
+( const std::complex<float>* sbuf, int sc, int to,
+        std::complex<float>* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const Complex<double>* sbuf, int sc, int to, 
-        Complex<double>* rbuf, int rc, int from, Comm comm );
+( const std::complex<double>* sbuf, int sc, int to,
+        std::complex<double>* rbuf, int rc, int from, Comm comm );
 
 template<typename T>
 T TaggedSendRecv( T sb, int to, int stag, int from, int rtag, Comm comm )
@@ -997,10 +997,10 @@ template float TaggedSendRecv
 ( float sb, int to, int stag, int from, int rtag, Comm comm );
 template double TaggedSendRecv
 ( double sb, int to, int stag, int from, int rtag, Comm comm );
-template Complex<float> TaggedSendRecv
-( Complex<float> sb, int to, int stag, int from, int rtag, Comm comm );
-template Complex<double> TaggedSendRecv
-( Complex<double> sb, int to, int stag, int from, int rtag, Comm comm );
+template std::complex<float> TaggedSendRecv
+( std::complex<float> sb, int to, int stag, int from, int rtag, Comm comm );
+template std::complex<double> TaggedSendRecv
+( std::complex<double> sb, int to, int stag, int from, int rtag, Comm comm );
 
 template<typename T>
 T SendRecv( T sb, int to, int from, Comm comm )
@@ -1017,10 +1017,10 @@ template unsigned long long SendRecv( unsigned long long sb, int to, int from, C
 #endif
 template float SendRecv( float sb, int to, int from, Comm comm );
 template double SendRecv( double sb, int to, int from, Comm comm );
-template Complex<float> SendRecv
-( Complex<float> sb, int to, int from, Comm comm );
-template Complex<double> SendRecv
-( Complex<double> sb, int to, int from, Comm comm );
+template std::complex<float> SendRecv
+( std::complex<float> sb, int to, int from, Comm comm );
+template std::complex<double> SendRecv
+( std::complex<double> sb, int to, int from, Comm comm );
 
 template<typename R>
 void TaggedSendRecv
@@ -1037,7 +1037,7 @@ void TaggedSendRecv
 
 template<typename R>
 void TaggedSendRecv
-( Complex<R>* buf, int count, int to, int stag, int from, int rtag, Comm comm )
+( std::complex<R>* buf, int count, int to, int stag, int from, int rtag, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::SendRecv");
@@ -1050,7 +1050,7 @@ void TaggedSendRecv
 #else
     SafeMpi
     ( MPI_Sendrecv_replace
-      ( buf, count, TypeMap<Complex<R> >(), 
+      ( buf, count, TypeMap<std::complex<R> >(),
         to, stag, from, rtag, comm, &status ) );
 #endif
 }
@@ -1076,10 +1076,10 @@ template void TaggedSendRecv
 template void TaggedSendRecv
 ( double* buf, int count, int to, int stag, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( Complex<float>* buf, int count, int to, int stag, 
+( std::complex<float>* buf, int count, int to, int stag,
   int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( Complex<double>* buf, int count, int to, int stag, 
+( std::complex<double>* buf, int count, int to, int stag,
   int from, int rtag, Comm comm );
 
 template<typename T>
@@ -1107,9 +1107,9 @@ template void SendRecv
 template void SendRecv
 ( double* buf, int count, int to, int from, Comm comm );
 template void SendRecv
-( Complex<float>* buf, int count, int to, int from, Comm comm );
+( std::complex<float>* buf, int count, int to, int from, Comm comm );
 template void SendRecv
-( Complex<double>* buf, int count, int to, int from, Comm comm );
+( std::complex<double>* buf, int count, int to, int from, Comm comm );
 
 template<typename R>
 void Broadcast( R* buf, int count, int root, Comm comm )
@@ -1121,7 +1121,7 @@ void Broadcast( R* buf, int count, int root, Comm comm )
 }
 
 template<typename R>
-void Broadcast( Complex<R>* buf, int count, int root, Comm comm )
+void Broadcast( std::complex<R>* buf, int count, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Broadcast");
@@ -1129,7 +1129,7 @@ void Broadcast( Complex<R>* buf, int count, int root, Comm comm )
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi( MPI_Bcast( buf, 2*count, TypeMap<R>(), root, comm ) );
 #else
-    SafeMpi( MPI_Bcast( buf, count, TypeMap<Complex<R> >(), root, comm ) );
+    SafeMpi( MPI_Bcast( buf, count, TypeMap<std::complex<R> >(), root, comm ) );
 #endif
 }
 
@@ -1144,8 +1144,8 @@ template void Broadcast( unsigned long long* buf, int count, int root, Comm comm
 #endif
 template void Broadcast( float* buf, int count, int root, Comm comm );
 template void Broadcast( double* buf, int count, int root, Comm comm );
-template void Broadcast( Complex<float>* buf, int count, int root, Comm comm );
-template void Broadcast( Complex<double>* buf, int count, int root, Comm comm );
+template void Broadcast( std::complex<float>* buf, int count, int root, Comm comm );
+template void Broadcast( std::complex<double>* buf, int count, int root, Comm comm );
 
 template<typename T>
 void Broadcast( T& b, int root, Comm comm )
@@ -1162,8 +1162,8 @@ template void Broadcast( unsigned long long& b, int root, Comm comm );
 #endif
 template void Broadcast( float& b, int root, Comm comm );
 template void Broadcast( double& b, int root, Comm comm );
-template void Broadcast( Complex<float>& b, int root, Comm comm );
-template void Broadcast( Complex<double>& b, int root, Comm comm );
+template void Broadcast( std::complex<float>& b, int root, Comm comm );
+template void Broadcast( std::complex<double>& b, int root, Comm comm );
 
 #ifdef HAVE_NONBLOCKING_COLLECTIVES
 template<typename R>
@@ -1177,7 +1177,7 @@ void IBroadcast( R* buf, int count, int root, Comm comm, Request& request )
 
 template<typename R>
 void IBroadcast
-( Complex<R>* buf, int count, int root, Comm comm, Request& request )
+( std::complex<R>* buf, int count, int root, Comm comm, Request& request )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::IBroadcast");
@@ -1188,7 +1188,7 @@ void IBroadcast
 #else
     SafeMpi
     ( MPI_Ibcast
-      ( buf, count, TypeMap<Complex<R> >(), root, comm, &request ) );
+      ( buf, count, TypeMap<std::complex<R> >(), root, comm, &request ) );
 #endif
 }
 
@@ -1203,8 +1203,8 @@ template void IBroadcast( unsigned long long* buf, int count, int root, Comm com
 #endif
 template void IBroadcast( float* buf, int count, int root, Comm comm, Request& request );
 template void IBroadcast( double* buf, int count, int root, Comm comm, Request& request );
-template void IBroadcast( Complex<float>* buf, int count, int root, Comm comm, Request& request );
-template void IBroadcast( Complex<double>* buf, int count, int root, Comm comm, Request& request );
+template void IBroadcast( std::complex<float>* buf, int count, int root, Comm comm, Request& request );
+template void IBroadcast( std::complex<double>* buf, int count, int root, Comm comm, Request& request );
 
 template<typename T>
 void IBroadcast( T& b, int root, Comm comm, Request& request )
@@ -1221,8 +1221,8 @@ template void IBroadcast( unsigned long long& b, int root, Comm comm, Request& r
 #endif
 template void IBroadcast( float& b, int root, Comm comm, Request& request );
 template void IBroadcast( double& b, int root, Comm comm, Request& request );
-template void IBroadcast( Complex<float>& b, int root, Comm comm, Request& request );
-template void IBroadcast( Complex<double>& b, int root, Comm comm, Request& request );
+template void IBroadcast( std::complex<float>& b, int root, Comm comm, Request& request );
+template void IBroadcast( std::complex<double>& b, int root, Comm comm, Request& request );
 #endif // ifdef HAVE_NONBLOCKING_COLLECTIVES
 
 template<typename R>
@@ -1241,8 +1241,8 @@ void Gather
 
 template<typename R>
 void Gather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, int root, Comm comm )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Gather");
@@ -1250,13 +1250,13 @@ void Gather
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Gather
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf,                          2*rc, TypeMap<R>(), root, comm ) );
 #else
     SafeMpi
     ( MPI_Gather
-      ( const_cast<Complex<R>*>(sbuf), sc, TypeMap<Complex<R> >(),
-        rbuf,                          rc, TypeMap<Complex<R> >(), 
+      ( const_cast<std::complex<R>*>(sbuf), sc, TypeMap<std::complex<R> >(),
+        rbuf,                          rc, TypeMap<std::complex<R> >(),
         root, comm ) );
 #endif
 }
@@ -1272,8 +1272,8 @@ template void Gather( const unsigned long long* sbuf, int sc, unsigned long long
 #endif
 template void Gather( const float* sbuf, int sc, float* rbuf, int rc, int root, Comm comm );
 template void Gather( const double* sbuf, int sc, double* rbuf, int rc, int root, Comm comm );
-template void Gather( const Complex<float>* sbuf, int sc, Complex<float>* rbuf, int rc, int root, Comm comm );
-template void Gather( const Complex<double>* sbuf, int sc, Complex<double>* rbuf, int rc, int root, Comm comm );
+template void Gather( const std::complex<float>* sbuf, int sc, std::complex<float>* rbuf, int rc, int root, Comm comm );
+template void Gather( const std::complex<double>* sbuf, int sc, std::complex<double>* rbuf, int rc, int root, Comm comm );
 
 #ifdef HAVE_NONBLOCKING_COLLECTIVES
 template<typename R>
@@ -1292,8 +1292,8 @@ void IGather
 
 template<typename R>
 void IGather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, int root, Comm comm, Request& request )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, int root, Comm comm, Request& request )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::IGather");
@@ -1301,14 +1301,14 @@ void IGather
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Igather
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf,                          2*rc, TypeMap<R>(), 
         root, comm, &request ) );
 #else
     SafeMpi
     ( MPI_Igather
-      ( const_cast<Complex<R>*>(sbuf), sc, TypeMap<Complex<R> >(),
-        rbuf,                          rc, TypeMap<Complex<R> >(), 
+      ( const_cast<std::complex<R>*>(sbuf), sc, TypeMap<std::complex<R> >(),
+        rbuf,                          rc, TypeMap<std::complex<R> >(),
         root, comm, &request ) );
 #endif
 }
@@ -1343,11 +1343,11 @@ template void IGather
 ( const double* sbuf, int sc, 
         double* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const Complex<float>* sbuf, int sc, 
-        Complex<float>* rbuf, int rc, int root, Comm comm, Request& request );
+( const std::complex<float>* sbuf, int sc,
+        std::complex<float>* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const Complex<double>* sbuf, int sc, 
-        Complex<double>* rbuf, int rc, int root, Comm comm, Request& request );
+( const std::complex<double>* sbuf, int sc,
+        std::complex<double>* rbuf, int rc, int root, Comm comm, Request& request );
 #endif // ifdef HAVE_NONBLOCKING_COLLECTIVES
 
 template<typename R>
@@ -1373,8 +1373,8 @@ void Gather
 
 template<typename R>
 void Gather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, const int* rcs, const int* rds, int root, Comm comm )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, const int* rcs, const int* rds, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Gather");
@@ -1395,19 +1395,19 @@ void Gather
     }
     SafeMpi
     ( MPI_Gatherv
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf, rcsDouble.data(), rdsDouble.data(), TypeMap<R>(),
         root, comm ) );
 #else
     SafeMpi
     ( MPI_Gatherv
-      ( const_cast<Complex<R>*>(sbuf), 
+      ( const_cast<std::complex<R>*>(sbuf),
         sc,       
-        TypeMap<Complex<R> >(),
+        TypeMap<std::complex<R> >(),
         rbuf,  
         const_cast<int*>(rcs), 
         const_cast<int*>(rds), 
-        TypeMap<Complex<R> >(),
+        TypeMap<std::complex<R> >(),
         root, 
         comm ) );
 #endif
@@ -1443,12 +1443,12 @@ template void Gather
 ( const double* sbuf, int sc, 
         double* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const Complex<float>* sbuf, int sc, 
-        Complex<float>* rbuf, const int* rcs, const int* rds, 
+( const std::complex<float>* sbuf, int sc,
+        std::complex<float>* rbuf, const int* rcs, const int* rds,
   int root, Comm comm );
 template void Gather
-( const Complex<double>* sbuf, int sc, 
-        Complex<double>* rbuf, const int* rcs, const int* rds, 
+( const std::complex<double>* sbuf, int sc,
+        std::complex<double>* rbuf, const int* rcs, const int* rds,
   int root, Comm comm );
 
 template<typename R>
@@ -1474,8 +1474,8 @@ void AllGather
 
 template<typename R>
 void AllGather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, Comm comm )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::AllGather");
@@ -1483,20 +1483,20 @@ void AllGather
 #ifdef USE_BYTE_ALLGATHERS
     SafeMpi
     ( MPI_Allgather
-      ( const_cast<Complex<R>*>(sbuf), 2*sizeof(R)*sc, MPI_UNSIGNED_CHAR, 
+      ( const_cast<std::complex<R>*>(sbuf), 2*sizeof(R)*sc, MPI_UNSIGNED_CHAR,
         rbuf,                          2*sizeof(R)*rc, MPI_UNSIGNED_CHAR, 
         comm ) );
 #else
  #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Allgather
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf,                          2*rc, TypeMap<R>(), comm ) );
  #else
     SafeMpi
     ( MPI_Allgather
-      ( const_cast<Complex<R>*>(sbuf), sc, TypeMap<Complex<R> >(),
-        rbuf,                          rc, TypeMap<Complex<R> >(), comm ) );
+      ( const_cast<std::complex<R>*>(sbuf), sc, TypeMap<std::complex<R> >(),
+        rbuf,                          rc, TypeMap<std::complex<R> >(), comm ) );
  #endif
 #endif
 }
@@ -1512,8 +1512,8 @@ template void AllGather( const unsigned long long* sbuf, int sc, unsigned long l
 #endif
 template void AllGather( const float* sbuf, int sc, float* rbuf, int rc, Comm comm );
 template void AllGather( const double* sbuf, int sc, double* rbuf, int rc, Comm comm );
-template void AllGather( const Complex<float>* sbuf, int sc, Complex<float>* rbuf, int rc, Comm comm );
-template void AllGather( const Complex<double>* sbuf, int sc, Complex<double>* rbuf, int rc, Comm comm );
+template void AllGather( const std::complex<float>* sbuf, int sc, std::complex<float>* rbuf, int rc, Comm comm );
+template void AllGather( const std::complex<double>* sbuf, int sc, std::complex<double>* rbuf, int rc, Comm comm );
 
 template<typename R>
 void AllGather
@@ -1551,8 +1551,8 @@ void AllGather
 
 template<typename R>
 void AllGather
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, const int* rcs, const int* rds, Comm comm )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, const int* rcs, const int* rds, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::AllGather");
@@ -1567,7 +1567,7 @@ void AllGather
     }
     SafeMpi
     ( MPI_Allgatherv
-      ( const_cast<Complex<R>*>(sbuf), 2*sizeof(R)*sc, MPI_UNSIGNED_CHAR, 
+      ( const_cast<std::complex<R>*>(sbuf), 2*sizeof(R)*sc, MPI_UNSIGNED_CHAR,
         rbuf, byteRcs.data(), byteRds.data(), MPI_UNSIGNED_CHAR, comm ) );
 #else
  #ifdef AVOID_COMPLEX_MPI
@@ -1580,18 +1580,18 @@ void AllGather
     }
     SafeMpi
     ( MPI_Allgatherv
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf, realRcs.data(), realRds.data(), TypeMap<R>(), comm ) );
  #else
     SafeMpi
     ( MPI_Allgatherv
-      ( const_cast<Complex<R>*>(sbuf), 
+      ( const_cast<std::complex<R>*>(sbuf),
         sc, 
-        TypeMap<Complex<R> >(),
+        TypeMap<std::complex<R> >(),
         rbuf, 
         const_cast<int*>(rcs), 
         const_cast<int*>(rds), 
-        TypeMap<Complex<R> >(),
+        TypeMap<std::complex<R> >(),
         comm ) );
  #endif
 #endif
@@ -1627,11 +1627,11 @@ template void AllGather
 ( const double* sbuf, int sc, 
         double* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const Complex<float>* sbuf, int sc, 
-        Complex<float>* rbuf, const int* rcs, const int* rds, Comm comm );
+( const std::complex<float>* sbuf, int sc,
+        std::complex<float>* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const Complex<double>* sbuf, int sc, 
-        Complex<double>* rbuf, const int* rcs, const int* rds, Comm comm );
+( const std::complex<double>* sbuf, int sc,
+        std::complex<double>* rbuf, const int* rcs, const int* rds, Comm comm );
 
 template<typename R>
 void Scatter
@@ -1649,8 +1649,8 @@ void Scatter
 
 template<typename R>
 void Scatter
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, int root, Comm comm )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Scatter");
@@ -1658,13 +1658,13 @@ void Scatter
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Scatter
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf,                          2*rc, TypeMap<R>(), root, comm ) );
 #else
     SafeMpi
     ( MPI_Scatter
-      ( const_cast<Complex<R>*>(sbuf), sc, TypeMap<Complex<R> >(),
-        rbuf,                          rc, TypeMap<Complex<R> >(), 
+      ( const_cast<std::complex<R>*>(sbuf), sc, TypeMap<std::complex<R> >(),
+        rbuf,                          rc, TypeMap<std::complex<R> >(),
         root, comm ) );
 #endif
 }
@@ -1699,11 +1699,11 @@ template void Scatter
 ( const double* sbuf, int sc, 
         double* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const Complex<float>* sbuf, int sc, 
-        Complex<float>* rbuf, int rc, int root, Comm comm );
+( const std::complex<float>* sbuf, int sc,
+        std::complex<float>* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const Complex<double>* sbuf, int sc, 
-        Complex<double>* rbuf, int rc, int root, Comm comm );
+( const std::complex<double>* sbuf, int sc,
+        std::complex<double>* rbuf, int rc, int root, Comm comm );
 
 template<typename R>
 void Scatter( R* buf, int sc, int rc, int root, Comm comm )
@@ -1739,7 +1739,7 @@ void Scatter( R* buf, int sc, int rc, int root, Comm comm )
 }
 
 template<typename R>
-void Scatter( Complex<R>* buf, int sc, int rc, int root, Comm comm )
+void Scatter( std::complex<R>* buf, int sc, int rc, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Scatter");
@@ -1755,7 +1755,7 @@ void Scatter( Complex<R>* buf, int sc, int rc, int root, Comm comm )
             MPI_IN_PLACE, 2*rc, TypeMap<R>(), root, comm ) );
 # else
         const int commSize = CommSize( comm );
-        std::vector<Complex<R> > sendBuf( sc*commSize );
+        std::vector<std::complex<R> > sendBuf( sc*commSize );
         MemCopy( sendBuf.data(), buf, sc*commSize );
         SafeMpi
         ( MPI_Scatter
@@ -1766,16 +1766,16 @@ void Scatter( Complex<R>* buf, int sc, int rc, int root, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
         SafeMpi
         ( MPI_Scatter
-          ( buf,          sc, TypeMap<Complex<R> >(), 
-            MPI_IN_PLACE, rc, TypeMap<Complex<R> >(), root, comm ) );
+          ( buf,          sc, TypeMap<std::complex<R> >(),
+            MPI_IN_PLACE, rc, TypeMap<std::complex<R> >(), root, comm ) );
 # else
         const int commSize = CommSize( comm );
-        std::vector<Complex<R> > sendBuf( sc*commSize );
+        std::vector<std::complex<R> > sendBuf( sc*commSize );
         MemCopy( sendBuf.data(), buf, sc*commSize );
         SafeMpi
         ( MPI_Scatter
-          ( sendBuf.data(), sc, TypeMap<Complex<R> >(),
-            buf,            rc, TypeMap<Complex<R> >(), root, comm ) );
+          ( sendBuf.data(), sc, TypeMap<std::complex<R> >(),
+            buf,            rc, TypeMap<std::complex<R> >(), root, comm ) );
 # endif
 #endif
     }
@@ -1789,8 +1789,8 @@ void Scatter( Complex<R>* buf, int sc, int rc, int root, Comm comm )
 #else
         SafeMpi
         ( MPI_Scatter
-          ( 0,   sc, TypeMap<Complex<R> >(), 
-            buf, rc, TypeMap<Complex<R> >(), root, comm ) );
+          ( 0,   sc, TypeMap<std::complex<R> >(),
+            buf, rc, TypeMap<std::complex<R> >(), root, comm ) );
 #endif
     }
 }
@@ -1806,8 +1806,8 @@ template void Scatter( unsigned long long* buf, int sc, int rc, int root, Comm c
 #endif
 template void Scatter( float* buf, int sc, int rc, int root, Comm comm );
 template void Scatter( double* buf, int sc, int rc, int root, Comm comm );
-template void Scatter( Complex<float>* buf, int sc, int rc, int root, Comm comm );
-template void Scatter( Complex<double>* buf, int sc, int rc, int root, Comm comm );
+template void Scatter( std::complex<float>* buf, int sc, int rc, int root, Comm comm );
+template void Scatter( std::complex<double>* buf, int sc, int rc, int root, Comm comm );
 
 template<typename R>
 void AllToAll
@@ -1825,8 +1825,8 @@ void AllToAll
 
 template<typename R>
 void AllToAll
-( const Complex<R>* sbuf, int sc,
-        Complex<R>* rbuf, int rc, Comm comm )
+( const std::complex<R>* sbuf, int sc,
+        std::complex<R>* rbuf, int rc, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::AllToAll");
@@ -1834,13 +1834,13 @@ void AllToAll
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Alltoall
-      ( const_cast<Complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
+      ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
         rbuf,                          2*rc, TypeMap<R>(), comm ) );
 #else
     SafeMpi
     ( MPI_Alltoall
-      ( const_cast<Complex<R>*>(sbuf), sc, TypeMap<Complex<R> >(),
-        rbuf,                          rc, TypeMap<Complex<R> >(), comm ) );
+      ( const_cast<std::complex<R>*>(sbuf), sc, TypeMap<std::complex<R> >(),
+        rbuf,                          rc, TypeMap<std::complex<R> >(), comm ) );
 #endif
 }
 
@@ -1874,11 +1874,11 @@ template void AllToAll
 ( const double* sbuf, int sc, 
         double* rbuf, int rc, Comm comm );
 template void AllToAll
-( const Complex<float>* sbuf, int sc, 
-        Complex<float>* rbuf, int rc, Comm comm );
+( const std::complex<float>* sbuf, int sc,
+        std::complex<float>* rbuf, int rc, Comm comm );
 template void AllToAll
-( const Complex<double>* sbuf, int sc, 
-        Complex<double>* rbuf, int rc, Comm comm );
+( const std::complex<double>* sbuf, int sc,
+        std::complex<double>* rbuf, int rc, Comm comm );
 
 template<typename R>
 void AllToAll
@@ -1903,8 +1903,8 @@ void AllToAll
 
 template<typename R>
 void AllToAll
-( const Complex<R>* sbuf, const int* scs, const int* sds,
-        Complex<R>* rbuf, const int* rcs, const int* rds, Comm comm )
+( const std::complex<R>* sbuf, const int* scs, const int* sds,
+        std::complex<R>* rbuf, const int* rcs, const int* rds, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::AllToAll");
@@ -1926,20 +1926,20 @@ void AllToAll
         rdsDoubled[i] = 2*rds[i];
     SafeMpi
     ( MPI_Alltoallv
-      ( const_cast<Complex<R>*>(sbuf),
+      ( const_cast<std::complex<R>*>(sbuf),
               scsDoubled.data(), sdsDoubled.data(), TypeMap<R>(),
         rbuf, rcsDoubled.data(), rdsDoubled.data(), TypeMap<R>(), comm ) );
 #else
     SafeMpi
     ( MPI_Alltoallv
-      ( const_cast<Complex<R>*>(sbuf), 
+      ( const_cast<std::complex<R>*>(sbuf),
         const_cast<int*>(scs), 
         const_cast<int*>(sds), 
-        TypeMap<Complex<R> >(),
+        TypeMap<std::complex<R> >(),
         rbuf, 
         const_cast<int*>(rcs), 
         const_cast<int*>(rds), 
-        TypeMap<Complex<R> >(),
+        TypeMap<std::complex<R> >(),
         comm ) );
 #endif
 }
@@ -1974,11 +1974,11 @@ template void AllToAll
 ( const double* sbuf, const int* scs, const int* sds,
         double* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllToAll
-( const Complex<float>* sbuf, const int* scs, const int* sds,
-        Complex<float>* rbuf, const int* rcs, const int* rds, Comm comm );
+( const std::complex<float>* sbuf, const int* scs, const int* sds,
+        std::complex<float>* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllToAll
-( const Complex<double>* sbuf, const int* scs, const int* sds,
-        Complex<double>* rbuf, const int* rcs, const int* rds, Comm comm );
+( const std::complex<double>* sbuf, const int* scs, const int* sds,
+        std::complex<double>* rbuf, const int* rcs, const int* rds, Comm comm );
 
 template<typename T>
 void Reduce
@@ -1998,8 +1998,8 @@ void Reduce
 
 template<typename R>
 void Reduce
-( const Complex<R>* sbuf, 
-        Complex<R>* rbuf, int count, Op op, int root, Comm comm )
+( const std::complex<R>* sbuf,
+        std::complex<R>* rbuf, int count, Op op, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Reduce");
@@ -2011,21 +2011,21 @@ void Reduce
         {
             SafeMpi
             ( MPI_Reduce
-              ( const_cast<Complex<R>*>(sbuf),
+              ( const_cast<std::complex<R>*>(sbuf),
                 rbuf, 2*count, TypeMap<R>(), op, root, comm ) );
         }
         else
         {
             SafeMpi
             ( MPI_Reduce
-              ( const_cast<Complex<R>*>(sbuf),
-                rbuf, count, TypeMap<Complex<R> >(), op, root, comm ) );
+              ( const_cast<std::complex<R>*>(sbuf),
+                rbuf, count, TypeMap<std::complex<R> >(), op, root, comm ) );
         }
 #else
         SafeMpi
         ( MPI_Reduce
-          ( const_cast<Complex<R>*>(sbuf), 
-            rbuf, count, TypeMap<Complex<R> >(), op, root, comm ) );
+          ( const_cast<std::complex<R>*>(sbuf),
+            rbuf, count, TypeMap<std::complex<R> >(), op, root, comm ) );
 #endif
     }
 }
@@ -2041,8 +2041,8 @@ template void Reduce( const unsigned long long* sbuf, unsigned long long* rbuf, 
 #endif
 template void Reduce( const float* sbuf, float* rbuf, int count, Op op, int root, Comm comm );
 template void Reduce( const double* sbuf, double* rbuf, int count, Op op, int root, Comm comm );
-template void Reduce( const Complex<float>* sbuf, Complex<float>* rbuf, int count, Op op, int root, Comm comm );
-template void Reduce( const Complex<double>* sbuf, Complex<double>* rbuf, int count, Op op, int root, Comm comm );
+template void Reduce( const std::complex<float>* sbuf, std::complex<float>* rbuf, int count, Op op, int root, Comm comm );
+template void Reduce( const std::complex<double>* sbuf, std::complex<double>* rbuf, int count, Op op, int root, Comm comm );
 template void Reduce( const ValueInt<Int>* sbuf, ValueInt<Int>* rbuf, int count, Op op, int root, Comm comm );
 template void Reduce( const ValueInt<float>* sbuf, ValueInt<float>* rbuf, int count, Op op, int root, Comm comm );
 template void Reduce( const ValueInt<double>* sbuf, ValueInt<double>* rbuf, int count, Op op, int root, Comm comm );
@@ -2065,8 +2065,8 @@ template void Reduce( const unsigned long long* sbuf, unsigned long long* rbuf, 
 #endif
 template void Reduce( const float* sbuf, float* rbuf, int count, int root, Comm comm );
 template void Reduce( const double* sbuf, double* rbuf, int count, int root, Comm comm );
-template void Reduce( const Complex<float>* sbuf, Complex<float>* rbuf, int count, int root, Comm comm );
-template void Reduce( const Complex<double>* sbuf, Complex<double>* rbuf, int count, int root, Comm comm );
+template void Reduce( const std::complex<float>* sbuf, std::complex<float>* rbuf, int count, int root, Comm comm );
+template void Reduce( const std::complex<double>* sbuf, std::complex<double>* rbuf, int count, int root, Comm comm );
 template void Reduce( const ValueInt<Int>* sbuf, ValueInt<Int>* rbuf, int count, int root, Comm comm );
 template void Reduce( const ValueInt<float>* sbuf, ValueInt<float>* rbuf, int count, int root, Comm comm );
 template void Reduce( const ValueInt<double>* sbuf, ValueInt<double>* rbuf, int count, int root, Comm comm );
@@ -2093,8 +2093,8 @@ template unsigned long long Reduce( unsigned long long sb, Op op, int root, Comm
 #endif
 template float Reduce( float sb, Op op, int root, Comm comm );
 template double Reduce( double sb, Op op, int root, Comm comm );
-template Complex<float> Reduce( Complex<float> sb, Op op, int root, Comm comm );
-template Complex<double> Reduce( Complex<double> sb, Op op, int root, Comm comm );
+template std::complex<float> Reduce( std::complex<float> sb, Op op, int root, Comm comm );
+template std::complex<double> Reduce( std::complex<double> sb, Op op, int root, Comm comm );
 template ValueInt<Int> Reduce( ValueInt<Int> sb, Op op, int root, Comm comm );
 template ValueInt<float> Reduce( ValueInt<float> sb, Op op, int root, Comm comm );
 template ValueInt<double> Reduce( ValueInt<double> sb, Op op, int root, Comm comm );
@@ -2121,8 +2121,8 @@ template unsigned long long Reduce( unsigned long long sb, int root, Comm comm )
 #endif
 template float Reduce( float sb, int root, Comm comm );
 template double Reduce( double sb, int root, Comm comm );
-template Complex<float> Reduce( Complex<float> sb, int root, Comm comm );
-template Complex<double> Reduce( Complex<double> sb, int root, Comm comm );
+template std::complex<float> Reduce( std::complex<float> sb, int root, Comm comm );
+template std::complex<double> Reduce( std::complex<double> sb, int root, Comm comm );
 template ValueInt<Int> Reduce( ValueInt<Int> sb, int root, Comm comm );
 template ValueInt<float> Reduce( ValueInt<float> sb, int root, Comm comm );
 template ValueInt<double> Reduce( ValueInt<double> sb, int root, Comm comm );
@@ -2160,7 +2160,7 @@ void Reduce( T* buf, int count, Op op, int root, Comm comm )
 }
 
 template<typename R>
-void Reduce( Complex<R>* buf, int count, Op op, int root, Comm comm )
+void Reduce( std::complex<R>* buf, int count, Op op, int root, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::Reduce");
@@ -2179,7 +2179,7 @@ void Reduce( Complex<R>* buf, int count, Op op, int root, Comm comm )
                   ( MPI_IN_PLACE, buf, 2*count, TypeMap<R>(), op, 
                     root, comm ) );
 # else
-                std::vector<Complex<R> > sendBuf( count );
+                std::vector<std::complex<R> > sendBuf( count );
                 MemCopy( sendBuf.data(), buf, count );
                 SafeMpi
                 ( MPI_Reduce
@@ -2199,21 +2199,21 @@ void Reduce( Complex<R>* buf, int count, Op op, int root, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
                 SafeMpi
                 ( MPI_Reduce
-                  ( MPI_IN_PLACE, buf, count, TypeMap<Complex<R> >(), op, 
+                  ( MPI_IN_PLACE, buf, count, TypeMap<std::complex<R> >(), op,
                     root, comm ) );
 # else
-                std::vector<Complex<R> > sendBuf( count );
+                std::vector<std::complex<R> > sendBuf( count );
                 MemCopy( sendBuf.data(), buf, count );
                 SafeMpi
                 ( MPI_Reduce
-                  ( sendBuf.data(), buf, count, TypeMap<Complex<R> >(), op, 
+                  ( sendBuf.data(), buf, count, TypeMap<std::complex<R> >(), op,
                     root, comm ) );
 # endif
             }
             else
                 SafeMpi
                 ( MPI_Reduce
-                  ( buf, 0, count, TypeMap<Complex<R> >(), op, 
+                  ( buf, 0, count, TypeMap<std::complex<R> >(), op,
                     root, comm ) );
         }
 #else
@@ -2222,21 +2222,21 @@ void Reduce( Complex<R>* buf, int count, Op op, int root, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
             SafeMpi
             ( MPI_Reduce
-              ( MPI_IN_PLACE, buf, count, TypeMap<Complex<R> >(), op, 
+              ( MPI_IN_PLACE, buf, count, TypeMap<std::complex<R> >(), op,
                 root, comm ) );
 # else
-            std::vector<Complex<R> > sendBuf( count );
+            std::vector<std::complex<R> > sendBuf( count );
             MemCopy( sendBuf.data(), buf, count );
             SafeMpi
             ( MPI_Reduce
-              ( sendBuf.data(), buf, count, TypeMap<Complex<R> >(), op, 
+              ( sendBuf.data(), buf, count, TypeMap<std::complex<R> >(), op,
                 root, comm ) );
 # endif
         }
         else
             SafeMpi
             ( MPI_Reduce
-              ( buf, 0, count, TypeMap<Complex<R> >(), op, root, comm ) );
+              ( buf, 0, count, TypeMap<std::complex<R> >(), op, root, comm ) );
 #endif
     }
 }
@@ -2252,8 +2252,8 @@ template void Reduce( unsigned long long* buf, int count, Op op, int root, Comm 
 #endif
 template void Reduce( float* buf, int count, Op op, int root, Comm comm );
 template void Reduce( double* buf, int count, Op op, int root, Comm comm );
-template void Reduce( Complex<float>* buf, int count, Op op, int root, Comm comm );
-template void Reduce( Complex<double>* buf, int count, Op op, int root, Comm comm );
+template void Reduce( std::complex<float>* buf, int count, Op op, int root, Comm comm );
+template void Reduce( std::complex<double>* buf, int count, Op op, int root, Comm comm );
 template void Reduce( ValueInt<Int>* buf, int count, Op op, int root, Comm comm );
 template void Reduce( ValueInt<float>* buf, int count, Op op, int root, Comm comm );
 template void Reduce( ValueInt<double>* buf, int count, Op op, int root, Comm comm );
@@ -2276,8 +2276,8 @@ template void Reduce( unsigned long long* buf, int count, int root, Comm comm );
 #endif
 template void Reduce( float* buf, int count, int root, Comm comm );
 template void Reduce( double* buf, int count, int root, Comm comm );
-template void Reduce( Complex<float>* buf, int count, int root, Comm comm );
-template void Reduce( Complex<double>* buf, int count, int root, Comm comm );
+template void Reduce( std::complex<float>* buf, int count, int root, Comm comm );
+template void Reduce( std::complex<double>* buf, int count, int root, Comm comm );
 template void Reduce( ValueInt<Int>* buf, int count, int root, Comm comm );
 template void Reduce( ValueInt<float>* buf, int count, int root, Comm comm );
 template void Reduce( ValueInt<double>* buf, int count, int root, Comm comm );
@@ -2301,7 +2301,7 @@ void AllReduce( const T* sbuf, T* rbuf, int count, Op op, Comm comm )
 
 template<typename R>
 void AllReduce
-( const Complex<R>* sbuf, Complex<R>* rbuf, int count, Op op, Comm comm )
+( const std::complex<R>* sbuf, std::complex<R>* rbuf, int count, Op op, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::AllReduce");
@@ -2313,21 +2313,21 @@ void AllReduce
         {
             SafeMpi
             ( MPI_Allreduce
-                ( const_cast<Complex<R>*>(sbuf),
+                ( const_cast<std::complex<R>*>(sbuf),
                   rbuf, 2*count, TypeMap<R>(), op, comm ) );
         }
         else
         {
             SafeMpi
             ( MPI_Allreduce
-              ( const_cast<Complex<R>*>(sbuf),
-                rbuf, count, TypeMap<Complex<R> >(), op, comm ) );
+              ( const_cast<std::complex<R>*>(sbuf),
+                rbuf, count, TypeMap<std::complex<R> >(), op, comm ) );
         }
 #else
         SafeMpi
         ( MPI_Allreduce
-          ( const_cast<Complex<R>*>(sbuf), 
-            rbuf, count, TypeMap<Complex<R> >(), op, comm ) );
+          ( const_cast<std::complex<R>*>(sbuf),
+            rbuf, count, TypeMap<std::complex<R> >(), op, comm ) );
 #endif
     }
 }
@@ -2343,8 +2343,8 @@ template void AllReduce( const unsigned long long* sbuf, unsigned long long* rbu
 #endif
 template void AllReduce( const float* sbuf, float* rbuf, int count, Op op, Comm comm );
 template void AllReduce( const double* sbuf, double* rbuf, int count, Op op, Comm comm );
-template void AllReduce( const Complex<float>* sbuf, Complex<float>* rbuf, int count, Op op, Comm comm );
-template void AllReduce( const Complex<double>* sbuf, Complex<double>* rbuf, int count, Op op, Comm comm );
+template void AllReduce( const std::complex<float>* sbuf, std::complex<float>* rbuf, int count, Op op, Comm comm );
+template void AllReduce( const std::complex<double>* sbuf, std::complex<double>* rbuf, int count, Op op, Comm comm );
 template void AllReduce( const ValueInt<Int>* sbuf, ValueInt<Int>* rbuf, int count, Op op, Comm comm );
 template void AllReduce( const ValueInt<float>* sbuf, ValueInt<float>* rbuf, int count, Op op, Comm comm );
 template void AllReduce( const ValueInt<double>* sbuf, ValueInt<double>* rbuf, int count, Op op, Comm comm );
@@ -2367,8 +2367,8 @@ template void AllReduce( const unsigned long long* sbuf, unsigned long long* rbu
 #endif
 template void AllReduce( const float* sbuf, float* rbuf, int count, Comm comm );
 template void AllReduce( const double* sbuf, double* rbuf, int count, Comm comm );
-template void AllReduce( const Complex<float>* sbuf, Complex<float>* rbuf, int count, Comm comm );
-template void AllReduce( const Complex<double>* sbuf, Complex<double>* rbuf, int count, Comm comm );
+template void AllReduce( const std::complex<float>* sbuf, std::complex<float>* rbuf, int count, Comm comm );
+template void AllReduce( const std::complex<double>* sbuf, std::complex<double>* rbuf, int count, Comm comm );
 template void AllReduce( const ValueInt<Int>* sbuf, ValueInt<Int>* rbuf, int count, Comm comm );
 template void AllReduce( const ValueInt<float>* sbuf, ValueInt<float>* rbuf, int count, Comm comm );
 template void AllReduce( const ValueInt<double>* sbuf, ValueInt<double>* rbuf, int count, Comm comm );
@@ -2391,8 +2391,8 @@ template unsigned long long AllReduce( unsigned long long sb, Op op, Comm comm )
 #endif
 template float AllReduce( float sb, Op op, Comm comm );
 template double AllReduce( double sb, Op op, Comm comm );
-template Complex<float> AllReduce( Complex<float> sb, Op op, Comm comm );
-template Complex<double> AllReduce( Complex<double> sb, Op op, Comm comm );
+template std::complex<float> AllReduce( std::complex<float> sb, Op op, Comm comm );
+template std::complex<double> AllReduce( std::complex<double> sb, Op op, Comm comm );
 template ValueInt<Int> AllReduce( ValueInt<Int> sb, Op op, Comm comm );
 template ValueInt<float> AllReduce( ValueInt<float> sb, Op op, Comm comm );
 template ValueInt<double> AllReduce( ValueInt<double> sb, Op op, Comm comm );
@@ -2415,8 +2415,8 @@ template unsigned long long AllReduce( unsigned long long sb, Comm comm );
 #endif
 template float AllReduce( float sb, Comm comm );
 template double AllReduce( double sb, Comm comm );
-template Complex<float> AllReduce( Complex<float> sb, Comm comm );
-template Complex<double> AllReduce( Complex<double> sb, Comm comm );
+template std::complex<float> AllReduce( std::complex<float> sb, Comm comm );
+template std::complex<double> AllReduce( std::complex<double> sb, Comm comm );
 template ValueInt<Int> AllReduce( ValueInt<Int> sb, Comm comm );
 template ValueInt<float> AllReduce( ValueInt<float> sb, Comm comm );
 template ValueInt<double> AllReduce( ValueInt<double> sb, Comm comm );
@@ -2446,7 +2446,7 @@ void AllReduce( T* buf, int count, Op op, Comm comm )
 }
 
 template<typename R>
-void AllReduce( Complex<R>* buf, int count, Op op, Comm comm )
+void AllReduce( std::complex<R>* buf, int count, Op op, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::AllReduce");
@@ -2461,7 +2461,7 @@ void AllReduce( Complex<R>* buf, int count, Op op, Comm comm )
             ( MPI_Allreduce
               ( MPI_IN_PLACE, buf, 2*count, TypeMap<R>(), op, comm ) );
 # else
-            std::vector<Complex<R> > sendBuf( count );
+            std::vector<std::complex<R> > sendBuf( count );
             MemCopy( sendBuf.data(), buf, count );
             SafeMpi
             ( MPI_Allreduce
@@ -2473,14 +2473,14 @@ void AllReduce( Complex<R>* buf, int count, Op op, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
             SafeMpi
             ( MPI_Allreduce
-              ( MPI_IN_PLACE, buf, count, TypeMap<Complex<R> >(), 
+              ( MPI_IN_PLACE, buf, count, TypeMap<std::complex<R> >(),
                 op, comm ) );
 # else
-            std::vector<Complex<R> > sendBuf( count );
+            std::vector<std::complex<R> > sendBuf( count );
             MemCopy( sendBuf.data(), buf, count );
             SafeMpi
             ( MPI_Allreduce
-              ( sendBuf.data(), buf, count, TypeMap<Complex<R> >(), 
+              ( sendBuf.data(), buf, count, TypeMap<std::complex<R> >(),
                 op, comm ) );
 # endif
         }
@@ -2488,13 +2488,13 @@ void AllReduce( Complex<R>* buf, int count, Op op, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
         SafeMpi
         ( MPI_Allreduce
-          ( MPI_IN_PLACE, buf, count, TypeMap<Complex<R> >(), op, comm ) );
+          ( MPI_IN_PLACE, buf, count, TypeMap<std::complex<R> >(), op, comm ) );
 # else
-        std::vector<Complex<R> > sendBuf( count );
+        std::vector<std::complex<R> > sendBuf( count );
         MemCopy( sendBuf.data(), buf, count );
         SafeMpi
         ( MPI_Allreduce
-          ( sendBuf.data(), buf, count, TypeMap<Complex<R> >(), op, comm ) );
+          ( sendBuf.data(), buf, count, TypeMap<std::complex<R> >(), op, comm ) );
 # endif
 #endif
     }
@@ -2511,8 +2511,8 @@ template void AllReduce( unsigned long long* buf, int count, Op op, Comm comm );
 #endif
 template void AllReduce( float* buf, int count, Op op, Comm comm );
 template void AllReduce( double* buf, int count, Op op, Comm comm );
-template void AllReduce( Complex<float>* buf, int count, Op op, Comm comm );
-template void AllReduce( Complex<double>* buf, int count, Op op, Comm comm );
+template void AllReduce( std::complex<float>* buf, int count, Op op, Comm comm );
+template void AllReduce( std::complex<double>* buf, int count, Op op, Comm comm );
 template void AllReduce( ValueInt<Int>* buf, int count, Op op, Comm comm );
 template void AllReduce( ValueInt<float>* buf, int count, Op op, Comm comm );
 template void AllReduce( ValueInt<double>* buf, int count, Op op, Comm comm );
@@ -2535,8 +2535,8 @@ template void AllReduce( unsigned long long* buf, int count, Comm comm );
 #endif
 template void AllReduce( float* buf, int count, Comm comm );
 template void AllReduce( double* buf, int count, Comm comm );
-template void AllReduce( Complex<float>* buf, int count, Comm comm );
-template void AllReduce( Complex<double>* buf, int count, Comm comm );
+template void AllReduce( std::complex<float>* buf, int count, Comm comm );
+template void AllReduce( std::complex<double>* buf, int count, Comm comm );
 template void AllReduce( ValueInt<Int>* buf, int count, Comm comm );
 template void AllReduce( ValueInt<float>* buf, int count, Comm comm );
 template void AllReduce( ValueInt<double>* buf, int count, Comm comm );
@@ -2567,7 +2567,7 @@ void ReduceScatter( R* sbuf, R* rbuf, int rc, Op op, Comm comm )
 
 template<typename R>
 void ReduceScatter
-( Complex<R>* sbuf, Complex<R>* rbuf, int rc, Op op, Comm comm )
+( std::complex<R>* sbuf, std::complex<R>* rbuf, int rc, Op op, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::ReduceScatter");
@@ -2584,7 +2584,7 @@ void ReduceScatter
 # else
     SafeMpi
     ( MPI_Reduce_scatter_block
-      ( sbuf, rbuf, rc, TypeMap<Complex<R> >(), op, comm ) );
+      ( sbuf, rbuf, rc, TypeMap<std::complex<R> >(), op, comm ) );
 # endif
 #else
     const int commSize = CommSize( comm );
@@ -2604,8 +2604,8 @@ template void ReduceScatter( unsigned long long* sbuf, unsigned long long* rbuf,
 #endif
 template void ReduceScatter( float* sbuf, float* rbuf, int rc, Op op, Comm comm );
 template void ReduceScatter( double* sbuf, double* rbuf, int rc, Op op, Comm comm );
-template void ReduceScatter( Complex<float>* sbuf, Complex<float>* rbuf, int rc, Op op, Comm comm );
-template void ReduceScatter( Complex<double>* sbuf, Complex<double>* rbuf, int rc, Op op, Comm comm );
+template void ReduceScatter( std::complex<float>* sbuf, std::complex<float>* rbuf, int rc, Op op, Comm comm );
+template void ReduceScatter( std::complex<double>* sbuf, std::complex<double>* rbuf, int rc, Op op, Comm comm );
 
 template<typename T>
 void ReduceScatter( T* sbuf, T* rbuf, int rc, Comm comm )
@@ -2622,8 +2622,8 @@ template void ReduceScatter( unsigned long long* sbuf, unsigned long long* rbuf,
 #endif
 template void ReduceScatter( float* sbuf, float* rbuf, int rc, Comm comm );
 template void ReduceScatter( double* sbuf, double* rbuf, int rc, Comm comm );
-template void ReduceScatter( Complex<float>* sbuf, Complex<float>* rbuf, int rc, Comm comm );
-template void ReduceScatter( Complex<double>* sbuf, Complex<double>* rbuf, int rc, Comm comm );
+template void ReduceScatter( std::complex<float>* sbuf, std::complex<float>* rbuf, int rc, Comm comm );
+template void ReduceScatter( std::complex<double>* sbuf, std::complex<double>* rbuf, int rc, Comm comm );
 
 template<typename T>
 T ReduceScatter( T sb, Op op, Comm comm )
@@ -2640,8 +2640,8 @@ template unsigned long long ReduceScatter( unsigned long long sb, Op op, Comm co
 #endif
 template float ReduceScatter( float sb, Op op, Comm comm );
 template double ReduceScatter( double sb, Op op, Comm comm );
-template Complex<float> ReduceScatter( Complex<float> sb, Op op, Comm comm );
-template Complex<double> ReduceScatter( Complex<double> sb, Op op, Comm comm );
+template std::complex<float> ReduceScatter( std::complex<float> sb, Op op, Comm comm );
+template std::complex<double> ReduceScatter( std::complex<double> sb, Op op, Comm comm );
 
 template<typename T>
 T ReduceScatter( T sb, Comm comm )
@@ -2658,8 +2658,8 @@ template unsigned long long ReduceScatter( unsigned long long sb, Comm comm );
 #endif
 template float ReduceScatter( float sb, Comm comm );
 template double ReduceScatter( double sb, Comm comm );
-template Complex<float> ReduceScatter( Complex<float> sb, Comm comm );
-template Complex<double> ReduceScatter( Complex<double> sb, Comm comm );
+template std::complex<float> ReduceScatter( std::complex<float> sb, Comm comm );
+template std::complex<double> ReduceScatter( std::complex<double> sb, Comm comm );
 
 template<typename R>
 void ReduceScatter( R* buf, int rc, Op op, Comm comm )
@@ -2695,7 +2695,7 @@ void ReduceScatter( R* buf, int rc, Op op, Comm comm )
 
 // TODO: Handle case where op is not summation
 template<typename R>
-void ReduceScatter( Complex<R>* buf, int rc, Op op, Comm comm )
+void ReduceScatter( std::complex<R>* buf, int rc, Op op, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::ReduceScatter");
@@ -2714,7 +2714,7 @@ void ReduceScatter( Complex<R>* buf, int rc, Op op, Comm comm )
       ( MPI_IN_PLACE, buf, 2*rc, TypeMap<R>(), op, comm ) );
 #  else 
     const int commSize = CommSize( comm );
-    std::vector<Complex<R> > sendBuf( rc*commSize );
+    std::vector<std::complex<R> > sendBuf( rc*commSize );
     MemCopy( sendBuf.data(), buf, rc*commSize );
     SafeMpi
     ( MPI_Reduce_scatter_block
@@ -2724,14 +2724,14 @@ void ReduceScatter( Complex<R>* buf, int rc, Op op, Comm comm )
 #  ifdef HAVE_MPI_IN_PLACE
     SafeMpi
     ( MPI_Reduce_scatter_block
-      ( MPI_IN_PLACE, buf, rc, TypeMap<Complex<R> >(), op, comm ) );
+      ( MPI_IN_PLACE, buf, rc, TypeMap<std::complex<R> >(), op, comm ) );
 #  else
     const int commSize = CommSize( comm );
-    std::vector<Complex<R> > sendBuf( rc*commSize );
+    std::vector<std::complex<R> > sendBuf( rc*commSize );
     MemCopy( sendBuf.data(), buf, rc*commSize );
     SafeMpi
     ( MPI_Reduce_scatter_block
-      ( sendBuf.data(), buf, rc, TypeMap<Complex<R> >(), op, comm ) );
+      ( sendBuf.data(), buf, rc, TypeMap<std::complex<R> >(), op, comm ) );
 #  endif
 # endif
 #else
@@ -2752,8 +2752,8 @@ template void ReduceScatter( unsigned long long* buf, int rc, Op op, Comm comm )
 #endif
 template void ReduceScatter( float* buf, int rc, Op op, Comm comm );
 template void ReduceScatter( double* buf, int rc, Op op, Comm comm );
-template void ReduceScatter( Complex<float>* buf, int rc, Op op, Comm comm );
-template void ReduceScatter( Complex<double>* buf, int rc, Op op, Comm comm );
+template void ReduceScatter( std::complex<float>* buf, int rc, Op op, Comm comm );
+template void ReduceScatter( std::complex<double>* buf, int rc, Op op, Comm comm );
 
 template<typename T>
 void ReduceScatter( T* buf, int rc, Comm comm )
@@ -2770,8 +2770,8 @@ template void ReduceScatter( unsigned long long* buf, int rc, Comm comm );
 #endif
 template void ReduceScatter( float* buf, int rc, Comm comm );
 template void ReduceScatter( double* buf, int rc, Comm comm );
-template void ReduceScatter( Complex<float>* buf, int rc, Comm comm );
-template void ReduceScatter( Complex<double>* buf, int rc, Comm comm );
+template void ReduceScatter( std::complex<float>* buf, int rc, Comm comm );
+template void ReduceScatter( std::complex<double>* buf, int rc, Comm comm );
 
 template<typename R>
 void ReduceScatter
@@ -2788,7 +2788,7 @@ void ReduceScatter
 
 template<typename R>
 void ReduceScatter
-( const Complex<R>* sbuf, Complex<R>* rbuf, const int* rcs, Op op, Comm comm )
+( const std::complex<R>* sbuf, std::complex<R>* rbuf, const int* rcs, Op op, Comm comm )
 {
 #ifndef RELEASE
     CallStackEntry entry("mpi::ReduceScatter");
@@ -2803,22 +2803,22 @@ void ReduceScatter
             rcsDoubled[i] = 2*rcs[i];
         SafeMpi
         ( MPI_Reduce_scatter
-          ( const_cast<Complex<R>*>(sbuf),
+          ( const_cast<std::complex<R>*>(sbuf),
             rbuf, rcsDoubled.data(), TypeMap<R>(), op, comm ) );
     }
     else
     {
         SafeMpi
         ( MPI_Reduce_scatter
-          ( const_cast<Complex<R>*>(sbuf),
-            rbuf, const_cast<int*>(rcs), TypeMap<Complex<R> >(), 
+          ( const_cast<std::complex<R>*>(sbuf),
+            rbuf, const_cast<int*>(rcs), TypeMap<std::complex<R> >(),
             op, comm ) );
     }
 #else
     SafeMpi
     ( MPI_Reduce_scatter
-      ( const_cast<Complex<R>*>(sbuf), 
-        rbuf, const_cast<int*>(rcs), TypeMap<Complex<R> >(), op, comm ) );
+      ( const_cast<std::complex<R>*>(sbuf),
+        rbuf, const_cast<int*>(rcs), TypeMap<std::complex<R> >(), op, comm ) );
 #endif
 }
 
@@ -2833,8 +2833,8 @@ template void ReduceScatter( const unsigned long long* sbuf, unsigned long long*
 #endif
 template void ReduceScatter( const float* sbuf, float* rbuf, const int* rcs, Op op, Comm comm );
 template void ReduceScatter( const double* sbuf, double* rbuf, const int* rcs, Op op, Comm comm );
-template void ReduceScatter( const Complex<float>* sbuf, Complex<float>* rbuf, const int* rcs, Op op, Comm comm );
-template void ReduceScatter( const Complex<double>* sbuf, Complex<double>* rbuf, const int* rcs, Op op, Comm comm );
+template void ReduceScatter( const std::complex<float>* sbuf, std::complex<float>* rbuf, const int* rcs, Op op, Comm comm );
+template void ReduceScatter( const std::complex<double>* sbuf, std::complex<double>* rbuf, const int* rcs, Op op, Comm comm );
 
 template<typename T>
 void ReduceScatter( const T* sbuf, T* rbuf, const int* rcs, Comm comm )
@@ -2851,8 +2851,8 @@ template void ReduceScatter( const unsigned long long* sbuf, unsigned long long*
 #endif
 template void ReduceScatter( const float* sbuf, float* rbuf, const int* rcs, Comm comm );
 template void ReduceScatter( const double* sbuf, double* rbuf, const int* rcs, Comm comm );
-template void ReduceScatter( const Complex<float>* sbuf, Complex<float>* rbuf, const int* rcs, Comm comm );
-template void ReduceScatter( const Complex<double>* sbuf, Complex<double>* rbuf, const int* rcs, Comm comm );
+template void ReduceScatter( const std::complex<float>* sbuf, std::complex<float>* rbuf, const int* rcs, Comm comm );
+template void ReduceScatter( const std::complex<double>* sbuf, std::complex<double>* rbuf, const int* rcs, Comm comm );
 
 } // namespace mpi
 } // namespace tmen

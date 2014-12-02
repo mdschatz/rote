@@ -26,8 +26,8 @@ public:
     ~Memory();
 
 #ifndef SWIG
-    Memory( Memory<G>&& mem );
-    Memory<G>& operator=( Memory<G>&& mem );
+//    Memory( Memory<G>&& mem );
+//    Memory<G>& operator=( Memory<G>&& mem );
 #endif
     void Swap( Memory<G>& mem );
 

@@ -14,7 +14,7 @@
 namespace tmen {
 
 template<typename Real>
-std::ostream& operator<<( std::ostream& os, Complex<Real> alpha )
+std::ostream& operator<<( std::ostream& os, std::complex<Real> alpha )
 {
     os << alpha.real() << "+" << alpha.imag() << "i";
     return os;
@@ -27,7 +27,7 @@ RealPart( const Real& alpha )
 
 template<typename Real>
 inline Real
-RealPart( const Complex<Real>& alpha )
+RealPart( const std::complex<Real>& alpha )
 { return alpha.real(); }
 
 template<typename Real>
@@ -37,7 +37,7 @@ ImagPart( const Real& alpha )
 
 template<typename Real>
 inline Real
-ImagPart( const Complex<Real>& alpha )
+ImagPart( const std::complex<Real>& alpha )
 { return alpha.imag(); }
 
 template<typename Real>
@@ -47,7 +47,7 @@ SetRealPart( Real& alpha, const Real& beta )
 
 template<typename Real>
 inline void
-SetRealPart( Complex<Real>& alpha, const Real& beta )
+SetRealPart( std::complex<Real>& alpha, const Real& beta )
 { alpha.real(beta); }
 
 template<typename Real>
@@ -62,7 +62,7 @@ SetImagPart( Real& alpha, const Real& beta )
 
 template<typename Real>
 inline void
-SetImagPart( Complex<Real>& alpha, const Real& beta )
+SetImagPart( std::complex<Real>& alpha, const Real& beta )
 { alpha.imag(beta); }
 
 template<typename Real>
@@ -72,7 +72,7 @@ UpdateRealPart( Real& alpha, const Real& beta )
 
 template<typename Real>
 inline void
-UpdateRealPart( Complex<Real>& alpha, const Real& beta )
+UpdateRealPart( std::complex<Real>& alpha, const Real& beta )
 { alpha.real( alpha.real()+beta ); }
 
 template<typename Real>
@@ -87,7 +87,7 @@ UpdateImagPart( Real& alpha, const Real& beta )
 
 template<typename Real>
 inline void
-UpdateImagPart( Complex<Real>& alpha, const Real& beta )
+UpdateImagPart( std::complex<Real>& alpha, const Real& beta )
 { alpha.imag( alpha.imag()+beta ); }
 
 template<typename F>
@@ -106,9 +106,9 @@ Conj( const Real& alpha )
 { return alpha; }
 
 template<typename Real>
-inline Complex<Real>
-Conj( const Complex<Real>& alpha )
-{ return Complex<Real>(alpha.real(),-alpha.imag()); }
+inline std::complex<Real>
+Conj( const std::complex<Real>& alpha )
+{ return std::complex<Real>(alpha.real(),-alpha.imag()); }
 
 template<typename F>
 inline F
@@ -186,7 +186,7 @@ Arg( const F& alpha )
 { return Atan2( ImagPart(alpha), RealPart(alpha) ); }
 
 template<typename Real>
-inline Complex<Real>
+inline std::complex<Real>
 Polar( const Real& r, const Real& theta )
 { return std::polar(r,theta); }
 

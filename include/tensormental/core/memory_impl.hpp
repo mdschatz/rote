@@ -26,16 +26,16 @@ Memory<G>::Memory( std::size_t size )
 : size_(0), buffer_(nullptr)
 { Require( size ); }
 
-template<typename G>
-inline
-Memory<G>::Memory( Memory<G>&& mem )
-: size_(mem.size_), buffer_(nullptr)
-{ Swap(mem); }
+//template<typename G>
+//inline
+//Memory<G>::Memory( Memory<G>&& mem )
+//: size_(mem.size_), buffer_(nullptr)
+//{ Swap(mem); }
 
-template<typename G>
-inline Memory<G>&
-Memory<G>::operator=( Memory<G>&& mem )
-{ Swap( mem ); return *this; }
+//template<typename G>
+//inline Memory<G>&
+//Memory<G>::operator=( Memory<G>&& mem )
+//{ Swap( mem ); return *this; }
 
 template<typename G>
 inline void
