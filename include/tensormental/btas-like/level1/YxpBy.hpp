@@ -41,7 +41,7 @@ YxpByHelper(const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const
 
 template<typename T>
 inline void
-YxpBy_fast(T beta, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
+YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     const std::vector<Unsigned> dstBufStrides = data.dstStrides;
@@ -62,31 +62,228 @@ YxpBy_fast(T beta, T const * const srcBuf, T * const dstBuf, const YxpByData& da
 
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-    while(!done){
+    if(alpha == T(1) && beta == T(1)){
+        while(!done){
 
-        dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta * dstBuf[dstBufPtr];
-        //Update
-        curLoc[ptr]++;
-        dstBufPtr += dstBufStrides[ptr];
-        srcBufPtr += srcBufStrides[ptr];
-        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-            curLoc[ptr] = 0;
+            dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
+            //Update
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+            while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+                curLoc[ptr] = 0;
 
-            dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-            ptr++;
-            if(ptr >= order){
-                done = true;
-                break;
-            }else{
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
+                dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+                srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+                ptr++;
+                if(ptr >= order){
+                    done = true;
+                    break;
+                }else{
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
             }
+            if(done)
+                break;
+            ptr = 0;
         }
-        if(done)
-            break;
-        ptr = 0;
+    }else if(alpha == T(1) && beta != T(1)){
+        while(!done){
+
+            dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta * dstBuf[dstBufPtr];
+            //Update
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+            while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+                srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+                ptr++;
+                if(ptr >= order){
+                    done = true;
+                    break;
+                }else{
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
+            }
+            if(done)
+                break;
+            ptr = 0;
+        }
+    }else if(alpha != T(1) && beta == T(1)){
+        while(!done){
+
+            dstBuf[dstBufPtr] = alpha * srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
+            //Update
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+            while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+                srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+                ptr++;
+                if(ptr >= order){
+                    done = true;
+                    break;
+                }else{
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
+            }
+            if(done)
+                break;
+            ptr = 0;
+        }
+    }else{
+        while(!done){
+
+            dstBuf[dstBufPtr] = alpha * srcBuf[srcBufPtr] + beta * dstBuf[dstBufPtr];
+            //Update
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+            while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+                curLoc[ptr] = 0;
+
+                dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+                srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+                ptr++;
+                if(ptr >= order){
+                    done = true;
+                    break;
+                }else{
+                    curLoc[ptr]++;
+                    dstBufPtr += dstBufStrides[ptr];
+                    srcBufPtr += srcBufStrides[ptr];
+                }
+            }
+            if(done)
+                break;
+            ptr = 0;
+        }
+    }
+}
+
+//NOTE: Place appropriate guards
+template<typename T>
+inline void
+Yxpy( const Tensor<T>& X, Tensor<T>& Y )
+{
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Permutation permXToY = DefaultPermutation(X.Order());
+    YxpBy(X, permXToY, Y);
+}
+
+template<typename T>
+inline void
+Yxpy( const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y){
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Unsigned order = Y.Order();
+    YxpByData data;
+    data.loopShape = Y.Shape();
+    data.srcStrides = PermuteVector(X.Strides(), permXToY);
+    data.dstStrides = Y.Strides();
+
+    const T* srcBuf = X.LockedBuffer();
+    T* dstBuf = Y.Buffer();
+
+    if(order == 0)
+        dstBuf[0] = srcBuf[0] + dstBuf[0];
+    else{
+#ifndef RELEASE
+        YxpByHelper(X, T(1), Y, order-1, srcBuf, dstBuf, data);
+#else
+        YAxpBy_fast(T(1), T(1), srcBuf, dstBuf, data);
+#endif
+    }
+}
+
+//NOTE: Place appropriate guards
+template<typename T>
+inline void
+YAxpy( T alpha, const Tensor<T>& X, Tensor<T>& Y )
+{
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Permutation permXToY = DefaultPermutation(X.Order());
+    YAxpy(X, permXToY, Y);
+}
+
+template<typename T>
+inline void
+YAxpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y){
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Unsigned order = Y.Order();
+    YxpByData data;
+    data.loopShape = Y.Shape();
+    data.srcStrides = PermuteVector(X.Strides(), permXToY);
+    data.dstStrides = Y.Strides();
+
+    const T* srcBuf = X.LockedBuffer();
+    T* dstBuf = Y.Buffer();
+
+    if(order == 0)
+        dstBuf[0] = alpha*srcBuf[0] + dstBuf[0];
+    else{
+#ifndef RELEASE
+        YxpByHelper(X, T(1), Y, order-1, srcBuf, dstBuf, data);
+#else
+        YAxpBy_fast(alpha, T(1), srcBuf, dstBuf, data);
+#endif
+    }
+}
+
+//NOTE: Place appropriate guards
+template<typename T>
+inline void
+YAxpBy( T alpha, const Tensor<T>& X, T beta, Tensor<T>& Y )
+{
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Permutation permXToY = DefaultPermutation(X.Order());
+    YAxpBy(alpha, X, permXToY, beta, Y);
+}
+
+template<typename T>
+inline void
+YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
+#ifndef RELEASE
+    CallStackEntry entry("YxpBy");
+#endif
+    Unsigned order = Y.Order();
+    YxpByData data;
+    data.loopShape = Y.Shape();
+    data.srcStrides = PermuteVector(X.Strides(), permXToY);
+    data.dstStrides = Y.Strides();
+
+    const T* srcBuf = X.LockedBuffer();
+    T* dstBuf = Y.Buffer();
+
+    if(order == 0)
+        dstBuf[0] = alpha*srcBuf[0] + beta*dstBuf[0];
+    else{
+#ifndef RELEASE
+        YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
+#else
+        YAxpBy_fast(alpha, beta, srcBuf, dstBuf, data);
+#endif
     }
 }
 
@@ -123,7 +320,7 @@ YxpBy( const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
 #ifndef RELEASE
         YxpByHelper(X, beta, Y, order-1, srcBuf, dstBuf, data);
 #else
-        YxpBy_fast(beta, srcBuf, dstBuf, data);
+        YAxpBy_fast(T(1), beta, srcBuf, dstBuf, data);
 #endif
     }
 }

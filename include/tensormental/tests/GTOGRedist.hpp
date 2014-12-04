@@ -5,7 +5,7 @@
 #include "tensormental/tests/AllRedists.hpp"
 using namespace tmen;
 
-typedef std::pair< std::pair<ModeArray, std::vector<ModeArray>>, TensorDistribution> GTOGTest;
+typedef std::pair< std::pair<ModeArray, std::vector<ModeArray> >, TensorDistribution> GTOGTest;
 
 template<typename T>
 TensorDistribution
@@ -22,7 +22,7 @@ DetermineResultingDistributionGTOG(const DistTensor<T>& A, const ModeArray& gMod
 
 template<typename T>
 void
-CreateGTOGTestsHelper(const DistTensor<T>& A, const ModeArray& gModes, Unsigned pos, const std::vector<std::vector<ModeArray>>& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<GTOGTest>& tests){
+CreateGTOGTestsHelper(const DistTensor<T>& A, const ModeArray& gModes, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<GTOGTest>& tests){
 
 //    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == gModes.size()){
