@@ -2,16 +2,17 @@
 
 # The serial compilers are typically set here, but, at least at some point,
 # it was easier to set them to the MPI compilers.
-set(MPI_ROOT  "/bgsys/drivers/ppcfloor/comm/gcc")
-set(CMAKE_C_COMPILER       ${MPI_ROOT}/bin/mpicc)
-set(CMAKE_CXX_COMPILER     ${MPI_ROOT}/bin/mpicxx)
-set(CMAKE_Fortran_COMPILER ${MPI_ROOT}/bin/mpif77)
+set(MPI_ROOT  "/bgsys/drivers/V1R2M2/ppc64/comm")
+#set(MPI_ROOT  "/bgsys/drivers/ppcfloor/comm")
+set(CMAKE_C_COMPILER       ${MPI_ROOT}/bin/gcc/mpicc)
+set(CMAKE_CXX_COMPILER     ${MPI_ROOT}/bin/gcc/mpicxx)
+set(CMAKE_Fortran_COMPILER ${MPI_ROOT}/bin/gcc/mpif77)
 
 # The MPI wrappers for the C and C++ compilers
-set(MPI_C_COMPILER   ${MPI_ROOT}/bin/mpicc)
-set(MPI_CXX_COMPILER ${MPI_ROOT}/bin/mpicxx)
+set(MPI_C_COMPILER   ${MPI_ROOT}/bin/gcc/mpicc)
+set(MPI_CXX_COMPILER ${MPI_ROOT}/bin/gcc/mpicxx)
 
-set(PAMI_ROOT "/bgsys/drivers/ppcfloor/comm/sys")
+set(PAMI_ROOT "/bgsys/drivers/ppcfloor/comm")
 set(SPI_ROOT  "/bgsys/drivers/ppcfloor/spi")
 set(MPI_C_COMPILE_FLAGS   "")
 set(MPI_CXX_COMPILE_FLAGS "")
@@ -19,14 +20,14 @@ set(MPI_C_INCLUDE_PATH   "${MPI_ROOT}/include")
 set(MPI_CXX_INCLUDE_PATH "${MPI_ROOT}/include")
 set(MPI_C_LINK_FLAGS   "-L${MPI_ROOT}/lib -L${PAMI_ROOT}/lib -L${SPI_ROOT}/lib")
 set(MPI_CXX_LINK_FLAGS ${MPI_C_LINK_FLAGS})
-set(MPI_C_LIBRARIES "-lmpich -lopa -lmpl -ldl -lpami -lSPI -lSPI_cnk -lpthread -lrt -lstdc++")
-set(MPI_CXX_LIBRARIES "-lcxxmpich ${MPI_C_LIBRARIES}")
+set(MPI_C_LIBRARIES "-lmpich-gcc -lopa-gcc -lmpl-gcc -ldl -lpami-gcc -lSPI -lSPI_cnk -lpthread -lrt -lstdc++ -lpthread")
+set(MPI_CXX_LIBRARIES "-lmpichcxx-gcc ${MPI_C_LIBRARIES}")
 
 if(CMAKE_BUILD_TYPE MATCHES PureDebug OR
    CMAKE_BUILD_TYPE MATCHES HybridDebug)
-  set(CXX_FLAGS "-g -std=c++11")
+  set(CXX_FLAGS "${CXX_FLAGS} -DBGQ -g -std=c++0x")
 else()
-  set(CXX_FLAGS "-g -O3 -std=c++11")
+  set(CXX_FLAGS "${CXX_FLAGS} -DBGQ -g -O3 -std=c++0x")
 endif()
 
 set(CMAKE_THREAD_LIBS_INIT "-fopenmp")
@@ -72,4 +73,4 @@ endif()
 
 #set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 #set(CMAKE_EXE_LINKER_FLAGS "-static")
-set(MATH_LIBS "${LAPACK_FLAGS} ${ESSL_FLAGS} ${XLF_FLAGS} ${XL_FLAGS} -lxlopt -lxlfmath -lxl -lgfortran -lm -lpthread -ldl -Wl,--allow-multiple-definition")
+set(MATH_LIBS "${ESSL_FLAGS} ${XLF_FLAGS} ${XL_FLAGS} -lxlopt -lxlfmath -lxl -lgfortran -lm -lpthread -ldl -Wl,--allow-multiple-definition")

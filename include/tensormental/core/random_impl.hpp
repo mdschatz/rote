@@ -77,21 +77,21 @@ SampleBall<double>( double center, double radius )
 { return Uniform<double>(center-radius/2,center+radius/2); }
 
 template<>
-inline Complex<float>
-SampleBall<Complex<float> >( Complex<float> center, float radius )
+inline std::complex<float>
+SampleBall<std::complex<float> >( std::complex<float> center, float radius )
 {
     const float r = Uniform<float>(0,radius);
     const float angle = Uniform<float>(0.f,float(2*Pi));
-    return center + Complex<float>(r*cos(angle),r*sin(angle));
+    return center + std::complex<float>(r*cos(angle),r*sin(angle));
 }
 
 template<>
-inline Complex<double>
-SampleBall<Complex<double> >( Complex<double> center, double radius )
+inline std::complex<double>
+SampleBall<std::complex<double> >( std::complex<double> center, double radius )
 {
     const double r = Uniform<double>(0,radius);
     const double angle = Uniform<double>(0.,2*Pi);
-    return center + Complex<double>(r*cos(angle),r*sin(angle));
+    return center + std::complex<double>(r*cos(angle),r*sin(angle));
 }
 
 // I'm not certain if there is any good way to define this

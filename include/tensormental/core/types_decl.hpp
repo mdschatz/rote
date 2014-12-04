@@ -96,20 +96,20 @@ struct ElemSelectData{
     Permutation permutation;
 };
 
-template<typename Real>
-using Complex = std::complex<Real>;
+//template<typename Real>
+//using Complex = std::complex<Real>;
 
-typedef Complex<float>  scomplex; 
-typedef Complex<double> dcomplex;
+typedef std::complex<float>  scomplex;
+typedef std::complex<double> dcomplex;
 
 // For extracting the underlying real datatype, 
 // e.g., typename Base<Scalar>::type a = 3.0;
 template<typename Real>
 struct Base { typedef Real type; };
 template<typename Real>
-struct Base<Complex<Real> > { typedef Real type; };
+struct Base<std::complex<Real> > { typedef Real type; };
 #define BASE(F) typename Base<F>::type 
-#define COMPLEX(F) Complex<BASE(F)>
+#define COMPLEX(F) std::complex<BASE(F)>
 
 template<typename Real>
 struct ValueInt
@@ -124,9 +124,9 @@ struct ValueInt
 };
 
 template<typename Real>
-struct ValueInt<Complex<Real> >
+struct ValueInt<std::complex<Real> >
 {
-    Complex<Real> value;
+    std::complex<Real> value;
     Int index;
 
     static bool Lesser( const ValueInt<Real>& a, const ValueInt<Real>& b )
@@ -148,9 +148,9 @@ struct ValueIntPair
 };
 
 template<typename Real>
-struct ValueIntPair<Complex<Real> >
+struct ValueIntPair<std::complex<Real> >
 {
-    Complex<Real> value;
+    std::complex<Real> value;
     Int indices[2];
     
     static bool Lesser
