@@ -23,7 +23,7 @@ DetermineResultingDistributionAGG(const DistTensor<T>& A, const ModeArray& agMod
 
 template<typename T>
 void
-CreateAGGTestsHelper(const DistTensor<T>& A, const ModeArray& agModes, Unsigned pos, const std::vector<std::vector<ModeArray>>& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<AGGTest>& tests){
+CreateAGGTestsHelper(const DistTensor<T>& A, const ModeArray& agModes, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<AGGTest>& tests){
 
 //    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == agModes.size()){

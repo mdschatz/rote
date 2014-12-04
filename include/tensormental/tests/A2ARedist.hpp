@@ -5,7 +5,7 @@
 #include "tensormental/tests/AllRedists.hpp"
 using namespace tmen;
 
-typedef std::pair< std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray > >, TensorDistribution> A2ATest;
+typedef std::pair< std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray> >, TensorDistribution> A2ATest;
 
 template<typename T>
 TensorDistribution
@@ -26,7 +26,7 @@ DetermineResultingDistributionA2A(const DistTensor<T>& A, const ModeArray& a2aMo
 
 template<typename T>
 void
-CreateA2ATestsHelper(const DistTensor<T>& A, const ModeArray& modesFrom, const ModeArray& modesTo, Unsigned pos, const std::vector<std::vector<ModeArray>>& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<A2ATest>& tests){
+CreateA2ATestsHelper(const DistTensor<T>& A, const ModeArray& modesFrom, const ModeArray& modesTo, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<A2ATest>& tests){
 
 //    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == modesFrom.size()){

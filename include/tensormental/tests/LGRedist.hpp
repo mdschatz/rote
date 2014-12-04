@@ -6,7 +6,7 @@
 using namespace tmen;
 
 
-typedef std::pair< std::pair<ModeArray, std::vector<ModeArray>>, TensorDistribution> LGTest;
+typedef std::pair< std::pair<ModeArray, std::vector<ModeArray> >, TensorDistribution> LGTest;
 
 template<typename T>
 TensorDistribution
@@ -68,7 +68,7 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 
 template<typename T>
 void
-CreateLGTestsHelper(const DistTensor<T>& A, const ModeArray& lModes, Unsigned pos, const std::vector<std::vector<ModeArray>>& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<LGTest>& tests){
+CreateLGTestsHelper(const DistTensor<T>& A, const ModeArray& lModes, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<LGTest>& tests){
 
 //    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == lModes.size()){
@@ -97,7 +97,7 @@ CreateLGTestsHelper(const DistTensor<T>& A, const ModeArray& lModes, Unsigned po
 
 template<typename T>
 void
-CreateLGCommGroupsHelper(const DistTensor<T>& A, const Unsigned& nlModes, Unsigned pos, const ModeArray& freeModes, std::vector<ModeArray>& piece, std::vector<std::vector<ModeArray>>& commGroups){
+CreateLGCommGroupsHelper(const DistTensor<T>& A, const Unsigned& nlModes, Unsigned pos, const ModeArray& freeModes, std::vector<ModeArray>& piece, std::vector<std::vector<ModeArray> >& commGroups){
 
 //    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == nlModes - 1){
