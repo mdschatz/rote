@@ -18,9 +18,10 @@
 namespace tmen{
 
 ////////////////////////////////////
-// Local routines
+// Local interface
 ////////////////////////////////////
 
+//NOTE: Fix this loop to be correct
 template <typename T>
 void Diff(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 #ifndef RELEASE
@@ -45,7 +46,7 @@ void Diff(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 }
 
 ////////////////////////////////////
-// Global routines
+// Global interface
 ////////////////////////////////////
 template <typename T>
 void Diff(const DistTensor<T>& A, const DistTensor<T>& B, DistTensor<T>& C){

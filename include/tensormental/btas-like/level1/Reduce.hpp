@@ -17,7 +17,7 @@
 namespace tmen{
 
 ////////////////////////////////////
-// Local routines
+// Workhorse routines
 ////////////////////////////////////
 
 template <typename T>
@@ -118,6 +118,10 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
     }
 }
 
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
+
 template <typename T>
 void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes){
 #ifndef RELEASE
@@ -151,7 +155,7 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
 }
 
 ////////////////////////////////////
-// Global routines
+// Global interfaces
 ////////////////////////////////////
 
 template <typename T>

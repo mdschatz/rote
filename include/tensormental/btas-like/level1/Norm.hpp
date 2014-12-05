@@ -17,7 +17,7 @@
 namespace tmen{
 
 ////////////////////////////////////
-// Local routines
+// Local interfaces
 ////////////////////////////////////
 
 template <typename T>
@@ -45,7 +45,7 @@ BASE(T) Norm(const Tensor<T>& A){
 }
 
 ////////////////////////////////////
-// Global routines
+// Global interfaces
 ////////////////////////////////////
 template<typename T>
 BASE(T) Norm(const DistTensor<T>& A){

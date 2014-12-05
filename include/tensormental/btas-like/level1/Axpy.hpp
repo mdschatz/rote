@@ -12,6 +12,10 @@
 
 namespace tmen {
 
+////////////////////////////////////
+// Workhorse routines
+////////////////////////////////////
+
 template<typename T>
 inline void
 AxpyHelper(T alpha, const Tensor<T>& X, const Tensor<T>& Y, Mode mode, T const * const srcBuf,  T * const dstBuf, const AxpyData& data ){
@@ -85,6 +89,10 @@ Axpy_fast(T alpha, T const * const srcBuf,  T * const dstBuf, const AxpyData& da
     }
 }
 
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
+
 //NOTE: Place appropriate guards
 template<typename T>
 void
@@ -123,6 +131,10 @@ Axpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y )
 #endif
     }
 }
+
+////////////////////////////////////
+// Global interfaces
+////////////////////////////////////
 
 template<typename T>
 void

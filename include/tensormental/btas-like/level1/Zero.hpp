@@ -12,6 +12,10 @@
 
 namespace tmen {
 
+////////////////////////////////////
+// Workhorse routines
+////////////////////////////////////
+
 template<typename T>
 void ZeroHelper(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& strides, T * const buf){
     Unsigned i;
@@ -78,6 +82,10 @@ void Zero_fast(const ObjShape& shape, const std::vector<Unsigned>& strides, T * 
     }
 }
 
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
+
 template<typename T>
 inline void
 Zero( Tensor<T>& A )
@@ -95,11 +103,11 @@ Zero( Tensor<T>& A )
         Zero_fast(A.Shape(), A.Strides(), A.Buffer());
 #endif
     }
-
-
-    //PARALLEL_FOR
-//    MemZero( A.Buffer(), numElem );
 }
+
+////////////////////////////////////
+// Global interfaces
+////////////////////////////////////
 
 template<typename T>
 inline void

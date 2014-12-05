@@ -12,6 +12,10 @@
 
 namespace tmen {
 
+////////////////////////////////////
+// Workhorse routines
+////////////////////////////////////
+
 template<typename T>
 inline void
 ScalHelper(T alpha, Tensor<T>& X, Mode mode, T * srcBuf, const ScalData& data ){
@@ -76,13 +80,17 @@ Scal_fast(T alpha, T * srcBuf, const ScalData& data ){
     }
 }
 
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
+
 //NOTE: Place appropriate guards
 template<typename T>
 void
 Scal( T alpha, Tensor<T>& X )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Axpy");
+    CallStackEntry entry("Scal");
 #endif
 
     Unsigned order = X.Order();
@@ -103,12 +111,16 @@ Scal( T alpha, Tensor<T>& X )
     }
 }
 
+////////////////////////////////////
+// Global interfaces
+////////////////////////////////////
+
 template<typename T>
 void
 Scal( T alpha, DistTensor<T>& X )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Axpy");
+    CallStackEntry entry("Scal");
 #endif
     Scal(alpha, X.Tensor());
 }

@@ -59,17 +59,17 @@ public:
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const tmen::Grid& g );
 
     // View a constant distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
-      const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+      const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
 
     // View a mutable distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
-      T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+      T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
 
     //////////////////////////////////
     /// String distribution versions
@@ -89,17 +89,17 @@ public:
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const tmen::Grid& g );
 
     // View a constant distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
-      const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+      const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
 
     // View a mutable distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
-      T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g );
+      T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
 
     // Create a copy of distributed matrix A
     DistTensor( const DistTensor<T>& A );
@@ -132,8 +132,7 @@ public:
 
     std::vector<Unsigned> Strides() const;
     Unsigned Stride(Mode mode) const;
-    std::vector<Unsigned> LDims() const;
-    Unsigned LDim(Mode mode) const;
+
     size_t AllocatedMemory() const;
 
     const tmen::Grid& Grid() const;
@@ -354,7 +353,7 @@ public:
 
     void ResizeTo( const DistTensor<T>& A);
     void ResizeTo( const ObjShape& shape );
-    void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
+    void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
     // Distribution alignment
     void AlignWith( const tmen::DistData& data );
@@ -391,31 +390,13 @@ public:
     // (Immutable) view of a distributed matrix's buffer
     void Attach
     ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
-      T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& grid );
+      T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
     void LockedAttach
     ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
-      const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& grid );
-
-    // Equate/Update with the scattered summation of A[MC,* ] across process
-    // rows
-    void SumScatterFrom( const DistTensor<T>& A );
-    void SumScatterUpdate( T alpha, const DistTensor<T>& A );
-
-    // Auxiliary routines needed to implement algorithms that avoid 
-    // inefficient unpackings of partial matrix distributions
-    //void AdjointFrom( const DistTensor<T>& A );
-    //void AdjointSumScatterFrom( const DistTensor<T>& A );
-    //void AdjointSumScatterUpdate( T alpha, const DistTensor<T>& A );
-
-    //void TransposeFrom
-    //( const DistTensor<T>& A, bool conjugate=false );
-    //void TransposeSumScatterFrom
-    //( const DistTensor<T>& A, bool conjugate=false );
-    //void TransposeSumScatterUpdate
-    //( T alpha, const DistTensor<T>& A, bool conjugate=false );
+      const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
 
     //
-    // Though the following routines are meant for complex data, all but two
+    // Though the following routines are meant for complex data, all
     // logically apply to real data.
     //
 

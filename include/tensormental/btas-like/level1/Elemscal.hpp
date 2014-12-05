@@ -17,7 +17,7 @@
 namespace tmen{
 
 ////////////////////////////////////
-// Local routines
+// Workhorse routines
 ////////////////////////////////////
 
 template<typename T>
@@ -102,6 +102,10 @@ ElemScal_fast(T const * const src1Buf, T const * const src2Buf,  T * const dstBu
     }
 }
 
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
+
 //NOTE: Add checks for conforming shapes
 //NOTE: Convert to incorporate blocked tensors.
 template <typename T>
@@ -127,7 +131,7 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 }
 
 ////////////////////////////////////
-// Global routines
+// Global interfaces
 ////////////////////////////////////
 //NOTE: Add checks for conforming dists and shapes
 template<typename T>

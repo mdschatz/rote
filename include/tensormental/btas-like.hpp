@@ -10,7 +10,8 @@
 #ifndef TMEN_BTASLIKE_HPP
 #define TMEN_BTASLIKE_HPP
 
-#include "tensormental/btas-like_decl.hpp"
-#include "tensormental/btas-like_impl.hpp"
+#include "./btas-like/level1.hpp"
+#include "./btas-like/level3.hpp"
+#include "./btas-like/levelT.hpp"
 
 #endif // ifndef TMEN_BTASLIKE_HPP

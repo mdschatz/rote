@@ -12,6 +12,10 @@
 
 namespace tmen {
 
+////////////////////////////////////
+// Workhorse routines
+////////////////////////////////////
+
 //Add guards
 template<typename T>
 inline void
@@ -57,10 +61,6 @@ YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf,
     Location curLoc(order, 0);
     Unsigned ptr = 0;
 
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
-
     if(loopEnd.size() == 0){
         dstBuf[0] = alpha*srcBuf[0] + beta*permSrcBuf[0];
         return;
@@ -98,6 +98,10 @@ YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf,
         ptr = 0;
     }
 }
+
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
 
 //NOTE: Place appropriate guards
 template<typename T>
@@ -140,6 +144,10 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
 #endif
     }
 }
+
+////////////////////////////////////
+// Global interfaces
+////////////////////////////////////
 
 template<typename T>
 inline void

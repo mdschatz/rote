@@ -188,7 +188,7 @@ template<typename T>
 void
 DistTensor<T>::Attach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
-  T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
+  T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Attach");
@@ -203,7 +203,7 @@ DistTensor<T>::Attach
     if( Participating() )
     {
         ObjShape localShape = Lengths(shape, ModeShifts(), ModeStrides());
-        tensor_.Attach_( localShape, buffer, ldims );
+        tensor_.Attach_( localShape, buffer, strides );
     }
 }
 
@@ -211,7 +211,7 @@ template<typename T>
 void
 DistTensor<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
-  const T* buffer, const std::vector<Unsigned>& ldims, const tmen::Grid& g )
+  const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::LockedAttach");
@@ -222,7 +222,7 @@ DistTensor<T>::LockedAttach
     SetShifts();
     if(Participating() ){
         ObjShape localShape = Lengths(shape, ModeShifts(), ModeStrides());
-        tensor_.LockedAttach(localShape, buffer, ldims);
+        tensor_.LockedAttach(localShape, buffer, strides);
     }
 }
 
@@ -255,7 +255,7 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
 
 template<typename T>
 void
-DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims )
+DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::ResizeTo");
@@ -263,7 +263,7 @@ DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldi
 #endif
     shape_ = shape;
     if(Participating()){
-        tensor_.ResizeTo(Lengths(shape, ModeShifts(), ModeStrides()), ldims);
+        tensor_.ResizeTo(Lengths(shape, ModeShifts(), ModeStrides()), strides);
     }
 }
 
