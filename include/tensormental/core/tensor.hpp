@@ -159,7 +159,6 @@ public:
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
     Unsigned NumElem() const;
-    void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void CopyBuffer(const Tensor& A);
     void CopyBuffer(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
 
@@ -178,9 +177,6 @@ private:
     T& Set_( const Location& loc );
 
     void SetStrides(const ObjShape& shape);
-
-    void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
-    void PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();

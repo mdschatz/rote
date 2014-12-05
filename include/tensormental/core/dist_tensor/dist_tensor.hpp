@@ -236,7 +236,6 @@ public:
     //
     // Shared Comm routines
     //
-    void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void ElemSelectHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
 
     //
@@ -437,8 +436,6 @@ protected:
     Memory<T> auxMemory_;
 
 private:
-    void PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
-    void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void CopyFromDifferentGrid( const DistTensor<T>& A );
 
     void SetShifts();
