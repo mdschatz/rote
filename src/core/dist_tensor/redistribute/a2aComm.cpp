@@ -68,11 +68,24 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
+//        const T* dataBuf = A.LockedBuffer();
+//        std::cout << "srcBuf:";
+//        for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//            std::cout << " " << dataBuf[i];
+//        }
+//        std::cout << std::endl;
+
         //Pack the data
         PROFILE_SECTION("A2APack");
         PROFILE_FLOPS(prod(maxLocalShapeA));
         PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
+
+//        std::cout << "packBuf:";
+//        for(Unsigned i = 0; i < prod(commDataShape) * nRedistProcs; i++){
+//            std::cout << " " <<  sendBuf[i];
+//        }
+//        std::cout << std::endl;
 
         //Communicate the data
         PROFILE_SECTION("A2AComm");
@@ -83,6 +96,13 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             this->auxMemory_.Release();
             return;
         }
+
+//        std::cout << "recvBuf:";
+//        for(Unsigned i = 0; i < prod(commDataShape) * nRedistProcs; i++){
+//            std::cout << " " << recvBuf[i];
+//        }
+//        std::cout << std::endl;
+
 
         //Unpack the data (if participating)
         PROFILE_SECTION("A2AUnpack");
@@ -149,7 +169,9 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
         //Determine the first element I need to send to p_i
         //The first element I own is
-        Location myFirstLoc = A.ModeShifts();
+//        Location myFirstLoc = A.ModeShifts();
+        Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
+
         //Iterate to figure out the first elem I need to send p_i
         Location firstSendLoc(order,0);
 
@@ -265,7 +287,8 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
         //Determine the first element I need from p_i
         //The first element I own is
-        Location myFirstLoc = ModeShifts();
+        Location myFirstLoc = DetermineFirstElem(GetGridView().ParticipatingLoc());
+
         //Iterate to figure out the first elem I need from p_i
         Location firstRecvLoc(order,0);
 

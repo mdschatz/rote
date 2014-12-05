@@ -430,6 +430,7 @@ DistTensor<T>::DetermineFirstElem(const Location& gridViewLoc) const
     for(i = 0; i < gridViewLoc.size(); i++){
         ret[i] = Shift(gridViewLoc[i], modeAlignments_[i], ModeStride(i));
     }
+
     return ret;
 }
 

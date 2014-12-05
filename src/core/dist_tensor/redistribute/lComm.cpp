@@ -107,7 +107,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
-    const Location myFirstElemLoc = ModeShifts();
+    const Location myFirstElemLoc = DetermineFirstElem(GetGridView().ParticipatingLoc());
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
         const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);

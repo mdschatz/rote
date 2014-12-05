@@ -140,7 +140,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     packData.loopIncs = modeStrideFactor;
 
     //Determine the first element we will accumulate to
-    Location packElem = A.ModeShifts();
+    Location packElem = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
     for(i = 0; i < rModes.size(); i++)
         packElem[rModes[i]] = 0;
 
