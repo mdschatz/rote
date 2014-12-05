@@ -43,80 +43,6 @@ DistTensor<T>::AlignMode( Mode mode, Unsigned modeAlignment )
     SetShifts();
 }
 
-template<typename T>
-void
-DistTensor<T>::AlignWith( const tmen::DistData& data )
-{
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::AlignWith");
-#endif
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::AlignWith");
-#endif
-    const Grid& grid = *data.grid;
-    SetGrid( grid );
-    if( data.colDist == MC && data.rowDist == MR )
-    {
-        colAlignment_ = data.colAlignment;
-        rowAlignment_ = data.rowAlignment;
-        constrainedColAlignment_ = true;
-        constrainedRowAlignment_ = true;
-    }
-    else if( data.colDist == MC && data.rowDist == STAR )
-    {
-        colAlignment_ = data.colAlignment;
-        constrainedColAlignment_ = true;
-    }
-    else if( data.colDist == MR && data.rowDist == MC )
-    {
-        colAlignment_ = data.rowAlignment;
-        rowAlignment_ = data.colAlignment;
-        constrainedColAlignment_ = true;
-        constrainedRowAlignment_ = true;
-    }
-    else if( data.colDist == MR && data.rowDist == STAR )
-    {
-        rowAlignment_ = data.colAlignment;
-        constrainedRowAlignment_ = true;
-    }
-    else if( data.colDist == STAR && data.rowDist == MC )
-    {
-        colAlignment_ = data.rowAlignment;
-        constrainedColAlignment_ = true;
-    }
-    else if( data.colDist == STAR && data.rowDist == MR )
-    {
-        rowAlignment_ = data.rowAlignment;
-        constrainedRowAlignment_ = true;
-    }
-    else if( data.colDist == STAR && data.rowDist == VC )
-    {
-        colAlignment_ = data.rowAlignment % ColStride();
-        constrainedColAlignment_ = true;
-    }
-    else if( data.colDist == STAR && data.rowDist == VR )
-    {
-        rowAlignment_ = data.rowAlignment % RowStride();
-        constrainedRowAlignment_ = true;
-    }
-    else if( data.colDist == VC && data.rowDist == STAR )
-    {
-        colAlignment_ = data.colAlignment % ColStride();
-        constrainedColAlignment_ = true;
-    }
-    else if( data.colDist == VR && data.rowDist == STAR )
-    {
-        rowAlignment_ = data.colAlignment % RowStride();
-        constrainedRowAlignment_ = true;
-    }
-#ifndef RELEASE
-    else LogicError("Nonsensical alignment");
-#endif
-    SetShifts();
-*/
-}
-
 //NOTE: This needs to be generalized
 template<typename T>
 void
@@ -143,34 +69,8 @@ DistTensor<T>::SetDistribution( const TensorDistribution& tenDist)
 
 template<typename T>
 void
-DistTensor<T>::AlignModeWith( Mode mode, const tmen::DistData& data )
-{
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::AlignColsWith");
-    if( *grid_ != *data.grid )
-        LogicError("Grids do not match");
-#endif
-    if( data.colDist == MC )
-        colAlignment_ = data.colAlignment;
-    else if( data.rowDist == MC )
-        colAlignment_ = data.rowAlignment;
-    else if( data.colDist == VC )
-        colAlignment_ = data.colAlignment % ColStride();
-    else if( data.rowDist == VC )
-        colAlignment_ = data.rowAlignment % ColStride();
-#ifndef RELEASE
-    else LogicError("Nonsensical alignment");
-#endif
-    constrainedColAlignment_ = true;
-    SetShifts();
-*/
-}
-
-template<typename T>
-void
 DistTensor<T>::AlignModeWith( Mode mode, const DistTensor<T>& A )
-{ AlignModeWith( mode, A.DistData() ); }
+{ AlignModeWith( mode, A, mode ); }
 
 template<typename T>
 void
@@ -310,90 +210,24 @@ template<typename T>
 void
 DistTensor<T>::SetRealPart( const Location& loc, BASE(T) u )
 {
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::SetRealPart");
-    AssertValidEntry( i, j );
-#endif
-    const tmen::Grid& g = Grid();
-    const Int ownerRow = (i + ColAlignment()) % g.Height();
-    const Int ownerCol = (j + RowAlignment()) % g.Width();
-    const Int ownerRank = ownerRow + ownerCol*g.Height();
-    if( g.VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-ColShift()) / g.Height();
-        const Int jLoc = (j-RowShift()) / g.Width();
-        SetLocalRealPart( iLoc, jLoc, u );
-    }
-*/
 }
 
 template<typename T>
 void
 DistTensor<T>::SetImagPart( const Location& loc, BASE(T) u )
 {
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::SetImagPart");
-    AssertValidEntry( i, j );
-#endif
-    ComplainIfReal();
-    const tmen::Grid& g = Grid();
-    const Int ownerRow = (i + ColAlignment()) % g.Height();
-    const Int ownerCol = (j + RowAlignment()) % g.Width();
-    const Int ownerRank = ownerRow + ownerCol*g.Height();
-    if( g.VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-ColShift()) / g.Height();
-        const Int jLoc = (j-RowShift()) / g.Width();
-        SetLocalImagPart( iLoc, jLoc, u );
-    }
-*/
 }
 
 template<typename T>
 void
 DistTensor<T>::UpdateRealPart( const Location& loc, BASE(T) u )
 {
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::UpdateRealPart");
-    AssertValidEntry( i, j );
-#endif
-    const tmen::Grid& g = Grid();
-    const Int ownerRow = (i + ColAlignment()) % g.Height();
-    const Int ownerCol = (j + RowAlignment()) % g.Width();
-    const Int ownerRank = ownerRow + ownerCol*g.Height();
-    if( g.VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-ColShift()) / g.Height();
-        const Int jLoc = (j-RowShift()) / g.Width();
-        UpdateLocalRealPart( iLoc, jLoc, u );
-    }
-*/
 }
 
 template<typename T>
 void
 DistTensor<T>::UpdateImagPart( const Location& loc, BASE(T) u )
 {
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::UpdateImagPart");
-    AssertValidEntry( i, j );
-#endif
-    ComplainIfReal();
-    const tmen::Grid& g = Grid();
-    const Int ownerRow = (i + ColAlignment()) % g.Height();
-    const Int ownerCol = (j + RowAlignment()) % g.Width();
-    const Int ownerRank = ownerRow + ownerCol*g.Height();
-    if( g.VCRank() == ownerRank )
-    {
-        const Int iLoc = (i-ColShift()) / g.Height();
-        const Int jLoc = (j-RowShift()) / g.Width();
-        UpdateLocalImagPart( iLoc, jLoc, u );
-    }
-*/
 }
 
 template<typename T>
@@ -401,60 +235,6 @@ void
 DistTensor<T>::SetRealPartOfDiagonal
 ( const DistTensor<BASE(T)>& d, Int offset )
 {
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::SetRealPartOfDiagonal");
-    AssertSameGrid( d.Grid() );
-    if( d.Width() != 1 )
-        LogicError("d must be a column vector");
-    const Int length = DiagonalLength( offset );
-    if( length != d.Height() )
-    {
-        std::ostringstream msg;
-        msg << "d is not of the same length as the diagonal:\n"
-            << "  A ~ " << Height() << " x " << Width() << "\n"
-            << "  d ~ " << d.Height() << " x " << d.Width() << "\n"
-            << "  A diag length: " << length << "\n";
-        LogicError( msg.str() );
-    }
-#endif
-    typedef BASE(T) R;
-    if( !d.Participating() )
-        return;
-
-    const tmen::Grid& g = Grid();
-    const Int r = g.Height();
-    const Int c = g.Width();
-    const Int lcm = g.LCM();
-    const Int colShift = ColShift();
-    const Int rowShift = RowShift();
-    const Int diagShift = d.ColShift();
-
-    Int iStart,jStart;
-    if( offset >= 0 )
-    {
-        iStart = diagShift;
-        jStart = diagShift+offset;
-    }
-    else
-    {
-        iStart = diagShift-offset;
-        jStart = diagShift;
-    }
-
-    const Int iLocStart = (iStart-colShift) / r;
-    const Int jLocStart = (jStart-rowShift) / c;
-
-    const Int localDiagLength = d.LocalHeight();
-    const R* dBuf = d.LockedBuffer();
-    PARALLEL_FOR
-    for( Int k=0; k<localDiagLength; ++k )
-    {
-        const Int iLoc = iLocStart + k*(lcm/r);
-        const Int jLoc = jLocStart + k*(lcm/c);
-        SetLocalRealPart( iLoc, jLoc, dBuf[k] );
-    }
-*/
 }
 
 template<typename T>
@@ -462,61 +242,6 @@ void
 DistTensor<T>::SetImagPartOfDiagonal
 ( const DistTensor<BASE(T)>& d, Int offset )
 {
-/*
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::SetImagPartOfDiagonal");
-    AssertSameGrid( d.Grid() );
-    if( d.Width() != 1 )
-        LogicError("d must be a column vector");
-    const Int length = DiagonalLength( offset );
-    if( length != d.Height() )
-    {
-        std::ostringstream msg;
-        msg << "d is not of the same length as the diagonal:\n"
-            << "  A ~ " << Height() << " x " << Width() << "\n"
-            << "  d ~ " << d.Height() << " x " << d.Width() << "\n"
-            << "  A diag length: " << length << "\n";
-        LogicError( msg.str() );
-    }
-#endif
-    ComplainIfReal();
-    typedef BASE(T) R;
-    if( !d.Participating() )
-        return;
-
-    const tmen::Grid& g = Grid();
-    const Int r = g.Height();
-    const Int c = g.Width();
-    const Int lcm = g.LCM();
-    const Int colShift = ColShift();
-    const Int rowShift = RowShift();
-    const Int diagShift = d.ColShift();
-
-    Int iStart,jStart;
-    if( offset >= 0 )
-    {
-        iStart = diagShift;
-        jStart = diagShift+offset;
-    }
-    else
-    {
-        iStart = diagShift-offset;
-        jStart = diagShift;
-    }
-
-    const Int iLocStart = (iStart-colShift) / r;
-    const Int jLocStart = (jStart-rowShift) / c;
-
-    const Int localDiagLength = d.LocalHeight();
-    const R* dBuf = d.LockedBuffer();
-    PARALLEL_FOR
-    for( Int k=0; k<localDiagLength; ++k )
-    {
-        const Int iLoc = iLocStart + k*(lcm/r);
-        const Int jLoc = jLocStart + k*(lcm/c);
-        SetLocalImagPart( iLoc, jLoc, dBuf[k] );
-    }
-*/
 }
 
 template<typename T>

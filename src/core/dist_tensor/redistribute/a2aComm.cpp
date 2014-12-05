@@ -69,6 +69,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
 //        const T* dataBuf = A.LockedBuffer();
+        //PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 //        std::cout << "srcBuf:";
 //        for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
 //            std::cout << " " << dataBuf[i];
@@ -81,8 +82,11 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
 
-//        std::cout << "packBuf:";
-//        for(Unsigned i = 0; i < prod(commDataShape) * nRedistProcs; i++){
+        //ObjShape sendShape = commDataShape;
+        //sendShape.insert(sendShape.end(), nRedistProcs);
+        //PrintArray(sendBuf, sendShape, "srcBuf");
+//        std::cout << "sendBuf:";
+//        for(Unsigned i = 0; i < sendSize * nRedistProcs; i++){
 //            std::cout << " " <<  sendBuf[i];
 //        }
 //        std::cout << std::endl;
@@ -97,8 +101,11 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             return;
         }
 
+//        ObjShape recvShape = commDataShape;
+//        recvShape.insert(recvShape.end(), nRedistProcs);
+//        PrintArray(recvBuf, recvShape, "recvBuf");
 //        std::cout << "recvBuf:";
-//        for(Unsigned i = 0; i < prod(commDataShape) * nRedistProcs; i++){
+//        for(Unsigned i = 0; i < recvSize * nRedistProcs; i++){
 //            std::cout << " " << recvBuf[i];
 //        }
 //        std::cout << std::endl;
@@ -109,6 +116,15 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         PROFILE_FLOPS(prod(MaxLocalShape()));
         UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
         PROFILE_STOP;
+
+//        const T* myBuf = LockedBuffer();
+        //PrintArray(myBuf, A.LocalShape(), A.LocalStrides(), "myBuf");
+//        std::cout << "myBuf:";
+//        for(Unsigned i = 0; i < prod(LocalShape()); i++){
+//            std::cout << " " << myBuf[i];
+//        }
+//        std::cout << std::endl;
+
         this->auxMemory_.Release();
 }
 
@@ -117,12 +133,6 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     Unsigned i,j;
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
-
-//    std::cout << "dataBuf:";
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        std::cout << " " <<  dataBuf[i];
-//    }
-//    std::cout << std::endl;
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -222,12 +232,6 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
             PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
         }
     }
-
-//    printf("sendBuf:");
-//    for(i = 0; i < prod(sendShape)*nRedistProcsAll; i++)
-//        std::cout << " " << sendBuf[i];
-//    printf("\n");
-//
 }
 
 template<typename T>
@@ -257,12 +261,6 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const Location myGridLoc = g.Loc();
 
     const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
-
-//    std::cout << "recvBuf:";
-//    for(i = 0; i < nRedistProcsAll * prod(recvShape); i++){
-//        std::cout << " " << recvBuf[i];
-//    }
-//    std::cout << std::endl;
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
@@ -333,12 +331,6 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             PackCommHelper(unpackData, order - 1, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
         }
     }
-
-//    printf("dataBuf:");
-//    for(i = 0; i < prod(LocalShape()); i++)
-//        std::cout << " " << dataBuf[i];
-//    printf("\n");
-//
 }
 
 #define PROTO(T) template class DistTensor<T>

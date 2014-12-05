@@ -63,11 +63,23 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
+//    std::cout << "dataBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//      std::cout << " " <<  dataBuf[i];
+//    }
+//    std::cout << std::endl;
+
     //Pack the data
     PROFILE_SECTION("AGPack");
     PROFILE_FLOPS(prod(maxLocalShapeA));
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
+
+//    printf("sendBuf:");
+//    for(i = 0; i < sendSize; i++){
+//      std::cout << " " << sendBuf[i];
+//    }
+//    std::cout << std::endl;
 
     //Communicate the data
     PROFILE_SECTION("AGComm");
@@ -79,11 +91,25 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
         return;
     }
 
+//    std::cout << "recvBuf:";
+//    for(Unsigned i = 0; i < recvSize * nRedistProcs; i++){
+//        std::cout << " " << recvBuf[i];
+//    }
+//    std::cout << std::endl;
+
     //Unpack the data (if participating)
     PROFILE_SECTION("AGUnpack");
     PROFILE_FLOPS(prod(MaxLocalShape()));
     UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
     PROFILE_STOP;
+
+//    const T* myBuf = LockedBuffer();
+//    std::cout << "myBuf:";
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
+//        std::cout << " " << myBuf[i];
+//    }
+//    std::cout << std::endl;
+
     this->auxMemory_.Release();
 }
 
@@ -92,12 +118,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
 {
   const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
-
-//  std::cout << "dataBuf:";
-//  for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//      std::cout << " " <<  dataBuf[i];
-//  }
-//  std::cout << std::endl;
 
   const Location zeros(order, 0);
   const Location ones(order, 1);
@@ -120,13 +140,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   packData.loopIncs = ones;
 
   PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
-
-//  Unsigned i;
-//  printf("sendBuf:");
-//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
-//      std::cout << " " << sendBuf[i];
-//  }
-//  std::cout << std::endl;
 }
 
 #define PROTO(T) template class DistTensor<T>

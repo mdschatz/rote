@@ -18,7 +18,6 @@
 namespace tmen{
 
 std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC);
-
 IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray& indicesB);
 
 }
