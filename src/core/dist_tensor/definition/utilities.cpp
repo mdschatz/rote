@@ -116,8 +116,8 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const ElemSelectD
         Location elem = elemData.packElem;
         Location srcElem = elemData.srcElem;
         std::vector<Unsigned> srcStrides = elemData.srcStrides;
-        ModeArray changedA2AModes = elemData.changedModes;
-        std::vector<Unsigned> nProcsPerA2AMode = elemData.loopShape;
+
+        std::vector<Unsigned> loopShape = elemData.loopShape;
         ModeArray commModes = elemData.commModes;
         Unsigned nElemsPerProc = elemData.nElemsPerProc;
         Unsigned i;
@@ -127,7 +127,7 @@ void DistTensor<T>::ElemSelectHelper(const PackData& packData, const ElemSelectD
         const Mode changedA2AMode = mode;
 
         Unsigned startLoc = elemData.packElem[changedA2AMode];
-        for(i = 0; i < nProcsPerA2AMode[changedA2AMode]; i++){
+        for(i = 0; i < loopShape[changedA2AMode]; i++){
             elem[changedA2AMode] = startLoc + i * gvA.ModeWrapStride(changedA2AMode);
             srcElem[changedA2AMode] = i;
             if(elem[changedA2AMode] >= A.Dimension(changedA2AMode)){

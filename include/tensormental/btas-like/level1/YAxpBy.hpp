@@ -19,7 +19,7 @@ namespace tmen {
 //Add guards
 template<typename T>
 inline void
-YAxpByHelper(T alpha, const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
+YAxpByHelper(T alpha, const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const srcBuf, T * const dstBuf, const YAxpByData& data ){
     Unsigned i;
     const Unsigned loopEnd = data.loopShape[mode];
     const Unsigned srcStride = data.srcStrides[mode];
@@ -45,7 +45,7 @@ YAxpByHelper(T alpha, const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T con
 
 template<typename T>
 inline void
-YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YxpByData& data ){
+YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAxpByData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
     const std::vector<Unsigned> dstBufStrides = data.dstStrides;
@@ -196,7 +196,7 @@ Yxpy( const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y){
     CallStackEntry entry("YxpBy");
 #endif
     Unsigned order = Y.Order();
-    YxpByData data;
+    YAxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);
     data.dstStrides = Y.Strides();
@@ -234,7 +234,7 @@ YAxpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y){
     CallStackEntry entry("YxpBy");
 #endif
     Unsigned order = Y.Order();
-    YxpByData data;
+    YAxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);
     data.dstStrides = Y.Strides();
@@ -273,7 +273,7 @@ YxpBy( const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
     CallStackEntry entry("YxpBy");
 #endif
     Unsigned order = Y.Order();
-    YxpByData data;
+    YAxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);
     data.dstStrides = Y.Strides();
@@ -311,7 +311,7 @@ YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor
     CallStackEntry entry("YxpBy");
 #endif
     Unsigned order = Y.Order();
-    YxpByData data;
+    YAxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);
     data.dstStrides = Y.Strides();

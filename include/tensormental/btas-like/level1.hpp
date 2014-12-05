@@ -10,14 +10,14 @@
 #ifndef TMEN_BTAS_LEVEL1_HPP
 #define TMEN_BTAS_LEVEL1_HPP
 
-#include "./level1/Axpy.hpp"
+
 #include "./level1/Diff.hpp"
 #include "./level1/Elemscal.hpp"
 #include "./level1/Norm.hpp"
 #include "./level1/Reduce.hpp"
 #include "./level1/Scal.hpp"
+#include "./level1/YAxpBy.hpp"
 #include "./level1/YAxpPx.hpp"
-#include "./level1/YxpBy.hpp"
 #include "./level1/ZAxpBy.hpp"
 #include "./level1/Zero.hpp"
 

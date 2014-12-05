@@ -75,8 +75,6 @@ StringToTensorDist( const std::string& s )
     breakPos = s.find_first_of("|");
     pos = s.find_first_of("[");
     lastPos = s.find_first_of("]");
-//    if(pos != 0 || lastPos != s.size() - 1)
-//        LogicError("Malformed tensor distribution string");
     pos = s.find_first_of("(", pos);
     while(pos < breakPos){
         lastPos = s.find_first_of(")", pos);
