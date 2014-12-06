@@ -1,16 +1,13 @@
 MPI
 ---
-All communication within Elemental is built on top of the Message Passing 
-Interface (MPI). Just like with BLAS and LAPACK, a minimal set of datatype 
-independent abstractions has been built directly on top of the standard 
-MPI interface. This has the added benefit of localizing the changes required
-for porting Elemental to architectures that do not have full MPI 
-implementations available.
+All communication within |projectName| is built on top of the Message Passing 
+Interface (MPI). As with BLAS, a thin inerface wrapper is built to accomodate the standard MPI interface. 
 
+This section has been lifted from the documentation for the Elemental library by Jack Poulson `<>`_.
 The prototypes can be found in
-`include/elemental/core/imports/mpi.hpp <https://github.com/elemental/Elemental/tree/master/include/elemental/core/imports/mpi.hpp>`_,
+`include/tensormental/core/imports/mpi.hpp <>`_,
 while the implementations are in
-`src/imports/mpi.cpp <https://github.com/elemental/Elemental/tree/master/src/imports/mpi.cpp>`_.
+`src/imports/mpi.cpp <>`_.
 
 Datatypes
 ^^^^^^^^^

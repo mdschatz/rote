@@ -4,11 +4,13 @@ Core functionality
 .. toctree::
    :maxdepth: 2
 
+   core/redist
    core/imports
    core/environment
-   core/matrix
+   core/tensor
    core/grid
-   core/dist_matrix
+   core/grid_view
+   core/dist_tensor
    core/viewing
    core/partitioning
    core/repartitioning

@@ -88,7 +88,7 @@
 
 #include "tensormental/core/imports/blas.hpp"
 //#include "tensormental/core/imports/lapack.hpp"
-#include "tensormental/core/imports/flame.hpp"
+//#include "tensormental/core/imports/flame.hpp"
 //#include "tensormental/core/imports/pmrrr.hpp"
 
 // Implement the intertwined parts of the library

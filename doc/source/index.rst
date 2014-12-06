@@ -1,10 +1,12 @@
-.. Elemental documentation master file, created by
-   sphinx-quickstart on Mon Jan 31 15:52:41 2011.
+.. Tensormental documentation master file, created by
+   sphinx-quickstart on Fri Dec  5 01:32:56 2014.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Elemental's documentation!
-#####################################
+Welcome to Tensormental's documentation!
+========================================
+
+Contents:
 
 .. toctree::
    :maxdepth: 2
@@ -12,10 +14,15 @@ Welcome to Elemental's documentation!
    intro
    build
    core
-   blas-like
-   lapack-like
-   convex
-   control
-   matrices
+   btas-like
+   tensors
    io
-   indices
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+

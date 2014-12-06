@@ -1,18 +1,16 @@
 Build system
 ************
-Elemental's build system relies on `CMake <http://www.cmake.org>`__ 
+|projectName|'s build system relies on `CMake <http://www.cmake.org>`__ 
 in order to manage a large number of configuration options in a 
 platform-independent manner; it can be easily configured to build on Linux and 
 Unix environments (including Darwin) as well as various versions of 
 Microsoft Windows.
 
-Elemental's main dependencies are
+|projectName|'s main dependencies are
 
 1. `CMake <http://www.cmake.org/>`__ (required)
 2. `MPI <http://en.wikipedia.org/wiki/Message_Passing_Interface>`_ (required) 
 3. `BLAS <http://netlib.org/blas>`__ and `LAPACK <http://netlib.org/lapack>`__ (required)
-4. `PMRRR <http://code.google.com/p/pmrrr>`_ (required for eigensolvers)
-5. `libFLAME <http://www.cs.utexas.edu/users/flame/>`_ (recommended for faster SVD's) 
 
 Each of these dependencies is discussed in detail below.
 
@@ -21,7 +19,7 @@ Dependencies
 
 CMake
 -----
-Elemental uses several new CMake modules, so it is important to ensure that 
+|projectName| uses several new CMake modules, so it is important to ensure that 
 version 2.8.5 or later is installed. Thankfully the 
 `installation process <http://www.cmake.org/cmake/help/install.html>`_
 is extremely straightforward: either download a platform-specific binary from
@@ -99,7 +97,7 @@ if accidentally run from the wrong directory, the former will most likely fail.
 MPI
 ---
 An implementation of the Message Passing Interface (MPI) is required for 
-building Elemental. The two most commonly used implementations are
+building |projectName|. The two most commonly used implementations are
 
 1. `MPICH2 <http://www.mcs.anl.gov/research/projects/mpich2/>`_
 2. `OpenMPI <http://www.open-mpi.org/>`_
@@ -116,18 +114,14 @@ and OpenMPI can be installed with ::
 
     sudo apt-get install libopenmpi-dev
 
-BLAS and LAPACK
+BLAS
 ---------------
-The Basic Linear Algebra Subprograms (BLAS) and Linear Algebra PACKage (LAPACK) 
-are both used heavily within Elemental. On most installations of `Ubuntu <http://www.ubuntu.com>`__, the following command should suffice for their installation::
+The Basic Linear Algebra Subprograms (BLAS) is used within |projectName|. 
+On most installations of `Ubuntu <http://www.ubuntu.com>`__, the following command should suffice for their installation::
 
-    sudo apt-get install libatlas-dev liblapack-dev
+    sudo apt-get install libblas-dev
 
-The reference implementation of LAPACK can be found at
-
-    http://www.netlib.org/lapack/
-
-and the reference implementation of BLAS can be found at
+The reference implementation of BLAS can be found at
 
     http://www.netlib.org/blas/
 
@@ -135,75 +129,25 @@ However, it is better to install an optimized version of these libraries,
 especialy for the BLAS. The most commonly used open source versions are 
 `ATLAS <http://math-atlas.sourceforge.net/>`__ and `OpenBLAS <https://github.com/xianyi/OpenBLAS>`__.
 
-PMRRR
------
-PMRRR is a parallel implementation of the MRRR algorithm introduced by 
-`Inderjit Dhillon <http://www.cs.utexas.edu/~inderjit/>`_ and 
-`Beresford Parlett <http://math.berkeley.edu/~parlett/>`_ for computing 
-:math:`k` eigenvectors of a tridiagonal matrix of size :math:`n` in 
-:math:`\mathcal{O}(nk)` time. PMRRR was written by 
-`Matthias Petschow <http://www.aices.rwth-aachen.de/people/petschow>`_ and 
-`Paolo Bientinesi <http://www.aices.rwth-aachen.de/people/bientinesi>`_ and is 
-available at:
-
-    http://code.google.com/p/pmrrr
-
-Elemental builds a copy of PMRRR by default whenever possible: if an up-to-date
-non-MKL version of LAPACK is used, then PMRRR only requires a working MPI C 
-compiler, otherwise, a Fortran 90 compiler is needed in order to build several
-recent LAPACK functions. If these LAPACK routines cannot be made available, 
-then PMRRR is not built and Elemental's eigensolvers are automatically disabled.
-
-libFLAME
---------
-`libFLAME` is an open source library made available as part of the FLAME 
-project. Its stated objective is to
-
-.. epigraph::
-   ...transform the development of dense linear algebra libraries from an art 
-   reserved for experts to a science that can be understood by novice and 
-   expert alike.
-
-Elemental's current implementation of parallel SVD is dependent upon a serial 
-kernel for the bidiagonal SVD. A high-performance implementation of this 
-kernel was recently introduced in 
-"Restructuring the QR Algorithm for Performance", by Field G. van Zee, Robert 
-A. van de Geijn, and Gregorio Quintana-Orti. It can be found at
-
-    http://www.cs.utexas.edu/users/flame/pubs/RestructuredQRTOMS.pdf
-
-Installation of `libFLAME` is fairly straightforward. It is recommended that 
-you download the latest nightly snapshot from
-
-    http://www.cs.utexas.edu/users/flame/snapshots/
-
-and then installation should simply be a matter of running::
-
-    ./configure
-    make
-    make install
-
-Getting Elemental's source 
+Getting |projectName|'s source 
 ==========================
 There are two basic approaches:
 
 1. Download a tarball of the most recent version from 
-   `libelemental.org/releases <http://libelemental.org/releases/>`_. 
-   A new version is typically released every one to two months.
+   `>`_. 
 
 2. Install `git <http://git-scm.com/>`_ and check out a copy of 
    the repository by running ::
 
-    git clone git://github.com/elemental/Elemental.git
+    git clone 
 
-Building Elemental
+Building |projectName|
 ==================
-On \*nix machines with `BLAS <http://www.netlib.org/blas/>`__, 
-`LAPACK <http://www.netlib.org/lapack/>`__, and 
+On \*nix machines with `BLAS <http://www.netlib.org/blas/>`__, and
 `MPI <http://en.wikipedia.org/wiki/Message_Passing_Interface>`__ installed in 
-standard locations, building Elemental can be as simple as::
+standard locations, building |projectName| can be as simple as::
 
-    cd elemental
+    cd tensormental
     mkdir build
     cd build
     cmake ..
@@ -230,28 +174,24 @@ variables, e.g., ::
           -D CMAKE_Fortran_COMPILER=/usr/bin/gfortran ..
     
 It is also common to need to specify which libraries need to be linked in order
-to provide serial BLAS and LAPACK routines (and, if SVD is important, libFLAME).
+to provide serial BLAS routines.
 The ``MATH_LIBS`` variable was introduced for this purpose and an example 
 usage for configuring with BLAS and LAPACK libraries in ``/usr/lib`` would be ::
 
-    cmake -D MATH_LIBS="-L/usr/lib -llapack -lblas -lm" ..
+    cmake -D MATH_LIBS="-L/usr/lib -lblas -lm" ..
 
 It is important to ensure that if library A depends upon library B, A should 
-be specified to the left of B; in this case, LAPACK depends upon BLAS, so 
-``-llapack`` is specified to the left of ``-lblas``.
+be specified to the left of B.
 
 If `libFLAME <http://www.cs.utexas.edu/users/flame/>`__ is 
 available at ``/path/to/libflame.a``, then the above link line should be changed
 to ::
 
-    cmake -D MATH_LIBS="/path/to/libflame.a;-L/usr/lib -llapack -lblas -lm" ..
-
-Elemental's performance in Singular Value Decompositions (SVD's) is 
-greatly improved on many architectures when libFLAME is linked.
+    cmake -D MATH_LIBS="/path/to/libflame.a;-L/usr/lib -lblas -lm" ..
 
 Build Modes
 -----------
-Elemental currently has four different build modes:
+|projectName| currently has four different build modes:
 
 * **PureDebug** - An MPI-only build that maintains a call stack and provides 
   more error checking.
@@ -261,66 +201,17 @@ Elemental currently has four different build modes:
 * **HybridRelease** - An optimized MPI+OpenMP build suitable for production use.
 
 The build mode can be specified with the ``CMAKE_BUILD_TYPE`` option, e.g., 
-``-D CMAKE_BUILD_TYPE=PureDebug``. If this option is not specified, Elemental
+``-D CMAKE_BUILD_TYPE=PureDebug``. If this option is not specified, |projectName|
 defaults to the **PureRelease** build mode.
 
 Testing the installation
 ========================
-Once Elemental has been installed, it is a good idea to verify that it is 
-functioning properly. An example of generating a random distributed matrix, 
-computing its Singular Value Decomposition (SVD), and checking for numerical 
-error is available in `examples/lapack-like/SVD.cpp <https://github.com/elemental/Elemental/blob/master/examples/lapack-like/SVD.cpp>`__.
+Once |projectName| has been installed, it is a good idea to verify that it is 
+functioning properly. 
 
-As you can see, the only required header is ``elemental.hpp``, which must be
-in the include path when compiling this simple driver, ``SVD.cpp``. 
-If Elemental was installed in ``/usr/local``, then 
-``/usr/local/conf/elemvariables`` can be used to build a simple Makefile::
-
-    include /usr/local/conf/elemvariables
-
-    SVD: SVD.cpp
-        ${CXX} ${ELEM_COMPILE_FLAGS} $< -o $@ ${ELEM_LINK_FLAGS} ${ELEM_LIBS}
-
-As long as ``SVD.cpp`` and this ``Makefile`` are in the current directory,
-simply typing ``make`` should build the driver. 
-
-The executable can then typically be run with a single process (generating a 
-:math:`300 \times 300` distributed matrix, using ::
-
-    ./SVD --height 300 --width 300
-
-and the output should be similar to ::
-    
-    ||A||_max   = 0.999997
-    ||A||_1     = 165.286
-    ||A||_oo    = 164.116
-    ||A||_F     = 173.012
-    ||A||_2     = 19.7823
-
-    ||A - U Sigma V^H||_max = 2.20202e-14
-    ||A - U Sigma V^H||_1   = 1.187e-12
-    ||A - U Sigma V^H||_oo  = 1.17365e-12
-    ||A - U Sigma V^H||_F   = 1.10577e-12
-    ||A - U Sigma V_H||_F / (max(m,n) eps ||A||_2) = 1.67825
-
-The driver can be run with several processes using the MPI launcher provided
-by your MPI implementation; a typical way to run the ``SVD`` driver on 
-eight processes would be::
-
-    mpirun -np 8 ./SVD --height 300 --width 300
-
-You can also build a wide variety of example and test drivers 
-(unfortunately the line is a little blurred) by using the CMake options::
-
-    -D ELEM_EXAMPLES=ON
-
-and/or ::
-
-    -D ELEM_TESTS=ON  
-
-Elemental as a subproject
+|projectName| as a subproject
 =========================
-Adding Elemental as a dependency into a project which uses CMake for its build 
+Adding |projectName| as a dependency into a project which uses CMake for its build 
 system is relatively straightforward: simply put an entire copy of the 
 Elemental source tree in a subdirectory of your main project folder, say 
 ``external/elemental``, and then create a ``CMakeLists.txt`` file in your main 
@@ -330,21 +221,21 @@ project folder that builds off of the following snippet::
     project(Foo)
 
     add_subdirectory(external/elemental)
-    include_directories("${PROJECT_BINARY_DIR}/external/elemental/include")
+    include_directories("${PROJECT_BINARY_DIR}/external/tensormental/include")
     include_directories(${MPI_CXX_INCLUDE_PATH})
 
     # Build your project here
     # e.g., 
     #   add_library(foo ${LIBRARY_TYPE} ${FOO_SRC})
-    #   target_link_libraries(foo elemental)
+    #   target_link_libraries(foo tensormental)
 
 Troubleshooting
 ===============
 If you run into build problems, please email 
-`elemental-maint@googlegroups.com <mailto:elemental-maint@googlegroups.com>`_ 
-and make sure to attach the file ``include/elemental/config.h``, which should 
+`martin.schatz@utexas.edu <mailto:martin.schatz@utexas.edu>`_ 
+and make sure to attach the file ``include/tensormental/config.h``, which should 
 be generated within your build directory. 
 Please only direct usage questions to 
-`elemental-user@googlegroups.com <mailto:elemental-user@googlegroups.com>`_, 
+`martin.schatz@utexas.edu <mailto:martin.schatz@utexas.edu>`_, 
 and development questions to 
-`elemental-dev@googlegroups.com <mailto:elemental-dev@googlegroups.com>`_.
+`martin.schatz@utexas.edu <mailto:martin.schatz@utexas.edu>`_.

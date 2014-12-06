@@ -1,0 +1,213 @@
+%Roman to Greek map
+\newcommand{\Sa}{\alpha}
+\newcommand{\Sb}{\beta}
+\newcommand{\Sc}{\gamma}
+\newcommand{\Sd}{\delta}
+\newcommand{\Se}{\epsilon}
+\newcommand{\Sf}{\xi}
+\newcommand{\Sg}{\phi}
+\newcommand{\Sh}{\eta}
+\newcommand{\Si}{\iota}
+\newcommand{\Sj}{\kappa} %?
+\newcommand{\Sk}{\kappa}
+\newcommand{\Sl}{\lambda}
+\newcommand{\Sm}{\mu}
+\newcommand{\Sn}{\nu}
+\newcommand{\So}{\omicron}
+\newcommand{\Sp}{\pi}
+\newcommand{\Sq}{\theta}
+\newcommand{\Sr}{\rho}
+\newcommand{\Ss}{\sigma}
+\newcommand{\St}{\tau}
+\newcommand{\Su}{\upsilon}
+\newcommand{\Sv}{\nu} %?
+\newcommand{\Sw}{\omega}
+\newcommand{\Sx}{\chi}
+\newcommand{\Sy}{\psi}
+\newcommand{\Sz}{\zeta}
+
+%\newcommand{\MLmap}[1]{\IfStrEqCase{\MakeUppercase{#1}}{
+%						{A}{\MLa}}[OHNO]}
+
+\renewcommand{\S}[1]{\IfStrEqCase{#1}{
+						{a}{\Sa}
+						{b}{\Sb}
+						{c}{\Sc}
+						{d}{\Sd}
+						{e}{\Se}
+						{f}{\Sf}
+						{g}{\Sg}
+						{h}{\Sh}
+						{i}{\Si}
+						{j}{\Sj}
+						{k}{\Sk}
+						{l}{\Sl}
+						{m}{\Sm}
+						{n}{\Sn}
+						{o}{\So}
+						{p}{\Sp}
+						{q}{\Sq}
+						{r}{\Sr}
+						{s}{\Ss}
+						{t}{\St}
+						{u}{\Su}
+						{v}{\Sv}
+						{w}{\Sw}
+						{x}{\Sx}
+						{y}{\Sy}
+						{z}{\Sz}
+						{A}{\Sa}
+						{B}{\Sb}
+						{C}{\Sc}
+						{D}{\Sd}
+						{E}{\Se}
+						{F}{\Sf}
+						{G}{\Sg}
+						{H}{\Sh}
+						{I}{\Si}
+						{J}{\Sj}
+						{K}{\Sk}
+						{L}{\Sl}
+						{M}{\Sm}
+						{N}{\Sn}
+						{O}{\So}
+						{P}{\Sp}
+						{Q}{\Sq}
+						{R}{\Sr}
+						{S}{\Ss}
+						{T}{\St}
+						{U}{\Su}
+						{V}{\Sv}
+						{W}{\Sw}
+						{X}{\Sx}
+						{Y}{\Sy}
+						{Z}{\Sz}
+						}[OHNO]}
+
+\newcommand{\pmodNew}[1]{\mkern4mu\left({\rm mod}\mkern 6mu#1\right)}
+
+%Needed functions by other macros
+\newcommand{\card}[1]{\left|#1\right|}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+%Sequences
+\newcommand{\Seq}[1]{{\bf{\MakeLowercase{#1}}}}
+\newcommand{\SeqE}[2]{\Seq{#1}_{#2}}
+%\newcommand{\SeqS}[1]{{\overline{\S{#1}}}}
+\newcommand{\Tuple}[1]{\left( #1 \right)}
+\newcommand{\Tup}[1]{{\bf{#1}}}
+\newcommand{\TupE}[2]{\Tup{#1}_{#2}}
+\newcommand{\setCard}[1]{\card{\SetL{#1}}}
+\newcommand{\tupCard}[1]{\card{\Tup{#1}}}
+\newcommand{\Sequence}[1]{\left\langle #1 \right\rangle}
+\newcommand{\seqCard}[1]{\card{\Seq{#1}}} 
+\newcommand{\union}{\cup}
+\newcommand{\bigunion}{\bigcup}
+\newcommand{\concat}{\sqcup} 						% Vector concatenation
+\newcommand{\bigconcat}{\bigsqcup}
+\newcommand{\cart}{\otimes}
+\newcommand{\ssum}{\oplus}                          % Sequence sum
+\newcommand{\bigssum}{\bigoplus}
+
+%Vector-related info
+\newcommand{\Vector}[1]{\left(#1\right)} 			% Explicit vector with elements #1
+
+%Tensor-related info
+\newcommand{\DataTensor}{\T{A}} 					% Tensor data to distribute
+\newcommand{\tenOrder}{M} 							% Tensor order
+\newcommand{\tenShape}{\Tup{I}}
+\newcommand{\tenShapeProd}{\bar{I}}
+\newcommand{\tenLocE}[1]{i_{#1}}
+\newcommand{\tenLoc}{\Tup{i}}
+\newcommand{\tenLinLoc}{\hat i}
+\newcommand{\tenDim}[1]{I_{#1}} 					% Dimension of mode #1
+\newcommand{\range}[1]{\mathcal{R}\left(#1\right)} 	% Range of mode #1
+\newcommand{\rangeExpand}[1]{\Set{0,1,\dots,\tenDim{#1}-1}} 	% Range of mode #1
+
+%Grid-related info
+\newcommand{\Grid}{\T{G}} 							% Processing grid
+\newcommand{\gridOrder}{N} 							% Processing grid order
+\newcommand{\gridShape}{\Tup{P}} 					% Processing grid shape
+\newcommand{\gridDim}[1]{P_{#1}} 					% Dimension of mode #1 of processing grid
+\newcommand{\Proc}[1]{\ifstrequal{#1}{}{\Tup{p}}{\Tup{p}_{#1}}}
+\newcommand{\GridLoc}[1]{\Grid_{\Tuple{#1}}}
+\newcommand{\nComms}{{\hat c}}
+\newcommand{\commInstance}{c}
+
+%Distribution-related info
+\newcommand{\Set}[1]{\left\{#1\right\}}
+\newcommand{\SetE}[2]{{\rm \MakeLowercase{#1}}_{#2}}
+\newcommand{\modeDist}[1]{\ifstrequal{#1}{}{\OrderedSetL{D}}{\OrderedSetL{D}^{\left(#1\right)}}} 			% Distribution of mode #1 of tensor
+\newcommand{\modeDistFinal}[1]{\ifstrequal{#1}{}{\overline{\OrderedSetL{D}}}{\overline{\OrderedSetL{D}}^{\left(#1\right)}}}
+\newcommand{\modeDistS}[1]{\mathcal{D}_{\modeDist{#1}}}
+\newcommand{\modeDistSFinal}[1]{{\bar \modeDistS{#1}}}	
+\newcommand{\modeDistexp}[1]{\Tuple{#1}}			% Explicit mode distribution with elements #1
+\newcommand{\modeDistSexp}[1]{\mathcal{D}_{\Tuple{#1}}}	
+\newcommand{\modeDistExample}{M} 					% Mode distribution for example purposes
+\newcommand{\tenDist}[1]{\ifstrequal{#1}{}{\modeDist{}}{\modeDist{}^{(#1)}}} 				% Tensor Distribution
+\newcommand{\tenDistFinal}[1]{\ifstrequal{#1}{}{\overline{\modeDist{}}}{\overline{\modeDist{}}^{(#1)}}}
+\newcommand{\tenDistexp}[1]{\left[#1\right]} 	    % Explicit tensor distribution with elements #1
+
+\newcommand{\fullElemSet}{\range{\tenShape}}
+\newcommand{\fullProcSet}{\range{\gridShape}}
+\newcommand{\elemSetNew}[2]{\SetL{I}^{\left(#2\right)}\left(#1\right)}
+\newcommand{\elemSetI}[1]{\SetL{I}^{\left(#1\right)}}
+\newcommand{\elemSetF}[1]{\SetL{F}^{\left(#1\right)}}
+\newcommand{\elemSetR}[1]{\SetL{R}^{\left(#1\right)}}
+\newcommand{\elemSet}[1]{\SetL{L}^{\left(#1\right)}}
+\newcommand{\elemSetN}[2]{\SetL{F}\left(#1\right)^{#2}}
+\newcommand{\ProcSet}{\SetL{P}}
+\newcommand{\procVar}{k}
+\newcommand{\procVarTwo}{h}
+\newcommand{\subrangeNew}[3]{\SetL{I}^{\left(#2\right)}_{#3}\left(#1\right)}		% Used to define subranges
+\newcommand{\subrangeR}[1]{\elemSetR{#1}}		% Used to define subranges
+\newcommand{\subrangeI}[2]{\elemSetI{#1}_{#2}}		% Used to define subranges
+\newcommand{\subrangeF}[2]{\elemSetF{#1}_{#2}}		% Used to define subranges
+\newcommand{\subrange}[2]{\elemSet{#1}_{#2}}		% Used to define subranges
+\newcommand{\subrangeN}[3]{\SetL{L}\left(#1\right)^{#2}_{#3}}
+\newcommand{\subrangeFilter}[3]{\Set{ i \in \range{\tenDim{#1}} \middle|\quad i \equiv {#2} {\pmodNew {#3}}}}
+\newcommand{\subrangeFilterExp}[3]{\Set{ i \in #1 \middle|\quad i \equiv {#2} {\pmodNew {#3}}}}
+%Required functions
+\newcommand{\vecfilter}[2]{#1\left(#2\right)} 				% Filter #2 applied to vector #1
+%\newcommand{\vecfilter}[2]{{\rm filter}\left(#1,#2\right)} 				% Filter #2 applied to vector #1
+\newcommand{\numElem}[1]{numElem(#1)} 				% Number of elements in Shape #1
+\newcommand{\multiTolinearName}{{\rm multi2linear}\xspace{}}
+\newcommand{\multiTolinear}[2]{\multiTolinearName\left(#1, #2\right)}
+\newcommand{\multiTolinearShortName}{{\rm multi2linear}\xspace{}}
+\newcommand{\multiTolinearShort}[3]{\multiTolinearShortName\left(#1, #2, #3\right)}
+\newcommand{\linearTomultiName}{{\rm linear2multi}\xspace{}}
+\newcommand{\linearTomultiShortName}{{\rm linear2multi}\xspace{}}
+\newcommand{\linearTomulti}[2]{\linearTomultiName\left(#1, #2\right)}
+\newcommand{\linearTomultiShort}[3]{\linearTomultiShortName\left(#1, #2, #3\right)}
+
+\newcommand{\serProdName}{{\rm prod}\xspace{}}
+\newcommand{\serProd}[1]{\serProdName\left(#1\right)}
+\newcommand{\serProdShortName}{{\rm prod}\xspace{}}
+\newcommand{\serProdShort}[2]{\serProdShortName\left(#1, #2\right)}
+
+\newcommand{\tenIndVar}{k}
+\newcommand{\procIndVar}{p}
+%Collective proof info
+\newcommand{\data}[2][]{{}^{#1}\mathcal{d}^{(#2)}}
+
+\newcommand{\commModeDist}{\OrderedSetL{C}}
+\newcommand{\commModeDistTwo}{\OrderedSetL{B}}
+\newcommand{\commMode}{m}
+
+\newcommand{\permuteVec}{\V{\pi}}
+\newcommand{\permute}[2]{#1\left(#2\right)}
+\newcommand{\invPerm}[2]{#1^{-1}\left(#2\right)}
+
+\newcommand{\tempRank}{{\hat g}}
+
+\newcommand{\nProcsComm}{\hat p}
+\newcommand{\procRank}{r}
+\newcommand{\rootRank}{o}
+
+%Tammy commands
+\newcommand{\Range}[1]{\mathcal{R}(#1)}
+\newcommand{\RangeExpand}[1]{\set{0,1,\dots,#1-1}}
+\newcommand{\ModeMaps}{\mathcal{D}}
+\newcommand{\ModeMap}[1][m]{\mathcal{D}^{(#1)}}
+\newcommand{\ModeMapElem}[2][m]{d^{(#1)}_{#2}}
+\newcommand{\ModeSet}{\mathcal{\hat D}}
+\newcommand{\ModeSetComp}{\ModeSet^{\circ}}
