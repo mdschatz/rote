@@ -98,11 +98,11 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             T* alignSendBuf = &(sendBuf[0]);
             T* alignRecvBuf = &(recvBuf[0]);
 
-            std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerB, firstOwnerA);
+            std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
             PrintVector(alignDiff, "alignDiff");
             PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
-            Location sendGridLoc = ElemwiseMod(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape());
-            Location recvGridLoc = ElemwiseMod(ElemwiseSum(g.Loc(), alignDiff), g.Shape());
+            Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
+            Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
 
             //Create the communicator to involve all processes we need to fix misalignment
             ModeArray misalignedModes;
@@ -217,7 +217,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
         std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstElemOwnerA, firstElemOwnerB);
 
-        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSubtract(procGridLoc, alignDiff), gridShape);
+        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), gridShape), gridShape);
         Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
         Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
         printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);

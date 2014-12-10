@@ -65,7 +65,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     T* auxBuf;
     PROFILE_SECTION("AGRequire")
     PROFILE_FLOPS(sendSize + recvSize);
-    auxBuf = this->auxMemory_.Require(sendSize + recvSize + sendSize);
+    auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     PROFILE_STOP;
 
     T* sendBuf = &(auxBuf[0]);
@@ -95,19 +95,19 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
 //        PrintVector(firstOwnerA, "firstOwnerA");
 //        PrintVector(firstOwnerB, "firstOwnerB");
-        T* preSendBuf = &(auxBuf[sendSize + recvSize]);
-        MemCopy(&(preSendBuf[0]), &(sendBuf[0]), sendSize);
+        T* alignSendBuf = &(sendBuf[0]);
+        T* alignRecvBuf = &(recvBuf[0]);
 
-        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerB, firstOwnerA);
+        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
 
-        Location sendGridLoc = ElemwiseMod(ElemwiseSubtract(gvA.ParticipatingLoc(), alignDiff), gvA.ModeWrapStrides());
-        Location recvGridLoc = ElemwiseMod(ElemwiseSum(gvA.ParticipatingLoc(), alignDiff), gvA.ModeWrapStrides());
+        Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
+        Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
 
         //Create the communicator to involve all processes we need to fix misalignment
         ModeArray misalignedModes;
         for(Unsigned i = 0; i < firstOwnerB.size(); i++){
             if(firstOwnerB[i] != firstOwnerA[i]){
-                misalignedModes.insert(misalignedModes.end(), tensorDist[i].begin(), tensorDist[i].end());
+                misalignedModes.insert(misalignedModes.end(), i);
             }
         }
         std::sort(misalignedModes.begin(), misalignedModes.end());
@@ -127,8 +127,9 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
         mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
 //        printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
-        mpi::SendRecv(preSendBuf, sendSize, sendLinLoc, sendBuf, sendSize, recvLinLoc, sendRecvComm);
-
+        mpi::SendRecv(alignSendBuf, sendSize, sendLinLoc, alignRecvBuf, sendSize, recvLinLoc, sendRecvComm);
+        sendBuf = &(alignRecvBuf[0]);
+        recvBuf = &(alignSendBuf[0]);
 //        PrintArray(sendBuf, commDataShape, "postsendBuf");
     }
 
