@@ -10,6 +10,7 @@
 #ifndef TMEN_BTAS_YAXPPX_HPP
 #define TMEN_BTAS_YAXPPX_HPP
 
+#include "tensormental/io/Print.hpp"
 namespace tmen {
 
 ////////////////////////////////////
@@ -69,8 +70,9 @@ YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf,
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     while(!done){
-
+        std::cout << "accuming: " << alpha << "*" << srcBuf[srcBufPtr] << " and " << beta << "*" << permSrcBuf[permBufPtr] << " to " << dstBuf[dstBufPtr] << " giving ";
         dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr] + beta*permSrcBuf[permBufPtr];
+        std::cout << dstBuf[dstBufPtr] << std::endl;
         //Update
         curLoc[ptr]++;
         dstBufPtr += dstBufStrides[ptr];
@@ -133,6 +135,10 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
     const T* srcBuf = X.LockedBuffer();
     const T* permSrcBuf = PX.LockedBuffer();
     T* dstBuf = Y.Buffer();
+
+    PrintArray(srcBuf, X.Shape(), "srcBuf");
+    PrintArray(permSrcBuf, PX.Shape(), "permSrcBuf");
+    PrintArray(dstBuf, Y.Shape(), "dstBuf");
 
     if(order == 0){
         dstBuf[0] = alpha*srcBuf[0] + beta*permSrcBuf[0];

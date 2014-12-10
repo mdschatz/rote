@@ -48,7 +48,7 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
     Unsigned i;
     Location localLoc(globalLoc.size());
     for(i = 0; i < globalLoc.size(); i++){
-        localLoc[i] = (globalLoc[i]-ModeShift(i)) / ModeStride(i);
+        localLoc[i] = (globalLoc[i]-ModeShift(i) + ModeAlignment(i)) / ModeStride(i);
     }
     return localLoc;
 }
@@ -189,6 +189,24 @@ DistTensor<T>::DetermineFirstElem(const Location& gridViewLoc) const
         ret[i] = Shift(gridViewLoc[i], modeAlignments_[i], ModeStride(i));
     }
 
+    return ret;
+}
+
+template<typename T>
+Location
+DistTensor<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const std::vector<Unsigned>& alignmentDiff) const
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::DetermineFirstElem");
+#endif
+    Unsigned i;
+    Location ret(gridViewLoc.size());
+    for(i = 0; i < gridViewLoc.size(); i++){
+        ret[i] = Shift(gridViewLoc[i], alignmentDiff[i], ModeStride(i));
+    }
+//    PrintVector(ModeStrides(), "gridStrides");
+//    PrintVector(alignmentDiff, "supplied align");
+//    PrintVector(ret, "firstUnalignedElem");
     return ret;
 }
 

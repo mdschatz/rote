@@ -27,6 +27,9 @@ template<typename T>
 void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>
+std::vector<T> ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2);
+
+template<typename T>
 void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>
@@ -43,6 +46,12 @@ void ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2, std:
 
 template<typename T>
 std::vector<T> ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2);
+
+template<typename T>
+void ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
+
+template<typename T>
+std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2);
 
 template<typename T>
 bool AnyNonNegativeElem(const std::vector<T>& vec);

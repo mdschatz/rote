@@ -14,6 +14,7 @@
 #include "tensormental/util/vec_util.hpp"
 #include "tensormental/util/btas_util.hpp"
 #include "tensormental/core/view_decl.hpp"
+#include "tensormental/io/Print.hpp"
 
 namespace tmen{
 
@@ -99,7 +100,16 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
         Permute(PC, C, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
 
+//        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");
+//        PrintArray(MPB.LockedBuffer(), MPB.Shape(), "MPB in");
+//        const T* MPBBuf = MPB.LockedBuffer();
+//        printf("mpb buf:");
+//        for(i = 0; i < prod(MPB.Shape())*2; i++)
+//            printf(" %e", MPBBuf[i]);
+//        printf("\n");
+//        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC in");
         Gemm(alpha, MPA, MPB, beta, MPC);
+//        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC out");
 
         Tensor<T> IPC;
         const Permutation invPermC = DetermineInversePermutation(permC);
@@ -116,7 +126,11 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
         Permute(C, IPC, invPermC);
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
+        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");
+        PrintArray(MPB.LockedBuffer(), MPB.Shape(), "MPB in");
+        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC in");
         Gemm(alpha, MPA, MPB, beta, MPC);
+        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC out");
     }
     PROFILE_STOP;
 }

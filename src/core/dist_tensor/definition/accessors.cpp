@@ -263,7 +263,6 @@ DistTensor<T>::Get( const Location& loc ) const
     const Location owningProc = DetermineOwner(loc);
 
     const tmen::GridView& gv = GetGridView();
-    Location gvLoc = gv.ParticipatingLoc();
     T u = T(0);
     if(Participating()){
         const Location ownerGridLoc = GridViewLoc2GridLoc(owningProc, gv);

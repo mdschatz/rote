@@ -152,6 +152,7 @@ public:
     //
     Location DetermineOwner(const Location& loc) const;
     Location DetermineFirstElem(const Location& gridLoc) const;
+    Location DetermineFirstUnalignedElem(const Location& gridViewLoc, const std::vector<Unsigned>& alignmentDiff) const;
     Location Global2LocalIndex(const Location& loc) const;
 
     //

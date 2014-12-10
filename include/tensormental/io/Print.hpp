@@ -132,7 +132,7 @@ template<typename T>
 inline void
 PrintData
 ( const DistTensor<T>& A, std::string title="", std::ostream& os = std::cout){
-    if( A.Grid().LinearRank() == 0 && title != "" ){
+//    if( A.Grid().LinearRank() == 0 && title != "" ){
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
@@ -141,7 +141,7 @@ PrintData
         PrintVector(A.ModeShifts(), "shifts", os);
         PrintVector(A.LocalPermutation(), "local permutation", os);
         PrintData(A.LockedTensor(), "tensor data", os);
-    }
+//    }
 }
 
 template<typename T>
@@ -163,6 +163,7 @@ PrintArray
     bool done = !ElemwiseLessThan(curLoc, shape);
 
     while(!done){
+        os.precision(16);
         os << " " << dataBuf[linLoc];
         //Update
         curLoc[ptr]++;

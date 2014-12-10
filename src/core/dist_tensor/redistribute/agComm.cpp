@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2009-2013, Jack Poulson
+x   Copyright (c) 2009-2013, Jack Poulson
                       2013, Jeff Hammond
                       2013, Jed Brown
    All rights reserved.
@@ -47,23 +47,33 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     Unsigned sendSize, recvSize;
 
+    //For unaligned communications
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const std::vector<Unsigned> alignments = Alignments();
+    const std::vector<Unsigned> alignmentsA = A.Alignments();
+    const TensorDistribution tensorDist = A.TensorDist();
+
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    const ObjShape commDataShape = A.MaxLocalShape();
+    PrintVector(commDataShape, "commDataShape");
 
-    sendSize = prod(maxLocalShapeA);
+    sendSize = prod(commDataShape);
     recvSize = sendSize * nRedistProcs;
 
     T* auxBuf;
     PROFILE_SECTION("AGRequire")
     PROFILE_FLOPS(sendSize + recvSize);
-    auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    auxBuf = this->auxMemory_.Require(sendSize + recvSize + sendSize);
     PROFILE_STOP;
 
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-//    std::cout << "dataBuf:";
+    const T* dataBuf = A.LockedBuffer();
+    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides());
+//    std::cout << "srcBuf:";
 //    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
 //      std::cout << " " <<  dataBuf[i];
 //    }
@@ -71,18 +81,58 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Pack the data
     PROFILE_SECTION("AGPack");
-    PROFILE_FLOPS(prod(maxLocalShapeA));
+    PROFILE_FLOPS(prod(commDataShape));
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
-//    printf("sendBuf:");
-//    for(i = 0; i < sendSize; i++){
-//      std::cout << " " << sendBuf[i];
-//    }
-//    std::cout << std::endl;
+    PrintArray(sendBuf, commDataShape, "sendBuf");
 
     //Communicate the data
     PROFILE_SECTION("AGComm");
+    //If unaligned, realign with send/recv BEFORE Allgather (ensures data arrives in correct place)
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+        PrintVector(firstOwnerA, "firstOwnerA");
+        PrintVector(firstOwnerB, "firstOwnerB");
+        T* preSendBuf = &(auxBuf[sendSize + recvSize]);
+        MemCopy(&(preSendBuf[0]), &(sendBuf[0]), sendSize);
+
+        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerB, firstOwnerA);
+
+        Location sendGridLoc = ElemwiseMod(ElemwiseSubtract(gvA.ParticipatingLoc(), alignDiff), gvA.ModeWrapStrides());
+        Location recvGridLoc = ElemwiseMod(ElemwiseSum(gvA.ParticipatingLoc(), alignDiff), gvA.ModeWrapStrides());
+
+        //Create the communicator to involve all processes we need to fix misalignment
+        ModeArray misalignedModes;
+        for(Unsigned i = 0; i < firstOwnerB.size(); i++){
+            if(firstOwnerB[i] != firstOwnerA[i]){
+                misalignedModes.insert(misalignedModes.end(), tensorDist[i].begin(), tensorDist[i].end());
+            }
+        }
+        std::sort(misalignedModes.begin(), misalignedModes.end());
+        PrintVector(misalignedModes, "misAlignedModes");
+
+
+        Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
+        Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
+        ObjShape gridSliceShape = FilterVector(g.Shape(), misalignedModes);
+
+        Unsigned sendLinLoc = Loc2LinearLoc(sendSliceLoc, gridSliceShape);
+        Unsigned recvLinLoc = Loc2LinearLoc(recvSliceLoc, gridSliceShape);
+//        PrintVector(sendGridViewLoc, "sendLoc");
+//        printf("sendLinloc: %d\n", sendLinLoc);
+//        PrintVector(recvGridViewLoc, "recvLoc");
+//        printf("recvLinloc: %d\n", recvLinLoc);
+
+        mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
+        printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
+        mpi::SendRecv(preSendBuf, sendSize, sendLinLoc, sendBuf, sendSize, recvLinLoc, sendRecvComm);
+
+        PrintArray(sendBuf, commDataShape, "postsendBuf");
+    }
+
+    PrintArray(sendBuf, commDataShape, "sendBuf before ag");
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
     PROFILE_STOP;
 
@@ -91,24 +141,19 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
         return;
     }
 
-//    std::cout << "recvBuf:";
-//    for(Unsigned i = 0; i < recvSize * nRedistProcs; i++){
-//        std::cout << " " << recvBuf[i];
-//    }
-//    std::cout << std::endl;
+    ObjShape recvShape = commDataShape;
+    recvShape.insert(recvShape.end(), nRedistProcs);
+    PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
     PROFILE_SECTION("AGUnpack");
     PROFILE_FLOPS(prod(MaxLocalShape()));
-    UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
+    UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
 
-//    const T* myBuf = LockedBuffer();
-//    std::cout << "myBuf:";
-//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
-//        std::cout << " " << myBuf[i];
-//    }
-//    std::cout << std::endl;
+//    PrintData(*this, "data after AGComm");
+    const T* myBuf = LockedBuffer();
+    PrintArray(myBuf, LocalShape(), "myBuf");
 
     this->auxMemory_.Release();
 }

@@ -750,8 +750,8 @@ Tensor<T>::ResizeTo_( const ObjShape& shape )
 	//TODO: Implement general stride
 	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
 	shape_ = shape;
+	strides_ = Dimensions2Strides(shape);
 	if(reallocate){
-		strides_ = Dimensions2Strides(shape);
 		memory_.Require(Max(1,prod(shape)));
 		data_ = memory_.Buffer();
 	}
