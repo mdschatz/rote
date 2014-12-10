@@ -126,11 +126,11 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
         Permute(C, IPC, invPermC);
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
-        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");
-        PrintArray(MPB.LockedBuffer(), MPB.Shape(), "MPB in");
-        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC in");
+//        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");
+//        PrintArray(MPB.LockedBuffer(), MPB.Shape(), "MPB in");
+//        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC in");
         Gemm(alpha, MPA, MPB, beta, MPC);
-        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC out");
+//        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC out");
     }
     PROFILE_STOP;
 }

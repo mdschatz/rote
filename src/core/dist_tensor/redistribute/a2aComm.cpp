@@ -67,7 +67,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* auxBuf;
         PROFILE_SECTION("A2ARequire");
         PROFILE_FLOPS((sendSize + recvSize) * nRedistProcs);
-        auxBuf = this->auxMemory_.Require((sendSize + recvSize + sendSize) * nRedistProcs);
+        auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
         PROFILE_STOP;
 
         T* sendBuf = &(auxBuf[0]);
@@ -95,16 +95,14 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             PrintVector(g.Loc(), "myGridLoc");
             PrintVector(firstOwnerA, "firstOwnerA");
             PrintVector(firstOwnerB, "firstOwnerB");
-            T* prepack = &(auxBuf[(sendSize + recvSize) * nRedistProcs]);
-            MemCopy(&(prepack[0]), &(sendBuf[0]), sendSize * nRedistProcs);
-
-            for(Unsigned i = 0; i < sendSize * nRedistProcs; i++)
-                sendBuf[i] = -1;
+            T* alignSendBuf = &(sendBuf[0]);
+            T* alignRecvBuf = &(recvBuf[0]);
 
             std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerB, firstOwnerA);
             PrintVector(alignDiff, "alignDiff");
-            Location sendGridLoc = ElemwiseMod(ElemwiseSubtract(gvA.ParticipatingLoc(), alignDiff), gvA.ModeWrapStrides());
-            Location recvGridLoc = ElemwiseMod(ElemwiseSum(gvA.ParticipatingLoc(), alignDiff), gvA.ModeWrapStrides());
+            PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
+            Location sendGridLoc = ElemwiseMod(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape());
+            Location recvGridLoc = ElemwiseMod(ElemwiseSum(g.Loc(), alignDiff), g.Shape());
 
             //Create the communicator to involve all processes we need to fix misalignment
             ModeArray misalignedModes;
@@ -131,10 +129,12 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             PrintVector(recvGridLoc, "recvLoc");
             printf("recvLinloc: %d\n", recvLinLoc);
 
-            PrintArray(prepack, sendShape, "sendBuf to SendRecv");
-            mpi::SendRecv(prepack, sendSize * nRedistProcs, sendLinLoc,
-                          sendBuf, sendSize * nRedistProcs, recvLinLoc, sendRecvComm);
-            PrintArray(sendBuf, sendShape, "recvBuf from SendRecv");
+            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
+            mpi::SendRecv(alignSendBuf, sendSize * nRedistProcs, sendLinLoc,
+                          alignRecvBuf, sendSize * nRedistProcs, recvLinLoc, sendRecvComm);
+            sendBuf = &(alignRecvBuf[0]);
+            recvBuf = &(alignSendBuf[0]);
+            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
         }
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
@@ -229,7 +229,6 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
         //Determine the first element I need to send to p_i
         //The first element I own is
-//        Location myFirstLoc = A.ModeShifts();
         Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
 
 
@@ -256,10 +255,10 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
             firstSendLoc[j] = myFirstIndex;
         }
 
-//        if(found)
-//            PrintVector(firstSendLoc, "haha sending first loc");
-//        else
-//            PrintVector(firstSendLoc, "nope sending first loc");
+        if(found)
+            PrintVector(firstSendLoc, "haha sending first loc");
+        else
+            PrintVector(firstSendLoc, "nope sending first loc");
         //Pack the data if we need to send data to p_i
         if(found && ElemwiseLessThan(firstSendLoc, Shape())){
             //Determine where the initial piece of data is located.
@@ -346,11 +345,11 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSubtract(procGridLoc, alignDiff), gridShape);
         Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
         Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
-        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
-        PrintVector(sortedCommModes, "sortedModes");
-        PrintVector(g.Loc(), "myLoc");
-        PrintVector(procGridLoc, "procGridLoc");
-        PrintVector(procFirstElemLoc, "sendBuf first elem is");
+//        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
+//        PrintVector(sortedCommModes, "sortedModes");
+//        PrintVector(g.Loc(), "myLoc");
+//        PrintVector(procGridLoc, "procGridLoc");
+//        PrintVector(procFirstElemLoc, "sendBuf first elem is");
 
         //Determine the first element I need from p_i
         //The first element I own is
