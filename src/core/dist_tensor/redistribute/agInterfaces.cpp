@@ -16,25 +16,14 @@ namespace tmen{
 
 template <typename T>
 void
-DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes ){
-    ModeArray agModes(1);
-    agModes[0] = allGatherMode;
-    std::vector<ModeArray> commGroups(1);
-    commGroups[0] = redistModes;
-    AllGatherRedistFrom(A, agModes, commGroups);
-}
-
-template <typename T>
-void
-DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistGroups ){
+DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes ){
     PROFILE_SECTION("AGRedist");
     Unsigned i;
     ResizeTo(A);
-    ModeArray commModes;
-    for(i = 0; i < redistGroups.size(); i++)
-        commModes.insert(commModes.end(), redistGroups[i].begin(), redistGroups[i].end());
-    std::sort(commModes.begin(), commModes.end());
-    AllGatherCommRedist(A, commModes);
+
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    AllGatherCommRedist(A, sortedCommModes);
     PROFILE_STOP;
 }
 

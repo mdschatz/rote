@@ -251,7 +251,7 @@ public:
     // All-to-all interface routines
     //
     void AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
-    void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups);
+    void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
     // Allgather workhorse routines
@@ -263,8 +263,7 @@ public:
     //
     // Allgather interface routines
     //
-    void AllGatherRedistFrom(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes);
-    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& allGatherModes, const std::vector<ModeArray>& redistModes);
+    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
     // Gather-to-one workhorse routines
