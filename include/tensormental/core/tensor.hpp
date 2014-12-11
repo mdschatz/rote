@@ -27,7 +27,7 @@ public:
     //
     
     void AssertValidDimensions( const ObjShape& shape ) const;
-    void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& ldims ) const;
+    void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& strides ) const;
     void AssertValidEntry( const Location& loc ) const;
     void AssertMergeableModes( const std::vector<ModeArray>& oldModes ) const;
     void AssertSplittableModes( const ModeArray& oldModes, const std::vector<ObjShape>& newShape) const;
@@ -39,11 +39,11 @@ public:
     Tensor( bool fixed=false );
     Tensor( const Unsigned order, bool fixed = false);
     Tensor( const ObjShape& shape, bool fixed=false );
-    Tensor( const ObjShape& shape, const std::vector<Unsigned>& ldims, bool fixed=false );
-    Tensor( const ObjShape& shape, const std::vector<Unsigned>& ldims, Unsigned check, bool fixed=false );
+    Tensor( const ObjShape& shape, const std::vector<Unsigned>& strides, bool fixed=false );
+    Tensor( const ObjShape& shape, const std::vector<Unsigned>& strides, Unsigned check, bool fixed=false );
     Tensor
-    ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
-    Tensor( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims, bool fixed=false );
+    ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides, bool fixed=false );
+    Tensor( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides, bool fixed=false );
     Tensor( const Tensor<T>& A );
 
     // Move constructor
@@ -71,8 +71,6 @@ public:
 
     std::vector<Unsigned> Strides() const;
     Unsigned Stride(Mode mode) const;
-    std::vector<Unsigned> LDims() const;
-    Unsigned LDim(Mode mode) const;
 
     Unsigned MemorySize() const;
 
@@ -141,14 +139,14 @@ public:
     bool Viewing()     const;
     bool Locked()      const;
 
-    void Attach( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
+    void Attach( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides );
     void LockedAttach
-    ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims );
+    ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides );
 
     // Use this memory *as if it were not a view*, but do not take control of 
     // its deallocation. If Resize() forces reallocation, this buffer is 
     // released from control but not deleted.
-    //void Control( Int height, Int width, T* buffer, Int ldim );
+    //void Control( Int height, Int width, T* buffer, Int stride );
 
     //
     // Utilities
@@ -158,17 +156,15 @@ public:
 
     void Empty();
     void ResizeTo( const ObjShape& shape );
-    void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& ldims );
+    void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
     Unsigned NumElem() const;
-    void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
     void CopyBuffer(const Tensor& A);
     void CopyBuffer(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
 
 private:
     ObjShape shape_;
     std::vector<Unsigned> strides_;
-    std::vector<Unsigned> ldims_;
 
     ViewType viewType_;
 
@@ -181,19 +177,15 @@ private:
     T& Set_( const Location& loc );
 
     void SetStrides(const ObjShape& shape);
-    void SetLDims(const ObjShape& shape);
-
-    void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
-    void PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf);
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();
     void ResizeTo( const Tensor<T>& A);
     void ResizeTo_( const ObjShape& shape );
-    void ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& ldims );
-    void Control_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
-    void Attach_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& ldims );
-    void LockedAttach_( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& ldims );
+    void ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& strides );
+    void Control_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides );
+    void Attach_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides );
+    void LockedAttach_( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides );
     
     template <typename F> 
     friend class Tensor;

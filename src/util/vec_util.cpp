@@ -27,6 +27,13 @@ void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::ve
 }
 
 template<typename T>
+std::vector<T> ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2){
+    std::vector<T> ret(src1.size());
+    ElemwiseSum(src1, src2, ret);
+    return ret;
+}
+
+template<typename T>
 void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
   std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::minus<T>());
 }
@@ -58,7 +65,19 @@ void ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2, std:
 template<typename T>
 std::vector<T> ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2){
   std::vector<T> ret(src1.size());
-  std::transform(src1.begin(), src1.end(), src2.begin(), ret.begin(), std::divides<T>());
+  ElemwiseDivide(src1, src2, ret);
+  return ret;
+}
+
+template<typename T>
+void ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out){
+  std::transform(src1.begin(), src1.end(), src2.begin(), out.begin(), std::modulus<T>());
+}
+
+template<typename T>
+std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2){
+  std::vector<T> ret(src1.size());
+  ElemwiseMod(src1, src2, ret);
   return ret;
 }
 
@@ -280,6 +299,7 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template T prod(const std::vector<T>& src, const Unsigned startIndex); \
     template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+	template std::vector<T> ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template std::vector<T> ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
@@ -309,5 +329,12 @@ PROTO(Int)
 PROTO(float)
 PROTO(double)
 PROTO(char)
+
+#define PROTOMOD(T) \
+        template void ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+        template std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2);
+PROTOMOD(Unsigned)
+PROTOMOD(Int)
+
 
 }

@@ -82,9 +82,6 @@ CreateAGGTests(const DistTensor<T>& A, const Params& args){
             CreateAGGTestsHelper(A, agModes, 0, commGroups, pieceComms, ret);
         }
     }
-
-//    AGTest test(1, DetermineResultingDistributionAG(A, 1));
-//    ret.push_back(test);
     return ret;
 }
 
@@ -98,12 +95,10 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
     Unsigned i;
     Unsigned order = A.Order();
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    //const int order = A.Order();
     const Grid& g = A.Grid();
 
     DistTensor<T> B(resDist, g);
     B.AlignWith(A);
-//    B.ResizeTo(A.Shape());
     B.SetDistribution(resDist);
 
     if(commRank == 0){
@@ -122,14 +117,9 @@ TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vect
 
     do{
         B.SetLocalPermutation(perm);
-//        B.ResizeTo(B.Shape());
         B.AllGatherRedistFrom(A, agModes, redistGroups);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
-
-//    B.AllGatherRedistFrom(A, agModes, redistGroups);
-//    CheckResult(B);
-//    Print(B, "B after agg redist");
 }
 
 #endif // ifndef TMEN_TESTS_AGGREDIST_HPP

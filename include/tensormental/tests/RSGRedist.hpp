@@ -75,12 +75,10 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
     std::sort(redistModes.begin(), redistModes.end());
     for(i = redistModes.size() - 1; i < redistModes.size(); i--)
         BShape.erase(BShape.begin() + redistModes[i]);
-//    DistTensor<T> B(resDist, NegFilterVector(A.Alignments(), rModes), g);
     DistTensor<T> B(resDist, g);
 
     Unsigned order = B.Order();
 
-//    Print(A, "A before rs redist");
     if(commRank == 0){
         printf("Reducing modes (");
         if(rModes.size() > 0)
@@ -99,10 +97,8 @@ TestRSGRedist( const DistTensor<T>& A, const ModeArray& rModes, const ModeArray&
 
     do{
         B.SetLocalPermutation(perm);
-//        B.ResizeTo(BShape);
         B.ReduceScatterRedistFrom(A, rModes, sModes);
         Print(B, "B after rs redist");
-//        CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 
 }

@@ -27,17 +27,11 @@ Gemm
     const Int m = C.Dimension(0);
     const Int n = C.Dimension(1);
     const Int k = A.Dimension(1);
-//    if( k != 0 )
-//    {
-        blas::Gemm
-        ( 'N', 'N', m, n, k,
-          alpha, A.LockedBuffer(), A.LDim(1), B.LockedBuffer(), B.LDim(1),
-          beta,  C.Buffer(),       C.LDim(1) );
-//    }
-//    else
-//    {
-//        Scale( beta, C );
-//    }
+
+    blas::Gemm
+    ( 'N', 'N', m, n, k,
+      alpha, A.LockedBuffer(), A.Stride(1), B.LockedBuffer(), B.Stride(1),
+      beta,  C.Buffer(),       C.Stride(1) );
 }
 
 template<typename T>

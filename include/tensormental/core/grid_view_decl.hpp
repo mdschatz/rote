@@ -32,8 +32,6 @@ public:
     Unsigned Dimension(Mode mode) const;
     Location ParticipatingLoc() const;
     Location Loc() const;
-    Location ParticipatingGridLoc() const;
-    Location GridLoc() const;
     Unsigned ModeLoc(Mode mode) const;
     Unsigned ModeWrapStride(Mode mode) const;
     std::vector<Unsigned> ParticipatingModeWrapStrides() const;

@@ -126,18 +126,13 @@ PrintData
     os << title << std::endl;
     PrintVector(A.Shape(), "    shape", os);
     PrintVector(A.Strides(), "    strides");
-//    os << "    local data:";
-//    const T* buffer = A.LockedBuffer();
-//    for(Unsigned i = 0; i < prod(A.Shape()); i++)
-//        os << " " << buffer[i];
-//    os << std::endl;
 }
 
 template<typename T>
 inline void
 PrintData
 ( const DistTensor<T>& A, std::string title="", std::ostream& os = std::cout){
-    if( A.Grid().LinearRank() == 0 && title != "" ){
+//    if( A.Grid().LinearRank() == 0 && title != "" ){
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
@@ -146,8 +141,60 @@ PrintData
         PrintVector(A.ModeShifts(), "shifts", os);
         PrintVector(A.LocalPermutation(), "local permutation", os);
         PrintData(A.LockedTensor(), "tensor data", os);
-    }
+//    }
 }
+
+template<typename T>
+inline void
+PrintArray
+( const T* dataBuf, const ObjShape& shape, const ObjShape strides, std::string title="", std::ostream& os = std::cout){
+
+    Unsigned order = shape.size();
+    Location curLoc(order, 0);
+    Unsigned linLoc = 0;
+    Unsigned ptr = 0;
+
+    os << title << ":";
+
+    if(order == 0){
+        return;
+    }
+
+    bool done = !ElemwiseLessThan(curLoc, shape);
+
+    while(!done){
+        os.precision(16);
+        os << " " << dataBuf[linLoc];
+        //Update
+        curLoc[ptr]++;
+        linLoc += strides[ptr];
+        while(ptr < order && curLoc[ptr] >= shape[ptr]){
+            curLoc[ptr] = 0;
+
+            linLoc -= strides[ptr] * (shape[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                linLoc += strides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+    os << std::endl;
+}
+
+template<typename T>
+inline void
+PrintArray
+( const T* dataBuf, const ObjShape& loopShape, std::string title="", std::ostream& os = std::cout){
+    PrintArray(dataBuf, loopShape, Dimensions2Strides(loopShape), title, os);
+}
+
 
 inline void
 PrintPackData

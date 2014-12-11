@@ -21,7 +21,7 @@ void TestPackToGemm(const ObjShape& shapeA, const std::vector<Unsigned>& strides
     data.loopIncs = ones;
 
     Print(A, "A");
-    B.PackCommHelper(data, order - 1, A.LockedBuffer(), B.Buffer());
+    PackCommHelper(data, order - 1, A.LockedBuffer(), B.Buffer());
     Print(B, "B");
 }
 

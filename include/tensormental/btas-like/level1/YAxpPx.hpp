@@ -10,7 +10,12 @@
 #ifndef TMEN_BTAS_YAXPPX_HPP
 #define TMEN_BTAS_YAXPPX_HPP
 
+#include "tensormental/io/Print.hpp"
 namespace tmen {
+
+////////////////////////////////////
+// Workhorse routines
+////////////////////////////////////
 
 //Add guards
 template<typename T>
@@ -57,10 +62,6 @@ YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf,
     Location curLoc(order, 0);
     Unsigned ptr = 0;
 
-//    std::string ident = "";
-//    for(i = 0; i < packData.loopShape.size() - packMode; i++)
-//        ident += "  ";
-
     if(loopEnd.size() == 0){
         dstBuf[0] = alpha*srcBuf[0] + beta*permSrcBuf[0];
         return;
@@ -69,8 +70,8 @@ YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf,
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     while(!done){
-
         dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr] + beta*permSrcBuf[permBufPtr];
+
         //Update
         curLoc[ptr]++;
         dstBufPtr += dstBufStrides[ptr];
@@ -98,6 +99,10 @@ YAxpPx_fast(T alpha, T beta, T const * const srcBuf, T const * const permSrcBuf,
         ptr = 0;
     }
 }
+
+////////////////////////////////////
+// Local interfaces
+////////////////////////////////////
 
 //NOTE: Place appropriate guards
 template<typename T>
@@ -140,6 +145,10 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
 #endif
     }
 }
+
+////////////////////////////////////
+// Global interfaces
+////////////////////////////////////
 
 template<typename T>
 inline void

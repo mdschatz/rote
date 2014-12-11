@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2009-2013, Jack Poulson
+x   Copyright (c) 2009-2013, Jack Poulson
                       2013, Jeff Hammond
                       2013, Jed Brown
    All rights reserved.
@@ -47,11 +47,19 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     Unsigned sendSize, recvSize;
 
+    //For unaligned communications
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const std::vector<Unsigned> alignments = Alignments();
+    const std::vector<Unsigned> alignmentsA = A.Alignments();
+    const TensorDistribution tensorDist = A.TensorDist();
+
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape maxLocalShapeA = A.MaxLocalShape();
+    const ObjShape commDataShape = A.MaxLocalShape();
+//    PrintVector(commDataShape, "commDataShape");
 
-    sendSize = prod(maxLocalShapeA);
+    sendSize = prod(commDataShape);
     recvSize = sendSize * nRedistProcs;
 
     T* auxBuf;
@@ -63,14 +71,41 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
+//    const T* dataBuf = A.LockedBuffer();
+//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+//    std::cout << "srcBuf:";
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//      std::cout << " " <<  dataBuf[i];
+//    }
+//    std::cout << std::endl;
+
     //Pack the data
     PROFILE_SECTION("AGPack");
-    PROFILE_FLOPS(prod(maxLocalShapeA));
+    PROFILE_FLOPS(prod(commDataShape));
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
+//    PrintArray(sendBuf, commDataShape, "sendBuf");
+
     //Communicate the data
     PROFILE_SECTION("AGComm");
+    //If unaligned, realign with send/recv BEFORE Allgather (ensures data arrives in correct place)
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+//        PrintVector(firstOwnerA, "firstOwnerA");
+//        PrintVector(firstOwnerB, "firstOwnerB");
+        T* alignSendBuf = &(auxBuf[0]);
+        T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
+
+        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+
+        sendBuf = &(alignRecvBuf[0]);
+        recvBuf = &(alignSendBuf[0]);
+//        PrintArray(sendBuf, commDataShape, "postsendBuf");
+    }
+
+//    PrintArray(sendBuf, commDataShape, "sendBuf before ag");
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
     PROFILE_STOP;
 
@@ -79,11 +114,20 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
         return;
     }
 
+//    ObjShape recvShape = commDataShape;
+//    recvShape.insert(recvShape.end(), nRedistProcs);
+//    PrintArray(recvBuf, recvShape, "recvBuf");
+
     //Unpack the data (if participating)
     PROFILE_SECTION("AGUnpack");
     PROFILE_FLOPS(prod(MaxLocalShape()));
-    UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
+    UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
+
+//    PrintData(*this, "data after AGComm");
+//    const T* myBuf = LockedBuffer();
+//    PrintArray(myBuf, LocalShape(), "myBuf");
+
     this->auxMemory_.Release();
 }
 
@@ -92,12 +136,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
 {
   const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
-
-//  std::cout << "dataBuf:";
-//  for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//      std::cout << " " <<  dataBuf[i];
-//  }
-//  std::cout << std::endl;
 
   const Location zeros(order, 0);
   const Location ones(order, 1);
@@ -120,13 +158,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   packData.loopIncs = ones;
 
   PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
-
-//  Unsigned i;
-//  printf("sendBuf:");
-//  for(i = 0; i < prod(A.MaxLocalShape()); i++){
-//      std::cout << " " << sendBuf[i];
-//  }
-//  std::cout << std::endl;
 }
 
 #define PROTO(T) template class DistTensor<T>

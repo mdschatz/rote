@@ -24,28 +24,21 @@ template<typename T>
 void
 CreateGTOGTestsHelper(const DistTensor<T>& A, const ModeArray& gModes, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<GTOGTest>& tests){
 
-//    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == gModes.size()){
-//        printf("pushing\n");
         ModeArray testGTOModes = gModes;
         std::pair<ModeArray, std::vector<ModeArray> > t1(testGTOModes, pieceComms);
         TensorDistribution resDist = DetermineResultingDistributionGTOG(A, gModes, pieceComms);
         GTOGTest test(t1, resDist);
         tests.push_back(test);
-//        printf("done\n");
     }else{
-//        printf("recurring\n");
         Unsigned i;
         std::vector<ModeArray> modeCommGroups = commGroups[pos];
-//        printf("modeCommGroups size: %d\n", modeCommGroups.size());
 
         for(i = 0; i < modeCommGroups.size(); i++){
-//            printf("ping\n");
             std::vector<ModeArray> newPieceComm = pieceComms;
             newPieceComm[pos] = modeCommGroups[i];
             CreateGTOGTestsHelper(A, gModes, pos + 1, commGroups, newPieceComm, tests);
         }
-//        printf("done recurring\n");
     }
 }
 
@@ -83,9 +76,6 @@ CreateGTOGTests(const DistTensor<T>& A, const Params& args){
             CreateGTOGTestsHelper(A, gModes, 0, commGroups, pieceComms, ret);
         }
     }
-
-//    AGTest test(1, DetermineResultingDistributionAG(A, 1));
-//    ret.push_back(test);
     return ret;
 }
 
@@ -103,7 +93,6 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
 
     DistTensor<T> B(resDist, g);
     B.AlignWith(A);
-//    B.ResizeTo(A);
     B.SetDistribution(resDist);
 
     if(commRank == 0){
@@ -122,14 +111,9 @@ TestGTOGRedist( const DistTensor<T>& A, const ModeArray& gModes, const std::vect
 
     do{
         B.SetLocalPermutation(perm);
-//        B.ResizeTo(B.Shape());
         B.GatherToOneRedistFrom(A, gModes, gridGroups);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
-
-//    B.GatherToOneRedistFrom(A, gModes, gridGroups);
-//    CheckResult(B);
-//    Print(B, "B after gather-to-one redist");
 }
 
 #endif // ifndef TMEN_TESTS_GTOGREDIST_HPP

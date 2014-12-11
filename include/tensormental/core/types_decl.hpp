@@ -52,13 +52,7 @@ struct YAxpPxData{
     std::vector<Unsigned> dstStrides;
 };
 
-struct YxpByData{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcStrides;
-    std::vector<Unsigned> dstStrides;
-};
-
-struct AxpyData{
+struct YAxpByData{
     ObjShape loopShape;
     std::vector<Unsigned> srcStrides;
     std::vector<Unsigned> dstStrides;
@@ -90,7 +84,6 @@ struct ElemSelectData{
     std::vector<Unsigned> srcStrides;
     std::vector<Unsigned> dstStrides;
     ObjShape loopShape;
-    ModeArray changedModes;
     ModeArray commModes;
     Unsigned nElemsPerProc;
     Permutation permutation;

@@ -57,8 +57,22 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& loc
 //        LogicError("LocalRedist: Invalid redistribution request");
     if(!(Participating()))
         return;
+
+//    printf("srcBuf:");
+//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+//        printf(" %d", srcBuf[i]);
+//    }
+//    printf("\n");
+
     //Packing is what is stored in memory
     UnpackLocalCommRedist(A, localModes);
+
+//    const T* myBuf = LockedBuffer();
+//    printf("myBuf:");
+//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
+//        printf(" %d", myBuf[i]);
+//    }
+//    printf("\n");
 }
 
 
@@ -71,12 +85,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
     Unsigned order = A.Order();
     T* dataBuf = Buffer();
     const T* srcBuf = A.LockedBuffer();
-
-//    printf("srcBuf:");
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        printf(" %d", srcBuf[i]);
-//    }
-//    printf("\n");
 
     //GridView information
     const tmen::GridView gvA = A.GetGridView();
@@ -100,10 +108,8 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
 
     PackData unpackData;
     unpackData.loopShape = PermuteVector(LocalShape(), invPermB);
-//    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPerm);
     unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPermB);
     unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), invPermA);
-//    unpackData.srcBufStrides[lMode] *= nRedistProcs;
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
@@ -116,12 +122,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
             srcBufPtr += firstLocInA[lModes[i]] * A.LocalModeStride(lModes[i]);
         PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
     }
-
-//    printf("dataBuf:");
-//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
-//        printf(" %d", dataBuf[i]);
-//    }
-//    printf("\n");
 }
 
 #define PROTO(T) template class DistTensor<T>

@@ -35,7 +35,6 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 
     DistTensor<T> B(distB, g);
     B.AlignWith(A);
-//    B.ResizeTo(A);
     B.SetDistribution(distB);
 
     TensorDistribution lModeDist = A.TensorDist();
@@ -49,9 +48,6 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-//    Print(A, "A before local redist");
-//    B.LocalRedistFrom(A, lModes, gridRedistModes);
-
     Tensor<T> check(A.Shape());
     Set(check);
 
@@ -59,7 +55,6 @@ TestLGRedist( const DistTensor<T>& A, const ModeArray& lModes, const std::vector
 
     do{
         B.SetLocalPermutation(perm);
-//        B.ResizeTo(B.Shape());
         B.LocalRedistFrom(A, lModes, gridRedistModes);
         CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
@@ -70,28 +65,21 @@ template<typename T>
 void
 CreateLGTestsHelper(const DistTensor<T>& A, const ModeArray& lModes, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<LGTest>& tests){
 
-//    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == lModes.size()){
-//        printf("pushing\n");
         ModeArray testLModes = lModes;
         std::pair<ModeArray, std::vector<ModeArray> > t1(testLModes, pieceComms);
         TensorDistribution resDist = DetermineResultingDistributionLocalG(A, lModes, pieceComms);
         LGTest test(t1, resDist);
         tests.push_back(test);
-//        printf("done\n");
     }else{
-//        printf("recurring\n");
         Unsigned i;
         std::vector<ModeArray> modeCommGroups = commGroups[pos];
-//        printf("modeCommGroups size: %d\n", modeCommGroups.size());
 
         for(i = 0; i < modeCommGroups.size(); i++){
-//            printf("ping\n");
             std::vector<ModeArray> newPieceComm = pieceComms;
             newPieceComm[pos] = modeCommGroups[i];
             CreateLGTestsHelper(A, lModes, pos + 1, commGroups, newPieceComm, tests);
         }
-//        printf("done recurring\n");
     }
 }
 
@@ -99,15 +87,12 @@ template<typename T>
 void
 CreateLGCommGroupsHelper(const DistTensor<T>& A, const Unsigned& nlModes, Unsigned pos, const ModeArray& freeModes, std::vector<ModeArray>& piece, std::vector<std::vector<ModeArray> >& commGroups){
 
-//    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == nlModes - 1){
         std::vector<ModeArray> newPiece = piece;
         piece.push_back(freeModes);
         commGroups.push_back(piece);
     }else{
-//        printf("recurring\n");
         Unsigned i, j, k;
-//        printf("modeCommGroups size: %d\n", modeCommGroups.size());
 
         for(i = 0; i <= freeModes.size(); i++){
             std::vector<ModeArray> lModeCombos = AllCombinations(freeModes, i);
@@ -165,9 +150,6 @@ CreateLGTests(const DistTensor<T>& A, const Params& args){
             }
         }
     }
-
-//    AGTest test(1, DetermineResultingDistributionAG(A, 1));
-//    ret.push_back(test);
     return ret;
 }
 

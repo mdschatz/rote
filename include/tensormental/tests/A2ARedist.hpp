@@ -28,28 +28,21 @@ template<typename T>
 void
 CreateA2ATestsHelper(const DistTensor<T>& A, const ModeArray& modesFrom, const ModeArray& modesTo, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<A2ATest>& tests){
 
-//    printf("n: %d, p: %d\n", modesFrom.size(), pos);
     if(pos == modesFrom.size()){
-//        printf("pushing\n");
         std::pair<ModeArray, ModeArray> modesFromTo(modesFrom, modesTo);
         std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray> > t1(modesFromTo, pieceComms);
         TensorDistribution resDist = DetermineResultingDistributionA2A(A, modesFrom, modesTo, pieceComms);
         A2ATest test(t1, resDist);
         tests.push_back(test);
-//        printf("done\n");
     }else{
-//        printf("recurring\n");
         Unsigned i;
         std::vector<ModeArray> modeCommGroups = commGroups[pos];
-//        printf("modeCommGroups size: %d\n", modeCommGroups.size());
 
         for(i = 0; i < modeCommGroups.size(); i++){
-//            printf("ping\n");
             std::vector<ModeArray> newPieceComm = pieceComms;
             newPieceComm[pos] = modeCommGroups[i];
             CreateA2ATestsHelper(A, modesFrom, modesTo, pos + 1, commGroups, newPieceComm, tests);
         }
-//        printf("done recurring\n");
     }
 }
 
@@ -82,14 +75,11 @@ CreateA2ATests(const DistTensor<T>& A, const Params& args){
                     for(m = 0; m < a2aFromDist.size(); m++){
                         ModeArray commGroup(a2aFromDist.end() - m-1, a2aFromDist.end());
                         commGroups[l].push_back(commGroup);
-//                        printf("commGroups[%d].size(): %d\n", l, commGroups[l].size());
                     }
                 }
-//                printf("commGroups.size(): %d\n", commGroups.size());
                 std::vector<ModeArray> pieceComms(a2aModesFrom.size());
 
                 CreateA2ATestsHelper(A, a2aModesFrom, a2aModesTo, 0, commGroups, pieceComms, ret);
-//                printf("ret size: %d\n", ret.size());
             }
         }
     }
@@ -110,7 +100,6 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
 
     DistTensor<T> B(resDist, g);
     B.AlignWith(A);
-//    B.ResizeTo(A);
     B.SetDistribution(resDist);
 
     if(commRank == 0){
@@ -127,9 +116,6 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
         printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
     }
 
-//    B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
-//    CheckResult(B);
-
     Tensor<T> check(A.Shape());
     Set(check);
 
@@ -141,10 +127,8 @@ TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const Mode
             PrintVector(perm, "permB");
         }
         B.SetLocalPermutation(perm);
-//        B.ResizeTo(B.Shape());
         B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
         CheckResult(B, check);
-//            Print(B, "after a2a");
     }while(next_permutation(perm.begin(), perm.end()));
 }
 

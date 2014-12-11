@@ -85,14 +85,9 @@ TestRTOGRedist( const DistTensor<T>& A, const ModeArray& rModes, const TensorDis
 
     do{
         B.SetLocalPermutation(perm);
-//        B.ResizeTo(B.Shape());
         B.ReduceToOneRedistFrom(A, rModes);
         Print(B, "B after reduce-to-one redist");
-//        CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
-
-//    B.ReduceToOneRedistFrom(A, rModes);
-//    Print(B, "B after reduce-to-one redist");
 }
 
 #endif // ifndef TMEN_TESTS_RTOGREDIST_HPP

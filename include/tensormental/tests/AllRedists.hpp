@@ -154,10 +154,7 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
     }
     Unsigned recv;
 
-//    std::cout << "comm size" << mpi::CommSize(mpi::COMM_WORLD) << std::endl;
-//    printf("allreducing\n");
     mpi::AllReduce(&res, &recv, 1, mpi::LOGICAL_AND, mpi::COMM_WORLD);
-//    printf("allreducing finished\n");
     if(recv == 0)
         LogicError("redist bug: some process not assigned correct data");
 
