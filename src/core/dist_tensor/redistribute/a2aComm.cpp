@@ -73,8 +73,8 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
 
-        const T* dataBuf = A.LockedBuffer();
-        PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+//        const T* dataBuf = A.LockedBuffer();
+//        PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
         //Pack the data
         PROFILE_SECTION("A2APack");
@@ -82,9 +82,9 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
 
-        ObjShape sendShape = commDataShape;
-        sendShape.insert(sendShape.end(), nRedistProcs);
-        PrintArray(sendBuf, sendShape, "sendBuf");
+//        ObjShape sendShape = commDataShape;
+//        sendShape.insert(sendShape.end(), nRedistProcs);
+//        PrintArray(sendBuf, sendShape, "sendBuf");
 
         //Communicate the data
         PROFILE_SECTION("A2AComm");
@@ -92,15 +92,15 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
         Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
         if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-            PrintVector(g.Loc(), "myGridLoc");
-            PrintVector(firstOwnerA, "firstOwnerA");
-            PrintVector(firstOwnerB, "firstOwnerB");
+//            PrintVector(g.Loc(), "myGridLoc");
+//            PrintVector(firstOwnerA, "firstOwnerA");
+//            PrintVector(firstOwnerB, "firstOwnerB");
             T* alignSendBuf = &(sendBuf[0]);
             T* alignRecvBuf = &(recvBuf[0]);
 
             std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
-            PrintVector(alignDiff, "alignDiff");
-            PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
+//            PrintVector(alignDiff, "alignDiff");
+//            PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
             Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
             Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
 
@@ -112,9 +112,9 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
                 }
             }
             std::sort(misalignedModes.begin(), misalignedModes.end());
-            PrintVector(misalignedModes, "misalignedModes");
+//            PrintVector(misalignedModes, "misalignedModes");
             mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
-            printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
+//            printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
 
             Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
             Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
@@ -124,17 +124,17 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             Unsigned recvLinLoc = Loc2LinearLoc(recvSliceLoc, gridSliceShape);
 
 
-            PrintVector(sendGridLoc, "sendLoc");
-            printf("sendLinloc: %d\n", sendLinLoc);
-            PrintVector(recvGridLoc, "recvLoc");
-            printf("recvLinloc: %d\n", recvLinLoc);
+//            PrintVector(sendGridLoc, "sendLoc");
+//            printf("sendLinloc: %d\n", sendLinLoc);
+//            PrintVector(recvGridLoc, "recvLoc");
+//            printf("recvLinloc: %d\n", recvLinLoc);
 
-            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
+//            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
             mpi::SendRecv(alignSendBuf, sendSize * nRedistProcs, sendLinLoc,
                           alignRecvBuf, sendSize * nRedistProcs, recvLinLoc, sendRecvComm);
             sendBuf = &(alignRecvBuf[0]);
             recvBuf = &(alignSendBuf[0]);
-            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+//            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
         }
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
@@ -147,9 +147,9 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
             return;
         }
 
-        ObjShape recvShape = commDataShape;
-        recvShape.insert(recvShape.end(), nRedistProcs);
-        PrintArray(recvBuf, recvShape, "recvBuf");
+//        ObjShape recvShape = commDataShape;
+//        recvShape.insert(recvShape.end(), nRedistProcs);
+//        PrintArray(recvBuf, recvShape, "recvBuf");
 
         //Unpack the data (if participating)
         PROFILE_SECTION("A2AUnpack");
@@ -157,8 +157,8 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
         PROFILE_STOP;
 
-        const T* myBuf = LockedBuffer();
-        PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+//        const T* myBuf = LockedBuffer();
+//        PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
 
         this->auxMemory_.Release();
 }
@@ -220,11 +220,11 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), gridShape), gridShape);
         Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
         Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
-        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
-        PrintVector(sortedCommModes, "sortedModes");
-        PrintVector(g.Loc(), "myLoc");
-        PrintVector(procGridLoc, "procGridLoc");
-        PrintVector(procFirstElemLoc, "sendBuf first elem is");
+//        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
+//        PrintVector(sortedCommModes, "sortedModes");
+//        PrintVector(g.Loc(), "myLoc");
+//        PrintVector(procGridLoc, "procGridLoc");
+//        PrintVector(procFirstElemLoc, "sendBuf first elem is");
 
 
         //Determine the first element I need to send to p_i
@@ -255,10 +255,10 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
             firstSendLoc[j] = myFirstIndex;
         }
 
-        if(found)
-            PrintVector(firstSendLoc, "haha sending first loc");
-        else
-            PrintVector(firstSendLoc, "nope sending first loc");
+//        if(found)
+//            PrintVector(firstSendLoc, "haha sending first loc");
+//        else
+//            PrintVector(firstSendLoc, "nope sending first loc");
         //Pack the data if we need to send data to p_i
         if(found && ElemwiseLessThan(firstSendLoc, Shape())){
             //Determine where the initial piece of data is located.
