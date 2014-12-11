@@ -26,20 +26,22 @@ void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const s
     commGroups[0] = a2aCommGroups.first;
     commGroups[1] = a2aCommGroups.second;
 
-    AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
+    ModeArray commModes;
+    for(Unsigned i = 0; i < commGroups.size(); i++)
+        commModes.insert(commModes.end(), commGroups[i].begin(), commGroups[i].end());
+
+    AllToAllRedistFrom(A, commModes);
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& a2aCommGroups){
+void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes){
     PROFILE_SECTION("A2ARedist");
-    Unsigned i;
     ResizeTo(A);
-    ModeArray commModes;
-    for(i = 0; i < a2aCommGroups.size(); i++)
-        commModes.insert(commModes.end(), a2aCommGroups[i].begin(), a2aCommGroups[i].end());
-    std::sort(commModes.begin(), commModes.end());
+    ModeArray sortedCommModes = commModes;
 
-    AllToAllCommRedist(A, commModes);
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+
+    AllToAllCommRedist(A, sortedCommModes);
     PROFILE_STOP;
 }
 

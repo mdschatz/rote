@@ -305,12 +305,12 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         Location alignBinA = ElemwiseMod(GridLoc2ParticipatingGridViewLoc(firstElemOwnerB, gridShape, A.TensorDist()), A.ModeStrides());
         Location procFirstElemLoc = A.DetermineFirstUnalignedElem(procGridViewLocA, alignBinA);
         //Determine where to unpack this information from as B's alignment may differ from A's (meaning we packed data in different process order).
-        Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
+//        Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+//        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
 
-        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSubtract(procGridLoc, alignDiff), gridShape);
-        Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
-        Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
+//        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSubtract(procGridLoc, alignDiff), gridShape);
+//        Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
+//        Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
 //        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
 //        PrintVector(sortedCommModes, "sortedModes");
 //        PrintVector(g.Loc(), "myLoc");
