@@ -95,39 +95,11 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
 //        PrintVector(firstOwnerA, "firstOwnerA");
 //        PrintVector(firstOwnerB, "firstOwnerB");
-        T* alignSendBuf = &(sendBuf[0]);
-        T* alignRecvBuf = &(recvBuf[0]);
+        T* alignSendBuf = &(auxBuf[0]);
+        T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
 
-        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
+        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
 
-        Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
-        Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
-
-        //Create the communicator to involve all processes we need to fix misalignment
-        ModeArray misalignedModes;
-        for(Unsigned i = 0; i < firstOwnerB.size(); i++){
-            if(firstOwnerB[i] != firstOwnerA[i]){
-                misalignedModes.insert(misalignedModes.end(), i);
-            }
-        }
-        std::sort(misalignedModes.begin(), misalignedModes.end());
-//        PrintVector(misalignedModes, "misAlignedModes");
-
-
-        Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
-        Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
-        ObjShape gridSliceShape = FilterVector(g.Shape(), misalignedModes);
-
-        Unsigned sendLinLoc = Loc2LinearLoc(sendSliceLoc, gridSliceShape);
-        Unsigned recvLinLoc = Loc2LinearLoc(recvSliceLoc, gridSliceShape);
-//        PrintVector(sendGridViewLoc, "sendLoc");
-//        printf("sendLinloc: %d\n", sendLinLoc);
-//        PrintVector(recvGridViewLoc, "recvLoc");
-//        printf("recvLinloc: %d\n", recvLinLoc);
-
-        mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
-//        printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
-        mpi::SendRecv(alignSendBuf, sendSize, sendLinLoc, alignRecvBuf, sendSize, recvLinLoc, sendRecvComm);
         sendBuf = &(alignRecvBuf[0]);
         recvBuf = &(alignSendBuf[0]);
 //        PrintArray(sendBuf, commDataShape, "postsendBuf");

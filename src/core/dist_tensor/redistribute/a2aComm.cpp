@@ -92,49 +92,15 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
         Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
         if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-//            PrintVector(g.Loc(), "myGridLoc");
-//            PrintVector(firstOwnerA, "firstOwnerA");
-//            PrintVector(firstOwnerB, "firstOwnerB");
+    //            PrintVector(g.Loc(), "myGridLoc");
+    //            PrintVector(firstOwnerA, "firstOwnerA");
+    //            PrintVector(firstOwnerB, "firstOwnerB");
             T* alignSendBuf = &(sendBuf[0]);
             T* alignRecvBuf = &(recvBuf[0]);
-
-            std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
-//            PrintVector(alignDiff, "alignDiff");
-//            PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
-            Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
-            Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
-
-            //Create the communicator to involve all processes we need to fix misalignment
-            ModeArray misalignedModes;
-            for(Unsigned i = 0; i < firstOwnerB.size(); i++){
-                if(firstOwnerB[i] != firstOwnerA[i]){
-                    misalignedModes.insert(misalignedModes.end(), i);
-                }
-            }
-            std::sort(misalignedModes.begin(), misalignedModes.end());
-//            PrintVector(misalignedModes, "misalignedModes");
-            mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
-//            printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
-
-            Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
-            Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
-            ObjShape gridSliceShape = FilterVector(g.Shape(), misalignedModes);
-
-            Unsigned sendLinLoc = Loc2LinearLoc(sendSliceLoc, gridSliceShape);
-            Unsigned recvLinLoc = Loc2LinearLoc(recvSliceLoc, gridSliceShape);
-
-
-//            PrintVector(sendGridLoc, "sendLoc");
-//            printf("sendLinloc: %d\n", sendLinLoc);
-//            PrintVector(recvGridLoc, "recvLoc");
-//            printf("recvLinloc: %d\n", recvLinLoc);
-
-//            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
-            mpi::SendRecv(alignSendBuf, sendSize * nRedistProcs, sendLinLoc,
-                          alignRecvBuf, sendSize * nRedistProcs, recvLinLoc, sendRecvComm);
+            AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
             sendBuf = &(alignRecvBuf[0]);
             recvBuf = &(alignSendBuf[0]);
-//            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+    //            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
         }
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);

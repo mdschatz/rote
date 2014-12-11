@@ -210,6 +210,57 @@ DistTensor<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const st
     return ret;
 }
 
+template<typename T>
+void
+DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::AlignCommBufRedist");
+#endif
+    const tmen::Grid& g = Grid();
+    GridView gvA = A.GetGridView();
+    GridView gvB = GetGridView();
+
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+
+    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
+//            PrintVector(alignDiff, "alignDiff");
+//            PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
+    Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
+    Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
+
+    //Create the communicator to involve all processes we need to fix misalignment
+    ModeArray misalignedModes;
+    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
+        if(firstOwnerB[i] != firstOwnerA[i]){
+            misalignedModes.insert(misalignedModes.end(), i);
+        }
+    }
+    std::sort(misalignedModes.begin(), misalignedModes.end());
+//            PrintVector(misalignedModes, "misalignedModes");
+    mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
+//            printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
+
+    Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
+    Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
+    ObjShape gridSliceShape = FilterVector(g.Shape(), misalignedModes);
+
+    Unsigned sendLinLoc = Loc2LinearLoc(sendSliceLoc, gridSliceShape);
+    Unsigned recvLinLoc = Loc2LinearLoc(recvSliceLoc, gridSliceShape);
+
+
+//            PrintVector(sendGridLoc, "sendLoc");
+//            printf("sendLinloc: %d\n", sendLinLoc);
+//            PrintVector(recvGridLoc, "recvLoc");
+//            printf("recvLinloc: %d\n", recvLinLoc);
+
+//            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
+    mpi::SendRecv(unalignedSendBuf, sendSize, sendLinLoc,
+                  alignedSendBuf, recvSize, recvLinLoc, sendRecvComm);
+
+}
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )
