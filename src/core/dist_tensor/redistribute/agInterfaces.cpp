@@ -18,7 +18,7 @@ template <typename T>
 void
 DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes ){
     PROFILE_SECTION("AGRedist");
-    Unsigned i;
+
     ResizeTo(A);
 
     ModeArray sortedCommModes = commModes;

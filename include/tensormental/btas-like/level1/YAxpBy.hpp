@@ -36,7 +36,7 @@ YAxpByHelper(T alpha, const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T con
         }
     }else{
         for(i = 0; i < loopEnd; i++){
-            YxpByHelper(X, beta, Y, mode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]), data);
+            YAxpByHelper(alpha, X, beta, Y, mode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]), data);
             srcBufPtr += srcStride;
             dstBufPtr += dstStride;
         }

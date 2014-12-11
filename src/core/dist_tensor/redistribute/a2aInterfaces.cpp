@@ -36,7 +36,6 @@ void DistTensor<T>::AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const s
 template <typename T>
 void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes){
     PROFILE_SECTION("A2ARedist");
-    Unsigned i;
     ResizeTo(A);
     ModeArray sortedCommModes = commModes;
 
