@@ -52,34 +52,29 @@ Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode local
 }
 
 template<typename T>
-void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes){
+void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 //    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
 //        LogicError("LocalRedist: Invalid redistribution request");
     if(!(Participating()))
         return;
 
-//    printf("srcBuf:");
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        printf(" %d", srcBuf[i]);
-//    }
-//    printf("\n");
+//    const T* dataBuf = A.LockedBuffer();
+//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
     //Packing is what is stored in memory
-    UnpackLocalCommRedist(A, localModes);
+    PROFILE_SECTION("LocalUnpack");
+    UnpackLocalCommRedist(A);
+    PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
-//    printf("myBuf:");
-//    for(Unsigned i = 0; i < prod(LocalShape()); i++){
-//        printf(" %d", myBuf[i]);
-//    }
-//    printf("\n");
+//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
 }
 
 
 //TODO: Optimize strides when unpacking
 //TODO: Check that logic works out (modeStrides being global info applied to local info)
 template <typename T>
-void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArray& lModes)
+void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A)
 {
     Unsigned i;
     Unsigned order = A.Order();
@@ -117,9 +112,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArra
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
         const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);
-        Unsigned srcBufPtr = 0;
-        for(i = 0; i < lModes.size(); i++)
-            srcBufPtr += firstLocInA[lModes[i]] * A.LocalModeStride(lModes[i]);
+        Unsigned srcBufPtr = Loc2LinearLoc(firstLocInA, A.LocalShape(), A.LocalStrides());
         PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
     }
 }

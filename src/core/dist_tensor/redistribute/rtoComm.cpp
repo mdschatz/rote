@@ -58,6 +58,9 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
 //      LogicError("ReduceToOneRedist: Invalid redistribution request");
 
     const tmen::Grid& g = A.Grid();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
@@ -75,10 +78,25 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     T* recvBuf = &(auxBuf[sendSize]);
 
     //Pack the data
+    PROFILE_SECTION("RTOPack");
     PackAGCommSendBuf(A, sendBuf);
+    PROFILE_STOP;
 
     //Communicate the data
+    PROFILE_SECTION("RTOComm");
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+        T* alignSendBuf = &(sendBuf[0]);
+        T* alignRecvBuf = &(recvBuf[0]);
+
+        AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+        sendBuf = &(alignRecvBuf[0]);
+        recvBuf = &(alignSendBuf[0]);
+    }
+
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
+    PROFILE_STOP;
 
     if(!(Participating())){
         this->auxMemory_.Release();
@@ -86,7 +104,10 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     }
 
     //Unpack the data (if participating)
+    PROFILE_SECTION("RTOUnpack");
     UnpackRSCommRecvBuf(recvBuf, A);
+    PROFILE_STOP;
+
     this->auxMemory_.Release();
 }
 

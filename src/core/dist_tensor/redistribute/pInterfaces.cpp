@@ -13,12 +13,18 @@
 
 namespace tmen{
 
+////////////////////////////////
+// Workhorse interface
+////////////////////////////////
+
 template <typename T>
-void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
+void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes){
+    PROFILE_SECTION("PermuteRedist");
     ResizeTo(A);
     ModeArray commModes = redistModes;
     std::sort(commModes.begin(), commModes.end());
-    PermutationCommRedist(A, permuteMode, commModes);
+    PermutationCommRedist(A, commModes);
+    PROFILE_STOP;
 }
 
 #define PROTO(T) template class DistTensor<T>

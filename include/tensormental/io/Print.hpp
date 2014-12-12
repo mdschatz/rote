@@ -57,7 +57,19 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     os << std::endl;
 }
 
-// If already in [* ,* ] or [o ,o ] distributions, no copy is needed
+
+template<typename T>
+inline void
+PrintVector
+( const std::vector<T>& vec, std::string title="", std::ostream& os = std::cout){
+    os << title << ":";
+
+    Unsigned i;
+    for(i = 0; i < vec.size(); i++)
+        os << " " << vec[i];
+    os << std::endl;
+}
+
 template<typename T>
 inline void
 Print
@@ -77,46 +89,34 @@ Print
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     T u = T(0);
     while(!done){
-    	u = A.Get(curLoc);
+        u = A.Get(curLoc);
 
-    	if(A.Grid().LinearRank() == 0){
-    	    os.precision(16);
-    		os << u << " ";
-    	}
+        if(A.Grid().LinearRank() == 0){
+            os.precision(16);
+            os << u << " ";
+        }
 
-    	if(order == 0)
-    	    break;
-    	//Update
-    	curLoc[ptr]++;
-    	while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){
-    		curLoc[ptr] = 0;
-    		ptr++;
-    		if(ptr >= order){
-    			done = true;
-    			break;
-    		}else{
-    			curLoc[ptr]++;
-    		}
-    	}
-    	if(done)
-    		break;
-    	ptr = 0;
+        if(order == 0)
+            break;
+        //Update
+        curLoc[ptr]++;
+        while(ptr < order && curLoc[ptr] == A.Dimension(ptr)){
+            curLoc[ptr] = 0;
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
     }
     if(A.Grid().LinearRank() == 0){
-    	os << std::endl;
+        os << std::endl;
     }
-}
-
-template<typename T>
-inline void
-PrintVector
-( const std::vector<T>& vec, std::string title="", std::ostream& os = std::cout){
-    os << title << ":";
-
-    Unsigned i;
-    for(i = 0; i < vec.size(); i++)
-        os << " " << vec[i];
-    os << std::endl;
 }
 
 template<typename T>
@@ -132,7 +132,7 @@ template<typename T>
 inline void
 PrintData
 ( const DistTensor<T>& A, std::string title="", std::ostream& os = std::cout){
-//    if( A.Grid().LinearRank() == 0 && title != "" ){
+    if( A.Grid().LinearRank() == 0 && title != "" ){
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
@@ -141,7 +141,7 @@ PrintData
         PrintVector(A.ModeShifts(), "shifts", os);
         PrintVector(A.LocalPermutation(), "local permutation", os);
         PrintData(A.LockedTensor(), "tensor data", os);
-//    }
+    }
 }
 
 template<typename T>

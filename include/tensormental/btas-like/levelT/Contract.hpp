@@ -83,21 +83,21 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     //Then call Gemm
     if(permuteA){
         PA.ResizeTo(PermuteVector(A.Shape(), permA));
-        Permute(PA, A, permA);
+        Permute(A, PA, permA);
         ViewAsMatrix(MPA, PA, nIndicesM);
     }else{
         ViewAsMatrix(MPA, A, nIndicesM);
     }
     if(permuteB){
         PB.ResizeTo(PermuteVector(B.Shape(), permB));
-        Permute(PB, B, permB);
+        Permute(B, PB, permB);
         ViewAsMatrix(MPB, PB, nIndicesContract);
     }else{
         ViewAsMatrix(MPB, B, nIndicesContract);
     }
     if(permuteC){
         PC.ResizeTo(PermuteVector(C.Shape(), permC));
-        Permute(PC, C, permC);
+        Permute(C, PC, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
 
 //        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");
@@ -123,7 +123,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 
         ViewAsHigherOrder(IPC, MPC, newShape);
 
-        Permute(C, IPC, invPermC);
+        Permute(IPC, C, invPermC);
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
 //        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");

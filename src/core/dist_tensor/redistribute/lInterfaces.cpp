@@ -13,19 +13,16 @@
 
 namespace tmen{
 
-template<typename T>
-void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    ModeArray lModes(1);
-    lModes[0] = localMode;
-    std::vector<ModeArray> commGroups(1);
-    commGroups[0] = gridRedistModes;
-    LocalRedistFrom(A, lModes, commGroups);
-}
+////////////////////////////////
+// Workhorse interface
+////////////////////////////////
 
 template<typename T>
-void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes){
+void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A){
+    PROFILE_SECTION("LocalRedist");
     ResizeTo(A);
-    LocalCommRedist(A, localModes);
+    LocalCommRedist(A);
+    PROFILE_STOP;
 }
 
 #define PROTO(T) template class DistTensor<T>

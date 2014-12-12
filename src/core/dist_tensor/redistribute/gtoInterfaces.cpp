@@ -13,38 +13,19 @@
 
 namespace tmen{
 
-template<typename T>
-void
-DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("DistTesnor::GatherToOneRedistFrom");
-#endif
-    ModeArray gModes(1);
-    gModes[0] = gMode;
-    std::vector<ModeArray> commGroups(1);
-    commGroups[0] = A.ModeDist(gMode);
-    GatherToOneRedistFrom(A, gModes, commGroups);
-}
+////////////////////////////////
+// Workhorse interface
+////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes){
-    ModeArray gModes(1);
-    gModes[0] = gMode;
-    std::vector<ModeArray> commGroups(1);
-    commGroups[0] = gridModes;
-    GatherToOneRedistFrom(A, gModes, commGroups);
-}
-
-template <typename T>
-void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes){
+void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes){
+    PROFILE_SECTION("GTORedist");
     Unsigned i;
     ResizeTo(A);
-    ModeArray commModes;
-    for(i = 0; i < gridModes.size(); i++)
-        commModes.insert(commModes.end(), gridModes[i].begin(), gridModes[i].end());
-    std::sort(commModes.begin(), commModes.end());
-    GatherToOneCommRedist(A, commModes);
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    GatherToOneCommRedist(A, sortedCommModes);
+    PROFILE_STOP;
 }
 
 #define PROTO(T) template class DistTensor<T>

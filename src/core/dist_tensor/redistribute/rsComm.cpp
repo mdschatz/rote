@@ -53,12 +53,14 @@ Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mo
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes){
+void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes){
 //    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
 //      LogicError("ReduceScatterRedist: Invalid redistribution request");
     const tmen::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
 
     if(!A.Participating())
         return;
@@ -66,23 +68,54 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape maxLocalShapeB = MaxLocalShape();
-    recvSize = prod(maxLocalShapeB);
+    const ObjShape commDataShape = MaxLocalShape();
+    recvSize = prod(commDataShape);
     sendSize = recvSize * nRedistProcs;
 
-    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    T* auxBuf;
+
+    //TODO: Figure out how to nicely do this alloc for Alignment
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+        auxBuf = this->auxMemory_.Require(sendSize + sendSize);
+    }else{
+        auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    }
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
+//    const T* dataBuf = A.LockedBuffer();
+//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+
     //Pack the data
     PROFILE_SECTION("RSPack");
-    PackRSCommSendBuf(A, reduceModes, scatterModes, commModes, sendBuf);
+    PackRSCommSendBuf(A, reduceModes, commModes, sendBuf);
     PROFILE_STOP;
+
+//    ObjShape sendShape = commDataShape;
+//    sendShape.insert(sendShape.end(), nRedistProcs);
+//    PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Communicate the data
     PROFILE_SECTION("RSComm");
+
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+        T* alignSendBuf = &(sendBuf[0]);
+        T* alignRecvBuf = &(recvBuf[0]);
+
+        AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+        sendBuf = &(alignRecvBuf[0]);
+        recvBuf = &(alignSendBuf[0]);
+    }
+
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
     PROFILE_STOP;
+
+//    ObjShape recvShape = commDataShape;
+//    PrintArray(recvBuf, recvShape, "recvBuf");
 
     if(!Participating()){
         this->auxMemory_.Release();
@@ -93,23 +126,19 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
     PROFILE_SECTION("RSUnpack");
     UnpackRSCommRecvBuf(recvBuf, A);
     PROFILE_STOP;
+
+//    const T* myBuf = LockedBuffer();
+//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+
     this->auxMemory_.Release();
 }
 
-//TODO: Optimize striding when packing
-//TODO: Ensure modeStrideFactor is being correctly applied (global to local information)
 template <typename T>
-void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes, const ModeArray& commModes, T * const sendBuf)
+void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& commModes, T * const sendBuf)
 {
-    Unsigned i;
-    Unsigned order = A.Order();
+    Unsigned i,j;
+    const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
-
-//    std::cout << "dataBuf:";
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        std::cout << " " << dataBuf[i];
-//    }
-//    std::cout << std::endl;
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
@@ -120,49 +149,199 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 
+    //TODO: I know I made a method to get this
+    ModeArray nonRModes;
+    for(i = 0; i < order; i++){
+        if(std::find(rModes.begin(), rModes.end(), i) == rModes.end())
+            nonRModes.insert(nonRModes.end(), i);
+    }
+
+//    PrintData(*this, "thisData");
     //Different striding information
-    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
-    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
-    //Set the mode stride factor to 1 for all reduceModes
+    const std::vector<Unsigned> commLCMs = LCMs(gvAShape, gvBShape);
+    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
     for(i = 0; i < rModes.size(); i++)
         modeStrideFactor[rModes[i]] = 1;
 
     const ObjShape sendShape = MaxLocalShape();
+    const Unsigned nElemsPerProc = prod(sendShape);
 
-    Permutation invPerm = DetermineInversePermutation(A.localPerm_);
+    //Grid information
+    const tmen::Grid& g = Grid();
+    const ObjShape gridShape = g.Shape();
+    const Location myGridLoc = g.Loc();
 
-    PackData packData;
-    packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
-    packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
+    const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
 
-    packData.dstBufStrides = Dimensions2Strides(sendShape);
-    packData.loopStarts = zeros;
-    packData.loopIncs = modeStrideFactor;
+    //Redistribute information
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
-    //Determine the first element we will accumulate to
-    Location packElem = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
-    for(i = 0; i < rModes.size(); i++)
-        packElem[rModes[i]] = 0;
+    //First, set all entries of sendBuf to zero so we don't accumulate garbage
+    MemZero(&(sendBuf[0]), prod(sendShape) * prod(FilterVector(g.Shape(), commModes)));
 
-    if(ElemwiseLessThan(packElem, A.Shape())){
-        ElemSelectData elemData;
-        elemData.commModes = commModes;
-        elemData.packElem = packElem;
-        elemData.loopShape = modeStrideFactor;
-        elemData.nElemsPerProc = prod(sendShape);
-        elemData.srcElem = zeros;
-        elemData.srcStrides = A.LocalStrides();
-        elemData.permutation = A.localPerm_;
+//    PrintData(*this, "thisData");
+    //For each process we send to, we need to determine the first element we need to send them
+    PARALLEL_FOR
+    for(i = 0; i < nRedistProcsAll; i++){
 
-        ElemSelectHelper(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+        //Invert the process order based on the communicator used, to the actual process location
+        Location sortedCommLoc = LinearLoc2Loc(i, commShape);
+        Location procGridLoc = myGridLoc;
+
+        for(j = 0; j < sortedCommModes.size(); j++){
+            procGridLoc[sortedCommModes[j]] = sortedCommLoc[j];
+        }
+
+        //This is the first element p_i needs using A's alignment for B.
+        Location procGridViewLocB = GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist());
+        Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+        Location alignAinB = ElemwiseMod(GridLoc2ParticipatingGridViewLoc(firstElemOwnerA, gridShape, TensorDist()), ModeStrides());
+
+        Location procFirstElemLoc = DetermineFirstUnalignedElem(procGridViewLocB, alignAinB);
+        //Determine where to pack this information as B's alignment may differ from A's (meaning we pack data in different process order).
+        Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstElemOwnerA, firstElemOwnerB);
+
+        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), gridShape), gridShape);
+        Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
+        Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
+//        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
+//        PrintVector(sortedCommModes, "sortedModes");
+//        PrintVector(g.Loc(), "myLoc");
+//        PrintVector(procGridLoc, "procGridLoc");
+//        PrintVector(procFirstElemLoc, "sendBuf first elem is");
+
+
+        //Determine the first element I need to send to p_i
+        //The first element I own is
+        Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
+
+        //Iterate to figure out the first elem I need to send p_i
+        Location firstSendLoc = myFirstLoc;
+
+//        PrintVector(myFirstLoc, "myFirstLoc");
+//        PrintVector(procFirstElemLoc, "procFirstElemLoc");
+        bool found = true;
+        for(j = 0; j < nonRModes.size(); j++){
+            Mode nonRMode = nonRModes[j];
+            Unsigned myFirstIndex = myFirstLoc[nonRMode];
+            Unsigned sendFirstIndex = procFirstElemLoc[nonRMode];
+            Unsigned myModeStride = A.ModeStride(nonRMode);
+            Unsigned sendProcModeStride = ModeStride(nonRMode);
+
+            while(myFirstIndex != sendFirstIndex && myFirstIndex < Dimension(nonRMode)){
+                if(myFirstIndex < sendFirstIndex)
+                    myFirstIndex += myModeStride;
+                else
+                    sendFirstIndex += sendProcModeStride;
+            }
+            if(myFirstIndex >= Dimension(nonRMode)){
+                found &= false;
+                break;
+            }
+            firstSendLoc[nonRMode] = myFirstIndex;
+        }
+
+//        if(found)
+//            PrintVector(firstSendLoc, "haha sending first loc");
+//        else
+//            PrintVector(firstSendLoc, "nope sending first loc");
+
+        //Check this is a valid location to pack
+        Location firstRecvLoc = firstSendLoc;
+        for(j = 0; j < rModes.size(); j++)
+            firstRecvLoc[rModes[j]] = 0;
+
+        //Pack the data if we need to send data to p_i
+        if(found && ElemwiseLessThan(firstRecvLoc, Shape())){
+            //Determine where the initial piece of data is located.
+            const Location localLoc = A.Global2LocalIndex(firstSendLoc);
+            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, A.localPerm_), A.LocalStrides());
+
+            PackData packData;
+            packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
+            packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_));
+
+            //Pack into permuted form to minimize striding when unpacking
+            ObjShape finalShape = PermuteVector(sendShape, localPerm_);
+            std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
+
+            //Determine permutation from local output to local input
+            Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, localPerm_));
+
+            //Permute pack strides to match input local permutation (for correct packing)
+            packData.dstBufStrides = PermuteVector(finalStrides, out2in);
+
+            packData.loopStarts = zeros;
+            //ModeStrideFactor is global information, we need to permute it to match locally
+            packData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
+
+//            PrintPackData(packData, "packData");
+            PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedProcLinLoc * nElemsPerProc]));
+        }
     }
-
-//    std::cout << "sendBuf:";
-//    for(Unsigned i = 0; i < prod(sendShape)* nRedistProcs; i++){
-//        std::cout << " " << sendBuf[i];
-//    }
-//    std::cout << std::endl;
 }
+
+////TODO: Optimize striding when packing
+////TODO: Ensure modeStrideFactor is being correctly applied (global to local information)
+//template <typename T>
+//void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& commModes, T * const sendBuf)
+//{
+//    Unsigned i;
+//    Unsigned order = A.Order();
+//    const T* dataBuf = A.LockedBuffer();
+//
+//    const Location zeros(order, 0);
+//    const Location ones(order, 1);
+//
+//    //GridView information
+//    const tmen::GridView gvA = A.GetGridView();
+//    const tmen::GridView gvB = GetGridView();
+//    const ObjShape gvAShape = gvA.ParticipatingShape();
+//    const ObjShape gvBShape = gvB.ParticipatingShape();
+//
+//    //Different striding information
+//    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
+//    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
+//    //Set the mode stride factor to 1 for all reduceModes
+//    for(i = 0; i < rModes.size(); i++)
+//        modeStrideFactor[rModes[i]] = 1;
+//
+//    const ObjShape sendShape = MaxLocalShape();
+//
+//    Permutation invPerm = DetermineInversePermutation(A.localPerm_);
+//
+//    PackData packData;
+//    packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
+//    packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
+//
+//    packData.dstBufStrides = Dimensions2Strides(sendShape);
+//    packData.loopStarts = zeros;
+//    packData.loopIncs = modeStrideFactor;
+//
+//    //First, set all entries of sendBuf to zero so we don't accumulate garbage
+//    const tmen::Grid& g = Grid();
+//    MemZero(&(sendBuf[0]), prod(sendShape) * prod(FilterVector(g.Shape(), commModes)));
+//    //Determine the first element we will accumulate to
+//    Location packElem = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
+//    for(i = 0; i < rModes.size(); i++)
+//        packElem[rModes[i]] = 0;
+//
+//    if(ElemwiseLessThan(packElem, A.Shape())){
+//        ElemSelectData elemData;
+//        elemData.commModes = commModes;
+//        elemData.packElem = packElem;
+//        elemData.loopShape = modeStrideFactor;
+//        elemData.nElemsPerProc = prod(sendShape);
+//        elemData.srcElem = zeros;
+//        elemData.srcStrides = A.LocalStrides();
+//        elemData.permutation = A.localPerm_;
+//
+//        ElemSelectHelper(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
+//    }
+//}
 
 //TODO: Optimize stride when unpacking
 template <typename T>
@@ -173,13 +352,6 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTenso
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-
-//    std::cout << "recvBuf:";
-//    for(Unsigned i = 0; i < prod(A.MaxLocalShape()); i++){
-//        std::cout << " " << recvBuf[i];
-//    }
-//    std::cout << std::endl;
-
 
     PackData unpackData;
     unpackData.loopShape = LocalShape();

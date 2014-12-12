@@ -189,11 +189,8 @@ void PackCommHelper(const PackData& packData, const Mode packMode, T const * con
         newData.loopStarts = newzeros;
     }
 
-#ifndef RELEASE
-    PackCommHelper_ref(newData, newData.loopShape.size() - 1, srcBuf, dstBuf);
-#else
     PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
-#endif
+
 //    PROFILE_STOP;
 }
 
@@ -202,7 +199,7 @@ void PackCommHelper(const PackData& packData, const Mode packMode, T const * con
 ////////////////////////////////////
 
 template<typename T>
-void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
+void Permute(const Tensor<T>& A, Tensor<T>& B, const Permutation& perm){
     Unsigned order = A.Order();
     T* dstBuf = B.Buffer();
     const T * srcBuf = A.LockedBuffer();
@@ -225,10 +222,10 @@ void Permute(Tensor<T>& B, const Tensor<T>& A, const Permutation& perm){
 ////////////////////////////////////
 
 template<typename T>
-void Permute(DistTensor<T>& B, const DistTensor<T>& A){
+void Permute(const DistTensor<T>& A, DistTensor<T>& B){
     PROFILE_SECTION("Permute");
     Permutation perm = DeterminePermutation(A.LocalPermutation(), B.LocalPermutation());
-    Permute(B.Tensor(), A.LockedTensor(), perm);
+    Permute(A.LockedTensor(), B.Tensor(), perm);
     PROFILE_STOP;
 }
 

@@ -235,11 +235,6 @@ public:
     tmen::DistData DistData() const;
 
     //
-    // Shared Comm routines
-    //
-    void ElemSelectHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
-
-    //
     // All-to-all workhorse routines
     //
     Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
@@ -250,7 +245,6 @@ public:
     //
     // All-to-all interface routines
     //
-    void AllToAllDoubleModeRedistFrom(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aIndices, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
     void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
@@ -274,50 +268,47 @@ public:
     //
     // Gather-to-one interface routines
     //
-    void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode);
-    void GatherToOneRedistFrom(const DistTensor<T>& A, const Mode gMode, const ModeArray& gridModes);
-    void GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& gModes, const std::vector<ModeArray>& gridModes);
+    void GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
     // Local redist workhorse routines
     //
     Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
-    void LocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes);
-    void UnpackLocalCommRedist(const DistTensor<T>& A, const ModeArray& localModes);
+    void LocalCommRedist(const DistTensor<T>& A);
+    void UnpackLocalCommRedist(const DistTensor<T>& A);
 
     //
     // Local redist interface routines
     //
-    void LocalRedistFrom(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
-    void LocalRedistFrom(const DistTensor<T>& A, const ModeArray& localModes, const std::vector<ModeArray>& gridRedistModes);
+    void LocalRedistFrom(const DistTensor<T>& A);
 
     //
     // Point-to-point workhorse routines
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
-    void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes);
 
     //
     // Point-to-point interface routines
     //
-    void PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes);
 
     //
     // Reduce-scatter workhorse routines
     //
     Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes);
-    void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes, const ModeArray& commModes, T * const sendBuf);
+    void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes);
+    void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
     void UnpackRSCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
 
     //
     // Reduce-scatter interface routines
     //
-    void PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode);
-    void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes);
+    void ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
+    void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
+    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode);
+    void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
+    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
 
     //
     // Reduce-to-one workhorse routines
@@ -328,11 +319,11 @@ public:
     //
     // Reduce-to-one interface routines
     //
-    void PartialReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
-    void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
-    void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode rMode);
+    void ReduceToOneUpdateRedistFrom(T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes);
     void ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes);
+    void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
     void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& rModes);
+    void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode rMode);
 
     void AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize);
 
