@@ -286,12 +286,12 @@ public:
     // Point-to-point workhorse routines
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
-    void PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes);
 
     //
     // Point-to-point interface routines
     //
-    void PermutationRedistFrom(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
+    void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes);
 
     //
     // Reduce-scatter workhorse routines

@@ -48,9 +48,9 @@ Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
-void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& commModes){
-    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
-            LogicError("PermutationRedist: Invalid redistribution request");
+void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
+//    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
+//            LogicError("PermutationRedist: Invalid redistribution request");
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
     if(!A.Participating())
@@ -63,7 +63,8 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     const tmen::GridView gvB = GetGridView();
 
     //Determine buffer sizes for communication
-    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
+    //NOTE: Next line is example of clang not detecting dead code/unused var.
+//    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
     const ObjShape commDataShape = MaxLocalShape();
     recvSize = prod(commDataShape);
     sendSize = recvSize;
@@ -90,9 +91,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     ModeArray sortedCommModes = commModes;
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
-
-    const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
-    const ModeDistribution permuteModeDistB = ModeDist(permuteMode);
 
     const Location myGridViewLocA = gvA.ParticipatingLoc();
     const Location sendLoc = GridViewLoc2GridLoc(myGridViewLocA, gvB);
