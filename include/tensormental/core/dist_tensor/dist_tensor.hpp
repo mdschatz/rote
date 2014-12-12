@@ -308,12 +308,11 @@ public:
     //
     // Reduce-scatter interface routines
     //
-    void PartialReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceScatterMode);
-    void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& scatterModes);
+    void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
+    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode);
+    void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
     void ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& scatterModes);
+    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
 
     //
     // Reduce-to-one workhorse routines
