@@ -107,51 +107,6 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
     tensor_.CopyBuffer(A.LockedTensor(), A.localPerm_, localPerm_);
 }
 
-////////////////////////////////////////////
-
-template<typename T>
-void DistTensor<T>::ElemSelectHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf){
-    Unsigned order = A.Order();
-        PackData data = packData;
-        Location elem = elemData.packElem;
-        Location srcElem = elemData.srcElem;
-        std::vector<Unsigned> srcStrides = elemData.srcStrides;
-
-        std::vector<Unsigned> loopShape = elemData.loopShape;
-        ModeArray commModes = elemData.commModes;
-        Unsigned nElemsPerProc = elemData.nElemsPerProc;
-        Unsigned i;
-        const tmen::GridView gvA = A.GetGridView();
-        const tmen::GridView gvB = GetGridView();
-        const tmen::Grid& g = Grid();
-        const Mode changedA2AMode = mode;
-
-        Unsigned startLoc = elemData.packElem[changedA2AMode];
-        for(i = 0; i < loopShape[changedA2AMode]; i++){
-            elem[changedA2AMode] = startLoc + i * gvA.ModeWrapStride(changedA2AMode);
-            srcElem[changedA2AMode] = i;
-            if(elem[changedA2AMode] >= A.Dimension(changedA2AMode)){
-                continue;
-            }
-            data.loopShape[changedA2AMode] = packData.loopShape[changedA2AMode] - i;
-
-            if(mode == 0){
-                Location ownerB = DetermineOwner(elem);
-                Location ownerGridLoc = GridViewLoc2GridLoc(ownerB, gvB);
-                Unsigned commLinLoc = Loc2LinearLoc(FilterVector(ownerGridLoc, commModes), FilterVector(g.Shape(), commModes));
-
-                Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(srcElem, elemData.permutation), srcStrides);
-
-                PackCommHelper(data, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[commLinLoc * nElemsPerProc]));
-            }else{
-                ElemSelectData newData = elemData;
-                newData.packElem = elem;
-                newData.srcElem = srcElem;
-                ElemSelectHelper(data, newData, mode - 1, A, &(dataBuf[0]), &(sendBuf[0]));
-            }
-        }
-}
-
 template<typename T>
 void
 DistTensor<T>::ClearCommMap()
@@ -197,16 +152,13 @@ Location
 DistTensor<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const std::vector<Unsigned>& alignmentDiff) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::DetermineFirstElem");
+    CallStackEntry cse("DistTensor::DetermineFirstUnalignedElem");
 #endif
     Unsigned i;
     Location ret(gridViewLoc.size());
     for(i = 0; i < gridViewLoc.size(); i++){
         ret[i] = Shift(gridViewLoc[i], alignmentDiff[i], ModeStride(i));
     }
-//    PrintVector(ModeStrides(), "gridStrides");
-//    PrintVector(alignmentDiff, "supplied align");
-//    PrintVector(ret, "firstUnalignedElem");
     return ret;
 }
 

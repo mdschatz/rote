@@ -235,11 +235,6 @@ public:
     tmen::DistData DistData() const;
 
     //
-    // Shared Comm routines
-    //
-    void ElemSelectHelper(const PackData& packData, const ElemSelectData& elemData, const Mode mode, const DistTensor<T>& A, T const * const dataBuf, T * const sendBuf);
-
-    //
     // All-to-all workhorse routines
     //
     Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
