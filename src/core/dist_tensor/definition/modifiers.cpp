@@ -79,9 +79,28 @@ DistTensor<T>::AlignModeWith(Mode mode, const DistTensor<T>& A, Mode modeA)
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::AlignModeWith");
 #endif
-    modeAlignments_[mode] = A.modeAlignments_[modeA] % ModeStride(mode);
-    constrainedModeAlignments_[mode] = true;
-    SetModeShift(mode);
+    ModeArray modes(1);
+    modes[0] = mode;
+    ModeArray modesA(1);
+    modesA[0] = modeA;
+    AlignModesWith(modes, A, modesA);
+}
+
+template<typename T>
+void
+DistTensor<T>::AlignModesWith(const ModeArray& modes, const DistTensor<T>& A, const ModeArray& modesA)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::AlignModesWith");
+#endif
+    Unsigned i;
+    for(i = 0; i < modes.size(); i++){
+        Mode mode = modes[i];
+        Mode modeA = modesA[i];
+        modeAlignments_[mode] = A.modeAlignments_[modeA] % ModeStride(mode);
+        constrainedModeAlignments_[mode] = true;
+        SetModeShift(mode);
+    }
 }
 
 template<typename T>

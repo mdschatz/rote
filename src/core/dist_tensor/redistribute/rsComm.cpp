@@ -53,7 +53,7 @@ Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mo
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes){
+void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
 //    if(!CheckReduceScatterCommRedist(A, reduceMode, scatterMode))
 //      LogicError("ReduceScatterRedist: Invalid redistribution request");
     const tmen::Grid& g = A.Grid();
@@ -87,6 +87,9 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+
+    //First, set all entries of sendBuf to zero so we don't accumulate garbage
+    MemZero(&(sendBuf[0]), sendSize);
 
     //Pack the data
     PROFILE_SECTION("RSPack");
@@ -124,7 +127,7 @@ void DistTensor<T>::ReduceScatterCommRedist(const DistTensor<T>& A, const ModeAr
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RSUnpack");
-    UnpackRSCommRecvBuf(recvBuf, A);
+    UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -177,9 +180,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     ModeArray sortedCommModes = commModes;
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
-
-    //First, set all entries of sendBuf to zero so we don't accumulate garbage
-    MemZero(&(sendBuf[0]), prod(sendShape) * prod(FilterVector(g.Shape(), commModes)));
 
 //    PrintData(*this, "thisData");
     //For each process we send to, we need to determine the first element we need to send them
@@ -284,68 +284,8 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     }
 }
 
-////TODO: Optimize striding when packing
-////TODO: Ensure modeStrideFactor is being correctly applied (global to local information)
-//template <typename T>
-//void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& commModes, T * const sendBuf)
-//{
-//    Unsigned i;
-//    Unsigned order = A.Order();
-//    const T* dataBuf = A.LockedBuffer();
-//
-//    const Location zeros(order, 0);
-//    const Location ones(order, 1);
-//
-//    //GridView information
-//    const tmen::GridView gvA = A.GetGridView();
-//    const tmen::GridView gvB = GetGridView();
-//    const ObjShape gvAShape = gvA.ParticipatingShape();
-//    const ObjShape gvBShape = gvB.ParticipatingShape();
-//
-//    //Different striding information
-//    std::vector<Unsigned> commLCMs = tmen::LCMs(gvA.ParticipatingShape(), gvB.ParticipatingShape());
-//    std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvA.ParticipatingShape());
-//    //Set the mode stride factor to 1 for all reduceModes
-//    for(i = 0; i < rModes.size(); i++)
-//        modeStrideFactor[rModes[i]] = 1;
-//
-//    const ObjShape sendShape = MaxLocalShape();
-//
-//    Permutation invPerm = DetermineInversePermutation(A.localPerm_);
-//
-//    PackData packData;
-//    packData.loopShape = PermuteVector(A.LocalShape(), invPerm);
-//    packData.srcBufStrides = ElemwiseProd(PermuteVector(A.LocalStrides(), invPerm), modeStrideFactor);
-//
-//    packData.dstBufStrides = Dimensions2Strides(sendShape);
-//    packData.loopStarts = zeros;
-//    packData.loopIncs = modeStrideFactor;
-//
-//    //First, set all entries of sendBuf to zero so we don't accumulate garbage
-//    const tmen::Grid& g = Grid();
-//    MemZero(&(sendBuf[0]), prod(sendShape) * prod(FilterVector(g.Shape(), commModes)));
-//    //Determine the first element we will accumulate to
-//    Location packElem = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
-//    for(i = 0; i < rModes.size(); i++)
-//        packElem[rModes[i]] = 0;
-//
-//    if(ElemwiseLessThan(packElem, A.Shape())){
-//        ElemSelectData elemData;
-//        elemData.commModes = commModes;
-//        elemData.packElem = packElem;
-//        elemData.loopShape = modeStrideFactor;
-//        elemData.nElemsPerProc = prod(sendShape);
-//        elemData.srcElem = zeros;
-//        elemData.srcStrides = A.LocalStrides();
-//        elemData.permutation = A.localPerm_;
-//
-//        ElemSelectHelper(packData, elemData, order - 1, A, &(dataBuf[0]), &(sendBuf[0]));
-//    }
-//}
-
-//TODO: Optimize stride when unpacking
 template <typename T>
-void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)
+void DistTensor<T>::UnpackRSUCommRecvBuf(const T * const recvBuf, const T alpha, const DistTensor<T>& A, const T beta)
 {
     const Unsigned order = Order();
     T* dataBuf = Buffer();
@@ -353,14 +293,11 @@ void DistTensor<T>::UnpackRSCommRecvBuf(const T * const recvBuf, const DistTenso
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(MaxLocalShape()), localPerm_);
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = ones;
-
-    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    YAxpByData data;
+    data.loopShape = LocalShape();
+    data.srcStrides = PermuteVector(Dimensions2Strides(MaxLocalShape()), localPerm_);
+    data.dstStrides = LocalStrides();
+    YAxpBy_fast(alpha, beta, &(recvBuf[0]), &(dataBuf[0]), data);
 }
 
 #define PROTO(T) template class DistTensor<T>

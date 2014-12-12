@@ -56,10 +56,15 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
                 tmp2Perm[j]++;
         tmp2Perm.insert(tmp2Perm.begin() + rMode, rMode);
 
-        if(rMode == tmp2Strides.size())
-            tmp2Strides.insert(tmp2Strides.begin() + rMode, tmp2Strides[tmp2Strides.size() - 1] * tmp2Shape[tmp2Shape.size() - 1]);
-        else
+        if(rMode == tmp2Strides.size()){
+            if(rMode == 0){
+                tmp2Strides.insert(tmp2Strides.begin() + rMode, 1);
+            }else{
+                tmp2Strides.insert(tmp2Strides.begin() + rMode, tmp2Strides[tmp2Strides.size() - 1] * tmp2Shape[tmp2Shape.size() - 1]);
+            }
+        }else{
             tmp2Strides.insert(tmp2Strides.begin() + rMode, tmp2Strides[rMode]);
+        }
         tmp2Shape.insert(tmp2Shape.begin() + rMode, Min(1, A.Dimension(rMode)));
     }
 
@@ -68,20 +73,10 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
 
     tmp2.Attach(tmp2Shape, tmp2Aligns, Buffer(), tmp2Strides, g);
 
-    //Scale the pieces
-    if(alpha == T(0)){
+    if(alpha == T(0))
         Zero(tmp);
-    }else{
+    else
         LocalReduce(A, tmp, rModes);
-        if(alpha != T(1)){
-            Scal(alpha, tmp);
-        }
-    }
-    if(beta == T(0)){
-        Zero(tmp2);
-    }else if(alpha != T(1)){
-        Scal(alpha, tmp);
-    }
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
@@ -92,8 +87,9 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
 
 //    PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");
-//    Print(tmp, "tmp before RS");
-    tmp2.ReduceToOneCommRedist(tmp, rModes, commModes);
+//    Print(tmp, "tmp before RTO");
+//    Print(tmp2, "tmp2 before RTO");
+    tmp2.ReduceToOneUpdateCommRedist(alpha, tmp, beta, rModes, commModes);
 
     PROFILE_STOP;
 }

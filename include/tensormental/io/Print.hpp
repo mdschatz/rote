@@ -32,7 +32,13 @@ Print( const Tensor<T>& A, std::string title="", std::ostream& os=std::cout )
     Location curLoc(order, 0);
 
     int ptr = 0;
+    if(order == 0){
+        os.precision(16);
+        os << A.Get(curLoc) << " " << std::endl;
+        return;
+    }
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
+
     while(!done){
         os.precision(16);
         os << A.Get(curLoc) << " ";
@@ -85,6 +91,12 @@ Print
     const Unsigned order = A.Order();
     Location curLoc(order, 0);
 
+    if(A.Grid().LinearRank() == 0 && order == 0){
+        os.precision(16);
+        os << A.Get(curLoc) << " " << std::endl;
+        return;
+    }
+
     int ptr = 0;
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     T u = T(0);
@@ -132,7 +144,7 @@ template<typename T>
 inline void
 PrintData
 ( const DistTensor<T>& A, std::string title="", std::ostream& os = std::cout){
-    if( A.Grid().LinearRank() == 0 && title != "" ){
+//    if( A.Grid().LinearRank() == 0 && title != "" ){
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
@@ -141,7 +153,7 @@ PrintData
         PrintVector(A.ModeShifts(), "shifts", os);
         PrintVector(A.LocalPermutation(), "local permutation", os);
         PrintData(A.LockedTensor(), "tensor data", os);
-    }
+//    }
 }
 
 template<typename T>

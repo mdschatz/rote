@@ -16,33 +16,6 @@ namespace tmen {
 // Workhorse routines
 ////////////////////////////////////
 
-//Add guards
-template<typename T>
-inline void
-YAxpByHelper(T alpha, const Tensor<T>& X, T beta, Tensor<T>& Y, Mode mode, T const * const srcBuf, T * const dstBuf, const YAxpByData& data ){
-    Unsigned i;
-    const Unsigned loopEnd = data.loopShape[mode];
-    const Unsigned srcStride = data.srcStrides[mode];
-    const Unsigned dstStride = data.dstStrides[mode];
-    Unsigned srcBufPtr = 0;
-    Unsigned dstBufPtr = 0;
-
-    if(mode == 0){
-        for(i = 0; i < loopEnd; i++){
-            dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr] + beta*dstBuf[dstBufPtr];
-
-            srcBufPtr += srcStride;
-            dstBufPtr += dstStride;
-        }
-    }else{
-        for(i = 0; i < loopEnd; i++){
-            YAxpByHelper(alpha, X, beta, Y, mode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]), data);
-            srcBufPtr += srcStride;
-            dstBufPtr += dstStride;
-        }
-    }
-}
-
 template<typename T>
 inline void
 YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAxpByData& data ){
@@ -55,14 +28,14 @@ YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAx
     Location curLoc(order, 0);
     Unsigned ptr = 0;
 
-    if(loopEnd.size() == 0){
-        dstBuf[0] = srcBuf[0] + beta * dstBuf[0];
-        return;
-    }
-
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     if(alpha == T(1) && beta == T(1)){
+        if(loopEnd.size() == 0){
+            dstBuf[0] = srcBuf[0] + dstBuf[0];
+            return;
+        }
+
         while(!done){
 
             dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
@@ -90,6 +63,11 @@ YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAx
             ptr = 0;
         }
     }else if(alpha == T(1) && beta != T(1)){
+        if(loopEnd.size() == 0){
+            dstBuf[0] = srcBuf[0] + beta * dstBuf[0];
+            return;
+        }
+
         while(!done){
 
             dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta * dstBuf[dstBufPtr];
@@ -117,6 +95,11 @@ YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAx
             ptr = 0;
         }
     }else if(alpha != T(1) && beta == T(1)){
+        if(loopEnd.size() == 0){
+            dstBuf[0] = alpha * srcBuf[0] + dstBuf[0];
+            return;
+        }
+
         while(!done){
 
             dstBuf[dstBufPtr] = alpha * srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
@@ -144,6 +127,11 @@ YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAx
             ptr = 0;
         }
     }else{
+        if(loopEnd.size() == 0){
+            dstBuf[0] = alpha * srcBuf[0] + beta * dstBuf[0];
+            return;
+        }
+
         while(!done){
 
             dstBuf[dstBufPtr] = alpha * srcBuf[srcBufPtr] + beta * dstBuf[dstBufPtr];
@@ -186,33 +174,7 @@ Yxpy( const Tensor<T>& X, Tensor<T>& Y )
     CallStackEntry entry("YxpBy");
 #endif
     Permutation permXToY = DefaultPermutation(X.Order());
-    Yxpy(X, permXToY, Y);
-}
-
-template<typename T>
-inline void
-Yxpy( const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y){
-#ifndef RELEASE
-    CallStackEntry entry("YxpBy");
-#endif
-    Unsigned order = Y.Order();
-    YAxpByData data;
-    data.loopShape = Y.Shape();
-    data.srcStrides = PermuteVector(X.Strides(), permXToY);
-    data.dstStrides = Y.Strides();
-
-    const T* srcBuf = X.LockedBuffer();
-    T* dstBuf = Y.Buffer();
-
-    if(order == 0)
-        dstBuf[0] = srcBuf[0] + dstBuf[0];
-    else{
-#ifndef RELEASE
-        YAxpByHelper(T(1), X, T(1), Y, order-1, srcBuf, dstBuf, data);
-#else
-        YAxpBy_fast(T(1), T(1), srcBuf, dstBuf, data);
-#endif
-    }
+    YAxpBy(T(1), X, permXToY, T(1), Y);
 }
 
 //NOTE: Place appropriate guards
@@ -224,35 +186,8 @@ YAxpy( T alpha, const Tensor<T>& X, Tensor<T>& Y )
     CallStackEntry entry("YxpBy");
 #endif
     Permutation permXToY = DefaultPermutation(X.Order());
-    YAxpy(X, permXToY, Y);
+    YAxpBy(alpha, X, permXToY, T(1), Y);
 }
-
-template<typename T>
-inline void
-YAxpy( T alpha, const Tensor<T>& X, const Permutation& permXToY, Tensor<T>& Y){
-#ifndef RELEASE
-    CallStackEntry entry("YxpBy");
-#endif
-    Unsigned order = Y.Order();
-    YAxpByData data;
-    data.loopShape = Y.Shape();
-    data.srcStrides = PermuteVector(X.Strides(), permXToY);
-    data.dstStrides = Y.Strides();
-
-    const T* srcBuf = X.LockedBuffer();
-    T* dstBuf = Y.Buffer();
-
-    if(order == 0)
-        dstBuf[0] = alpha*srcBuf[0] + dstBuf[0];
-    else{
-#ifndef RELEASE
-        YAxpByHelper(alpha, X, T(1), Y, order-1, srcBuf, dstBuf, data);
-#else
-        YAxpBy_fast(alpha, T(1), srcBuf, dstBuf, data);
-#endif
-    }
-}
-
 
 //NOTE: Place appropriate guards
 template<typename T>
@@ -263,33 +198,7 @@ YxpBy( const Tensor<T>& X, T beta, Tensor<T>& Y )
     CallStackEntry entry("YxpBy");
 #endif
     Permutation permXToY = DefaultPermutation(X.Order());
-    YxpBy(X, permXToY, beta, Y);
-}
-
-template<typename T>
-inline void
-YxpBy( const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
-#ifndef RELEASE
-    CallStackEntry entry("YxpBy");
-#endif
-    Unsigned order = Y.Order();
-    YAxpByData data;
-    data.loopShape = Y.Shape();
-    data.srcStrides = PermuteVector(X.Strides(), permXToY);
-    data.dstStrides = Y.Strides();
-
-    const T* srcBuf = X.LockedBuffer();
-    T* dstBuf = Y.Buffer();
-
-    if(order == 0)
-        dstBuf[0] = srcBuf[0] + beta*dstBuf[0];
-    else{
-#ifndef RELEASE
-        YAxpByHelper(T(1), X, beta, Y, order-1, srcBuf, dstBuf, data);
-#else
-        YAxpBy_fast(T(1), beta, srcBuf, dstBuf, data);
-#endif
-    }
+    YAxpBy(T(1), X, permXToY, beta, Y);
 }
 
 //NOTE: Place appropriate guards
@@ -322,11 +231,7 @@ YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor
     if(order == 0)
         dstBuf[0] = alpha*srcBuf[0] + beta*dstBuf[0];
     else{
-#ifndef RELEASE
-        YAxpByHelper(alpha, X, beta, Y, order-1, srcBuf, dstBuf, data);
-#else
         YAxpBy_fast(alpha, beta, srcBuf, dstBuf, data);
-#endif
     }
 }
 
@@ -346,7 +251,7 @@ Yxpy( const DistTensor<T>& X, DistTensor<T>& Y )
         ("X and Y must be distributed over the same grid");
 #endif
     Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
-    YxpBy(X.LockedTensor(), permXToY, Y.Tensor());
+    YAxpBy(T(1), X.LockedTensor(), permXToY, T(1), Y.Tensor());
 }
 
 template<typename T>
@@ -360,7 +265,7 @@ YAxpy( T alpha, const DistTensor<T>& X, DistTensor<T>& Y )
         ("X and Y must be distributed over the same grid");
 #endif
     Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
-    YAxpy(alpha, X.LockedTensor(), permXToY, Y.Tensor());
+    YAxpBy(alpha, X.LockedTensor(), permXToY, T(1), Y.Tensor());
 }
 
 
@@ -375,7 +280,7 @@ YxpBy( const DistTensor<T>& X, T beta, DistTensor<T>& Y )
         ("X and Y must be distributed over the same grid");
 #endif
     Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
-    YxpBy(X.LockedTensor(), permXToY, beta, Y.Tensor());
+    YAxpBy(T(1), X.LockedTensor(), permXToY, beta, Y.Tensor());
 }
 
 template<typename T>

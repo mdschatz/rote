@@ -1647,7 +1647,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     }
     Permute( accum_temp_perm2301__D_2__D_3__D_0__D_1, accum_temp__D_0__D_1__D_2__D_3 );
     accum_temp_perm2301__D_2__D_3__D_0__D_1.EmptyData();
-//    Print(accum_temp__D_0__D_1__D_2__D_3, "accum LC3");
+    Print(accum_temp__D_0__D_1__D_2__D_3, "accum LC3");
     //****
     //**** (out of 3)
     //**** Is real  0 shadows
@@ -1657,6 +1657,8 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
     Zero(E_MP3____N_D_0_1_2_3);
 
     E_MP3__D_0__D_1__D_2__D_3.AlignWith(E_MP3____N_D_0_1_2_3);
+
+    Print(axppx2_temp__D_0__D_1__D_2__D_3, "axppx2");
 
     PartitionDown(axppx2_temp__D_0__D_1__D_2__D_3, axppx2_temp_part0T__D_0__D_1__D_2__D_3, axppx2_temp_part0B__D_0__D_1__D_2__D_3, 0, 0);
     PartitionDown(accum_temp__D_0__D_1__D_2__D_3, accum_temp_part0T__D_0__D_1__D_2__D_3, accum_temp_part0B__D_0__D_1__D_2__D_3, 0, 0);
@@ -1705,6 +1707,7 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
                 accum_temp_part0_1_part1_1__D_0__D_1__D_2__D_3.LockedTensor(), indices_efmn, true,
                 0.0, E_MP3__D_0__D_1__D_2__D_3.Tensor(), indices_efmn, true);
                // E_MP3[] | {0,1,2,3} <- E_MP3[D0,D1,D2,D3] (with SumScatter on (D0)(D1)(D2)(D3))
+
             E_MP3____N_D_0_1_2_3.ReduceToOneUpdateRedistFrom( E_MP3__D_0__D_1__D_2__D_3, 1.0, modes_0_1_2_3 );
 //            E_MP3__D_0__D_1__D_2__D_3.EmptyData();
 
@@ -1754,7 +1757,6 @@ DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
 
     if(commRank == 0)
         Timer::printTimers();
-
 
 Print(E_MP3____N_D_0_1_2_3, "E_MP3");
 
@@ -1814,7 +1816,6 @@ main( int argc, char* argv[] )
     catch( std::exception& e ) { ReportException(e); }
 
     Finalize();
-    //printf("Completed\n");
     return 0;
 }
 

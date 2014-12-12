@@ -53,7 +53,7 @@ Int DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode
 }
 
 template <typename T>
-void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes){
+void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
 //    if(!CheckReduceToOneCommRedist(A, reduceMode))
 //      LogicError("ReduceToOneRedist: Invalid redistribution request");
 
@@ -69,18 +69,26 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
-    const ObjShape maxLocalShapeA = A.MaxLocalShape();
-    sendSize = prod(maxLocalShapeA);
+    const ObjShape commDataShape = A.MaxLocalShape();
+    sendSize = prod(commDataShape);
     recvSize = sendSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
+//    const T* dataBuf = A.LockedBuffer();
+//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+
+    MemZero(&(sendBuf[0]), sendSize);
+
     //Pack the data
     PROFILE_SECTION("RTOPack");
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
+
+//    ObjShape sendShape = commDataShape;
+//    PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Communicate the data
     PROFILE_SECTION("RTOComm");
@@ -98,6 +106,9 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
     PROFILE_STOP;
 
+//    ObjShape recvShape = commDataShape;
+//    PrintArray(recvBuf, recvShape, "recvBuf");
+
     if(!(Participating())){
         this->auxMemory_.Release();
         return;
@@ -105,8 +116,11 @@ void DistTensor<T>::ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RTOUnpack");
-    UnpackRSCommRecvBuf(recvBuf, A);
+    UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
     PROFILE_STOP;
+
+//    const T* myBuf = LockedBuffer();
+//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
 
     this->auxMemory_.Release();
 }

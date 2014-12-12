@@ -287,6 +287,7 @@ public:
     //
     Int CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes);
     void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes);
+    void UnpackPCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
 
     //
     // Point-to-point interface routines
@@ -297,9 +298,9 @@ public:
     // Reduce-scatter workhorse routines
     //
     Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
-    void ReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes);
+    void ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
     void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
-    void UnpackRSCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
+    void UnpackRSUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
 
     //
     // Reduce-scatter interface routines
@@ -314,7 +315,7 @@ public:
     // Reduce-to-one workhorse routines
     //
     Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const Mode rMode);
-    void ReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& commModes);
+    void ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes, const ModeArray& commModes);
 
     //
     // Reduce-to-one interface routines
@@ -353,6 +354,7 @@ public:
     void AlignModeWith( Mode mode, const tmen::DistData& data );
     void AlignModeWith( Mode mode, const DistTensor<T>& A );
     void AlignModeWith( Mode mode, const DistTensor<T>& A, Mode modeA );
+    void AlignModesWith( const ModeArray& modes, const DistTensor<T>& A, const ModeArray& modesA );
 
     //
     // Though the following routines are meant for complex data, all but two

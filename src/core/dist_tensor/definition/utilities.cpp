@@ -28,7 +28,7 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
 #endif
     Unsigned i;
     const tmen::GridView gv = GetGridView();
-    Location ownerLoc(gv.ParticipatingOrder());
+    Location ownerLoc = Alignments();
 
     for(i = 0; i < gv.ParticipatingOrder(); i++){
         ownerLoc[i] = (loc[i] + ModeAlignment(i)) % ModeStride(i);

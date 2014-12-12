@@ -100,7 +100,7 @@ template <typename T>
 void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonReduceModes, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
     Unsigned i;
     if(nonReduceModes.size() == 0){
-        LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[0]), srcStrides, &(dstBuf[0]), dstStrides);
+        LocalReduce_fast(reduceModes, FilterVector(reduceShape, reduceModes), &(srcBuf[0]), FilterVector(srcStrides, reduceModes), &(dstBuf[0]));
     }else{
         Mode nonReduceMode = nonReduceModes[elemMode];
         Unsigned srcBufPtr = 0;

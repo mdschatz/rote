@@ -148,13 +148,32 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");
-    UnpackRSCommRecvBuf(recvBuf, A);
+    UnpackPCommRecvBuf(recvBuf, A);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
 //    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
 
     this->auxMemory_.Release();
+}
+
+template <typename T>
+void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)
+{
+    const Unsigned order = Order();
+    T* dataBuf = Buffer();
+
+    const Location zeros(order, 0);
+    const Location ones(order, 1);
+
+    PackData unpackData;
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(MaxLocalShape()), localPerm_);
+    unpackData.loopStarts = zeros;
+    unpackData.loopIncs = ones;
+
+    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 
 #define PROTO(T) template class DistTensor<T>
