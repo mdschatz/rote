@@ -77,7 +77,7 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     tmp.ResizeTo(tmpShape);
     Zero(tmp);
 
-    LocalReduce(tmp, A, rModes);
+    LocalReduce(A, tmp, rModes);
 
 
     ObjShape tmp2Shape = A.Shape();

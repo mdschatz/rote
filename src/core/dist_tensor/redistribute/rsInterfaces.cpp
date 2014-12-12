@@ -63,92 +63,184 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     ReduceScatterUpdateRedistFrom(A, beta, reduceModes, scatterModes);
 }
 
-template <typename T>
-void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes){
-    PROFILE_SECTION("RSRedist");
-    Unsigned i;
+template<typename T>
+void
+DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+#endif
+    PROFILE_SECTION("RSURedist");
+    Unsigned i, j;
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
     TensorDistribution dist = A.TensorDist();
     ModeDistribution blank(0);
 
-    ObjShape tmpShape = A.Shape();
-    for(i = 0; i < rModes.size(); i++){
-        tmpShape[rModes[i]] = Min(gv.Dimension(rModes[i]), A.Dimension(rModes[i]));
-    }
-
-//    PrintVector(tmpShape, "tmpShape");
-    DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
-    tmp.AlignWith(A);
-    tmp.SetDistribution(A.TensorDist());
-    tmp.SetLocalPermutation(A.localPerm_);
-    tmp.ResizeTo(tmpShape);
-
-//    PrintVector(tmp.Shape(), "tmpShapeAfterPerm");
-    Zero(tmp);
-
-//    const T* dataBuf = A.LockedBuffer();
-//    std::cout << "dataBuf:";
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//        std::cout << " " << dataBuf[i];
-//    }
-//    std::cout << std::endl;
-
-    //Account for permuted local storage
-
-    LocalReduce(tmp, A, rModes);
-
-//    PrintVector(rModes, "reducing rModes");
-//    Print(tmp, "after localReduce");
-
-    ObjShape tmp2Shape = A.Shape();
-    TensorDistribution tmp2Dist = A.TensorDist();
-    for(i = 0; i < sModes.size(); i++){
-        tmp2Shape[rModes[i]] = Min(1, A.Dimension(rModes[i]));
-        ModeDistribution rModeDist = A.ModeDist(rModes[i]);
-        tmp2Dist[sModes[i]].insert(tmp2Dist[sModes[i]].end(), rModeDist.begin(), rModeDist.end());
-        tmp2Dist[rModes[i]] = blank;
-    }
-
-    DistTensor<T> tmp2(tmp2Dist, g);
-
-    Permutation tmp2Perm = DefaultPermutation(tmp2.Order());
-    for(i = 0; i < localPerm_.size(); i++)
-        tmp2Perm[i] = localPerm_[i];
-    tmp2.SetLocalPermutation(tmp2Perm);
-
-    std::vector<Unsigned> tmp2Strides = LocalStrides();
+    //Sort the rModes just in case
     ModeArray sortedRModes = rModes;
     std::sort(sortedRModes.begin(), sortedRModes.end());
 
-    Unsigned val;
-    if(sortedRModes.size() != 0){
-        if(sortedRModes[0] == 0){
-            if(tmp2Strides.size() == 0)
-                val = 1;
-            else
-                val = tmp2Strides[sortedRModes[0]];
-        }else{
-            val = tmp2Strides[sortedRModes[0]-1];
-        }
-        tmp2Strides.insert(tmp2Strides.begin() + sortedRModes[0], val);
+    //Set up tmp for holding alpha*A
+    DistTensor<T> tmp(A.TensorDist(), g);
+    tmp.AlignWith(A);
 
-        for(i = 1; i < sortedRModes.size(); i++){
-            tmp2Strides.insert(tmp2Strides.begin() + sortedRModes[i], tmp2Strides[sortedRModes[i]-1]);
-        }
+    //Set up tmp2 for holding beta*B
+    ObjShape tmp2Shape = Shape();
+    TensorDistribution tmp2Dist = TensorDist();
+    std::vector<Unsigned> tmp2Aligns = Alignments();
+    Permutation tmp2Perm = localPerm_;
+    std::vector<Unsigned> tmp2Strides = LocalStrides();
+
+    for(i = 0; i < sortedRModes.size(); i++){
+        Mode rMode = sortedRModes[i];
+        tmp2Dist.insert(tmp2Dist.begin() + rMode, blank);
+        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
+
+        for(j = 0; j < tmp2Perm.size(); j++)
+            if(tmp2Perm[j] >= rMode)
+                tmp2Perm[j]++;
+        tmp2Perm.insert(tmp2Perm.begin() + rMode, rMode);
+
+        if(rMode == tmp2Strides.size())
+            tmp2Strides.insert(tmp2Strides.begin() + rMode, tmp2Strides[tmp2Strides.size() - 1] * tmp2Shape[tmp2Shape.size() - 1]);
+        else
+            tmp2Strides.insert(tmp2Strides.begin() + rMode, tmp2Strides[rMode]);
+        tmp2Shape.insert(tmp2Shape.begin() + rMode, Min(1, A.Dimension(rMode)));
     }
 
-    tmp2.Attach(tmp2Shape, tmp.Alignments(), Buffer(), tmp2Strides, g);
+    DistTensor<T> tmp2(tmp2Shape, tmen::TensorDistToString(tmp2Dist), g);
+    tmp2.SetLocalPermutation(tmp2Perm);
+
+    tmp2.Attach(tmp2Shape, tmp2Aligns, Buffer(), tmp2Strides, g);
+
+    //Scale the pieces
+    if(alpha == T(0)){
+        Zero(tmp);
+    }else{
+        LocalReduce(A, tmp, rModes);
+        if(alpha != T(1)){
+            Scal(alpha, tmp);
+        }
+    }
+    if(beta == T(0)){
+        Zero(tmp2);
+    }else if(alpha != T(1)){
+        Scal(alpha, tmp);
+    }
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
-        ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
+        ModeDistribution modeDist = A.ModeDist(rModes[i]);
         commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
     }
     std::sort(commModes.begin(), commModes.end());
 
-    tmp2.ReduceScatterCommRedist(tmp, rModes, sModes, commModes);
+//    PrintData(tmp, "tmp data");
+//    Print(tmp, "tmp before RS");
+    tmp2.ReduceScatterCommRedist(tmp, rModes, commModes);
 
+    PROFILE_STOP;
+}
+
+template <typename T>
+void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& sModes){
+    PROFILE_SECTION("RSRedist");
+
+    ReduceScatterUpdateRedistFrom(T(1), A, T(0), rModes);
+
+    //////////////////////////
+    //////////////////////////
+    //////////////////////////
+//    Unsigned i;
+//    const tmen::GridView gv = A.GetGridView();
+//    const tmen::Grid& g = A.Grid();
+//    TensorDistribution dist = A.TensorDist();
+//    ModeDistribution blank(0);
+//
+//    ObjShape tmpShape = A.Shape();
+//    for(i = 0; i < rModes.size(); i++){
+//        tmpShape[rModes[i]] = Min(gv.Dimension(rModes[i]), A.Dimension(rModes[i]));
+//    }
+//
+//    PrintData(*this, "data1");
+////    PrintVector(tmpShape, "tmpShape");
+//    DistTensor<T> tmp(tmpShape, A.TensorDist(), g);
+//    tmp.AlignWith(A);
+//    tmp.SetDistribution(A.TensorDist());
+//    tmp.SetLocalPermutation(A.localPerm_);
+//    tmp.ResizeTo(tmpShape);
+//
+////    PrintVector(tmp.Shape(), "tmpShapeAfterPerm");
+//    Zero(tmp);
+//
+////    const T* dataBuf = A.LockedBuffer();
+////    std::cout << "dataBuf:";
+////    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
+////        std::cout << " " << dataBuf[i];
+////    }
+////    std::cout << std::endl;
+//
+//    //Account for permuted local storage
+//
+//    LocalReduce(A, tmp, rModes);
+//
+//    PrintData(*this, "data2");
+////    PrintVector(rModes, "reducing rModes");
+////    Print(tmp, "after localReduce");
+//
+//    ObjShape tmp2Shape = A.Shape();
+//    TensorDistribution tmp2Dist = A.TensorDist();
+//    for(i = 0; i < sModes.size(); i++){
+//        tmp2Shape[rModes[i]] = Min(1, A.Dimension(rModes[i]));
+//        ModeDistribution rModeDist = A.ModeDist(rModes[i]);
+//        tmp2Dist[sModes[i]].insert(tmp2Dist[sModes[i]].end(), rModeDist.begin(), rModeDist.end());
+//        tmp2Dist[rModes[i]] = blank;
+//    }
+//
+//    DistTensor<T> tmp2(tmp2Dist, g);
+//
+//    Permutation tmp2Perm = DefaultPermutation(tmp2.Order());
+//    for(i = 0; i < localPerm_.size(); i++)
+//        tmp2Perm[i] = localPerm_[i];
+//    tmp2.SetLocalPermutation(tmp2Perm);
+//
+//    std::vector<Unsigned> tmp2Strides = LocalStrides();
+//    ModeArray sortedRModes = rModes;
+//    std::sort(sortedRModes.begin(), sortedRModes.end());
+//
+//    Unsigned val;
+//    if(sortedRModes.size() != 0){
+//        if(sortedRModes[0] == 0){
+//            if(tmp2Strides.size() == 0)
+//                val = 1;
+//            else
+//                val = tmp2Strides[sortedRModes[0]];
+//        }else{
+//            val = tmp2Strides[sortedRModes[0]-1];
+//        }
+//        tmp2Strides.insert(tmp2Strides.begin() + sortedRModes[0], val);
+//
+//        for(i = 1; i < sortedRModes.size(); i++){
+//            tmp2Strides.insert(tmp2Strides.begin() + sortedRModes[i], tmp2Strides[sortedRModes[i]-1]);
+//        }
+//    }
+//
+//    tmp2.Attach(tmp2Shape, tmp.Alignments(), Buffer(), tmp2Strides, g);
+//
+//
+//    ModeArray commModes;
+//    for(i = 0; i < rModes.size(); i++){
+//        ModeDistribution modeDist = tmp.ModeDist(rModes[i]);
+//        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
+//    }
+//    std::sort(commModes.begin(), commModes.end());
+//
+//    PrintData(*this, "data3.1");
+//
+//    tmp2.ReduceScatterCommRedist(tmp, rModes, commModes);
+//
+//    PrintData(*this, "data4");
     /////////////////////////////////////////
     /////////////////////////////////////////
     //OLD CODE
@@ -202,6 +294,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     YxpBy(tmp, beta, *this);
     PROFILE_STOP;
 }
+
 
 
 

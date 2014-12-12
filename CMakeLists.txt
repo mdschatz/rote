@@ -469,7 +469,7 @@ if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
   set(TEST_TYPES core btas applications)
 
-  set(core_TESTS DistTensor Views Grids Woody)
+  set(core_TESTS DistTensor Views Grids Woody Karen)
   set(btas_TESTS Level1 Contract)
   set(applications_TESTS BlockMP3DoublePartPerm)
 

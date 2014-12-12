@@ -13,6 +13,7 @@
 #include "tensormental/util/vec_util.hpp"
 #include "tensormental/util/btas_util.hpp"
 #include "tensormental/core/view_decl.hpp"
+#include "tensormental/io/Print.hpp"
 
 namespace tmen{
 
@@ -59,20 +60,23 @@ void LocalReduce_fast(const ModeArray& reduceModes, const ObjShape& reduceShape,
     Location curLoc(order, 0);
     Unsigned ptr = 0;
 
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-    if(loopEnd.size() == 0){
+    if(!done){
+        //First set the value to 0
+        dstBuf[0] = 0;
+    }
+
+    if(!done && order == 0){
         dstBuf[0] += srcBuf[0];
         return;
     }
 
-    bool done = !ElemwiseLessThan(curLoc, loopEnd);
-
     while(!done){
-
         dstBuf[0] += srcBuf[srcBufPtr];
         //Update
         curLoc[ptr]++;
-        srcBufPtr += srcStrides[reduceModes[ptr]];
+        srcBufPtr += srcStrides[ptr];
         while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
             curLoc[ptr] = 0;
 
@@ -104,11 +108,7 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
 
         for(i = 0; i < reduceShape[nonReduceMode]; i++){
             if(elemMode == 0){
-#ifndef RELEASE
-                LocalReduceHelper(reduceModes.size() - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
-#else
-                LocalReduce_fast(reduceModes, reduceShape, &(srcBuf[srcBufPtr]), FilterVector(srcStrides, reduceModes), &(dstBuf[dstBufPtr]));
-#endif
+                LocalReduce_fast(reduceModes, FilterVector(reduceShape, reduceModes), &(srcBuf[srcBufPtr]), FilterVector(srcStrides, reduceModes), &(dstBuf[dstBufPtr]));
             }else{
                 LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
             }
@@ -123,7 +123,7 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
 ////////////////////////////////////
 
 template <typename T>
-void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes){
+void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const ModeArray& reduceModes){
 #ifndef RELEASE
     CallStackEntry("LocalReduce");
     if(reduceModes.size() > A.Order())
@@ -144,14 +144,14 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const ModeArray& reduceModes)
     const std::vector<Unsigned> srcStrides = A.Strides();
     const std::vector<Unsigned> dstStrides = B.Strides();
 
-    LocalReduceElemSelectHelper(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), A.Strides(), B.Buffer(), B.Strides());
+    LocalReduceElemSelectHelper(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), srcStrides, B.Buffer(), dstStrides);
 }
 
 template <typename T>
-void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
+void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Mode& reduceMode){
     ModeArray modeArr(1);
     modeArr[0] = reduceMode;
-    LocalReduce(B, A, modeArr);
+    LocalReduce(A, B, modeArr);
 }
 
 ////////////////////////////////////
@@ -159,22 +159,28 @@ void LocalReduce(Tensor<T>& B, const Tensor<T>& A, const Mode& reduceMode){
 ////////////////////////////////////
 
 template <typename T>
-void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes){
+void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const ModeArray& reduceModes){
     PROFILE_SECTION("LocalReduce");
+    Unsigned i;
+    ObjShape shapeB = A.Shape();
+    for(i = 0; i < reduceModes.size(); i++)
+        shapeB[reduceModes[i]] = Min(A.GetGridView().Dimension(reduceModes[i]), A.Dimension(reduceModes[i]));
+    B.ResizeTo(shapeB);
+
     if(B.Participating()){
         //Account for the local data being permuted
         Permutation invPermA = DetermineInversePermutation(A.LocalPermutation());
-        LocalReduce(B.Tensor(), A.LockedTensor(), FilterVector(invPermA, reduceModes));
+        LocalReduce(A.LockedTensor(), B.Tensor(), FilterVector(invPermA, reduceModes));
     }
     PROFILE_STOP;
 }
 
 template <typename T>
-void LocalReduce(DistTensor<T>& B, const DistTensor<T>& A, const Mode& reduceMode){
+void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const Mode& reduceMode){
     if(B.Participating()){
         ModeArray modeArr(1);
         modeArr[0] = reduceMode;
-        LocalReduce(B, A, modeArr);
+        LocalReduce(A, B, modeArr);
     }
 }
 } // namespace tmen
