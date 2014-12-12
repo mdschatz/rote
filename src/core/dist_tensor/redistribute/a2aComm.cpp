@@ -65,10 +65,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         recvSize = sendSize;
 
         T* auxBuf;
-        PROFILE_SECTION("A2ARequire");
-        PROFILE_FLOPS((sendSize + recvSize) * nRedistProcs);
         auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
-        PROFILE_STOP;
 
         T* sendBuf = &(auxBuf[0]);
         T* recvBuf = &(auxBuf[sendSize*nRedistProcs]);
@@ -88,7 +85,6 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         //Communicate the data
         PROFILE_SECTION("A2AComm");
-
         Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
         Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
         if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
@@ -105,7 +101,6 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);
         //Perform a send/recv to realign the data (if needed)
-
         PROFILE_STOP;
 
         if(!(Participating())){

@@ -76,10 +76,12 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     T* recvBuf = &(auxBuf[sendSize]);
 
     //Pack the data
+    PROFILE_SECTION("GTOPack");
     PackAGCommSendBuf(A, sendBuf);
+    PROFILE_STOP;
 
     //Communicate the data
-    PROFILE_SECTION("AGComm");
+    PROFILE_SECTION("GTOComm");
     //If unaligned, realign with send/recv BEFORE Allgather (ensures data arrives in correct place)
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
@@ -104,7 +106,10 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     }
 
     //Unpack the data (if participating)
+    PROFILE_SECTION("GTOUnpack");
     UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
+    PROFILE_STOP;
+
     this->auxMemory_.Release();
 }
 

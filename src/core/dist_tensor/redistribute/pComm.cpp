@@ -58,10 +58,14 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
 
     Unsigned sendSize, recvSize;
 
+    const tmen::Grid& g = A.Grid();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+
     //Determine buffer sizes for communication
     const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
-    const ObjShape maxLocalShapeB = MaxLocalShape();
-    recvSize = prod(maxLocalShapeB);
+    const ObjShape commDataShape = MaxLocalShape();
+    recvSize = prod(commDataShape);
     sendSize = recvSize;
 
     const int myRank = mpi::CommRank(comm);
@@ -70,34 +74,74 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
+//    const T* dataBuf = A.LockedBuffer();
+//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+
     //Pack the data
+    PROFILE_SECTION("PermutationPack");
     PackAGCommSendBuf(A, sendBuf);
+    PROFILE_STOP;
+
+//    ObjShape sendShape = commDataShape;
+//    PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Determine who I send+recv data from
+    PROFILE_SECTION("PermutationComm");
+
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+
     const ModeDistribution permuteModeDistA = A.ModeDist(permuteMode);
     const ModeDistribution permuteModeDistB = ModeDist(permuteMode);
 
-    ModeDistribution gridModesUsed(permuteModeDistB);
-    std::sort(gridModesUsed.begin(), gridModesUsed.end());
+    const Location myGridViewLocA = gvA.ParticipatingLoc();
+    const Location sendLoc = GridViewLoc2GridLoc(myGridViewLocA, gvB);
+//    const Unsigned sendLinLoc = Loc2LinearLoc(FilterVector(sendLoc, sortedCommModes), FilterVector(g.Shape(), sortedCommModes));
 
-    const ObjShape gridSliceShape = FilterVector(A.Grid().Shape(), gridModesUsed);
+    const Location myGridViewLocB = gvB.ParticipatingLoc();
+    const Location recvLoc = GridViewLoc2GridLoc(myGridViewLocB, gvA);
+//    const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, sortedCommModes), FilterVector(g.Shape(), sortedCommModes));
 
-    const std::vector<Unsigned> permA = DeterminePermutation(gridModesUsed, permuteModeDistA);
-    const std::vector<Unsigned> permB = DeterminePermutation(gridModesUsed, permuteModeDistB);
+    //Make sure we account for alignments
+    //Ripped from AlignCommBufRedist
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
 
-    //Determine sendRank
-    const Location sendLoc = LinearLoc2Loc(myRank, gridSliceShape, permB);
-    const Unsigned sendRank = Loc2LinearLoc(PermuteVector(sendLoc, permA), PermuteVector(gridSliceShape, permA));
+    Location alignedSendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(sendLoc, alignDiff), g.Shape()), g.Shape());
+    Location alignedRecvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(recvLoc, alignDiff), g.Shape()), g.Shape());
 
-    //Determine recvRank
-    const Location myLoc = LinearLoc2Loc(myRank, gridSliceShape, permA);
-    const Unsigned recvLinearLoc = Loc2LinearLoc(PermuteVector(myLoc, permB), PermuteVector(gridSliceShape, permB));
-    const Location recvLoc = LinearLoc2Loc(recvLinearLoc, gridSliceShape, permA);
-    const Unsigned recvRank = Loc2LinearLoc(PermuteVector(recvLoc, permA), PermuteVector(gridSliceShape, permA));
+    ModeArray misalignedModes;
+    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
+        if(firstOwnerB[i] != firstOwnerA[i]){
+            misalignedModes.insert(misalignedModes.end(), i);
+        }
+    }
 
-    //Communicate the data
-    mpi::SendRecv(sendBuf, sendSize, sendRank,
-                  recvBuf, recvSize, recvRank, comm);
+    ModeArray actualCommModes = misalignedModes;
+    for(Unsigned i = 0; i < commModes.size(); i++){
+        if(std::find(actualCommModes.begin(), actualCommModes.end(), commModes[i]) == actualCommModes.end()){
+            actualCommModes.insert(actualCommModes.end(), commModes[i]);
+        }
+    }
+    std::sort(actualCommModes.begin(), actualCommModes.end());
+
+    mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
+
+    Location alignedSendSliceLoc = FilterVector(alignedSendGridLoc, actualCommModes);
+    Location alignedRecvSliceLoc = FilterVector(alignedRecvGridLoc, actualCommModes);
+    ObjShape gridSliceShape = FilterVector(g.Shape(), actualCommModes);
+
+    Unsigned sendLinLoc = Loc2LinearLoc(alignedSendSliceLoc, gridSliceShape);
+    Unsigned recvLinLoc = Loc2LinearLoc(alignedRecvSliceLoc, gridSliceShape);
+
+    mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
+                  recvBuf, recvSize, recvLinLoc, comm);
+
+    PROFILE_STOP;
+
+//    ObjShape recvShape = commDataShape;
+//    PrintArray(recvBuf, recvShape, "recvBuf");
 
     if(!(Participating())){
         this->auxMemory_.Release();
@@ -105,7 +149,13 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const Mode per
     }
 
     //Unpack the data (if participating)
+    PROFILE_SECTION("PermutationUnpack");
     UnpackRSCommRecvBuf(recvBuf, A);
+    PROFILE_STOP;
+
+//    const T* myBuf = LockedBuffer();
+//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+
     this->auxMemory_.Release();
 }
 

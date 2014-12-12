@@ -24,7 +24,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
 #endif
-    PROFILE_SECTION("RSURedist");
+    PROFILE_SECTION("RSRedist");
     Unsigned i, j;
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
@@ -103,22 +103,30 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode){
-    ModeArray reduceModes(1);
-    reduceModes[0] = reduceMode;
-    ReduceScatterUpdateRedistFrom(T(1), A, T(0), reduceModes);
+void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
+    ReduceScatterUpdateRedistFrom(T(1), A, T(0), rModes);
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
-    PROFILE_SECTION("RSRedist");
-    ReduceScatterUpdateRedistFrom(T(1), A, T(0), rModes);
-    PROFILE_STOP;
+void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode){
+    ModeArray reduceModes(1);
+    reduceModes[0] = reduceMode;
+    ReduceScatterRedistFrom(A, reduceModes);
 }
 
 ////////////////////////////////
 // Update Wrappers
 ////////////////////////////////
+
+template<typename T>
+void
+DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+#endif
+    ReduceScatterUpdateRedistFrom(T(1), A, beta, reduceModes);
+}
 
 template<typename T>
 void
@@ -129,22 +137,8 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
 #endif
     ModeArray reduceModes(1);
     reduceModes[0] = reduceMode;
-    ReduceScatterUpdateRedistFrom(T(1), A, beta, reduceModes);
+    ReduceScatterUpdateRedistFrom(A, beta, reduceModes);
 }
-
-
-template<typename T>
-void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
-{
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
-#endif
-    PROFILE_SECTION("RSURedist");
-    ReduceScatterUpdateRedistFrom(T(1), A, beta, reduceModes);
-    PROFILE_STOP;
-}
-
 
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \

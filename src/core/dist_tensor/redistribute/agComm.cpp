@@ -63,10 +63,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     recvSize = sendSize * nRedistProcs;
 
     T* auxBuf;
-    PROFILE_SECTION("AGRequire")
-    PROFILE_FLOPS(sendSize + recvSize);
     auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-    PROFILE_STOP;
 
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
