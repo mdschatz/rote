@@ -58,7 +58,6 @@ void Zero_fast(const ObjShape& shape, const std::vector<Unsigned>& strides, T * 
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
     while(!done){
-
         buf[bufPtr] = 0;
         //Update
         curLoc[ptr]++;
@@ -93,16 +92,8 @@ Zero( Tensor<T>& A )
 #ifndef RELEASE
     CallStackEntry entry("Zero");
 #endif
-    Unsigned order = A.Order();
-    if(order == 0)
-        MemZero(A.Buffer(), 1);
-    else{
-#ifndef RELEASE
-        ZeroHelper(order - 1, A.Shape(), A.Strides(), A.Buffer());
-#else
-        Zero_fast(A.Shape(), A.Strides(), A.Buffer());
-#endif
-    }
+
+    Zero_fast(A.Shape(), A.Strides(), A.Buffer());
 }
 
 ////////////////////////////////////

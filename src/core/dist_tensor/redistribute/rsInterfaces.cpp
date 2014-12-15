@@ -68,6 +68,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
         tmp2Shape.insert(tmp2Shape.begin() + rMode, Min(1, A.Dimension(rMode)));
     }
 
+
     DistTensor<T> tmp2(tmp2Shape, tmen::TensorDistToString(tmp2Dist), g);
     tmp2.SetLocalPermutation(tmp2Perm);
 
@@ -79,6 +80,8 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
     }else{
         LocalReduce(A, tmp, rModes);
     }
+
+//    Print(tmp, "tmp");
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
@@ -92,6 +95,8 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 //    Print(tmp, "tmp before RS");
     tmp2.ReduceScatterUpdateCommRedist(alpha, tmp, beta, rModes, commModes);
 
+//    Print(tmp2, "tmp2");
+
     PROFILE_STOP;
 }
 
@@ -101,6 +106,8 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
+    ObjShape newShape = NegFilterVector(A.Shape(), rModes);
+    ResizeTo(newShape);
     ReduceScatterUpdateRedistFrom(T(1), A, T(0), rModes);
 }
 

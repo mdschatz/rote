@@ -748,12 +748,19 @@ void
 Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
 	//TODO: Implement general stride
-	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
-	shape_ = shape;
-	strides_ = Dimensions2Strides(shape);
-	if(reallocate){
-		memory_.Require(Max(1,prod(shape)));
-		data_ = memory_.Buffer();
+
+//    std::vector<Unsigned> newStrides = Dimensions2Strides(shape);
+//    bool reallocate = shape.size() == 0 || ((shape[shape.size()-1]*newStrides[shape.size()-1]) > (shape_[shape_.size()-1] * strides_[shape_.size()-1]));
+	if(AnyElemwiseNotEqual(shape_, shape)){
+	    bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
+
+        shape_ = shape;
+        strides_ = Dimensions2Strides(shape);
+
+        if(reallocate){
+            memory_.Require(Max(1,prod(shape)));
+            data_ = memory_.Buffer();
+        }
 	}
     //TODO: IMPLEMENT CORRECTLY
 //    bool reallocate = height > ldims_ || width > width_;

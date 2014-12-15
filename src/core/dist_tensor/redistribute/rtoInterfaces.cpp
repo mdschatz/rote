@@ -75,8 +75,9 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
 
     if(alpha == T(0))
         Zero(tmp);
-    else
+    else{
         LocalReduce(A, tmp, rModes);
+    }
 
     ModeArray commModes;
     for(i = 0; i < rModes.size(); i++){
@@ -87,8 +88,8 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
 
 //    PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");
-//    Print(tmp, "tmp before RTO");
 //    Print(tmp2, "tmp2 before RTO");
+//    Print(tmp, "tmp before RTO");
     tmp2.ReduceToOneUpdateCommRedist(alpha, tmp, beta, rModes, commModes);
 
     PROFILE_STOP;

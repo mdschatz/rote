@@ -164,8 +164,10 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
     CallStackEntry entry("DistTensor::ResizeTo");
     AssertNotLocked();
 #endif
-    shape_ = shape;
-    SetShifts();
+    if(AnyElemwiseNotEqual(shape_, shape)){
+        shape_ = shape;
+        SetShifts();
+    }
     if(Participating()){
         //Account for local permutation
         tensor_.ResizeTo(PermuteVector(Lengths(shape, modeShifts_, gridView_.ParticipatingShape()), localPerm_));

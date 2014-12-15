@@ -82,21 +82,21 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     //Create a matrix view of the tensors (permute if needed)
     //Then call Gemm
     if(permuteA){
-        PA.ResizeTo(PermuteVector(A.Shape(), permA));
+//        PA.ResizeTo(PermuteVector(A.Shape(), permA));
         Permute(A, PA, permA);
         ViewAsMatrix(MPA, PA, nIndicesM);
     }else{
         ViewAsMatrix(MPA, A, nIndicesM);
     }
     if(permuteB){
-        PB.ResizeTo(PermuteVector(B.Shape(), permB));
+//        PB.ResizeTo(PermuteVector(B.Shape(), permB));
         Permute(B, PB, permB);
         ViewAsMatrix(MPB, PB, nIndicesContract);
     }else{
         ViewAsMatrix(MPB, B, nIndicesContract);
     }
     if(permuteC){
-        PC.ResizeTo(PermuteVector(C.Shape(), permC));
+//        PC.ResizeTo(PermuteVector(C.Shape(), permC));
         Permute(C, PC, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
 

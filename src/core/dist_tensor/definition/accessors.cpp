@@ -212,9 +212,9 @@ DistTensor<T>::GetLocal( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::GetLocal");
-    AssertValidEntry( loc );
+//    AssertValidEntry( loc );
 #endif
-    return tensor_.Get(PermuteVector(loc, localPerm_));
+    return tensor_.Get(loc);
 }
 
 template<typename T>
@@ -269,7 +269,7 @@ DistTensor<T>::Get( const Location& loc ) const
 
         if(!AnyElemwiseNotEqual(g.Loc(), ownerGridLoc)){
             const Location localLoc = Global2LocalIndex(loc);
-            u = GetLocal(localLoc);
+            u = GetLocal(PermuteVector(localLoc, localPerm_));
         }
 
         int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);

@@ -123,7 +123,7 @@ void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonRe
 ////////////////////////////////////
 
 template <typename T>
-void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const ModeArray& reduceModes){
+void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, const ModeArray& reduceModes){
 #ifndef RELEASE
     CallStackEntry("LocalReduce");
     if(reduceModes.size() > A.Order())
@@ -142,9 +142,17 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const ModeArray& reduceModes)
     ModeArray nonReduceModes = NegFilterVector(tensorModes, reduceModes);
 
     const std::vector<Unsigned> srcStrides = A.Strides();
-    const std::vector<Unsigned> dstStrides = B.Strides();
+    const std::vector<Unsigned> dstStrides = PermuteVector(B.Strides(), permBToA);
 
     LocalReduceElemSelectHelper(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), srcStrides, B.Buffer(), dstStrides);
+}
+
+template <typename T>
+void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const ModeArray& reduceModes){
+    Permutation perm(A.Order());
+    for(Unsigned i = 0; i < A.Order(); i++)
+        perm[i] = i;
+    LocalReduce(A, B, perm, reduceModes);
 }
 
 template <typename T>
@@ -169,8 +177,9 @@ void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const ModeArray& redu
 
     if(B.Participating()){
         //Account for the local data being permuted
-        Permutation invPermA = DetermineInversePermutation(A.LocalPermutation());
-        LocalReduce(A.LockedTensor(), B.Tensor(), FilterVector(invPermA, reduceModes));
+
+        Permutation permBToA = DeterminePermutation(B.LocalPermutation(), A.LocalPermutation());
+        LocalReduce(A.LockedTensor(), B.Tensor(), permBToA, FilterVector(A.LocalPermutation(), reduceModes));
     }
     PROFILE_STOP;
 }

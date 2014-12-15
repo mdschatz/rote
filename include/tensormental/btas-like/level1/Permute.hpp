@@ -200,6 +200,7 @@ void PackCommHelper(const PackData& packData, const Mode packMode, T const * con
 
 template<typename T>
 void Permute(const Tensor<T>& A, Tensor<T>& B, const Permutation& perm){
+    B.ResizeTo(FilterVector(A.Shape(), perm));
     Unsigned order = A.Order();
     T* dstBuf = B.Buffer();
     const T * srcBuf = A.LockedBuffer();
@@ -225,6 +226,7 @@ template<typename T>
 void Permute(const DistTensor<T>& A, DistTensor<T>& B){
     PROFILE_SECTION("Permute");
     Permutation perm = DeterminePermutation(A.LocalPermutation(), B.LocalPermutation());
+    B.ResizeTo(A.Shape());
     Permute(A.LockedTensor(), B.Tensor(), perm);
     PROFILE_STOP;
 }

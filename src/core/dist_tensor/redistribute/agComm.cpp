@@ -57,7 +57,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape commDataShape = A.MaxLocalShape();
-//    PrintVector(commDataShape, "commDataShape");
 
     sendSize = prod(commDataShape);
     recvSize = sendSize * nRedistProcs;

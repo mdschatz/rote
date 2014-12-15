@@ -18,28 +18,6 @@ namespace tmen {
 
 template<typename T>
 inline void
-ScalHelper(T alpha, Tensor<T>& X, Mode mode, T * srcBuf, const ScalData& data ){
-    Unsigned i;
-    const Unsigned loopEnd = data.loopShape[mode];
-    const Unsigned srcStride = data.srcStrides[mode];
-    Unsigned srcBufPtr = 0;
-
-    if(mode == 0){
-        for(i = 0; i < loopEnd; i++){
-            srcBuf[srcBufPtr] *= alpha;
-
-            srcBufPtr += srcStride;
-        }
-    }else{
-        for(i = 0; i < loopEnd; i++){
-            ScalHelper(alpha, X, mode-1, &(srcBuf[srcBufPtr]), data);
-            srcBufPtr += srcStride;
-        }
-    }
-}
-
-template<typename T>
-inline void
 Scal_fast(T alpha, T * srcBuf, const ScalData& data ){
     const std::vector<Unsigned> loopEnd = data.loopShape;
     const std::vector<Unsigned> srcBufStrides = data.srcStrides;
@@ -48,35 +26,41 @@ Scal_fast(T alpha, T * srcBuf, const ScalData& data ){
     Location curLoc(order, 0);
     Unsigned ptr = 0;
 
-    if(loopEnd.size() == 0){
-        srcBuf[0] *= alpha;
-        return;
-    }
+    if(alpha == T(0)){
+        Zero_fast(loopEnd, srcBufStrides, srcBuf);
+    }else if(alpha == T(1)){
 
-    bool done = !ElemwiseLessThan(curLoc, loopEnd);
-
-    while(!done){
-
-        srcBuf[srcBufPtr] *= alpha;
-        //Update
-        curLoc[ptr]++;
-        srcBufPtr += srcBufStrides[ptr];
-        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-            curLoc[ptr] = 0;
-
-            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-            ptr++;
-            if(ptr >= order){
-                done = true;
-                break;
-            }else{
-                curLoc[ptr]++;
-                srcBufPtr += srcBufStrides[ptr];
-            }
+    }else{
+        if(order == 0){
+            srcBuf[0] *= alpha;
+            return;
         }
-        if(done)
-            break;
-        ptr = 0;
+
+        bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+        while(!done){
+
+            srcBuf[srcBufPtr] *= alpha;
+            //Update
+            curLoc[ptr]++;
+            srcBufPtr += srcBufStrides[ptr];
+            while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+                curLoc[ptr] = 0;
+
+                srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+                ptr++;
+                if(ptr >= order){
+                    done = true;
+                    break;
+                }else{
+                    curLoc[ptr]++;
+                    srcBufPtr += srcBufStrides[ptr];
+                }
+            }
+            if(done)
+                break;
+            ptr = 0;
+        }
     }
 }
 
@@ -100,15 +84,7 @@ Scal( T alpha, Tensor<T>& X )
 
     T* srcBuf = X.Buffer();
 
-    if(order == 0){
-        srcBuf[0] *= alpha;
-    }else{
-#ifndef RELEASE
-        ScalHelper(alpha, X, order-1, srcBuf, data);
-#else
-        Scal_fast(alpha, srcBuf, data);
-#endif
-    }
+    Scal_fast(alpha, srcBuf, data);
 }
 
 ////////////////////////////////////

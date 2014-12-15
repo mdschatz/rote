@@ -297,6 +297,7 @@ void DistTensor<T>::UnpackRSUCommRecvBuf(const T * const recvBuf, const T alpha,
     data.loopShape = LocalShape();
     data.srcStrides = PermuteVector(Dimensions2Strides(MaxLocalShape()), localPerm_);
     data.dstStrides = LocalStrides();
+
     YAxpBy_fast(alpha, beta, &(recvBuf[0]), &(dataBuf[0]), data);
 }
 
