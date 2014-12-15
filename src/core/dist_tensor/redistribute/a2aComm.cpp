@@ -161,7 +161,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     //For each process we send to, we need to determine the first element we need to send them
-    PARALLEL_FOR
+//    PARALLEL_FOR
     for(i = 0; i < nRedistProcsAll; i++){
 
         //Invert the process order based on the communicator used, to the actual process location
@@ -289,7 +289,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     //For each process we recv from, we need to determine the first element we get from them
-    PARALLEL_FOR
+//    PARALLEL_FOR
     for(i = 0; i < nRedistProcsAll; i++){
 
         //Invert the process order based on the communicator used, to the actual process location
