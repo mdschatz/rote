@@ -885,15 +885,9 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
         //Outputs:
         //  axppx2_temp__D_0__D_1__D_2__D_3
     PartitionDown(t_efmn__D_0__D_1__D_2__D_3, t_efmn_part0T__D_0__D_1__D_2__D_3, t_efmn_part0B__D_0__D_1__D_2__D_3, 0, 0);
-    PartitionDown(t_efmn__D_0__D_1__D_2__D_3, t_efmn_part0T__D_0__D_1__D_2__D_3, t_efmn_part0B__D_0__D_1__D_2__D_3, 0, 0);
     PartitionDown(axppx2_temp__D_0__D_1__D_2__D_3, axppx2_temp_part0T__D_0__D_1__D_2__D_3, axppx2_temp_part0B__D_0__D_1__D_2__D_3, 0, 0);
     while(axppx2_temp_part0T__D_0__D_1__D_2__D_3.Dimension(0) < axppx2_temp__D_0__D_1__D_2__D_3.Dimension(0))
     {
-        RepartitionDown
-        ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
-          /**/ /**/
-               t_efmn_part0_1__D_0__D_1__D_2__D_3,
-          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
         RepartitionDown
         ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
           /**/ /**/
@@ -911,15 +905,9 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
             //Outputs:
             //  axppx2_temp_part0_1__D_0__D_1__D_2__D_3
         PartitionDown(t_efmn_part0_1__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, 1, 0);
-        PartitionDown(t_efmn_part0_1__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, 1, 0);
         PartitionDown(axppx2_temp_part0_1__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1T__D_0__D_1__D_2__D_3, axppx2_temp_part0_1_part1B__D_0__D_1__D_2__D_3, 1, 0);
         while(axppx2_temp_part0_1_part1T__D_0__D_1__D_2__D_3.Dimension(1) < axppx2_temp_part0_1__D_0__D_1__D_2__D_3.Dimension(1))
         {
-            RepartitionDown
-            ( t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3,  t_efmn_part0_1_part1_0__D_0__D_1__D_2__D_3,
-              /**/ /**/
-                   t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
             RepartitionDown
             ( t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3,  t_efmn_part0_1_part1_0__D_0__D_1__D_2__D_3,
               /**/ /**/
@@ -945,11 +933,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
               /**/ /**/
               t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1 );
             SlidePartitionDown
-            ( t_efmn_part0_1_part1T__D_0__D_1__D_2__D_3,  t_efmn_part0_1_part1_0__D_0__D_1__D_2__D_3,
-                   t_efmn_part0_1_part1_1__D_0__D_1__D_2__D_3,
-              /**/ /**/
-              t_efmn_part0_1_part1B__D_0__D_1__D_2__D_3, t_efmn_part0_1_part1_2__D_0__D_1__D_2__D_3, 1 );
-            SlidePartitionDown
             ( axppx2_temp_part0_1_part1T__D_0__D_1__D_2__D_3,  axppx2_temp_part0_1_part1_0__D_0__D_1__D_2__D_3,
                    axppx2_temp_part0_1_part1_1__D_0__D_1__D_2__D_3,
               /**/ /**/
@@ -959,11 +942,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
         //****
 
         //------------------------------------//
-        SlidePartitionDown
-        ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
-               t_efmn_part0_1__D_0__D_1__D_2__D_3,
-          /**/ /**/
-          t_efmn_part0B__D_0__D_1__D_2__D_3, t_efmn_part0_2__D_0__D_1__D_2__D_3, 0 );
         SlidePartitionDown
         ( t_efmn_part0T__D_0__D_1__D_2__D_3,  t_efmn_part0_0__D_0__D_1__D_2__D_3,
                t_efmn_part0_1__D_0__D_1__D_2__D_3,
@@ -982,7 +960,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
     //**** Is real  0 shadows
         //Outputs:
         //  accum_temp__D_0__D_1__D_2__D_3
-    printf("cont1\n");
     PartitionDown(axppx3_temp__D_0__D_1__D_2__D_3, axppx3_temp_part1T__D_0__D_1__D_2__D_3, axppx3_temp_part1B__D_0__D_1__D_2__D_3, 1, 0);
     PartitionDown(accum_temp__D_0__D_1__D_2__D_3, accum_temp_part0T__D_0__D_1__D_2__D_3, accum_temp_part0B__D_0__D_1__D_2__D_3, 0, 0);
     PartitionDown(v2_oegm__D_0__D_1__D_2__D_3, v2_oegm_part1T__D_0__D_1__D_2__D_3, v2_oegm_part1B__D_0__D_1__D_2__D_3, 1, 0);
@@ -1092,9 +1069,7 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
                    cont1_temp_part0_1_part2_1__D_0__D_1__D_2__D_3,
               /**/ /**/
               cont1_temp_part0_1_part2B__D_0__D_1__D_2__D_3, cont1_temp_part0_1_part2_2__D_0__D_1__D_2__D_3, 2 );
-
         }
-        printf("cont1done\n");
         //****
         //**** (out of 1)
         //**** Is real  0 shadows
@@ -1176,7 +1151,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
               cont1_temp_part0_1_part3B__D_0__D_1__D_2__D_3, cont1_temp_part0_1_part3_2__D_0__D_1__D_2__D_3, 3 );
 
         }
-
         //****
 
         //------------------------------------//
@@ -1202,7 +1176,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
           v2_oegm_part1B__D_0__D_1__D_2__D_3, v2_oegm_part1_2__D_0__D_1__D_2__D_3, 1 );
 
     }
-    printf("accum LC1\n");
     //****
     //**** (out of 1)
     //**** Is real  0 shadows
@@ -1287,7 +1260,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
     }
     //****
     Permute( accum_temp__D_0__D_1__D_2__D_3, accum_temp_perm2301__D_2__D_3__D_0__D_1 );
-    printf("accum LC2\n");
     //**** (out of 1)
     //**** Is real  0 shadows
         //Outputs:
@@ -1372,7 +1344,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
     //****
     Permute( accum_temp_perm2301__D_2__D_3__D_0__D_1, accum_temp__D_0__D_1__D_2__D_3 );
     accum_temp_perm2301__D_2__D_3__D_0__D_1.EmptyData();
-    printf("accum LC3\n");
     //**** (out of 1)
     //**** Is real  0 shadows
         //Outputs:
