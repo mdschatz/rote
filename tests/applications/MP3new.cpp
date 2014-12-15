@@ -276,7 +276,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
   TensorDistribution dist__D_0__D_1__S__S = tmen::StringToTensorDist("[(0),(1),(),()]");
   TensorDistribution dist__D_0__D_1__S__D_2_3 = tmen::StringToTensorDist("[(0),(1),(),(2,3)]");
   TensorDistribution dist__D_0__D_1__S__D_3_2 = tmen::StringToTensorDist("[(0),(1),(),(3,2)]");
-  printf("%s\n", tmen::TensorDistToString(dist__D_0__D_1__S__D_3_2).c_str());
   TensorDistribution dist__D_0__D_1__S__D_3 = tmen::StringToTensorDist("[(0),(1),(),(3)]");
   TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
   TensorDistribution dist__D_0__D_1__D_3__D_2 = tmen::StringToTensorDist("[(0),(1),(3),(2)]");
@@ -591,7 +590,6 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
   DistTensor<double> cont1_temp_part0_1_part2_1__D_0__D_1__S__D_3( dist__D_0__D_1__S__D_3, g );
       //cont1_temp_part0_1_part2_1[D0,D1,*,D32]
   DistTensor<double> cont1_temp_part0_1_part2_1__D_0__D_1__S__D_3_2( dist__D_0__D_1__S__D_3_2, g );
-  PrintData(cont1_temp_part0_1_part2_1__D_0__D_1__S__D_3_2, "cont1_data_start");
       //cont1_temp_part0_1_part2_1[*,D1,*,D2,D0,D3]
   DistTensor<double> cont1_temp_part0_1_part2_1__S__D_1__S__D_2__D_0__D_3( dist__S__D_1__S__D_2__D_0__D_3, g );
       //cont1_temp_part0_1_part2_1[*,D1,*,D2,D0,D3]
