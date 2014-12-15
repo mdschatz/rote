@@ -469,9 +469,9 @@ if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
   set(TEST_TYPES core btas applications)
 
-  set(core_TESTS DistTensor Views Grids Woody)
+  set(core_TESTS DistTensor Views Grids Woody Karen)
   set(btas_TESTS Level1 Contract)
-  set(applications_TESTS BlockMP3DoublePartPerm MP3new)
+  set(applications_TESTS BlockMP3DoublePartPerm MP3new MP3Newer)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")
