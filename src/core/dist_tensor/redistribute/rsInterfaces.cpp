@@ -78,14 +78,14 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
     if(alpha == T(0)){
         Zero(tmp);
     }else{
-        LocalReduce(A, tmp, rModes);
+        LocalReduce(A, tmp, sortedRModes);
     }
 
 //    Print(tmp, "tmp");
 
     ModeArray commModes;
-    for(i = 0; i < rModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(rModes[i]);
+    for(i = 0; i < sortedRModes.size(); i++){
+        ModeDistribution modeDist = A.ModeDist(sortedRModes[i]);
         commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
     }
     std::sort(commModes.begin(), commModes.end());
@@ -93,7 +93,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 //    PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");
 //    Print(tmp, "tmp before RS");
-    tmp2.ReduceScatterUpdateCommRedist(alpha, tmp, beta, rModes, commModes);
+    tmp2.ReduceScatterUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes);
 
 //    Print(tmp2, "tmp2");
 

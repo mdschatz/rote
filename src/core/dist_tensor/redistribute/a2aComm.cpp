@@ -56,10 +56,13 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         const std::vector<Unsigned> alignmentsA = A.Alignments();
         const TensorDistribution tensorDist = A.TensorDist();
 
+
         std::vector<Unsigned> localPackStrides(maxLocalShapeA.size());
         localPackStrides = ElemwiseDivide(LCMs(gvBShape, gvAShape), gvAShape);
         ObjShape commDataShape(maxLocalShapeA.size());
         commDataShape = IntCeils(maxLocalShapeA, localPackStrides);
+//        PrintVector(commDataShape, "commDataShape");
+//        printf("nRedistProcs: %d\n", nRedistProcs);
 
         sendSize = prod(commDataShape);
         recvSize = sendSize;
@@ -88,7 +91,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
         Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
         if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-    //            PrintVector(g.Loc(), "myGridLoc");
+//                PrintVector(g.Loc(), "myGridLoc");
     //            PrintVector(firstOwnerA, "firstOwnerA");
     //            PrintVector(firstOwnerB, "firstOwnerB");
             T* alignSendBuf = &(sendBuf[0]);
@@ -224,7 +227,9 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         if(found && ElemwiseLessThan(firstSendLoc, Shape())){
             //Determine where the initial piece of data is located.
             const Location localLoc = A.Global2LocalIndex(firstSendLoc);
+//            PrintVector(localLoc, "localLoc");
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, A.localPerm_), A.LocalStrides());
+//            printf("dataBufPtr: %d\n", dataBufPtr);
 
             PackData packData;
             packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
@@ -244,6 +249,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
             //ModeStrideFactor is global information, we need to permute it to match locally
             packData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
 
+//            PrintPackData(packData, "a2aPackData");
             PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedProcLinLoc * nElemsPerProc]));
         }
     }

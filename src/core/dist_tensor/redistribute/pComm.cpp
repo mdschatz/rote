@@ -106,8 +106,14 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
 
+//    PrintVector(firstOwnerA, "firstOwnerA");
+//    PrintVector(firstOwnerB, "firstOwnerB");
+
     Location alignedSendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(sendLoc, alignDiff), g.Shape()), g.Shape());
     Location alignedRecvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(recvLoc, alignDiff), g.Shape()), g.Shape());
+
+//    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
+//    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
 
     ModeArray misalignedModes;
     for(Unsigned i = 0; i < firstOwnerB.size(); i++){
@@ -124,17 +130,29 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     }
     std::sort(actualCommModes.begin(), actualCommModes.end());
 
-    mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
+//    PrintVector(actualCommModes, "actualCommModes");
+    mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
 
     Location alignedSendSliceLoc = FilterVector(alignedSendGridLoc, actualCommModes);
     Location alignedRecvSliceLoc = FilterVector(alignedRecvGridLoc, actualCommModes);
     ObjShape gridSliceShape = FilterVector(g.Shape(), actualCommModes);
 
+//    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
+//    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
+//    PrintVector(gridSliceShape, "gridSliceShape");
+
     Unsigned sendLinLoc = Loc2LinearLoc(alignedSendSliceLoc, gridSliceShape);
     Unsigned recvLinLoc = Loc2LinearLoc(alignedRecvSliceLoc, gridSliceShape);
 
+//    printf("sendSize %d\n", sendSize);
+
+//    printf("sendLinLoc: %d\n", sendLinLoc);
+//    printf("recvLinLoc: %d\n", recvLinLoc);
+//    printf("CommRank: %d\n", mpi::CommRank(comm));
+//    printf("CommSize: %d\n", mpi::CommSize(comm));
+
     mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
-                  recvBuf, recvSize, recvLinLoc, comm);
+                  recvBuf, recvSize, recvLinLoc, sendRecvComm);
 
     PROFILE_STOP;
 

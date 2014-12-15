@@ -89,6 +89,9 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+//        printf("aligningAG\n");
+//        PrintData(A, "A");
+//        PrintData(*this, "*this");
 //        PrintVector(firstOwnerA, "firstOwnerA");
 //        PrintVector(firstOwnerB, "firstOwnerB");
         T* alignSendBuf = &(auxBuf[0]);

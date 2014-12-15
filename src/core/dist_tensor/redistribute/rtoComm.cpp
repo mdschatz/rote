@@ -98,7 +98,7 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
         T* alignSendBuf = &(sendBuf[0]);
         T* alignRecvBuf = &(recvBuf[0]);
 
-        AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
         sendBuf = &(alignRecvBuf[0]);
         recvBuf = &(alignSendBuf[0]);
     }

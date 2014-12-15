@@ -169,6 +169,9 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::AlignCommBufRedist");
 #endif
+//    printf("aligning\n");
+//    PrintData(A, "A");
+//    PrintData(*this, "*this");
     const tmen::Grid& g = Grid();
     GridView gvA = A.GetGridView();
     GridView gvB = GetGridView();
@@ -176,9 +179,13 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 
+//    PrintVector(firstOwnerA, "firstOwnerA");
+//    PrintVector(firstOwnerB, "firstOwnerB");
+
     std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
-//            PrintVector(alignDiff, "alignDiff");
-//            PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
+//    PrintVector(alignDiff, "alignDiff");
+//    PrintVector(g.Loc(), "myLoc");
+//    PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
     Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
     Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
 
@@ -190,9 +197,8 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
         }
     }
     std::sort(misalignedModes.begin(), misalignedModes.end());
-//            PrintVector(misalignedModes, "misalignedModes");
+//    PrintVector(misalignedModes, "misalignedModes");
     mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
-//            printf("myRank is: %d\n", mpi::CommRank(sendRecvComm));
 
     Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
     Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
@@ -206,6 +212,8 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
 //            printf("sendLinloc: %d\n", sendLinLoc);
 //            PrintVector(recvGridLoc, "recvLoc");
 //            printf("recvLinloc: %d\n", recvLinLoc);
+//            printf("sending %d unaligned elems\n", sendSize);
+//            printf("recving %d aligned elems\n", recvSize);
 
 //            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
     mpi::SendRecv(unalignedSendBuf, sendSize, sendLinLoc,

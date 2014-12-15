@@ -69,8 +69,11 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape commDataShape = MaxLocalShape();
+//    PrintVector(commDataShape, "commDataShape");
+//    printf("nRedistProcs\n", nRedistProcs);
     recvSize = prod(commDataShape);
     sendSize = recvSize * nRedistProcs;
+//    printf("sendSize: %d\n", sendSize);
 
     T* auxBuf;
 
@@ -79,8 +82,12 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
         auxBuf = this->auxMemory_.Require(sendSize + sendSize);
+        MemZero(&(auxBuf[0]), sendSize + sendSize);
+//        printf("required: %d elems\n", sendSize + sendSize);
     }else{
         auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+        //First, set all entries of sendBuf to zero so we don't accumulate garbage
+        MemZero(&(auxBuf[0]), sendSize + recvSize);
     }
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
@@ -88,8 +95,7 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
-    //First, set all entries of sendBuf to zero so we don't accumulate garbage
-    MemZero(&(sendBuf[0]), sendSize);
+
 
     //Pack the data
     PROFILE_SECTION("RSPack");
@@ -106,10 +112,13 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+//        printf("aligningRS\n");
+//        PrintData(A, "A");
+//        PrintData(*this, "*this");
         T* alignSendBuf = &(sendBuf[0]);
         T* alignRecvBuf = &(recvBuf[0]);
 
-        AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
         sendBuf = &(alignRecvBuf[0]);
         recvBuf = &(alignSendBuf[0]);
     }
@@ -159,7 +168,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             nonRModes.insert(nonRModes.end(), i);
     }
 
-//    PrintData(*this, "thisData");
     //Different striding information
     const std::vector<Unsigned> commLCMs = LCMs(gvAShape, gvBShape);
     std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
@@ -181,6 +189,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
+//    PrintData(A, "AData");
 //    PrintData(*this, "thisData");
     //For each process we send to, we need to determine the first element we need to send them
     PARALLEL_FOR
@@ -258,7 +267,9 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
         if(found && ElemwiseLessThan(firstRecvLoc, Shape())){
             //Determine where the initial piece of data is located.
             const Location localLoc = A.Global2LocalIndex(firstSendLoc);
+//            PrintVector(localLoc, "localLoc");
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, A.localPerm_), A.LocalStrides());
+//            printf("dataBufPtr: %d\n", dataBufPtr);
 
             PackData packData;
             packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
@@ -278,7 +289,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             //ModeStrideFactor is global information, we need to permute it to match locally
             packData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
 
-//            PrintPackData(packData, "packData");
+//            PrintPackData(packData, "rsPackData");
             PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedProcLinLoc * nElemsPerProc]));
         }
     }
