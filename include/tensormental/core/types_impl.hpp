@@ -13,7 +13,7 @@
 #include "tensormental/core/error_decl.hpp"
 #include <stdlib.h>
 #include <stdio.h>
-#include <regex>
+//#include <regex>
 
 namespace tmen {
 

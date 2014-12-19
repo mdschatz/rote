@@ -24,7 +24,7 @@ Interval Interval::time()
         mach_timebase_info(&timebase);
         conv = (double)timebase.numer / (double)timebase.denom;
     }
-    uint64_t nsec = mach_absolute_time();
+    long long unsigned nsec = mach_absolute_time();
     return Interval(conv*(double)nsec/1e9, 0);
     #else
     struct timeval end;
@@ -52,7 +52,7 @@ Interval Interval::cputime()
         mach_timebase_info(&timebase);
         conv = (double)timebase.numer / (double)timebase.denom;
     }
-    uint64_t nsec = mach_absolute_time();
+    long long unsigned nsec = mach_absolute_time();
     return Interval(conv*(double)nsec/1e9, 0);
     #else
     timespec ts;
@@ -265,7 +265,7 @@ Interval cputoc()
     return dt;
 }
 
-void do_flops(int64_t flops)
+void do_flops(long long flops)
 {
 //    #ifdef _OPENMP
 //    int tid = omp_get_thread_num();

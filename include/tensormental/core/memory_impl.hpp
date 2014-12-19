@@ -17,13 +17,13 @@ namespace tmen {
 template<typename G>
 inline 
 Memory<G>::Memory()
-: size_(0), buffer_(nullptr)
+: size_(0), buffer_(0)
 { Require( 1 ); }
 
 template<typename G>
 inline 
 Memory<G>::Memory( std::size_t size )
-: size_(0), buffer_(nullptr)
+: size_(0), buffer_(0)
 { Require( size ); }
 
 //template<typename G>
@@ -102,7 +102,7 @@ Memory<G>::Empty()
 {
     delete[] buffer_;
     size_ = 0;
-    buffer_ = nullptr;
+    buffer_ = 0;
 }
 
 } // namespace tmen

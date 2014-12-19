@@ -28,7 +28,7 @@ tmen::mpi::CommMap* defaultCommMap = 0;
 tmen::Args* args = 0;
 
 // A common Mersenne twister configuration
-std::mt19937 generator;
+//std::mt19937 generator;
 
 // Debugging
 #ifndef RELEASE
@@ -161,7 +161,8 @@ void Initialize( int& argc, char**& argv )
     const unsigned rank = mpi::CommRank( mpi::COMM_WORLD );
     const long secs = time(NULL);
     const long seed = abs(((secs*181)*((rank-83)*359))%104729);
-    ::generator.seed( seed );
+//    ::generator.seed( seed );
+    srand(seed);
 }
 
 void Finalize()
@@ -272,8 +273,8 @@ mpi::CommMap& DefaultCommMap()
     return *::defaultCommMap;
 }
 
-std::mt19937& Generator()
-{ return ::generator; }
+//std::mt19937& Generator()
+//{ return ::generator; }
 
 // If we are not in RELEASE mode, then implement wrappers for a CallStack
 #ifndef RELEASE

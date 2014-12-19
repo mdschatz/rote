@@ -111,14 +111,14 @@ template<typename T>
 Tensor<T>::Tensor( bool fixed )
 : shape_(), strides_(),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
-  data_(nullptr), memory_()
+  data_(0), memory_()
 { data_ = memory_.Buffer(); }
 
 template<typename T>
 Tensor<T>::Tensor( const Unsigned order, bool fixed )
 : shape_(order, 0), strides_(order, 1),
   viewType_( fixed ? OWNER_FIXED : OWNER ),
-  data_(nullptr), memory_()
+  data_(0), memory_()
 { data_ = memory_.Buffer(); }
 
 //TODO: Check for valid set of indices
@@ -210,7 +210,7 @@ template<typename T>
 Tensor<T>::Tensor( const Tensor<T>& A )
 : shape_(), strides_(),
   viewType_( OWNER ),
-  data_(nullptr), memory_()
+  data_(0), memory_()
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor( const Tensor& )");
@@ -727,7 +727,7 @@ Tensor<T>::Empty_()
 
     viewType_ = (ViewType)( viewType_ & ~LOCKED_VIEW );
 
-    data_ = nullptr;
+    data_ = 0;
     memory_.Empty();
 }
 

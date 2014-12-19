@@ -25,7 +25,8 @@
 #include <stack>
 #include <stdexcept>
 #include <string>
-#include <random>
+//#include <random>
+#include <stdlib.h>
 #include <vector>
 
 //Define the max tensor order for this library build

@@ -109,8 +109,6 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     //Communicate the data
     PROFILE_SECTION("RSComm");
 
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
 //        printf("aligningRS\n");
 //        PrintData(A, "A");

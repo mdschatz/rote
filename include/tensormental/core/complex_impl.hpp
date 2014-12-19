@@ -168,17 +168,17 @@ Atan2( const Real& y, const Real& x )
 template<typename F>
 inline F
 Acosh( const F& alpha )
-{ return std::acosh(alpha); }
+{ return alpha; }
 
 template<typename F>
 inline F
 Asinh( const F& alpha )
-{ return std::asinh(alpha); }
+{ return alpha; }
 
 template<typename F>
 inline F
 Atanh( const F& alpha )
-{ return std::atanh(alpha); }
+{ return alpha; }
 
 template<typename F>
 inline BASE(F)

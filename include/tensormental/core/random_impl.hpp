@@ -33,16 +33,15 @@ template<typename T>
 inline T Uniform( T a, T b )
 {
     typedef BASE(T) Real;
-    std::mt19937& gen = Generator();
     T sample;
 
-    std::uniform_real_distribution<Real> realUni(RealPart(a),RealPart(b));
-    SetRealPart( sample, realUni(gen) ); 
+    T realVal = rand()/T(RAND_MAX) * (a-1) + b;
+    SetRealPart( sample, realVal );
 
     if( IsComplex<T>::val )
     {
-        std::uniform_real_distribution<Real> imagUni(ImagPart(a),ImagPart(b));
-        SetImagPart( sample, imagUni(gen) );
+        T imagVal = rand()/T(RAND_MAX) * (a-1) + b;
+        SetImagPart( sample, imagVal );
     }
 
     return sample;
@@ -52,15 +51,15 @@ template<typename T>
 inline T Normal( T mean, BASE(T) stddev )
 {
     typedef BASE(T) Real;
-    std::mt19937& gen = Generator();
     T sample;
 
-    std::normal_distribution<Real> realNormal( RealPart(mean), stddev );
-    SetRealPart( sample, realNormal(gen) );
+    T realVal = rand()/T(RAND_MAX) * (mean-1) + stddev;
+    SetRealPart( sample, realVal );
+
     if( IsComplex<T>::val )
     {
-        std::normal_distribution<Real> imagNormal( ImagPart(mean), stddev );
-        SetImagPart( sample, imagNormal(gen) );
+        T imagVal = rand()/T(RAND_MAX) * (mean-1) + stddev;
+        SetImagPart( sample, imagVal );
     }
 
     return sample;

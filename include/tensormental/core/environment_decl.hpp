@@ -13,7 +13,8 @@
 #include <vector>
 #include "tensormental/core/imports/mpi.hpp"
 #include "tensormental/core/imports/mpi_choice.hpp"
-#include <random>
+//#include <random>
+#include <stdlib.h>
 
 namespace tmen {
 
@@ -59,7 +60,7 @@ void SetBlocksize( Int blocksize );
 void PushBlocksizeStack( Int blocksize );
 void PopBlocksizeStack();
 
-std::mt19937& Generator();
+//std::mt19937& Generator();
 
 inline Unsigned IntCeil(Unsigned m, Unsigned n)
 {

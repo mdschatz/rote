@@ -200,7 +200,7 @@ void Load_Tensor(DistTensor<T>& A, const std::string& filename){
 //  PrintVector(A.Shape(), "of size");
     Unsigned order = A.Order();
     ifstream fid;
-    fid.open(filename, std::ios::in | std::ios::binary);
+    fid.open(filename, std::ifstream::binary);
     //Skip 4 bytes of Fortran
     fid.seekg(4);
     Location zeros(order, 0);
@@ -242,7 +242,7 @@ void Load_Tensor_efgh(DistTensor<T>& A, const std::string& filename){
 //  PrintVector(A.Shape(), "of size");
     Unsigned order = A.Order();
     ifstream fid;
-    fid.open(filename, std::ios::in | std::ios::binary);
+    fid.open(filename, std::ifstream::binary);
     //Skip 4 bytes of Fortran
     fid.seekg(4);
     Location zeros(order, 0);
@@ -284,7 +284,7 @@ void Load_Tensor_aijb(DistTensor<T>& A, const std::string& filename){
 //  PrintVector(A.Shape(), "of size");
     Unsigned order = A.Order();
     ifstream fid;
-    fid.open(filename, std::ios::in | std::ios::binary);
+    fid.open(filename.c_str(), std::ifstream::binary);
     //Skip 4 bytes of Fortran
     fid.seekg(4);
     Location zeros(order, 0);

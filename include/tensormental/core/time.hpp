@@ -47,15 +47,15 @@ class Timer;
 class Interval
 {
     friend class Timer;
-    friend void do_flops(int64_t flops);
+    friend void do_flops(long long flops);
     friend Interval toc();
     friend Interval cputoc();
 
     protected:
         double dt;
-        int64_t flops;
+        long long flops;
 
-        Interval(double start, int64_t flops) : dt(start), flops(flops) {}
+        Interval(double start, long long flops) : dt(start), flops(flops) {}
 
     public:
         Interval() : dt(0), flops(0) {}
@@ -95,7 +95,7 @@ void cputic();
 
 Interval cputoc();
 
-void do_flops(int64_t flops);
+void do_flops(long long flops);
 
 class Timer
 {
@@ -104,7 +104,7 @@ class Timer
 
         std::string name;
         Interval interval;
-        int64_t count;
+        long long count;
 
     public:
         Timer(const std::string& name) : name(name), interval(), count(0) {}
