@@ -167,7 +167,7 @@ void TestRead(const std::string& filename){
     //Takes the shape of the global object, the distribution, and the grid
     DistTensor<double> input("[(1,0),(2,3)]", g);
     //Give input some random values
-    Read(input, filename, ASCII, true);
+    Read(input, filename, ASCII, false);
 
     PrintData(input, "in_data");
 //        PrintData(output, "out_data");
