@@ -324,6 +324,27 @@ enum VerticalOrHorizontal
 }
 using namespace vertical_or_horizontal_wrapper;
 
+namespace FileFormatNS {
+enum FileFormat
+{
+    AUTO, // Automatically detect from file extension
+    ASCII,
+    ASCII_MATLAB,
+    BINARY,
+    BINARY_FLAT,
+    BMP,
+    JPG,
+    JPEG,
+    TENSOR_MARKET,
+    PNG,
+    PPM,
+    XBM,
+    XPM,
+    FileFormat_MAX // For detecting number of entries in enum
+};
+}
+using namespace FileFormatNS;
+
 } // namespace tmen
 
 #endif // ifndef TMEN_CORE_TYPES_DECL_HPP

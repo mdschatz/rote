@@ -67,6 +67,16 @@
 #define BLAS(name) name
 #endif
 
+// The DEBUG_ONLY macro is, to the best of my knowledge, the only preprocessor
+// name defined by Elemental that is not namespaced with "ELEM". Given how
+// frequently it is used, I will leave it as-is unless/until a user/developer
+// complains.
+#ifdef PURE_RELEASE
+# define DEBUG_ONLY(cmd)
+#else
+# define DEBUG_ONLY(cmd) cmd;
+#endif
+
 // Declare the intertwined core parts of our library
 //#include "tensormental/core/timer_decl.hpp"
 #include "tensormental/core/memory_decl.hpp"

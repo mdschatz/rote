@@ -69,6 +69,9 @@ template<typename T>
 bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
 bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>

@@ -1,4 +1,5 @@
 #include "tensormental.hpp"
+
 using namespace tmen;
 
 void TestRS(mpi::Comm comm){
@@ -68,13 +69,13 @@ void TestA2A(mpi::Comm comm){
 
 
     //Do the same for an output DistTensor
-    DistTensor<double> output(in_shape, "[(3),(1),(2,0),()]", g);
+    DistTensor<double> output(in_shape, "[(0),(1),(3),()]", g);
 
     PrintData(input, "in_data");
 //        PrintData(output, "out_data");
     Print(input, "in_shape");
     ModeArray commModes(2);
-    commModes[0] = 0;
+    commModes[0] = 2;
     commModes[1] = 3;
 
     output.AllToAllRedistFrom(input, commModes);
@@ -153,6 +154,26 @@ void TestL(mpi::Comm comm){
     Print(output, "out");
 }
 
+void TestRead(const std::string& filename){
+    //Set up the Grid object
+    ObjShape gridShape(4);
+    gridShape[0] = 2;
+    gridShape[1] = 3;
+    gridShape[2] = 2;
+    gridShape[3] = 2;
+    //Takes the MPI communicator we want to build the grid over and the shape of the grid
+    Grid g(MPI_COMM_WORLD, gridShape);
+
+    //Takes the shape of the global object, the distribution, and the grid
+    DistTensor<double> input("[(1,0),(2,3)]", g);
+    //Give input some random values
+    Read(input, filename, ASCII, true);
+
+    PrintData(input, "in_data");
+//        PrintData(output, "out_data");
+    Print(input, "in_shape");
+}
+
 int main( int argc, char* argv[] ) {
     Initialize( argc, argv );
     Unsigned i;
@@ -162,7 +183,7 @@ int main( int argc, char* argv[] ) {
 
     try
     {
-        TestA2A(comm);
+        TestRead("data_8_3");
 
 
     }
