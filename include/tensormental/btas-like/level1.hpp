@@ -19,6 +19,7 @@
 #include "./level1/YAxpBy.hpp"
 #include "./level1/YAxpPx.hpp"
 #include "./level1/ZAxpBy.hpp"
+#include "./level1/ZAxpBypPx.hpp"
 #include "./level1/Zero.hpp"
 
 #endif // ifndef TMEN_BTAS_LEVEL1_HPP
