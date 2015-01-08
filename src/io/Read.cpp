@@ -8,10 +8,10 @@
 */
 #include "tensormental.hpp"
 
-#include "./Read/Ascii.hpp"
-#include "./Read/AsciiMatlab.hpp"
-#include "./Read/Binary.hpp"
-#include "./Read/BinaryFlat.hpp"
+//#include "./Read/Ascii.hpp"
+//#include "./Read/AsciiMatlab.hpp"
+//#include "./Read/Binary.hpp"
+//#include "./Read/BinaryFlat.hpp"
 
 namespace tmen {
 
@@ -23,17 +23,8 @@ void Read( Tensor<T>& A, const std::string filename, FileFormat format )
 
     switch( format )
     {
-    case ASCII:
-        read::Ascii( A, filename );
-        break;
-//    case ASCII_MATLAB:
-//        read::AsciiMatlab( A, filename );
-//        break;
-//    case BINARY:
-//        read::Binary( A, filename );
-//        break;
-//    case BINARY_FLAT:
-//        read::BinaryFlat( A, A.Shape, filename );
+//    case ASCII:
+//        read::Ascii( A, filename );
 //        break;
     default:
         LogicError("Format unsupported for reading");
@@ -63,20 +54,12 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
 
     bool done = !ElemwiseLessThan(gblDataLoc, gblDataShape);
 
-//    PrintVector(packShape, "packShape");
     while(!done){
-//        PrintVector(gblDataLoc, "gblDataLoc");
-//        PrintVector(packedShape, "packedShape");
         T value;
         fileStream.read((char*)&value, sizeof(T));
-//        printf("new val: %.3f\n", value);
         Location procGVLoc = A.DetermineOwner(gblDataLoc);
-//        PrintVector(procGVLoc, "procGVLoc");
         Unsigned whichProc = GridViewLoc2ParticipatingLinearLoc(procGVLoc, A.GetGridView());
-//        PrintVector(procGVLoc, "procLoc");
-//        printf("copying to proc: %d with offset: %d at location: %d\n", whichProc, whichProc*nElemsPerProc, nElemsPackedPerProc[whichProc]);
         sendBuf[whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]] = value;
-//        PrintArray(sendBuf, packShape, "current sendBuf");
 
         //Update
         nElemsPackedPerProc[whichProc]++;
@@ -150,20 +133,12 @@ ReadAsciiSeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSha
 
     bool done = !ElemwiseLessThan(gblDataLoc, gblDataShape);
 
-//    PrintVector(packShape, "packShape");
     while(!done){
-//        PrintVector(gblDataLoc, "gblDataLoc");
-//        PrintVector(packedShape, "packedShape");
         T value;
         dataStream >> value;
-//        printf("new val: %.3f\n", value);
         Location procGVLoc = A.DetermineOwner(gblDataLoc);
-//        PrintVector(procGVLoc, "procGVLoc");
         Unsigned whichProc = GridViewLoc2ParticipatingLinearLoc(procGVLoc, A.GetGridView());
-//        PrintVector(procGVLoc, "procLoc");
-//        printf("copying to proc: %d with offset: %d at location: %d\n", whichProc, whichProc*nElemsPerProc, nElemsPackedPerProc[whichProc]);
         sendBuf[whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]] = value;
-//        PrintArray(sendBuf, packShape, "current sendBuf");
 
         //Update
         nElemsPackedPerProc[whichProc]++;
@@ -240,14 +215,9 @@ ReadSeqUnpack(DistTensor<T>& A, const Location& firstGblLoc, const ObjShape& pac
     //NOTE: This is basically a copy of PackCommHelper routine
     //      but modified as the termination condition depends
     //      on both the packShape and the local shape
-//    PrintVector(packetShape, "packetShape");
-//    PrintVector(localShape, "localShape");
+
     while (!done) {
-        PrintVector(localUnpackLoc, "localLoc");
-        PrintVector(recvLoc, "recvLoc");
         dstBuf[dstBufPtr] = recvBuf[recvBufPtr];
-        printf("recvBuf val: %.3f\n", recvBuf[recvBufPtr]);
-        printf("copying to location: %d\n", dstBufPtr);
         //Update
         localUnpackLoc[localUnpackPtr]++;
         recvLoc[recvPtr]++;
@@ -326,6 +296,8 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         for(i = 0; i < order; i++)
             file.read( (char*)&(dataShape[i]), sizeof(Unsigned));
         A.ResizeTo(dataShape);
+    }else if(format == BINARY_FLAT){
+        dataShape = A.Shape();
     }
 
     Unsigned i;
@@ -335,17 +307,12 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
     //Determine the max shape we can pack with available memory
     //Figure out the first mode that a packet does not fully pack
     ObjShape packetShape(A.Shape());
-    PrintVector(A.Shape(), "shapeA");
     Unsigned firstPartialPackMode = order - 1;
 
     //MAX_ELEM_PER_PROC must account for entire send buffer size
     Unsigned remainder = MaxLength(MAX_ELEM_PER_PROC, prod(gvA.ParticipatingShape()));
     Unsigned readStride = 1;
     for(i = 0; i < order; i++){
-        printf("remainder: %d\n", remainder);
-        printf("read stride: %d\n", readStride);
-        PrintVector(packetShape, "gblSendShape");
-
         if(remainder < (A.Dimension(i) * readStride)){
             packetShape[i] = Max(1, remainder);
         }
@@ -367,11 +334,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
     Unsigned nCommProcs = prod(gvAShape);
 
     //Determine the tensor shape we will send to each process
-    PrintVector(packetShape, "gblSendShape");
-    PrintVector(gvAShape, "commGridViewShape");
-    PrintVector(packetShape, "packetShape");
     ObjShape sendShape = MaxLengths(packetShape, gvAShape);
-    PrintVector(sendShape, "sendShape");
     Unsigned nElemsPerProc = prod(sendShape);
 
     T* auxBuf = new T[prod(sendShape) * (nCommProcs + 1)];
@@ -411,12 +374,8 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
     Location myFirstGblElemLocUnpack;
     Location firstLocalElemLocUnpack;
     Location myPackGridViewLoc = gvA.ParticipatingLoc();
-    PrintVector(myPackGridViewLoc, "myPackGridViewLoc");
 
-    printf("ping2\n");
     while(!done){
-        printf("ping2.1\n");
-        PrintVector(dataLoc, "dataLoc");
         if(A.Grid().LinearRank() == 0){
             MemZero(&(sendBuf[0]), prod(sendShape) * nCommProcs);
             if(format == ASCII || format == ASCII_MATLAB){
@@ -426,15 +385,10 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
             }
             ObjShape commShape = sendShape;
             commShape.insert(commShape.end(), nCommProcs);
-            PrintArray(sendBuf, commShape, "comm sendBuf");
         }
-        printf("ping2.2\n");
 
         //Communicate the data
         mpi::Scatter(sendBuf, prod(sendShape), recvBuf, prod(sendShape), 0, comm);
-
-        printf("UNPACKING\n");
-        PrintArray(recvBuf, sendShape, "recvBuf");
 
         //Unpack it
         Location packLastLoc = dataLoc;
@@ -445,12 +399,8 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         Location owner = A.DetermineOwner(dataLoc);
         myFirstGblElemLocUnpack = ElemwiseSum(dataLoc, ElemwiseSubtract(myPackGridViewLoc, owner));
 
-        PrintVector(packLastLoc, "packLastLoc");
-        PrintVector(myFirstGblElemLocUnpack, "firstGblElemLocUnpack");
-
         if(ElemwiseLessThan(myFirstGblElemLocUnpack, dataShape) && ElemwiseLessThanEqualTo(dataLoc, myFirstGblElemLocUnpack) && !AnyElemwiseGreaterThan(myFirstGblElemLocUnpack, packLastLoc)){
             ReadSeqUnpack(A, myFirstGblElemLocUnpack, sendShape, recvBuf);
-            PrintArray(A.Buffer(), A.LocalShape(), "dataBuf");
         }
 
         //Update
@@ -505,13 +455,13 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
         Unsigned i;
         Unsigned order;
         file.read( (char*)&order, sizeof(Unsigned) );
+
         dataShape.resize(order);
         Unsigned value;
         for(i = 0; i < order; i++)
             file.read( (char*)&(dataShape[i]), sizeof(Unsigned));
         A.ResizeTo(dataShape);
     }
-
     Unsigned i;
     Unsigned order = A.Order();
     const tmen::GridView& gvA = A.GetGridView();
@@ -538,11 +488,10 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
         for(i = 0; i < startLinLoc; i++)
             dataStream >> value;
     }else if(format == BINARY){
-        file.seekg( 1 + order + (startLinLoc * sizeof(T)));
+        file.seekg( ((1 + order) * sizeof(Unsigned)) + (startLinLoc * sizeof(T)));
     }else if(format == BINARY_FLAT){
         file.seekg( startLinLoc * sizeof(T));
     }
-
     Unsigned ptr = 0;
     Unsigned dstBufPtr = 0;
 
@@ -605,7 +554,7 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
             for(i = 0; i < adjustAmount; i++)
                 dataStream >> val;
         }else if(format == BINARY){
-            file.seekg(1 + order + (newSrcBufPtr * sizeof(T)));
+            file.seekg(((1 + order) * sizeof(Unsigned)) + (newSrcBufPtr * sizeof(T)));
         }else if(format == BINARY_FLAT){
             file.seekg((newSrcBufPtr * sizeof(T)));
         }
@@ -626,45 +575,11 @@ void Read
     if(!sequential)
     {
         ReadNonSeq(A, filename, format);
-//        switch( format )
-//        {
-//        case ASCII:
-//            read::Ascii( A, filename );
-//            break;
-////        case ASCII_MATLAB:
-////            read::AsciiMatlab( A, filename );
-////            break;
-////        case BINARY:
-////            read::Binary( A, filename );
-////            break;
-////        case BINARY_FLAT:
-////            read::BinaryFlat( A, A.Height(), A.Width(), filename );
-//            break;
-//        default:
-//            LogicError("Unsupported distributed read format");
-//        }
     }
     //Only root process accesses data
     else
     {
         ReadSeq( A, filename, format );
-//        switch( format )
-//        {
-//        case ASCII:
-//            ReadSeq( A, filename, format );
-//            break;
-////        case ASCII_MATLAB:
-////            read::AsciiMatlabSeq( A, filename );
-////            break;
-////        case BINARY:
-////            read::BinarySeq( A, filename );
-////            break;
-////        case BINARY_FLAT:
-////            read::BinaryFlatSeq( A, A.Height(), A.Width(), filename );
-////            break;
-//        default:
-//            LogicError("Unsupported distributed read format");
-//        }
     }
 
 }

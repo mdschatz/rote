@@ -166,8 +166,12 @@ void TestRead(const std::string& filename){
 
     //Takes the shape of the global object, the distribution, and the grid
     DistTensor<double> input("[(1,0),(2,3)]", g);
+    ObjShape shape;
+    shape.push_back(8);
+    shape.push_back(3);
+    input.ResizeTo(shape);
     //Give input some random values
-    Read(input, filename, ASCII, false);
+    Read(input, filename, BINARY_FLAT, true);
 
     PrintData(input, "in_data");
 //        PrintData(output, "out_data");
@@ -183,7 +187,7 @@ int main( int argc, char* argv[] ) {
 
     try
     {
-        TestRead("data_8_3");
+        TestRead("data_8_3_bin_flat");
 
 
     }
