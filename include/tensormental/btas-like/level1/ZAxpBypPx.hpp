@@ -206,9 +206,6 @@ template<typename T>
 inline void
 ZAxpBypPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, const Tensor<T>& PX, Tensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-#endif
     Permutation perm = DefaultPermutation(X.Order());
     ZAxpBypPx(alpha, X, perm, beta, Y, perm, PX, perm, Z);
 }
@@ -218,7 +215,7 @@ inline void
 ZAxpBypPx( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const Tensor<T>& Y, const Permutation& permYToZ, const Tensor<T>& PX, const Permutation& permPXToZ, Tensor<T>& Z )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
+    CallStackEntry entry("ZAxpBypPx");
 #endif
     Unsigned order = Z.Order();
     ZAxpBypPxData data;
@@ -263,17 +260,19 @@ ZAxpBypPx( const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const DistTen
 
 template<typename T>
 inline void
-ZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const DistTensor<T>& PX, DistTensor<T>& Z )
+ZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const DistTensor<T>& PX, const Permutation& perm, DistTensor<T>& Z )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
+    CallStackEntry entry("ZAxpBypPx");
     if( X.Grid() != Y.Grid() )
         LogicError
         ("X and Y must be distributed over the same grid");
 #endif
     Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
     Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
-    Permutation permPXToZ = DeterminePermutation(PX.LocalPermutation(), Z.LocalPermutation());
+    Permutation invPermPX = DetermineInversePermutation(PX.LocalPermutation());
+    Permutation invPermPXToDefZ = PermuteVector(invPermPX, perm);
+    Permutation permPXToZ = PermuteVector(invPermPXToDefZ, Z.LocalPermutation());
     ZAxpBypPx(alpha, X.LockedTensor(), permXToZ, beta, Y.LockedTensor(), permYToZ, PX.LockedTensor(), permPXToZ, Z.Tensor());
 }
 

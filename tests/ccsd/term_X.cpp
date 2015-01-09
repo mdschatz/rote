@@ -53,6 +53,7 @@ typedef struct Arguments {
     Unsigned n_o;
     Unsigned n_v;
     Unsigned blkSize;
+    Unsigned testIter;
 } Params;
 
 void ProcessInput(int argc, char** const argv, Params& args) {
@@ -86,184 +87,12 @@ void ProcessInput(int argc, char** const argv, Params& args) {
     args.n_o = atoi(argv[++argCount]);
     args.n_v = atoi(argv[++argCount]);
     args.blkSize = atoi(argv[++argCount]);
-}
-
-template<typename T>
-void Load_Tensor_Helper(ifstream& fid, Mode mode, const Location& curLoc,
-        DistTensor<T>& A) {
-    Unsigned i;
-    Unsigned dim = A.Dimension(mode);
-    Location newCurLoc = curLoc;
-    for (i = 0; i < dim; i++) {
-        newCurLoc[mode] = i;
-        if (mode == 0) {
-            char* valS = new char[8];
-            fid.read(valS, 8);
-            double val = *reinterpret_cast<double*>(valS);
-//          std::cout << "val: " << val << std::endl;
-//          std::memcpy(&val, &(valS[0]), sizeof(double));
-//          printf("newVal %.03f\n", val);
-            A.Set(newCurLoc, val);
-        } else {
-            if (mode == 3)
-                printf("loading mode 3 index: %d\n", i);
-            Load_Tensor_Helper(fid, mode - 1, newCurLoc, A);
-        }
-    }
-}
-
-template<typename T>
-void Load_Tensor(DistTensor<T>& A, const std::string& filename) {
-    printf("Loading tensor\n");
-    PrintVector(A.Shape(), "of size");
-    Unsigned order = A.Order();
-    ifstream fid;
-    fid.open(filename.c_str(), std::ifstream::binary);
-    //Skip 4 bytes of Fortran
-    fid.seekg(4);
-    Location zeros(order, 0);
-    Load_Tensor_Helper(fid, order - 1, zeros, A);
-    fid.close();
-}
-
-template<typename T>
-void Load_Tensor_efgh_Helper(ifstream& fid, Mode mode, const Location& curLoc,
-        DistTensor<T>& A) {
-    Unsigned i;
-    Unsigned dim = A.Dimension(mode);
-    Location newCurLoc = curLoc;
-    for (i = 0; i < dim; i++) {
-        if (mode == 3)
-            newCurLoc[2] = i;
-        else if (mode == 2)
-            newCurLoc[3] = i;
-        else
-            newCurLoc[mode] = i;
-        if (mode == 0) {
-            char* valS = new char[8];
-            fid.read(valS, 8);
-            double val = *reinterpret_cast<double*>(valS);
-//          PrintVector(newCurLoc, "Setting loc");
-//          std::cout << "to val: " << val << std::endl;
-//          std::cout << "val: " << val << std::endl;
-//          std::memcpy(&val, &(valS[0]), sizeof(double));
-//          printf("newVal %.03f\n", val);
-            A.Set(newCurLoc, -val);
-        } else {
-            Load_Tensor_efgh_Helper(fid, mode - 1, newCurLoc, A);
-        }
-    }
-}
-
-template<typename T>
-void Load_Tensor_efgh(DistTensor<T>& A, const std::string& filename) {
-    printf("Loading tensor\n");
-    PrintVector(A.Shape(), "of size");
-    Unsigned order = A.Order();
-    ifstream fid;
-    fid.open(filename.c_str(), std::ifstream::binary);
-    //Skip 4 bytes of Fortran
-    fid.seekg(4);
-    Location zeros(order, 0);
-    Load_Tensor_efgh_Helper(fid, order - 1, zeros, A);
-    fid.close();
-}
-
-template<typename T>
-void Load_Tensor_aijb_Helper(ifstream& fid, Mode mode, const Location& curLoc,
-        DistTensor<T>& A) {
-    Unsigned i;
-    Unsigned dim;
-    if (mode == 3)
-        dim = A.Dimension(0);
-    else if (mode == 2)
-        dim = A.Dimension(2);
-    else if (mode == 1)
-        dim = A.Dimension(3);
-    else if (mode == 0)
-        dim = A.Dimension(1);
-    Location newCurLoc = curLoc;
-    for (i = 0; i < dim; i++) {
-        if (mode == 3)
-            newCurLoc[0] = i;
-        else if (mode == 2)
-            newCurLoc[2] = i;
-        else if (mode == 1)
-            newCurLoc[3] = i;
-        else if (mode == 0)
-            newCurLoc[1] = i;
-        if (mode == 0) {
-            char* valS = new char[8];
-            fid.read(valS, 8);
-            double val = *reinterpret_cast<double*>(valS);
-//          PrintVector(newCurLoc, "Setting loc");
-//          std::cout << "to val: " << val << std::endl;
-//          std::cout << "val: " << val << std::endl;
-//          std::memcpy(&val, &(valS[0]), sizeof(double));
-//          printf("newVal %.03f\n", val);
-            A.Set(newCurLoc, val);
-        } else {
-            Load_Tensor_aijb_Helper(fid, mode - 1, newCurLoc, A);
-        }
-    }
-}
-
-template<typename T>
-void Load_Tensor_aijb(DistTensor<T>& A, const std::string& filename) {
-    printf("Loading tensor\n");
-    PrintVector(A.Shape(), "of size");
-    Unsigned order = A.Order();
-    ifstream fid;
-    fid.open(filename.c_str(), std::ifstream::binary);
-    //Skip 4 bytes of Fortran
-    fid.seekg(4);
-    Location zeros(order, 0);
-    Load_Tensor_aijb_Helper(fid, order - 1, zeros, A);
-    fid.close();
-}
-
-template<typename T>
-void Form_D_abij_Helper(const DistTensor<T>& epsilonA,
-        const DistTensor<T>& epsilonB, Mode mode, const Location& loc,
-        DistTensor<T>& D_abij) {
-    Unsigned i;
-    Unsigned dim = D_abij.Dimension(mode);
-    Location newCurLoc = loc;
-    for (i = 0; i < dim; i++) {
-        newCurLoc[mode] = i;
-        if (mode == 0) {
-            Location epsLoc(1);
-            epsLoc[0] = newCurLoc[0];
-            double e_a = epsilonA.Get(epsLoc);
-
-            epsLoc[0] = newCurLoc[1];
-            double e_b = epsilonA.Get(epsLoc);
-
-            epsLoc[0] = newCurLoc[2];
-            double e_i = epsilonB.Get(epsLoc);
-
-            epsLoc[0] = newCurLoc[3];
-            double e_j = epsilonB.Get(epsLoc);
-            double val = -1.0 / (e_a + e_b - e_i - e_j);
-            D_abij.Set(newCurLoc, val);
-        } else {
-            Form_D_abij_Helper(epsilonA, epsilonB, mode - 1, newCurLoc, D_abij);
-        }
-    }
-}
-
-template<typename T>
-void Form_D_abij(const DistTensor<T>& epsilonA, const DistTensor<T>& epsilonB,
-        DistTensor<T>& D_abij) {
-    Unsigned order = D_abij.Order();
-
-    Location zeros(order, 0);
-    Form_D_abij_Helper(epsilonA, epsilonB, order - 1, zeros, D_abij);
+    args.testIter = atoi(argv[++argCount]);
 }
 
 template<typename T>
 void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
-        Unsigned blkSize) {
+        Unsigned blkSize, Unsigned testIter) {
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
 #endif
@@ -278,13 +107,10 @@ TensorDistribution dist__D_0__D_1__D_2__S__D_3 = tmen::StringToTensorDist("[(0),
 TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
 TensorDistribution dist__D_0__D_1__D_3__D_2 = tmen::StringToTensorDist("[(0),(1),(3),(2)]");
 TensorDistribution dist__D_0__D_2__D_1__D_3 = tmen::StringToTensorDist("[(0),(2),(1),(3)]");
-TensorDistribution dist__D_0__D_2 = tmen::StringToTensorDist("[(0),(2)]");
 TensorDistribution dist__D_1__S__D_3__D_2 = tmen::StringToTensorDist("[(1),(),(3),(2)]");
-TensorDistribution dist__D_1__D_3 = tmen::StringToTensorDist("[(1),(3)]");
 TensorDistribution dist__D_3__S = tmen::StringToTensorDist("[(3),()]");
 TensorDistribution dist__D_3__D_2 = tmen::StringToTensorDist("[(3),(2)]");
 TensorDistribution dist__D_0_1__D_2_3 = tmen::StringToTensorDist("[(0,1),(2,3)]");
-TensorDistribution dist__D_0_1__D_3 = tmen::StringToTensorDist("[(0,1),(3)]");
 Permutation perm_0_1;
 perm_0_1.push_back(0);
 perm_0_1.push_back(1);
@@ -299,11 +125,6 @@ perm_0_1_2_3_4.push_back(1);
 perm_0_1_2_3_4.push_back(2);
 perm_0_1_2_3_4.push_back(3);
 perm_0_1_2_3_4.push_back(4);
-Permutation perm_0_2_1_3;
-perm_0_2_1_3.push_back(0);
-perm_0_2_1_3.push_back(2);
-perm_0_2_1_3.push_back(1);
-perm_0_2_1_3.push_back(3);
 Permutation perm_0_2_3_1;
 perm_0_2_3_1.push_back(0);
 perm_0_2_3_1.push_back(2);
@@ -341,9 +162,6 @@ ModeArray modes_0_1_3;
 modes_0_1_3.push_back(0);
 modes_0_1_3.push_back(1);
 modes_0_1_3.push_back(3);
-ModeArray modes_0_2;
-modes_0_2.push_back(0);
-modes_0_2.push_back(2);
 ModeArray modes_0_2_3;
 modes_0_2_3.push_back(0);
 modes_0_2_3.push_back(2);
@@ -358,9 +176,6 @@ ModeArray modes_1_2_3;
 modes_1_2_3.push_back(1);
 modes_1_2_3.push_back(2);
 modes_1_2_3.push_back(3);
-ModeArray modes_1_3;
-modes_1_3.push_back(1);
-modes_1_3.push_back(3);
 ModeArray modes_1_3_2;
 modes_1_3_2.push_back(1);
 modes_1_3_2.push_back(3);
@@ -386,14 +201,6 @@ indices_bmejf[1] = 'm';
 indices_bmejf[2] = 'e';
 indices_bmejf[3] = 'j';
 indices_bmejf[4] = 'f';
-IndexArray indices_bn( 2 );
-indices_bn[0] = 'b';
-indices_bn[1] = 'n';
-IndexArray indices_bnfj( 4 );
-indices_bnfj[0] = 'b';
-indices_bnfj[1] = 'n';
-indices_bnfj[2] = 'f';
-indices_bnfj[3] = 'j';
 IndexArray indices_embj( 4 );
 indices_embj[0] = 'e';
 indices_embj[1] = 'm';
@@ -427,6 +234,8 @@ indices_nb[0] = 'n';
 indices_nb[1] = 'b';
 	//T_bfnj[D0,D1,D2,D3]
 DistTensor<double> T_bfnj__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
+	//Tau_efmn[D0,D1,D2,D3]
+DistTensor<double> Tau_efmn__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//X_bmej[D0,D1,D2,D3]
 DistTensor<double> X_bmej__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//X_bmej_part1B[D0,D1,D2,D3]
@@ -479,12 +288,6 @@ DistTensor<double> t_fj_part1T__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 DistTensor<double> t_fj_part1_0__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 	//t_fj_part1_1[D01,D23]
 DistTensor<double> t_fj_part1_1__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//t_fj_part1_1[D01,D3]
-DistTensor<double> t_fj_part1_1__D_0_1__D_3( dist__D_0_1__D_3, g );
-	//t_fj_part1_1[D0,D2]
-DistTensor<double> t_fj_part1_1__D_0__D_2( dist__D_0__D_2, g );
-	//t_fj_part1_1[D1,D3]
-DistTensor<double> t_fj_part1_1__D_1__D_3( dist__D_1__D_3, g );
 	//t_fj_part1_1[D3,D2]
 DistTensor<double> t_fj_part1_1__D_3__D_2( dist__D_3__D_2, g );
 	//t_fj_part1_1[D3,*]
@@ -519,29 +322,6 @@ temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.SetLocalPermutation( perm_1_2_0_3
 DistTensor<double> temp1_part1_1_part2_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//temp1_part1_2[D0,D1,D2,D3]
 DistTensor<double> temp1_part1_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2B[D0,D1,D2,D3]
-DistTensor<double> temp1_part2B__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2T[D0,D1,D2,D3]
-DistTensor<double> temp1_part2T__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_0[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_0__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_1[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_1_part3B[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1_part3B__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_1_part3T[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1_part3T__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_1_part3_0[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1_part3_0__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_1_part3_1[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1_part3_1__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_1_part3_1[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3( dist__D_0__D_1__D_2__D_3, g );
-temp1_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.SetLocalPermutation( perm_0_2_1_3 );
-	//temp1_part2_1_part3_2[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_1_part3_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//temp1_part2_2[D0,D1,D2,D3]
-DistTensor<double> temp1_part2_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//u_mnje[D0,D1,D2,D3]
 DistTensor<double> u_mnje__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//u_mnje_part0B[D0,D1,D2,D3]
@@ -601,44 +381,53 @@ DistTensor<double> x_bmej__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 // r_bmfe has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape r_bmfe__D_0__D_1__D_2__D_3_tempShape;
-r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
+r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+r_bmfe__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
 r_bmfe__D_0__D_1__D_2__D_3.ResizeTo( r_bmfe__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( r_bmfe__D_0__D_1__D_2__D_3 );
 // t_fj has 2 dims
 //	Starting distribution: [D01,D23] or _D_0_1__D_2_3
 ObjShape t_fj__D_0_1__D_2_3_tempShape;
-t_fj__D_0_1__D_2_3_tempShape.push_back( 500 );
-t_fj__D_0_1__D_2_3_tempShape.push_back( 50 );
+t_fj__D_0_1__D_2_3_tempShape.push_back( n_v );
+t_fj__D_0_1__D_2_3_tempShape.push_back( n_o );
 t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_tempShape );
 MakeUniform( t_fj__D_0_1__D_2_3 );
 // u_mnje has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape u_mnje__D_0__D_1__D_2__D_3_tempShape;
-u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
+u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+u_mnje__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
 u_mnje__D_0__D_1__D_2__D_3.ResizeTo( u_mnje__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( u_mnje__D_0__D_1__D_2__D_3 );
 // v_femn has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape v_femn__D_0__D_1__D_2__D_3_tempShape;
-v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
+v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+v_femn__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
 v_femn__D_0__D_1__D_2__D_3.ResizeTo( v_femn__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( v_femn__D_0__D_1__D_2__D_3 );
+// Tau_efmn has 4 dims
+//	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
+ObjShape Tau_efmn__D_0__D_1__D_2__D_3_tempShape;
+Tau_efmn__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+Tau_efmn__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+Tau_efmn__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+Tau_efmn__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+Tau_efmn__D_0__D_1__D_2__D_3.ResizeTo( Tau_efmn__D_0__D_1__D_2__D_3_tempShape );
+MakeUniform( Tau_efmn__D_0__D_1__D_2__D_3 );
 // T_bfnj has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape T_bfnj__D_0__D_1__D_2__D_3_tempShape;
-T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
+T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+T_bfnj__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
 T_bfnj__D_0__D_1__D_2__D_3.ResizeTo( T_bfnj__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( T_bfnj__D_0__D_1__D_2__D_3 );
 tempShape = T_bfnj__D_0__D_1__D_2__D_3.Shape();
@@ -646,19 +435,19 @@ temp1__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
 // x_bmej has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape x_bmej__D_0__D_1__D_2__D_3_tempShape;
-x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
+x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+x_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
 x_bmej__D_0__D_1__D_2__D_3.ResizeTo( x_bmej__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( x_bmej__D_0__D_1__D_2__D_3 );
 // X_bmej has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape X_bmej__D_0__D_1__D_2__D_3_tempShape;
-X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
-X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 500 );
-X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( 50 );
+X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_v );
+X_bmej__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
 X_bmej__D_0__D_1__D_2__D_3.ResizeTo( X_bmej__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 //**** (out of 1)
@@ -669,67 +458,30 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 ////////////////////////////////
 //Performance testing
 ////////////////////////////////
+std::stringstream fullName;
 #ifdef CORRECTNESS
-    DistTensor<T> epsilonA( tmen::StringToTensorDist("[(0)]|()"), g);
-    ObjShape epsilonAShape;
-    epsilonAShape.push_back(n_v);
-    epsilonA.ResizeTo(epsilonAShape);
-    std::string epsilonAFilename = "data/ea";
-    printf("loading epsilonA\n");
-    Load_Tensor(epsilonA, epsilonAFilename);
-    //Print(epsilonA, "eps_a");
-
-    DistTensor<T> epsilonB( tmen::StringToTensorDist("[(0)]|()"), g);
-    ObjShape epsilonBShape;
-    epsilonBShape.push_back(n_o);
-    epsilonB.ResizeTo(epsilonBShape);
-    std::string epsilonBFilename = "data/ei";
-    printf("loading epsilonB\n");
-    Load_Tensor(epsilonB, epsilonBFilename);
-    //Print(epsilonB, "eps_b");
-
-    DistTensor<T> D_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
-    ObjShape D_abijShape;
-    D_abijShape.push_back(n_v);
-    D_abijShape.push_back(n_v);
-    D_abijShape.push_back(n_o);
-    D_abijShape.push_back(n_o);
-    D_abij.ResizeTo(D_abijShape);
-
-    DistTensor<T> V_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
-    V_abij.ResizeTo(D_abijShape);
-    std::string v_abijFilename = "data/abij";
-    printf("loading V_abij\n");
-    Load_Tensor(V_abij, v_abijFilename);
-    //Print(V_abij, "v_abij");
-
-    std::string v_opmnFilename = "data/ijkl";
-    printf("loading v_opmn\n");
-    Load_Tensor(v_opmn__D_0__D_1__D_2__D_3, v_opmnFilename);
-    //Print(v_opmn__D_0__D_1__D_2__D_3, "v_opmn");
-
-    printf("loading 4\n");
-    std::string v_oegmFilename = "data/aijb";
-    printf("loading v_oegm\n");
-    Load_Tensor_aijb(v_oegm__D_0__D_1__D_2__D_3, v_oegmFilename);
-    //Print(v_oegm__D_0__D_1__D_2__D_3, "v_oegm");
-
-    printf("loading 5\n");
-    std::string v2_oegmFilename = "data/aibj";
-    printf("loading v2_oegm\n");
-    Load_Tensor_aijb(v2_oegm__D_0__D_1__D_2__D_3, v2_oegmFilename);
-    //Print(v2_oegm__D_0__D_1__D_2__D_3, "v2_oegm");
-
-    printf("loading 3\n");
-    std::string v_efghFilename = "data/abcd";
-    printf("loading v_efgh\n");
-    Load_Tensor(v_efgh__D_0__D_1__D_2__D_3, v_efghFilename);
-    //Print(v_efgh__D_0__D_1__D_2__D_3, "v_efgh");
-
-    printf("elemScaling\n");
-    Form_D_abij(epsilonA, epsilonB, D_abij);
-    tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
-//  Print(t_efmn__D_0__D_1__D_2__D_3, "t_efmn");
+DistTensor<T> check(dist__D_0__D_1__D_2__D_3, g);
+check.ResizeTo(X_bmej__D_0__D_1__D_2__D_3.Shape());
+Read(r_bmfe__D_0__D_1__D_2__D_3, "ccsd_terms/term_r_small", BINARY_FLAT, false);
+Read(u_mnje__D_0__D_1__D_2__D_3, "ccsd_terms/term_u_small", BINARY_FLAT, false);
+Read(v_femn__D_0__D_1__D_2__D_3, "ccsd_terms/term_v_small", BINARY_FLAT, false);
+Read(x_bmej__D_0__D_1__D_2__D_3, "ccsd_terms/term_x_small", BINARY_FLAT, false);
+fullName.str("");
+fullName.clear();
+fullName << "ccsd_terms/term_t_small_iter" << testIter;
+Read(t_fj__D_0_1__D_2_3, fullName.str(), BINARY_FLAT, false);
+fullName.str("");
+fullName.clear();
+fullName << "ccsd_terms/term_Tau_iter" << testIter;
+Read(Tau_efmn__D_0__D_1__D_2__D_3, fullName.str(), BINARY_FLAT, false);
+fullName.str("");
+fullName.clear();
+fullName << "ccsd_terms/term_T_iter" << testIter;
+Read(T_bfnj__D_0__D_1__D_2__D_3, fullName.str(), BINARY_FLAT, false);
+fullName.str("");
+fullName.clear();
+fullName << "ccsd_terms/term_X_iter" << testIter + 1;
+Read(check, fullName.str(), BINARY_FLAT, false);
 #endif
 //******************************
 //* Load tensors
@@ -752,112 +504,27 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
     startTime = mpi::Time();
 
 
-	//**** (out of 1)
-	//**** Is real	0 shadows
-		//Outputs:
-		//  temp1__D_0__D_1__D_2__D_3
-	PartitionDown(t_fj__D_0_1__D_2_3, t_fj_part1T__D_0_1__D_2_3, t_fj_part1B__D_0_1__D_2_3, 1, 0);
-	PartitionDown(temp1__D_0__D_1__D_2__D_3, temp1_part2T__D_0__D_1__D_2__D_3, temp1_part2B__D_0__D_1__D_2__D_3, 2, 0);
-	while(temp1_part2T__D_0__D_1__D_2__D_3.Dimension(2) < temp1__D_0__D_1__D_2__D_3.Dimension(2))
-	{
-		RepartitionDown
-		( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
-		  /**/ /**/
-		       t_fj_part1_1__D_0_1__D_2_3,
-		  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, 32 );
-		RepartitionDown
-		( temp1_part2T__D_0__D_1__D_2__D_3,  temp1_part2_0__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		       temp1_part2_1__D_0__D_1__D_2__D_3,
-		  temp1_part2B__D_0__D_1__D_2__D_3, temp1_part2_2__D_0__D_1__D_2__D_3, 2, 32 );
-
-		//**** (out of 1)
-		//**** Is real	0 shadows
-			//Outputs:
-			//  temp1_part2_1__D_0__D_1__D_2__D_3
-		PartitionDown(t_fj__D_0_1__D_2_3, t_fj_part1T__D_0_1__D_2_3, t_fj_part1B__D_0_1__D_2_3, 1, 0);
-		PartitionDown(temp1_part2_1__D_0__D_1__D_2__D_3, temp1_part2_1_part3T__D_0__D_1__D_2__D_3, temp1_part2_1_part3B__D_0__D_1__D_2__D_3, 3, 0);
-		while(temp1_part2_1_part3T__D_0__D_1__D_2__D_3.Dimension(3) < temp1_part2_1__D_0__D_1__D_2__D_3.Dimension(3))
-		{
-			RepartitionDown
-			( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
-			  /**/ /**/
-			       t_fj_part1_1__D_0_1__D_2_3,
-			  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, 32 );
-			RepartitionDown
-			( temp1_part2_1_part3T__D_0__D_1__D_2__D_3,  temp1_part2_1_part3_0__D_0__D_1__D_2__D_3,
-			  /**/ /**/
-			       temp1_part2_1_part3_1__D_0__D_1__D_2__D_3,
-			  temp1_part2_1_part3B__D_0__D_1__D_2__D_3, temp1_part2_1_part3_2__D_0__D_1__D_2__D_3, 3, 32 );
-
-			   // t_fj_part1_1[D0,D2] <- t_fj_part1_1[D01,D23]
-			t_fj_part1_1__D_0__D_2.AlignModesWith( modes_0_1, temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_2 );
-			t_fj_part1_1__D_0__D_2.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_1_3 );
-			   // t_fj_part1_1[D01,D3] <- t_fj_part1_1[D01,D23]
-			t_fj_part1_1__D_0_1__D_3.AlignModesWith( modes_0_1, temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_1_3 );
-			t_fj_part1_1__D_0_1__D_3.AllToAllRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_2_3 );
-			   // t_fj_part1_1[D1,D3] <- t_fj_part1_1[D01,D3]
-			t_fj_part1_1__D_1__D_3.AlignModesWith( modes_0_1, temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_1_3 );
-			t_fj_part1_1__D_1__D_3.AllToAllRedistFrom( t_fj_part1_1__D_0_1__D_3, modes_0_1 );
-			t_fj_part1_1__D_0_1__D_3.EmptyData();
-			Permute( temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, temp1_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3 );
-			   // 1.0 * t_fj_part1_1[D0,D2]_bn * t_fj_part1_1[D1,D3]_fj + 0.0 * temp1_part2_1_part3_1[D0,D1,D2,D3]_bnfj
-			LocalContractAndLocalEliminate(1.0, t_fj_part1_1__D_0__D_2.LockedTensor(), indices_bn, false,
-				t_fj_part1_1__D_1__D_3.LockedTensor(), indices_fj, false,
-				0.0, temp1_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.Tensor(), indices_bnfj, false);
-			t_fj_part1_1__D_0__D_2.EmptyData();
-			t_fj_part1_1__D_1__D_3.EmptyData();
-			Permute( temp1_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3, temp1_part2_1_part3_1__D_0__D_1__D_2__D_3 );
-			temp1_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.EmptyData();
-
-			SlidePartitionDown
-			( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
-			       t_fj_part1_1__D_0_1__D_2_3,
-			  /**/ /**/
-			  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1 );
-			SlidePartitionDown
-			( temp1_part2_1_part3T__D_0__D_1__D_2__D_3,  temp1_part2_1_part3_0__D_0__D_1__D_2__D_3,
-			       temp1_part2_1_part3_1__D_0__D_1__D_2__D_3,
-			  /**/ /**/
-			  temp1_part2_1_part3B__D_0__D_1__D_2__D_3, temp1_part2_1_part3_2__D_0__D_1__D_2__D_3, 3 );
-
-		}
-		//****
-
-		SlidePartitionDown
-		( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
-		       t_fj_part1_1__D_0_1__D_2_3,
-		  /**/ /**/
-		  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1 );
-		SlidePartitionDown
-		( temp1_part2T__D_0__D_1__D_2__D_3,  temp1_part2_0__D_0__D_1__D_2__D_3,
-		       temp1_part2_1__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		  temp1_part2B__D_0__D_1__D_2__D_3, temp1_part2_2__D_0__D_1__D_2__D_3, 2 );
-
-	}
-	//****
+	ZAxpBy( 1.0, Tau_efmn__D_0__D_1__D_2__D_3, -1.0, T_bfnj__D_0__D_1__D_2__D_3, temp1__D_0__D_1__D_2__D_3 );
+	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
+	Tau_efmn__D_0__D_1__D_2__D_3.EmptyData();
 
 
+Tau_efmn__D_0__D_1__D_2__D_3.EmptyData();
+T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 //****
 //**** (out of 1)
 
-	x_bmej__D_0__D_1__D_2__D_3 = X_bmej__D_0__D_1__D_2__D_3;
+	X_bmej__D_0__D_1__D_2__D_3 = x_bmej__D_0__D_1__D_2__D_3;
 	x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 
 
+x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 //****
 //**** (out of 1)
 
-	YAxpy( 0.5, T_bfnj__D_0__D_1__D_2__D_3, temp1__D_0__D_1__D_2__D_3 );
-	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
-
-
-//****
-//**** (out of 1)
-
-	Scal( 0.0, X_bmej__D_0__D_1__D_2__D_3 );
-	Permute( X_bmej__D_0__D_1__D_2__D_3, X_bmej_perm2103__D_2__D_1__D_0__D_3 );
+	tempShape = X_bmej__D_0__D_1__D_2__D_3.Shape();
+	X_bmej_perm2103__D_2__D_1__D_0__D_3.ResizeTo( tempShape );
+	Scal( 0.0, X_bmej_perm2103__D_2__D_1__D_0__D_3 );
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -870,12 +537,12 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 		( v_femn_part0T__D_0__D_1__D_2__D_3,  v_femn_part0_0__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		       v_femn_part0_1__D_0__D_1__D_2__D_3,
-		  v_femn_part0B__D_0__D_1__D_2__D_3, v_femn_part0_2__D_0__D_1__D_2__D_3, 0, 32 );
+		  v_femn_part0B__D_0__D_1__D_2__D_3, v_femn_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
 		RepartitionDown
 		( temp1_part1T__D_0__D_1__D_2__D_3,  temp1_part1_0__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		       temp1_part1_1__D_0__D_1__D_2__D_3,
-		  temp1_part1B__D_0__D_1__D_2__D_3, temp1_part1_2__D_0__D_1__D_2__D_3, 1, 32 );
+		  temp1_part1B__D_0__D_1__D_2__D_3, temp1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
 
 		//**** (out of 1)
 		//**** Is real	0 shadows
@@ -889,12 +556,12 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 			( v_femn_part0_1_part3T__D_0__D_1__D_2__D_3,  v_femn_part0_1_part3_0__D_0__D_1__D_2__D_3,
 			  /**/ /**/
 			       v_femn_part0_1_part3_1__D_0__D_1__D_2__D_3,
-			  v_femn_part0_1_part3B__D_0__D_1__D_2__D_3, v_femn_part0_1_part3_2__D_0__D_1__D_2__D_3, 3, 32 );
+			  v_femn_part0_1_part3B__D_0__D_1__D_2__D_3, v_femn_part0_1_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
 			RepartitionDown
 			( temp1_part1_1_part2T__D_0__D_1__D_2__D_3,  temp1_part1_1_part2_0__D_0__D_1__D_2__D_3,
 			  /**/ /**/
 			       temp1_part1_1_part2_1__D_0__D_1__D_2__D_3,
-			  temp1_part1_1_part2B__D_0__D_1__D_2__D_3, temp1_part1_1_part2_2__D_0__D_1__D_2__D_3, 2, 32 );
+			  temp1_part1_1_part2B__D_0__D_1__D_2__D_3, temp1_part1_1_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
 
 			   // v_femn_part0_1_part3_1[D0,D2,D1,D3] <- v_femn_part0_1_part3_1[D0,D1,D2,D3]
 			v_femn_part0_1_part3_1__D_0__D_2__D_1__D_3.AlignModesWith( modes_1_2, X_bmej__D_0__D_1__D_2__D_3, modes_2_1 );
@@ -939,6 +606,10 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 		  temp1_part1B__D_0__D_1__D_2__D_3, temp1_part1_2__D_0__D_1__D_2__D_3, 1 );
 
 	}
+	v_femn__D_0__D_1__D_2__D_3.EmptyData();
+	temp1__D_0__D_1__D_2__D_3.EmptyData();
+	v_femn__D_0__D_1__D_2__D_3.EmptyData();
+	temp1__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 	Permute( X_bmej_perm2103__D_2__D_1__D_0__D_3, X_bmej__D_0__D_1__D_2__D_3 );
 	X_bmej_perm2103__D_2__D_1__D_0__D_3.EmptyData();
@@ -955,17 +626,17 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 		( r_bmfe_part1T__D_0__D_1__D_2__D_3,  r_bmfe_part1_0__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		       r_bmfe_part1_1__D_0__D_1__D_2__D_3,
-		  r_bmfe_part1B__D_0__D_1__D_2__D_3, r_bmfe_part1_2__D_0__D_1__D_2__D_3, 1, 32 );
+		  r_bmfe_part1B__D_0__D_1__D_2__D_3, r_bmfe_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
 		RepartitionDown
 		( u_mnje_part0T__D_0__D_1__D_2__D_3,  u_mnje_part0_0__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		       u_mnje_part0_1__D_0__D_1__D_2__D_3,
-		  u_mnje_part0B__D_0__D_1__D_2__D_3, u_mnje_part0_2__D_0__D_1__D_2__D_3, 0, 32 );
+		  u_mnje_part0B__D_0__D_1__D_2__D_3, u_mnje_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
 		RepartitionDown
 		( X_bmej_part1T__D_0__D_1__D_2__D_3,  X_bmej_part1_0__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		       X_bmej_part1_1__D_0__D_1__D_2__D_3,
-		  X_bmej_part1B__D_0__D_1__D_2__D_3, X_bmej_part1_2__D_0__D_1__D_2__D_3, 1, 32 );
+		  X_bmej_part1B__D_0__D_1__D_2__D_3, X_bmej_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
 
 		Permute( X_bmej_part1_1__D_0__D_1__D_2__D_3, X_bmej_part1_1_perm1320__D_1__D_3__D_2__D_0 );
 		//**** (out of 1)
@@ -980,12 +651,12 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 			( u_mnje_part0_1_part1T__D_0__D_1__D_2__D_3,  u_mnje_part0_1_part1_0__D_0__D_1__D_2__D_3,
 			  /**/ /**/
 			       u_mnje_part0_1_part1_1__D_0__D_1__D_2__D_3,
-			  u_mnje_part0_1_part1B__D_0__D_1__D_2__D_3, u_mnje_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, 32 );
+			  u_mnje_part0_1_part1B__D_0__D_1__D_2__D_3, u_mnje_part0_1_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
 			RepartitionDown
 			( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
 			  /**/ /**/
 			       t_fj_part1_1__D_0_1__D_2_3,
-			  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, 32 );
+			  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, blkSize );
 
 			   // u_mnje_part0_1_part1_1[D0,D1,D3,D2] <- u_mnje_part0_1_part1_1[D0,D1,D2,D3]
 			u_mnje_part0_1_part1_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_2_3, X_bmej_part1_1__D_0__D_1__D_2__D_3, modes_1_3_2 );
@@ -1031,12 +702,12 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 			( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
 			  /**/ /**/
 			       t_fj_part1_1__D_0_1__D_2_3,
-			  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, 32 );
+			  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, blkSize );
 			RepartitionDown
 			( X_bmej_part1_1_part3T__D_0__D_1__D_2__D_3,  X_bmej_part1_1_part3_0__D_0__D_1__D_2__D_3,
 			  /**/ /**/
 			       X_bmej_part1_1_part3_1__D_0__D_1__D_2__D_3,
-			  X_bmej_part1_1_part3B__D_0__D_1__D_2__D_3, X_bmej_part1_1_part3_2__D_0__D_1__D_2__D_3, 3, 32 );
+			  X_bmej_part1_1_part3B__D_0__D_1__D_2__D_3, X_bmej_part1_1_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
 
 			tempShape = X_bmej_part1_1_part3_1__D_0__D_1__D_2__D_3.Shape();
 			tempShape.push_back( g.Shape()[3] );
@@ -1088,9 +759,20 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 		  u_mnje_part0B__D_0__D_1__D_2__D_3, u_mnje_part0_2__D_0__D_1__D_2__D_3, 0 );
 
 	}
+	r_bmfe__D_0__D_1__D_2__D_3.EmptyData();
+	u_mnje__D_0__D_1__D_2__D_3.EmptyData();
+	t_fj__D_0_1__D_2_3.EmptyData();
+	r_bmfe__D_0__D_1__D_2__D_3.EmptyData();
+	t_fj__D_0_1__D_2_3.EmptyData();
+	u_mnje__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 
 
+r_bmfe__D_0__D_1__D_2__D_3.EmptyData();
+t_fj__D_0_1__D_2_3.EmptyData();
+u_mnje__D_0__D_1__D_2__D_3.EmptyData();
+v_femn__D_0__D_1__D_2__D_3.EmptyData();
+temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
 /*****************************************/
@@ -1103,6 +785,13 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 
     //****
 
+    double norm = 1.0;
+#ifdef CORRECTNESS
+    DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
+    Diff(check, X_bmej__D_0__D_1__D_2__D_3, diff);
+    norm = Norm(diff);
+#endif;
+
     //------------------------------------//
 
     //****
@@ -1112,6 +801,9 @@ MakeUniform( X_bmej__D_0__D_1__D_2__D_3 );
 
     //****
     if (commRank == 0) {
+#ifdef CORRECTNESS
+        std::cout << "NORM " << norm << std::endl;
+#endif
         std::cout << "RUNTIME " << runTime << std::endl;
         std::cout << "FLOPS " << flops << std::endl;
         std::cout << "GFLOPS " << gflops << std::endl;
@@ -1146,7 +838,7 @@ int main(int argc, char* argv[]) {
         //        }
 
         const Grid g(comm, args.gridShape);
-        DistTensorTest<double>(g, args.n_o, args.n_v, args.blkSize);
+        DistTensorTest<double>(g, args.n_o, args.n_v, args.blkSize, args.testIter);
 
     } catch (std::exception& e) {
         ReportException(e);

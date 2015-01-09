@@ -63,6 +63,13 @@ struct ScalData{
     std::vector<Unsigned> srcStrides;
 };
 
+struct DiffData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> dstStrides;
+};
+
 struct ElemScalData{
     ObjShape loopShape;
     std::vector<Unsigned> src1Strides;

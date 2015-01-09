@@ -467,10 +467,11 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 # Build the test drivers if necessary
 if(TMEN_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
-  set(TEST_TYPES core btas applications)
+  set(TEST_TYPES core btas applications ccsd)
 
   set(core_TESTS DistTensor Views Grids Woody Karen)
   set(btas_TESTS Level1 Contract)
+  set(ccsd_TESTS term_Tau term_W term_X term_Q term_H term_F term_G term_z_small term_Z)
   set(applications_TESTS BlockMP3DoublePartPerm MP3new MP3Newer)
 
   foreach(TYPE ${TEST_TYPES})

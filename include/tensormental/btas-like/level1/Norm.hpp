@@ -25,28 +25,54 @@ BASE(T) Norm(const Tensor<T>& A){
 #ifndef RELEASE
     CallStackEntry("Norm");
 #endif
-    Unsigned i;
-    Unsigned order = A.Order();
+    const std::vector<Unsigned> loopEnd = A.Shape();
+    const std::vector<Unsigned> srcBufStrides = A.Strides();
+    const T* srcBuf = A.LockedBuffer();
+    Unsigned srcBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    
     BASE(T) norm = 0;
-    const T* buf = A.LockedBuffer();
 
-    //Only do this if we are sure A is a scalar
-    if(order == 0){
-        norm += buf[0] * buf[0];
+    if(loopEnd.size() == 0){
+		norm += Sqrt(srcBuf[0] * srcBuf[0]);
+		return norm;
     }
-    //Otherwise, A could be 0 length so ignore the norm
-    else{
-        for(i = 0; i < prod(A.Shape()); i++){
-                norm += buf[i] * buf[i];
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    while(!done){
+
+        norm += srcBuf[srcBufPtr] * srcBuf[srcBufPtr];
+        
+        //Update
+        curLoc[ptr]++;
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                srcBufPtr += srcBufStrides[ptr];
+            }
         }
+        if(done)
+            break;
+        ptr = 0;
     }
-
     return Sqrt(norm);
 }
 
 ////////////////////////////////////
 // Global interfaces
 ////////////////////////////////////
+//TODO: Fix this.  Norm is not calculated correctly :(
 template<typename T>
 BASE(T) Norm(const DistTensor<T>& A){
 #ifndef RELEASE
