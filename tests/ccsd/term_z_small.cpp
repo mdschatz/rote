@@ -207,9 +207,6 @@ ModeArray modes_4_3_2;
 modes_4_3_2.push_back(4);
 modes_4_3_2.push_back(3);
 modes_4_3_2.push_back(2);
-IndexArray indices_ae( 2 );
-indices_ae[0] = 'a';
-indices_ae[1] = 'e';
 IndexArray indices_aefm( 4 );
 indices_aefm[0] = 'a';
 indices_aefm[1] = 'e';
@@ -239,9 +236,6 @@ indices_efmi[0] = 'e';
 indices_efmi[1] = 'f';
 indices_efmi[2] = 'm';
 indices_efmi[3] = 'i';
-IndexArray indices_ei( 2 );
-indices_ei[0] = 'e';
-indices_ei[1] = 'i';
 IndexArray indices_em( 2 );
 indices_em[0] = 'e';
 indices_em[1] = 'm';
@@ -430,20 +424,6 @@ DistTensor<double> U_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3( dist__D_1__D_0__D
 DistTensor<double> U_mnje_part1_1_part0_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//U_mnje_part1_2[D0,D1,D2,D3]
 DistTensor<double> U_mnje_part1_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
-	//f_ae[D01,D23]
-DistTensor<double> f_ae__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//f_ae_part1B[D01,D23]
-DistTensor<double> f_ae_part1B__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//f_ae_part1T[D01,D23]
-DistTensor<double> f_ae_part1T__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//f_ae_part1_0[D01,D23]
-DistTensor<double> f_ae_part1_0__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//f_ae_part1_1[D01,D23]
-DistTensor<double> f_ae_part1_1__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//f_ae_part1_1[D01,*]
-DistTensor<double> f_ae_part1_1__D_0_1__S( dist__D_0_1__S, g );
-	//f_ae_part1_2[D01,D23]
-DistTensor<double> f_ae_part1_2__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 	//r_bmfe[D0,D1,D2,D3]
 DistTensor<double> r_bmfe__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//r_bmfe_part0B[D0,D1,D2,D3]
@@ -480,18 +460,6 @@ DistTensor<double> t_fj_part1_0__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 DistTensor<double> t_fj_part1_1__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 	//t_fj_part1_1[*,*]
 DistTensor<double> t_fj_part1_1__S__S( dist__S__S, g );
-	//t_fj_part1_1_part0B[D01,D23]
-DistTensor<double> t_fj_part1_1_part0B__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//t_fj_part1_1_part0T[D01,D23]
-DistTensor<double> t_fj_part1_1_part0T__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//t_fj_part1_1_part0_0[D01,D23]
-DistTensor<double> t_fj_part1_1_part0_0__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//t_fj_part1_1_part0_1[D01,D23]
-DistTensor<double> t_fj_part1_1_part0_1__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-	//t_fj_part1_1_part0_1[*,D23]
-DistTensor<double> t_fj_part1_1_part0_1__S__D_2_3( dist__S__D_2_3, g );
-	//t_fj_part1_1_part0_2[D01,D23]
-DistTensor<double> t_fj_part1_1_part0_2__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 	//t_fj_part1_1[D01,*]
 DistTensor<double> t_fj_part1_1_perm10__S__D_0_1( dist__D_0_1__S, g );
 t_fj_part1_1_perm10__S__D_0_1.SetLocalPermutation( perm_1_0 );
@@ -699,20 +667,6 @@ DistTensor<double> z_ai_part1_1_perm10__D_2_3__D_0_1( dist__D_0_1__D_2_3, g );
 z_ai_part1_1_perm10__D_2_3__D_0_1.SetLocalPermutation( perm_1_0 );
 	//z_ai_part1_2[D01,D23]
 DistTensor<double> z_ai_part1_2__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
-// f_ae has 2 dims
-//	Starting distribution: [D01,D23] or _D_0_1__D_2_3
-ObjShape f_ae__D_0_1__D_2_3_tempShape;
-f_ae__D_0_1__D_2_3_tempShape.push_back( n_v );
-f_ae__D_0_1__D_2_3_tempShape.push_back( n_v );
-f_ae__D_0_1__D_2_3.ResizeTo( f_ae__D_0_1__D_2_3_tempShape );
-MakeUniform( f_ae__D_0_1__D_2_3 );
-// t_fj has 2 dims
-//	Starting distribution: [D01,D23] or _D_0_1__D_2_3
-ObjShape t_fj__D_0_1__D_2_3_tempShape;
-t_fj__D_0_1__D_2_3_tempShape.push_back( n_v );
-t_fj__D_0_1__D_2_3_tempShape.push_back( n_o );
-t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_tempShape );
-MakeUniform( t_fj__D_0_1__D_2_3 );
 // G_mi has 2 dims
 //	Starting distribution: [D01,D23] or _D_0_1__D_2_3
 ObjShape G_mi__D_0_1__D_2_3_tempShape;
@@ -720,6 +674,13 @@ G_mi__D_0_1__D_2_3_tempShape.push_back( n_o );
 G_mi__D_0_1__D_2_3_tempShape.push_back( n_o );
 G_mi__D_0_1__D_2_3.ResizeTo( G_mi__D_0_1__D_2_3_tempShape );
 MakeUniform( G_mi__D_0_1__D_2_3 );
+// t_fj has 2 dims
+//	Starting distribution: [D01,D23] or _D_0_1__D_2_3
+ObjShape t_fj__D_0_1__D_2_3_tempShape;
+t_fj__D_0_1__D_2_3_tempShape.push_back( n_v );
+t_fj__D_0_1__D_2_3_tempShape.push_back( n_o );
+t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_tempShape );
+MakeUniform( t_fj__D_0_1__D_2_3 );
 // U_mnje has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape U_mnje__D_0__D_1__D_2__D_3_tempShape;
@@ -806,8 +767,6 @@ std::stringstream fullName;
 #ifdef CORRECTNESS
 DistTensor<T> check(dist__D_0_1__D_2_3, g);
 check.ResizeTo(z_ai__D_0_1__D_2_3.Shape());
-//Read(f_ae__D_0_1__D_2_3, "ccsd_terms/term_f_small", BINARY_FLAT, false);
-MakeZeros(f_ae__D_0_1__D_2_3);
 Read(w_bmje__D_0__D_1__D_2__D_3, "ccsd_terms/term_w_small", BINARY_FLAT, false);
 Read(x_bmej__D_0__D_1__D_2__D_3, "ccsd_terms/term_x_small", BINARY_FLAT, false);
 Read(r_bmfe__D_0__D_1__D_2__D_3, "ccsd_terms/term_r_small", BINARY_FLAT, false);
@@ -837,7 +796,7 @@ fullName << "ccsd_terms/term_Tau_iter" << testIter;
 Read(Tau_efmn__D_0__D_1__D_2__D_3, fullName.str(), BINARY_FLAT, false);
 fullName.str("");
 fullName.clear();
-fullName << "ccsd_terms/term_z_small_iter" << testIter + 1;
+fullName << "ccsd_terms/term_z_small_iter" << testIter;
 Read(check, fullName.str(), BINARY_FLAT, false);
 #endif
 //******************************
@@ -1226,25 +1185,29 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	//**** Is real	0 shadows
 		//Outputs:
 		//  z_ai__D_0_1__D_2_3
+	PartitionDown(T_bfnj__D_0__D_1__D_2__D_3, T_bfnj_part2T__D_0__D_1__D_2__D_3, T_bfnj_part2B__D_0__D_1__D_2__D_3, 2, 0);
+	PartitionDown(T_bfnj__D_0__D_1__D_2__D_3, T_bfnj_part3T__D_0__D_1__D_2__D_3, T_bfnj_part3B__D_0__D_1__D_2__D_3, 3, 0);
 	PartitionDown(temp5__D_0__D_1__D_2__D_3, temp5_part2T__D_0__D_1__D_2__D_3, temp5_part2B__D_0__D_1__D_2__D_3, 2, 0);
-	PartitionDown(t_fj__D_0_1__D_2_3, t_fj_part1T__D_0_1__D_2_3, t_fj_part1B__D_0_1__D_2_3, 1, 0);
 	PartitionDown(G_mi__D_0_1__D_2_3, G_mi_part1T__D_0_1__D_2_3, G_mi_part1B__D_0_1__D_2_3, 1, 0);
 	PartitionDown(temp4__D_0__D_1__D_2__D_3, temp4_part2T__D_0__D_1__D_2__D_3, temp4_part2B__D_0__D_1__D_2__D_3, 2, 0);
 	PartitionDown(z_ai__D_0_1__D_2_3, z_ai_part1T__D_0_1__D_2_3, z_ai_part1B__D_0_1__D_2_3, 1, 0);
-	PartitionDown(T_bfnj__D_0__D_1__D_2__D_3, T_bfnj_part2T__D_0__D_1__D_2__D_3, T_bfnj_part2B__D_0__D_1__D_2__D_3, 2, 0);
-	PartitionDown(T_bfnj__D_0__D_1__D_2__D_3, T_bfnj_part3T__D_0__D_1__D_2__D_3, T_bfnj_part3B__D_0__D_1__D_2__D_3, 3, 0);
-	while(z_ai_part1T__D_0_1__D_2_3.Dimension(1) < z_ai__D_0_1__D_2_3.Dimension(1))
+	while(T_bfnj_part2T__D_0__D_1__D_2__D_3.Dimension(2) < T_bfnj__D_0__D_1__D_2__D_3.Dimension(2))
 	{
+		RepartitionDown
+		( T_bfnj_part2T__D_0__D_1__D_2__D_3,  T_bfnj_part2_0__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		       T_bfnj_part2_1__D_0__D_1__D_2__D_3,
+		  T_bfnj_part2B__D_0__D_1__D_2__D_3, T_bfnj_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
+		RepartitionDown
+		( T_bfnj_part3T__D_0__D_1__D_2__D_3,  T_bfnj_part3_0__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		       T_bfnj_part3_1__D_0__D_1__D_2__D_3,
+		  T_bfnj_part3B__D_0__D_1__D_2__D_3, T_bfnj_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
 		RepartitionDown
 		( temp5_part2T__D_0__D_1__D_2__D_3,  temp5_part2_0__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		       temp5_part2_1__D_0__D_1__D_2__D_3,
 		  temp5_part2B__D_0__D_1__D_2__D_3, temp5_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
-		RepartitionDown
-		( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
-		  /**/ /**/
-		       t_fj_part1_1__D_0_1__D_2_3,
-		  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1, blkSize );
 		RepartitionDown
 		( G_mi_part1T__D_0_1__D_2_3,  G_mi_part1_0__D_0_1__D_2_3,
 		  /**/ /**/
@@ -1260,31 +1223,16 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		  /**/ /**/
 		       z_ai_part1_1__D_0_1__D_2_3,
 		  z_ai_part1B__D_0_1__D_2_3, z_ai_part1_2__D_0_1__D_2_3, 1, blkSize );
-		RepartitionDown
-		( T_bfnj_part2T__D_0__D_1__D_2__D_3,  T_bfnj_part2_0__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		       T_bfnj_part2_1__D_0__D_1__D_2__D_3,
-		  T_bfnj_part2B__D_0__D_1__D_2__D_3, T_bfnj_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
-		RepartitionDown
-		( T_bfnj_part3T__D_0__D_1__D_2__D_3,  T_bfnj_part3_0__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		       T_bfnj_part3_1__D_0__D_1__D_2__D_3,
-		  T_bfnj_part3B__D_0__D_1__D_2__D_3, T_bfnj_part3_2__D_0__D_1__D_2__D_3, 3, blkSize );
 
 		//**** (out of 1)
 		//**** Is real	0 shadows
 			//Outputs:
 			//  z_ai_part1_1__D_0_1__D_2_3
-		PartitionDown(H_me__D_0_1__D_2_3, H_me_part0T__D_0_1__D_2_3, H_me_part0B__D_0_1__D_2_3, 0, 0);
 		PartitionDown(T_bfnj_part2_1__D_0__D_1__D_2__D_3, T_bfnj_part2_1_part3T__D_0__D_1__D_2__D_3, T_bfnj_part2_1_part3B__D_0__D_1__D_2__D_3, 3, 0);
 		PartitionDown(T_bfnj_part3_1__D_0__D_1__D_2__D_3, T_bfnj_part3_1_part2T__D_0__D_1__D_2__D_3, T_bfnj_part3_1_part2B__D_0__D_1__D_2__D_3, 2, 0);
-		while(H_me_part0T__D_0_1__D_2_3.Dimension(0) < H_me__D_0_1__D_2_3.Dimension(0))
+		PartitionDown(H_me__D_0_1__D_2_3, H_me_part0T__D_0_1__D_2_3, H_me_part0B__D_0_1__D_2_3, 0, 0);
+		while(T_bfnj_part2_1_part3T__D_0__D_1__D_2__D_3.Dimension(3) < T_bfnj_part2_1__D_0__D_1__D_2__D_3.Dimension(3))
 		{
-			RepartitionDown
-			( H_me_part0T__D_0_1__D_2_3,  H_me_part0_0__D_0_1__D_2_3,
-			  /**/ /**/
-			       H_me_part0_1__D_0_1__D_2_3,
-			  H_me_part0B__D_0_1__D_2_3, H_me_part0_2__D_0_1__D_2_3, 0, blkSize );
 			RepartitionDown
 			( T_bfnj_part2_1_part3T__D_0__D_1__D_2__D_3,  T_bfnj_part2_1_part3_0__D_0__D_1__D_2__D_3,
 			  /**/ /**/
@@ -1295,6 +1243,11 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 			  /**/ /**/
 			       T_bfnj_part3_1_part2_1__D_0__D_1__D_2__D_3,
 			  T_bfnj_part3_1_part2B__D_0__D_1__D_2__D_3, T_bfnj_part3_1_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
+			RepartitionDown
+			( H_me_part0T__D_0_1__D_2_3,  H_me_part0_0__D_0_1__D_2_3,
+			  /**/ /**/
+			       H_me_part0_1__D_0_1__D_2_3,
+			  H_me_part0B__D_0_1__D_2_3, H_me_part0_2__D_0_1__D_2_3, 0, blkSize );
 
 			   // T_bfnj_part3_1_part2_1[D0,D1,D3,D2] <- T_bfnj_part3_1_part2_1[D0,D1,D2,D3]
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
@@ -1321,11 +1274,6 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 			temp3_part2_1_part3_1__D_0_1__S__D_2__D_3.EmptyData();
 
 			SlidePartitionDown
-			( H_me_part0T__D_0_1__D_2_3,  H_me_part0_0__D_0_1__D_2_3,
-			       H_me_part0_1__D_0_1__D_2_3,
-			  /**/ /**/
-			  H_me_part0B__D_0_1__D_2_3, H_me_part0_2__D_0_1__D_2_3, 0 );
-			SlidePartitionDown
 			( T_bfnj_part2_1_part3T__D_0__D_1__D_2__D_3,  T_bfnj_part2_1_part3_0__D_0__D_1__D_2__D_3,
 			       T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3,
 			  /**/ /**/
@@ -1335,6 +1283,11 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 			       T_bfnj_part3_1_part2_1__D_0__D_1__D_2__D_3,
 			  /**/ /**/
 			  T_bfnj_part3_1_part2B__D_0__D_1__D_2__D_3, T_bfnj_part3_1_part2_2__D_0__D_1__D_2__D_3, 2 );
+			SlidePartitionDown
+			( H_me_part0T__D_0_1__D_2_3,  H_me_part0_0__D_0_1__D_2_3,
+			       H_me_part0_1__D_0_1__D_2_3,
+			  /**/ /**/
+			  H_me_part0B__D_0_1__D_2_3, H_me_part0_2__D_0_1__D_2_3, 0 );
 
 		}
 		//****
@@ -1489,77 +1442,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		//****
 		Permute( z_ai_part1_1_perm10__D_2_3__D_0_1, z_ai_part1_1__D_0_1__D_2_3 );
 		z_ai_part1_1_perm10__D_2_3__D_0_1.EmptyData();
-		//**** (out of 1)
-		//**** Is real	0 shadows
-			//Outputs:
-			//  z_ai_part1_1__D_0_1__D_2_3
-		PartitionDown(f_ae__D_0_1__D_2_3, f_ae_part1T__D_0_1__D_2_3, f_ae_part1B__D_0_1__D_2_3, 1, 0);
-		PartitionDown(t_fj_part1_1__D_0_1__D_2_3, t_fj_part1_1_part0T__D_0_1__D_2_3, t_fj_part1_1_part0B__D_0_1__D_2_3, 0, 0);
-		while(f_ae_part1T__D_0_1__D_2_3.Dimension(1) < f_ae__D_0_1__D_2_3.Dimension(1))
-		{
-			RepartitionDown
-			( f_ae_part1T__D_0_1__D_2_3,  f_ae_part1_0__D_0_1__D_2_3,
-			  /**/ /**/
-			       f_ae_part1_1__D_0_1__D_2_3,
-			  f_ae_part1B__D_0_1__D_2_3, f_ae_part1_2__D_0_1__D_2_3, 1, blkSize );
-			RepartitionDown
-			( t_fj_part1_1_part0T__D_0_1__D_2_3,  t_fj_part1_1_part0_0__D_0_1__D_2_3,
-			  /**/ /**/
-			       t_fj_part1_1_part0_1__D_0_1__D_2_3,
-			  t_fj_part1_1_part0B__D_0_1__D_2_3, t_fj_part1_1_part0_2__D_0_1__D_2_3, 0, blkSize );
 
-			   // f_ae_part1_1[D01,*] <- f_ae_part1_1[D01,D23]
-			f_ae_part1_1__D_0_1__S.AlignModesWith( modes_0, z_ai_part1_1__D_0_1__D_2_3, modes_0 );
-			f_ae_part1_1__D_0_1__S.AllGatherRedistFrom( f_ae_part1_1__D_0_1__D_2_3, modes_2_3 );
-			   // t_fj_part1_1_part0_1[*,D23] <- t_fj_part1_1_part0_1[D01,D23]
-			t_fj_part1_1_part0_1__S__D_2_3.AlignModesWith( modes_1, z_ai_part1_1__D_0_1__D_2_3, modes_1 );
-			t_fj_part1_1_part0_1__S__D_2_3.AllGatherRedistFrom( t_fj_part1_1_part0_1__D_0_1__D_2_3, modes_0_1 );
-			   // 1.0 * f_ae_part1_1[D01,*]_ae * t_fj_part1_1_part0_1[*,D23]_ei + 1.0 * z_ai_part1_1[D01,D23]_ai
-			LocalContractAndLocalEliminate(1.0, f_ae_part1_1__D_0_1__S.LockedTensor(), indices_ae, false,
-				t_fj_part1_1_part0_1__S__D_2_3.LockedTensor(), indices_ei, false,
-				1.0, z_ai_part1_1__D_0_1__D_2_3.Tensor(), indices_ai, false);
-			f_ae_part1_1__D_0_1__S.EmptyData();
-			t_fj_part1_1_part0_1__S__D_2_3.EmptyData();
-
-			SlidePartitionDown
-			( f_ae_part1T__D_0_1__D_2_3,  f_ae_part1_0__D_0_1__D_2_3,
-			       f_ae_part1_1__D_0_1__D_2_3,
-			  /**/ /**/
-			  f_ae_part1B__D_0_1__D_2_3, f_ae_part1_2__D_0_1__D_2_3, 1 );
-			SlidePartitionDown
-			( t_fj_part1_1_part0T__D_0_1__D_2_3,  t_fj_part1_1_part0_0__D_0_1__D_2_3,
-			       t_fj_part1_1_part0_1__D_0_1__D_2_3,
-			  /**/ /**/
-			  t_fj_part1_1_part0B__D_0_1__D_2_3, t_fj_part1_1_part0_2__D_0_1__D_2_3, 0 );
-
-		}
-		//****
-
-		SlidePartitionDown
-		( temp5_part2T__D_0__D_1__D_2__D_3,  temp5_part2_0__D_0__D_1__D_2__D_3,
-		       temp5_part2_1__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		  temp5_part2B__D_0__D_1__D_2__D_3, temp5_part2_2__D_0__D_1__D_2__D_3, 2 );
-		SlidePartitionDown
-		( t_fj_part1T__D_0_1__D_2_3,  t_fj_part1_0__D_0_1__D_2_3,
-		       t_fj_part1_1__D_0_1__D_2_3,
-		  /**/ /**/
-		  t_fj_part1B__D_0_1__D_2_3, t_fj_part1_2__D_0_1__D_2_3, 1 );
-		SlidePartitionDown
-		( z_ai_part1T__D_0_1__D_2_3,  z_ai_part1_0__D_0_1__D_2_3,
-		       z_ai_part1_1__D_0_1__D_2_3,
-		  /**/ /**/
-		  z_ai_part1B__D_0_1__D_2_3, z_ai_part1_2__D_0_1__D_2_3, 1 );
-		SlidePartitionDown
-		( G_mi_part1T__D_0_1__D_2_3,  G_mi_part1_0__D_0_1__D_2_3,
-		       G_mi_part1_1__D_0_1__D_2_3,
-		  /**/ /**/
-		  G_mi_part1B__D_0_1__D_2_3, G_mi_part1_2__D_0_1__D_2_3, 1 );
-		SlidePartitionDown
-		( temp4_part2T__D_0__D_1__D_2__D_3,  temp4_part2_0__D_0__D_1__D_2__D_3,
-		       temp4_part2_1__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		  temp4_part2B__D_0__D_1__D_2__D_3, temp4_part2_2__D_0__D_1__D_2__D_3, 2 );
 		SlidePartitionDown
 		( T_bfnj_part2T__D_0__D_1__D_2__D_3,  T_bfnj_part2_0__D_0__D_1__D_2__D_3,
 		       T_bfnj_part2_1__D_0__D_1__D_2__D_3,
@@ -1570,12 +1453,32 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		       T_bfnj_part3_1__D_0__D_1__D_2__D_3,
 		  /**/ /**/
 		  T_bfnj_part3B__D_0__D_1__D_2__D_3, T_bfnj_part3_2__D_0__D_1__D_2__D_3, 3 );
+		SlidePartitionDown
+		( temp5_part2T__D_0__D_1__D_2__D_3,  temp5_part2_0__D_0__D_1__D_2__D_3,
+		       temp5_part2_1__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		  temp5_part2B__D_0__D_1__D_2__D_3, temp5_part2_2__D_0__D_1__D_2__D_3, 2 );
+		SlidePartitionDown
+		( G_mi_part1T__D_0_1__D_2_3,  G_mi_part1_0__D_0_1__D_2_3,
+		       G_mi_part1_1__D_0_1__D_2_3,
+		  /**/ /**/
+		  G_mi_part1B__D_0_1__D_2_3, G_mi_part1_2__D_0_1__D_2_3, 1 );
+		SlidePartitionDown
+		( z_ai_part1T__D_0_1__D_2_3,  z_ai_part1_0__D_0_1__D_2_3,
+		       z_ai_part1_1__D_0_1__D_2_3,
+		  /**/ /**/
+		  z_ai_part1B__D_0_1__D_2_3, z_ai_part1_2__D_0_1__D_2_3, 1 );
+		SlidePartitionDown
+		( temp4_part2T__D_0__D_1__D_2__D_3,  temp4_part2_0__D_0__D_1__D_2__D_3,
+		       temp4_part2_1__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		  temp4_part2B__D_0__D_1__D_2__D_3, temp4_part2_2__D_0__D_1__D_2__D_3, 2 );
 
 	}
+	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
+	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 	temp5__D_0__D_1__D_2__D_3.EmptyData();
 	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
-	f_ae__D_0_1__D_2_3.EmptyData();
-	t_fj__D_0_1__D_2_3.EmptyData();
 	G_mi__D_0_1__D_2_3.EmptyData();
 	temp4__D_0__D_1__D_2__D_3.EmptyData();
 	t_fj__D_0_1__D_2_3.EmptyData();
@@ -1584,20 +1487,15 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 	temp5__D_0__D_1__D_2__D_3.EmptyData();
 	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
-	f_ae__D_0_1__D_2_3.EmptyData();
-	t_fj__D_0_1__D_2_3.EmptyData();
 	G_mi__D_0_1__D_2_3.EmptyData();
 	t_fj__D_0_1__D_2_3.EmptyData();
 	temp4__D_0__D_1__D_2__D_3.EmptyData();
 	H_me__D_0_1__D_2_3.EmptyData();
-	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
-	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 
 
-f_ae__D_0_1__D_2_3.EmptyData();
-t_fj__D_0_1__D_2_3.EmptyData();
 G_mi__D_0_1__D_2_3.EmptyData();
+t_fj__D_0_1__D_2_3.EmptyData();
 T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 U_mnje__D_0__D_1__D_2__D_3.EmptyData();
 temp5__D_0__D_1__D_2__D_3.EmptyData();
@@ -1622,10 +1520,11 @@ temp2__D_0__D_1__D_2__D_3.EmptyData();
 
     double norm = 1.0;
 #ifdef CORRECTNESS
-    DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
+    DistTensor<double> diff(dist__D_0_1__D_2_3, g);
+    diff.ResizeTo(check);
     Diff(check, z_ai__D_0_1__D_2_3, diff);
     norm = Norm(diff);
-#endif;
+#endif
 
     //------------------------------------//
 

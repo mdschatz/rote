@@ -233,7 +233,7 @@ fullName << "ccsd_terms/term_T_iter" << testIter;
 Read(T_bfnj__D_0__D_1__D_2__D_3, fullName.str(), BINARY_FLAT, false);
 fullName.str("");
 fullName.clear();
-fullName << "ccsd_terms/term_Tau_iter" << testIter + 1;
+fullName << "ccsd_terms/term_Tau_iter" << testIter;
 Read(check, fullName.str(), BINARY_FLAT, false);
 #endif
 //******************************
@@ -373,9 +373,10 @@ t_fj__D_0_1__D_2_3.EmptyData();
     double norm = 1.0;
 #ifdef CORRECTNESS
     DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
+    diff.ResizeTo(check);
     Diff(check, Tau_efmn__D_0__D_1__D_2__D_3, diff);
     norm = Norm(diff);
-#endif;
+#endif
 
     //------------------------------------//
 

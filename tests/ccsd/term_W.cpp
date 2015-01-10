@@ -802,7 +802,7 @@ fullName << "ccsd_terms/term_Tau_iter" << testIter;
 Read(Tau_efmn__D_0__D_1__D_2__D_3, fullName.str(), BINARY_FLAT, false);
 fullName.str("");
 fullName.clear();
-fullName << "ccsd_terms/term_W_iter" << testIter + 1;
+fullName << "ccsd_terms/term_W_iter" << testIter;
 Read(check, fullName.str(), BINARY_FLAT, false);
 #endif
 //******************************
@@ -1321,6 +1321,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	//****
 	Permute( W_bmje_perm3102__D_3__D_1__D_0__D_2, W_bmje__D_0__D_1__D_2__D_3 );
 	W_bmje_perm3102__D_3__D_1__D_0__D_2.EmptyData();
+	Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterv");
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -1418,6 +1419,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		}
 		//****
 		Permute( W_bmje_part1_1_perm1230__D_1__D_2__D_3__D_0, W_bmje_part1_1__D_0__D_1__D_2__D_3 );
+		Print(W_bmje__D_0__D_1__D_2__D_3, "Wafteru");
 		W_bmje_part1_1_perm1230__D_1__D_2__D_3__D_0.EmptyData();
 		//**** (out of 1)
 		//**** Is real	0 shadows
@@ -1538,9 +1540,11 @@ x_bmej__D_0__D_1__D_2__D_3.EmptyData();
     double norm = 1.0;
 #ifdef CORRECTNESS
     DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
+    Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterr");
+    diff.ResizeTo(check);
     Diff(check, W_bmje__D_0__D_1__D_2__D_3, diff);
     norm = Norm(diff);
-#endif;
+#endif
 
     //------------------------------------//
 

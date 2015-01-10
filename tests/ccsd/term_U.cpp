@@ -265,14 +265,14 @@ std::stringstream fullName;
 DistTensor<T> check(dist__D_0__D_1__D_2__D_3, g);
 check.ResizeTo(U_mnie__D_0__D_1__D_2__D_3.Shape());
 Read(v_femn__D_0__D_1__D_2__D_3, "ccsd_terms/term_v_small", BINARY_FLAT, false);
-Read(u_mnie__D_0__D_1__D_2__D_3, "ccsd_terms/term_u_small", BINARY_FLAT, false);
+Read(u_mnje__D_0__D_1__D_2__D_3, "ccsd_terms/term_u_small", BINARY_FLAT, false);
 fullName.str("");
 fullName.clear();
 fullName << "ccsd_terms/term_t_small_iter" << testIter;
 Read(t_fj__D_0_1__D_2_3, fullName.str(), BINARY_FLAT, false);
 fullName.str("");
 fullName.clear();
-fullName << "ccsd_terms/term_U_iter" << testIter + 1;
+fullName << "ccsd_terms/term_U_iter" << testIter;
 Read(check, fullName.str(), BINARY_FLAT, false);
 #endif
 //******************************
@@ -422,9 +422,10 @@ t_fj__D_0_1__D_2_3.EmptyData();
     double norm = 1.0;
 #ifdef CORRECTNESS
     DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
+    diff.ResizeTo(check);
     Diff(check, U_mnie__D_0__D_1__D_2__D_3, diff);
     norm = Norm(diff);
-#endif;
+#endif
 
     //------------------------------------//
 

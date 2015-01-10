@@ -247,7 +247,11 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
             packData.loopStarts = zeros;
             //ModeStrideFactor is global information, we need to permute it to match locally
-            packData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
+            packData.loopIncs = PermuteVector(modeStrideFactor, A.localPerm_);
+            //Test to fix bug
+            packData.loopShape = MaxLengths(packData.loopShape, packData.loopIncs);
+            for(j = 0; j < packData.loopIncs.size(); j++ )
+                packData.loopIncs[j] = 1;
 
 //            PrintPackData(packData, "a2aPackData");
             PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedProcLinLoc * nElemsPerProc]));
@@ -362,6 +366,10 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             unpackData.loopStarts = zeros;
             //ModeStrideFactor is global information, we need to permute it to match locally
             unpackData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
+            //Test to fix bug
+            unpackData.loopShape = MaxLengths(unpackData.loopShape, unpackData.loopIncs);
+            for(j = 0; j < unpackData.loopIncs.size(); j++ )
+                unpackData.loopIncs[j] = 1;
 
             PackCommHelper(unpackData, order - 1, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
         }

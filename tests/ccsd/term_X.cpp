@@ -480,7 +480,7 @@ fullName << "ccsd_terms/term_T_iter" << testIter;
 Read(T_bfnj__D_0__D_1__D_2__D_3, fullName.str(), BINARY_FLAT, false);
 fullName.str("");
 fullName.clear();
-fullName << "ccsd_terms/term_X_iter" << testIter + 1;
+fullName << "ccsd_terms/term_X_iter" << testIter;
 Read(check, fullName.str(), BINARY_FLAT, false);
 #endif
 //******************************
@@ -504,7 +504,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
     startTime = mpi::Time();
 
 
-	ZAxpBy( 1.0, Tau_efmn__D_0__D_1__D_2__D_3, -1.0, T_bfnj__D_0__D_1__D_2__D_3, temp1__D_0__D_1__D_2__D_3 );
+	ZAxpBy( 1.0, Tau_efmn__D_0__D_1__D_2__D_3, -0.5, T_bfnj__D_0__D_1__D_2__D_3, temp1__D_0__D_1__D_2__D_3 );
 	T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 	Tau_efmn__D_0__D_1__D_2__D_3.EmptyData();
 
@@ -517,6 +517,7 @@ T_bfnj__D_0__D_1__D_2__D_3.EmptyData();
 	X_bmej__D_0__D_1__D_2__D_3 = x_bmej__D_0__D_1__D_2__D_3;
 	x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 
+//	Print(X_bmej__D_0__D_1__D_2__D_3, "Xstart");
 
 x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 //****
@@ -574,6 +575,8 @@ x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 			temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.AlignModesWith( modes_0_3, X_bmej__D_0__D_1__D_2__D_3, modes_0_3 );
 			temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.AllGatherRedistFrom( temp1_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_1_2 );
 			   // -1.0 * v_femn_part0_1_part3_1[*,D2,D1,*]_emfn * temp1_part1_1_part2_1[D0,*,*,D3]_fnbj + 1.0 * X_bmej[D0,D1,D2,D3]_embj
+//			Print(temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3, "temp1 in");
+//			Print(v_femn_part0_1_part3_1_perm1203__D_2__D_1__S__S, "v in");
 			LocalContractAndLocalEliminate(-1.0, v_femn_part0_1_part3_1_perm1203__D_2__D_1__S__S.LockedTensor(), indices_emfn, false,
 				temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.LockedTensor(), indices_fnbj, false,
 				1.0, X_bmej_perm2103__D_2__D_1__D_0__D_3.Tensor(), indices_embj, false);
@@ -612,6 +615,7 @@ x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 	temp1__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 	Permute( X_bmej_perm2103__D_2__D_1__D_0__D_3, X_bmej__D_0__D_1__D_2__D_3 );
+//	Print(X_bmej__D_0__D_1__D_2__D_3, "Xafterv");
 	X_bmej_perm2103__D_2__D_1__D_0__D_3.EmptyData();
 	//**** (out of 1)
 	//**** Is real	0 shadows
@@ -788,9 +792,10 @@ temp1__D_0__D_1__D_2__D_3.EmptyData();
     double norm = 1.0;
 #ifdef CORRECTNESS
     DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
+    diff.ResizeTo(check);
     Diff(check, X_bmej__D_0__D_1__D_2__D_3, diff);
     norm = Norm(diff);
-#endif;
+#endif
 
     //------------------------------------//
 
