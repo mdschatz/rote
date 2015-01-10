@@ -1170,7 +1170,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 			   // x_bmej_part1_1_part3_1[D0,D1,D3,D2] <- x_bmej_part1_1_part3_1[D0,D1,D2,D3]
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( x_bmej_part1_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3 );
-			YAxpPx( 2.0, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, -0.5, x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3 );
+			YAxpPx( 2.0, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, -1.0, x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3 );
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -1214,9 +1214,9 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	w_bmje__D_0__D_1__D_2__D_3.EmptyData();
 	x_bmej__D_0__D_1__D_2__D_3.EmptyData();
 	//****
-	tempShape = W_bmje__D_0__D_1__D_2__D_3.Shape();
-	W_bmje_perm3102__D_3__D_1__D_0__D_2.ResizeTo( tempShape );
-	Scal( 0.0, W_bmje_perm3102__D_3__D_1__D_0__D_2 );
+//	Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterset");
+	Permute( W_bmje__D_0__D_1__D_2__D_3, W_bmje_perm3102__D_3__D_1__D_0__D_2 );
+
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -1320,8 +1320,8 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	temp1__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 	Permute( W_bmje_perm3102__D_3__D_1__D_0__D_2, W_bmje__D_0__D_1__D_2__D_3 );
+//	Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterv");
 	W_bmje_perm3102__D_3__D_1__D_0__D_2.EmptyData();
-	Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterv");
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -1419,7 +1419,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		}
 		//****
 		Permute( W_bmje_part1_1_perm1230__D_1__D_2__D_3__D_0, W_bmje_part1_1__D_0__D_1__D_2__D_3 );
-		Print(W_bmje__D_0__D_1__D_2__D_3, "Wafteru");
+//		Print(W_bmje__D_0__D_1__D_2__D_3, "Wafteru");
 		W_bmje_part1_1_perm1230__D_1__D_2__D_3__D_0.EmptyData();
 		//**** (out of 1)
 		//**** Is real	0 shadows
@@ -1513,6 +1513,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	u_mnje__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 
+//	Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterr");
 
 t_fj__D_0_1__D_2_3.EmptyData();
 r_bmfe__D_0__D_1__D_2__D_3.EmptyData();
@@ -1540,7 +1541,6 @@ x_bmej__D_0__D_1__D_2__D_3.EmptyData();
     double norm = 1.0;
 #ifdef CORRECTNESS
     DistTensor<double> diff(dist__D_0__D_1__D_2__D_3, g);
-    Print(W_bmje__D_0__D_1__D_2__D_3, "Wafterr");
     diff.ResizeTo(check);
     Diff(check, W_bmje__D_0__D_1__D_2__D_3, diff);
     norm = Norm(diff);

@@ -340,6 +340,15 @@ v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.SetLocalPermutation( perm_2_3_0_
 DistTensor<double> v_femn_part2_1_part3_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 	//v_femn_part2_2[D0,D1,D2,D3]
 DistTensor<double> v_femn_part2_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
+// q_mnij has 4 dims
+//	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
+ObjShape q_mnij__D_0__D_1__D_2__D_3_tempShape;
+q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
+q_mnij__D_0__D_1__D_2__D_3.ResizeTo( q_mnij__D_0__D_1__D_2__D_3_tempShape );
+MakeUniform( q_mnij__D_0__D_1__D_2__D_3 );
 // v_femn has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
 ObjShape v_femn__D_0__D_1__D_2__D_3_tempShape;
@@ -383,15 +392,6 @@ Q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
 Q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
 Q_mnij__D_0__D_1__D_2__D_3.ResizeTo( Q_mnij__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( Q_mnij__D_0__D_1__D_2__D_3 );
-// q_mnij has 4 dims
-//	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
-ObjShape q_mnij__D_0__D_1__D_2__D_3_tempShape;
-q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
-q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
-q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
-q_mnij__D_0__D_1__D_2__D_3_tempShape.push_back( n_o );
-q_mnij__D_0__D_1__D_2__D_3.ResizeTo( q_mnij__D_0__D_1__D_2__D_3_tempShape );
-MakeUniform( q_mnij__D_0__D_1__D_2__D_3 );
 tempShape = Q_mnij__D_0__D_1__D_2__D_3.Shape();
 temp1__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
 //**** (out of 1)
@@ -524,7 +524,6 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		  temp1_part0B__D_0__D_1__D_2__D_3, temp1_part0_2__D_0__D_1__D_2__D_3, 0 );
 
 	}
-	Print(temp1__D_0__D_1__D_2__D_3, "temp1");
 	u_mnje__D_0__D_1__D_2__D_3.EmptyData();
 	t_fj__D_0_1__D_2_3.EmptyData();
 	u_mnje__D_0__D_1__D_2__D_3.EmptyData();
@@ -613,7 +612,6 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 			  Q_mnij_part0_1_part2B__D_0__D_1__D_2__D_3, Q_mnij_part0_1_part2_2__D_0__D_1__D_2__D_3, 2 );
 
 		}
-		Print(Q_mnij__D_0__D_1__D_2__D_3, "Q after p");
 		//****
 		//**** (out of 1)
 		//**** Is real	0 shadows
@@ -686,7 +684,6 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 		  temp1_part1B__D_0__D_1__D_2__D_3, temp1_part1_2__D_0__D_1__D_2__D_3, 1 );
 
 	}
-	Print(Q_mnij__D_0__D_1__D_2__D_3, "Q after tau");
 	v_femn__D_0__D_1__D_2__D_3.EmptyData();
 	Tau_efmn__D_0__D_1__D_2__D_3.EmptyData();
 	temp1__D_0__D_1__D_2__D_3.EmptyData();
@@ -697,6 +694,7 @@ Read(check, fullName.str(), BINARY_FLAT, false);
 	temp1__D_0__D_1__D_2__D_3.EmptyData();
 	//****
 
+
 v_femn__D_0__D_1__D_2__D_3.EmptyData();
 Tau_efmn__D_0__D_1__D_2__D_3.EmptyData();
 u_mnje__D_0__D_1__D_2__D_3.EmptyData();
@@ -706,8 +704,8 @@ temp1__D_0__D_1__D_2__D_3.EmptyData();
 //**** (out of 1)
 
 	YAxpy( 1.0, q_mnij__D_0__D_1__D_2__D_3, Q_mnij__D_0__D_1__D_2__D_3 );
-
 	q_mnij__D_0__D_1__D_2__D_3.EmptyData();
+
 
 q_mnij__D_0__D_1__D_2__D_3.EmptyData();
 //****
