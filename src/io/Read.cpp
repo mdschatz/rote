@@ -45,10 +45,6 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
     Unsigned packedPtr = 0;
     Location packedShape(order, 0);
 
-    //Info about which process we should be packing.
-    Unsigned procPtr = 0;
-    Unsigned whichProc = 0;
-
     Location procLoc(order, 0);
     std::vector<Unsigned> nElemsPackedPerProc(prod(commGridViewShape), 0);
 
@@ -123,10 +119,6 @@ ReadAsciiSeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSha
     //Info about how much data we have packed that we possibly can pack (memory constraint)
     Unsigned packedPtr = 0;
     Location packedShape(order, 0);
-
-    //Info about which process we should be packing.
-    Unsigned procPtr = 0;
-    Unsigned whichProc = 0;
 
     Location procLoc(order, 0);
     std::vector<Unsigned> nElemsPackedPerProc(prod(commGridViewShape), 0);
@@ -292,7 +284,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         Unsigned order;
         file.read( (char*)&order, sizeof(Unsigned) );
         dataShape.resize(order);
-        Unsigned value;
+
         for(i = 0; i < order; i++)
             file.read( (char*)&(dataShape[i]), sizeof(Unsigned));
         A.ResizeTo(dataShape);
@@ -335,7 +327,6 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
 
     //Determine the tensor shape we will send to each process
     ObjShape sendShape = MaxLengths(packetShape, gvAShape);
-    Unsigned nElemsPerProc = prod(sendShape);
 
     T* auxBuf = new T[prod(sendShape) * (nCommProcs + 1)];
 //    T* auxBuf = A.auxMemory_.Require(prod(sendShape) * (nCommProcs + 1));
@@ -357,7 +348,6 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
     Location dataLoc(order, 0);
     Unsigned ptr = firstPartialPackMode;
 
-    Unsigned sendBufPtr = 0;
     std::vector<Unsigned> sendBufStrides = Dimensions2Strides(dataShape);
 
     //For the case that we're dealing with ASCII, read into a stringstream
@@ -457,7 +447,7 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
         file.read( (char*)&order, sizeof(Unsigned) );
 
         dataShape.resize(order);
-        Unsigned value;
+
         for(i = 0; i < order; i++)
             file.read( (char*)&(dataShape[i]), sizeof(Unsigned));
         A.ResizeTo(dataShape);
@@ -478,7 +468,6 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
     std::vector<Unsigned> dstBufStrides = A.LocalStrides();
     T* dstBuf = A.Buffer();
 
-    Unsigned startPtr;
     std::string line;
     std::stringstream dataStream;
     if(format == ASCII_MATLAB || format == ASCII){

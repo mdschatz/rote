@@ -60,7 +60,6 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
     const tmen::Grid& g = A.Grid();
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 

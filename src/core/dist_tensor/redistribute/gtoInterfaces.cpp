@@ -20,7 +20,6 @@ namespace tmen{
 template <typename T>
 void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes){
     PROFILE_SECTION("GTORedist");
-    Unsigned i;
     ResizeTo(A);
     ModeArray sortedCommModes = commModes;
     std::sort(sortedCommModes.begin(), sortedCommModes.end());

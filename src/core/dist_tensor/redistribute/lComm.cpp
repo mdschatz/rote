@@ -76,7 +76,6 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A)
 {
-    Unsigned i;
     Unsigned order = A.Order();
     T* dataBuf = Buffer();
     const T* srcBuf = A.LockedBuffer();

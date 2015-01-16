@@ -55,9 +55,9 @@ FileFormat DetectFormat( const std::string filename )
 
 std::ifstream::pos_type FileSize( std::ifstream& file )
 {
-    auto pos = file.tellg();
+    std::ifstream::streampos pos = file.tellg();
     file.seekg( 0, std::ifstream::end );
-    auto numBytes = file.tellg();
+    std::ifstream::streampos numBytes = file.tellg();
     file.seekg( pos );
     return numBytes;
 }

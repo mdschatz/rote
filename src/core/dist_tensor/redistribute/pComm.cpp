@@ -52,15 +52,38 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 //    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
 //            LogicError("PermutationRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
+    const tmen::Grid& g = A.Grid();
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+
+    //Ripped from AlignCommBufRedist
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
+
+    ModeArray misalignedModes;
+    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
+        if(firstOwnerB[i] != firstOwnerA[i]){
+            misalignedModes.insert(misalignedModes.end(), i);
+        }
+    }
+
+    ModeArray actualCommModes = misalignedModes;
+    for(Unsigned i = 0; i < commModes.size(); i++){
+        if(std::find(actualCommModes.begin(), actualCommModes.end(), commModes[i]) == actualCommModes.end()){
+            actualCommModes.insert(actualCommModes.end(), commModes[i]);
+        }
+    }
+    std::sort(actualCommModes.begin(), actualCommModes.end());
+
+//    PrintVector(actualCommModes, "actualCommModes");
+    mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
+
+    //Skip if we aren't participating
     if(!A.Participating())
         return;
 
     Unsigned sendSize, recvSize;
-
-    const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
 
     //Determine buffer sizes for communication
     //NOTE: Next line is example of clang not detecting dead code/unused var.
@@ -68,8 +91,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const ObjShape commDataShape = MaxLocalShape();
     recvSize = prod(commDataShape);
     sendSize = recvSize;
-
-    const int myRank = mpi::CommRank(comm);
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
@@ -101,10 +122,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 //    const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, sortedCommModes), FilterVector(g.Shape(), sortedCommModes));
 
     //Make sure we account for alignments
-    //Ripped from AlignCommBufRedist
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
+
 
 //    PrintVector(firstOwnerA, "firstOwnerA");
 //    PrintVector(firstOwnerB, "firstOwnerB");
@@ -114,24 +132,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
 //    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
 //    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
-
-    ModeArray misalignedModes;
-    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
-        if(firstOwnerB[i] != firstOwnerA[i]){
-            misalignedModes.insert(misalignedModes.end(), i);
-        }
-    }
-
-    ModeArray actualCommModes = misalignedModes;
-    for(Unsigned i = 0; i < commModes.size(); i++){
-        if(std::find(actualCommModes.begin(), actualCommModes.end(), commModes[i]) == actualCommModes.end()){
-            actualCommModes.insert(actualCommModes.end(), commModes[i]);
-        }
-    }
-    std::sort(actualCommModes.begin(), actualCommModes.end());
-
-//    PrintVector(actualCommModes, "actualCommModes");
-    mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
 
     Location alignedSendSliceLoc = FilterVector(alignedSendGridLoc, actualCommModes);
     Location alignedRecvSliceLoc = FilterVector(alignedRecvGridLoc, actualCommModes);
