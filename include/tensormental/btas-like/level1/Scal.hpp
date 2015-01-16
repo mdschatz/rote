@@ -76,8 +76,6 @@ Scal( T alpha, Tensor<T>& X )
 #ifndef RELEASE
     CallStackEntry entry("Scal");
 #endif
-
-    Unsigned order = X.Order();
     ScalData data;
     data.loopShape = X.Shape();
     data.srcStrides = X.Strides();

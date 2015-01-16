@@ -217,7 +217,6 @@ ZAxpBypPx( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, con
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBypPx");
 #endif
-    Unsigned order = Z.Order();
     ZAxpBypPxData data;
     data.loopShape = Z.Shape();
     data.src1Strides = PermuteVector(X.Strides(), permXToZ);

@@ -290,7 +290,6 @@ YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor
 #ifndef RELEASE
     CallStackEntry entry("YxpBy");
 #endif
-    Unsigned order = Y.Order();
     YAxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);

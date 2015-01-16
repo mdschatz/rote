@@ -92,8 +92,6 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
 #ifndef RELEASE
     CallStackEntry entry("YAxpPx");
 #endif
-    Unsigned order = X.Order();
-
     YAxpPxData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);

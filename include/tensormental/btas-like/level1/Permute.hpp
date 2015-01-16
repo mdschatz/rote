@@ -189,6 +189,7 @@ void PackCommHelper(const PackData& packData, const Mode packMode, T const * con
         newData.loopStarts = newzeros;
     }
 
+    PrintPackData(newData, "packData");
     PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
 
 //    PROFILE_STOP;

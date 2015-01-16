@@ -204,37 +204,7 @@ Zxpy( const Tensor<T>& X, const Tensor<T>& Y, Tensor<T>& Z )
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
-    Permutation perm = DefaultPermutation(X.Order());
-    Zxpy(X, perm, Y, perm, Z);
-}
-
-template<typename T>
-inline void
-Zxpy( const Tensor<T>& X, const Permutation& permXToZ, const Tensor<T>& Y, const Permutation& permYToZ, Tensor<T>& Z )
-{
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-#endif
-    Unsigned order = Z.Order();
-    ZAxpByData data;
-    data.loopShape = Z.Shape();
-    data.src1Strides = PermuteVector(X.Strides(), permXToZ);
-    data.src2Strides = PermuteVector(Y.Strides(), permYToZ);
-    data.dstStrides = Z.Strides();
-
-    const T* src1Buf = X.LockedBuffer();
-    const T* src2Buf = Y.LockedBuffer();
-    T* dstBuf = Z.Buffer();
-
-    if(order == 0){
-        dstBuf[0] = src1Buf[0] + src2Buf[0];
-    }else{
-#ifndef RELEASE
-        ZAxpByHelper(T(1), X, T(1), Y, order-1, src1Buf, src2Buf, dstBuf, data);
-#else
-        ZAxpBy_fast(T(1), T(1), src1Buf, src2Buf, dstBuf, data);
-#endif
-    }
+    ZAxpBy(T(1), X, T(1), Y, Z);
 }
 
 template<typename T>
@@ -244,37 +214,7 @@ ZAxpy( T alpha, const Tensor<T>& X, const Tensor<T>& Y, Tensor<T>& Z )
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
-    Permutation perm = DefaultPermutation(X.Order());
-    ZAxpy(alpha, X, perm, Y, perm, Z);
-}
-
-template<typename T>
-inline void
-ZAxpy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, const Tensor<T>& Y, const Permutation& permYToZ, Tensor<T>& Z )
-{
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-#endif
-    Unsigned order = Z.Order();
-    ZAxpByData data;
-    data.loopShape = Z.Shape();
-    data.src1Strides = PermuteVector(X.Strides(), permXToZ);
-    data.src2Strides = PermuteVector(Y.Strides(), permYToZ);
-    data.dstStrides = Z.Strides();
-
-    const T* src1Buf = X.LockedBuffer();
-    const T* src2Buf = Y.LockedBuffer();
-    T* dstBuf = Z.Buffer();
-
-    if(order == 0){
-        dstBuf[0] = alpha * src1Buf[0] + src2Buf[0];
-    }else{
-#ifndef RELEASE
-        ZAxpByHelper(alpha, X, T(1), Y, order-1, src1Buf, src2Buf, dstBuf, data);
-#else
-        ZAxpBy_fast(alpha, T(1), src1Buf, src2Buf, dstBuf, data);
-#endif
-    }
+    ZAxpBy(alpha, X, T(1), Y, Z);
 }
 
 template<typename T>
@@ -284,37 +224,7 @@ ZxpBy( const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
-    Permutation perm = DefaultPermutation(X.Order());
-    ZxpBy(X, perm, beta, Y, perm, Z);
-}
-
-template<typename T>
-inline void
-ZxpBy( const Tensor<T>& X, const Permutation& permXToZ, T beta, const Tensor<T>& Y, const Permutation& permYToZ, Tensor<T>& Z )
-{
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-#endif
-    Unsigned order = Z.Order();
-    ZAxpByData data;
-    data.loopShape = Z.Shape();
-    data.src1Strides = PermuteVector(X.Strides(), permXToZ);
-    data.src2Strides = PermuteVector(Y.Strides(), permYToZ);
-    data.dstStrides = Z.Strides();
-
-    const T* src1Buf = X.LockedBuffer();
-    const T* src2Buf = Y.LockedBuffer();
-    T* dstBuf = Z.Buffer();
-
-    if(order == 0){
-        dstBuf[0] = src1Buf[0] + beta * src2Buf[0];
-    }else{
-#ifndef RELEASE
-        ZAxpByHelper(T(1), X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
-#else
-        ZAxpBy_fast(T(1), beta, src1Buf, src2Buf, dstBuf, data);
-#endif
-    }
+    ZAxpBy(T(1), X, beta, Y, Z);
 }
 
 //NOTE: Place appropriate guards
@@ -336,7 +246,6 @@ ZAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const 
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
-    Unsigned order = Z.Order();
     ZAxpByData data;
     data.loopShape = Z.Shape();
     data.src1Strides = PermuteVector(X.Strides(), permXToZ);
@@ -347,15 +256,7 @@ ZAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const 
     const T* src2Buf = Y.LockedBuffer();
     T* dstBuf = Z.Buffer();
 
-    if(order == 0){
-        dstBuf[0] = alpha * src1Buf[0] + beta * src2Buf[0];
-    }else{
-#ifndef RELEASE
-        ZAxpByHelper(alpha, X, beta, Y, order-1, src1Buf, src2Buf, dstBuf, data);
-#else
-        ZAxpBy_fast(alpha, beta, src1Buf, src2Buf, dstBuf, data);
-#endif
-    }
+    ZAxpBy_fast(alpha, beta, src1Buf, src2Buf, dstBuf, data);
 }
 
 ////////////////////////////////////
@@ -366,45 +267,21 @@ template<typename T>
 inline void
 Zxpy( const DistTensor<T>& X, const DistTensor<T>& Y, DistTensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-    if( X.Grid() != Y.Grid() )
-        LogicError
-        ("X and Y must be distributed over the same grid");
-#endif
-    Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
-    Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
-    ZAxpBy(X.LockedTensor(), permXToZ, Y.LockedTensor(), permYToZ, Z.Tensor());
+    ZAxpBy(T(1), X, T(1), Y, Z);
 }
 
 template<typename T>
 inline void
 ZAxpy( T alpha, const DistTensor<T>& X, const DistTensor<T>& Y, DistTensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-    if( X.Grid() != Y.Grid() )
-        LogicError
-        ("X and Y must be distributed over the same grid");
-#endif
-    Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
-    Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
-    ZAxpy(alpha, X.LockedTensor(), permXToZ, Y.LockedTensor(), permYToZ, Z.Tensor());
+    ZAxpBy(alpha, X, T(1), Y, Z);
 }
 
 template<typename T>
 inline void
 ZxpBy( const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-    if( X.Grid() != Y.Grid() )
-        LogicError
-        ("X and Y must be distributed over the same grid");
-#endif
-    Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
-    Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
-    ZxpBy(X.LockedTensor(), permXToZ, beta, Y.LockedTensor(), permYToZ, Z.Tensor());
+    ZAxpBy(T(1), X, beta, Y, Z);
 }
 
 template<typename T>
