@@ -102,44 +102,6 @@ void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const 
 }
 
 template<typename T>
-void PackCommHelper_ref(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-#ifndef RELEASE
-    CallStackEntry cse("PackCommHelper_ref");
-#endif
-    Unsigned packSlice;
-    if(packData.loopShape.size() == 0){
-        dstBuf[0] = srcBuf[0];
-        return;
-    }
-
-    const Unsigned loopEnd = packData.loopShape[packMode];
-    const Unsigned dstBufStride = packData.dstBufStrides[packMode];
-    const Unsigned srcBufStride = packData.srcBufStrides[packMode];
-    const Unsigned loopStart = packData.loopStarts[packMode];
-    const Unsigned loopInc = packData.loopIncs[packMode];
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    if(packMode == 0){
-        if(dstBufStride == 1 && srcBufStride == 1){
-            MemCopy(&(dstBuf[0]), &(srcBuf[0]), loopEnd - loopStart);
-        }else{
-            for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                dstBufPtr += dstBufStride;
-                srcBufPtr += srcBufStride;
-            }
-        }
-    }else{
-        for(packSlice = loopStart; packSlice < loopEnd; packSlice += loopInc){
-            PackCommHelper(packData, packMode-1, &(srcBuf[srcBufPtr]), &(dstBuf[dstBufPtr]));
-            dstBufPtr += dstBufStride;
-            srcBufPtr += srcBufStride;
-        }
-    }
-}
-
-template<typename T>
 void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
 #ifndef RELEASE
     CallStackEntry cse("PackCommHelper");

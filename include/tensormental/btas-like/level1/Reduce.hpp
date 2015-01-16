@@ -22,36 +22,6 @@ namespace tmen{
 ////////////////////////////////////
 
 template <typename T>
-void LocalReduceHelper(const Unsigned mode, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
-//    std::cout << "before: " << dstBuf[0] << std::endl;
-    Unsigned i;
-    //NOTE: What about scalars?  (reduceShape.size() == 0)
-    if(reduceModes.size() != 0){
-        Mode reduceMode = reduceModes[mode];
-        Unsigned srcBufPtr = 0;
-
-        if(mode == 0){
-            if(srcStrides[reduceMode] == 1 && dstStrides[reduceMode] == 1){
-                for(i = 0; i < reduceShape[reduceMode]; i++){
-                    dstBuf[0] += srcBuf[i];
-                }
-            }else{
-                for(i = 0; i < reduceShape[reduceMode]; i++){
-                    dstBuf[0] += srcBuf[srcBufPtr];
-                    srcBufPtr += srcStrides[reduceMode];
-//                    std::cout << "incing by: " << srcStrides[reduceMode] << std::endl;
-                }
-            }
-        }else{
-            for(i = 0; i < reduceShape[reduceMode]; i++){
-                LocalReduceHelper(mode - 1, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[0]), dstStrides);
-                srcBufPtr += srcStrides[reduceMode];
-            }
-        }
-    }
-}
-
-template <typename T>
 void LocalReduce_fast(const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf){
     const std::vector<Unsigned> loopEnd = reduceShape;
 

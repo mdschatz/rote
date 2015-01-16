@@ -16,37 +16,6 @@ namespace tmen {
 // Workhorse routines
 ////////////////////////////////////
 
-//Add guards
-template<typename T>
-inline void
-ZAxpByHelper(T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Mode mode, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ZAxpByData& data ){
-    Unsigned i;
-    const Unsigned loopEnd = data.loopShape[mode];
-    const Unsigned src1Stride = data.src1Strides[mode];
-    const Unsigned src2Stride = data.src2Strides[mode];
-    const Unsigned dstStride = data.dstStrides[mode];
-    Unsigned src1BufPtr = 0;
-    Unsigned src2BufPtr = 0;
-    Unsigned dstBufPtr = 0;
-
-    if(mode == 0){
-        for(i = 0; i < loopEnd; i++){
-            dstBuf[dstBufPtr] = alpha * src1Buf[src1BufPtr] + beta*src2Buf[src2BufPtr];
-
-            src1BufPtr += src1Stride;
-            src2BufPtr += src2Stride;
-            dstBufPtr += dstStride;
-        }
-    }else{
-        for(i = 0; i < loopEnd; i++){
-            ZAxpByHelper(alpha, X, beta, Y, mode-1, &(src1Buf[src1BufPtr]), &(src2Buf[src2BufPtr]), &(dstBuf[dstBufPtr]), data);
-            src1BufPtr += src1Stride;
-            src2BufPtr += src2Stride;
-            dstBufPtr += dstStride;
-        }
-    }
-}
-
 template<typename T>
 inline void
 ZAxpBy_fast(T alpha, T beta, T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, const ZAxpByData& data ){

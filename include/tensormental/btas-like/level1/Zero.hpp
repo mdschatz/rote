@@ -17,27 +17,6 @@ namespace tmen {
 ////////////////////////////////////
 
 template<typename T>
-void ZeroHelper(Mode mode, const ObjShape& shape, const std::vector<Unsigned>& strides, T * const buf){
-    Unsigned i;
-    Unsigned bufPtr = 0;
-    if(mode == 0){
-        if(strides[mode] == 1)
-            MemZero(&(buf[bufPtr]), shape[mode]);
-        else{
-            for(i = 0; i < shape[mode]; i++){
-                buf[bufPtr] = 0;
-                bufPtr += strides[mode];
-            }
-        }
-    }else{
-        for(i = 0; i < shape[mode]; i++){
-            ZeroHelper(mode - 1, shape, strides, &(buf[bufPtr]));
-            bufPtr += strides[mode];
-        }
-    }
-}
-
-template<typename T>
 void Zero_fast(const ObjShape& shape, const std::vector<Unsigned>& strides, T * const buf){
     const std::vector<Unsigned> loopEnd = shape;
     const std::vector<Unsigned> bufStrides = strides;
