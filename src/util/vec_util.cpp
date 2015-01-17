@@ -282,6 +282,16 @@ std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<
 }
 
 template<typename T>
+T Min(const std::vector<T>& vec){
+    return *std::min_element(vec.begin(), vec.end());
+}
+
+template<typename T>
+T Max(const std::vector<T>& vec){
+    return *std::max_element(vec.begin(), vec.end());
+}
+
+template<typename T>
 Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
     if(ref.size() != vec.size())
         LogicError("reference vector and permuted vector are of different sizes");
@@ -335,6 +345,8 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template T Min(const std::vector<T>& vec); \
+	template T Max(const std::vector<T>& vec); \
     template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
 PROTO(Unsigned)

@@ -10,7 +10,7 @@
 #ifndef TMEN_IO_DECL_HPP
 #define TMEN_IO_DECL_HPP
 
-#define MAX_ELEM_PER_PROC 16
+#define MAX_ELEM_PER_PROC 100000
 
 #include "tensormental/core/tensor_forward_decl.hpp"
 #include "tensormental/core/environment_decl.hpp"

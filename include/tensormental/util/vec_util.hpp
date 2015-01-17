@@ -104,6 +104,12 @@ template<typename T>
 bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+T Min(const std::vector<T>& vec);
+
+template<typename T>
+T Max(const std::vector<T>& vec);
+
+template<typename T>
 std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
