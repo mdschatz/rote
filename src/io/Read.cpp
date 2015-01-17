@@ -54,8 +54,12 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
         T value;
         fileStream.read((char*)&value, sizeof(T));
         Location procGVLoc = A.DetermineOwner(gblDataLoc);
+
         Unsigned whichProc = GridViewLoc2ParticipatingLinearLoc(procGVLoc, A.GetGridView());
         sendBuf[whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]] = value;
+//        PrintVector(gblDataLoc, "packing gblDataLoc");
+//        printf("packing to loc: %d\n", whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]);
+
 
         //Update
         nElemsPackedPerProc[whichProc]++;
@@ -64,7 +68,7 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
 
         //Update the pack counter
         while (packedPtr < packShape.size() && packedShape[packedPtr] >= packShape[packedPtr]) {
-            packedShape[gblDataPtr] = 0;
+            packedShape[packedPtr] = 0;
 
             packedPtr++;
             //packShape[i] can only be either gblDataShape[i] or < gblDataShape[i]
@@ -77,18 +81,13 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
                 packedShape[packedPtr]++;
             }
         }
+//        PrintVector(packedShape, "packedShape after update");
+//        PrintVector(packShape, "Pack packShape after update");
         if (done)
             break;
 
         //Update the counters
         while (gblDataPtr < order && gblDataLoc[gblDataPtr] >= gblDataShape[gblDataPtr]) {
-            //packShape[i] can only be either gblDataShape[i] or < gblDataShape[i]
-            //if packShape[i] !=0 when resetting gblDataShape[i]
-            //we've run off the edge
-            if(gblDataPtr < packShape.size() && packedShape[gblDataPtr] != 0){
-                done = true;
-                break;
-            }
             gblDataLoc[gblDataPtr] = 0;
 
             gblDataPtr++;
@@ -99,6 +98,9 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
                 gblDataLoc[gblDataPtr]++;
             }
         }
+//        PrintVector(gblDataLoc, "gblDataLoc after update");
+//        PrintVector(gblDataShape, "gblDataShape");
+
         if (done)
             break;
         gblDataPtr = 0;
@@ -139,7 +141,7 @@ ReadAsciiSeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSha
 
         //Update the pack counter
         while (packedPtr < packShape.size() && packedShape[packedPtr] >= packShape[packedPtr]) {
-            packedShape[gblDataPtr] = 0;
+            packedShape[packedPtr] = 0;
 
             packedPtr++;
             //packShape[i] can only be either gblDataShape[i] or < gblDataShape[i]
@@ -157,13 +159,6 @@ ReadAsciiSeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSha
 
         //Update the counters
         while (gblDataPtr < order && gblDataLoc[gblDataPtr] >= gblDataShape[gblDataPtr]) {
-            //packShape[i] can only be either gblDataShape[i] or < gblDataShape[i]
-            //if packShape[i] !=0 when resetting gblDataShape[i]
-            //we've run off the edge
-            if(gblDataPtr < packShape.size() && packedShape[gblDataPtr] != 0){
-                done = true;
-                break;
-            }
             gblDataLoc[gblDataPtr] = 0;
 
             gblDataPtr++;
@@ -183,9 +178,9 @@ ReadAsciiSeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSha
 
 template<typename T>
 inline void
-ReadSeqUnpack(DistTensor<T>& A, const Location& firstGblLoc, const ObjShape& packetShape, const T* recvBuf){
+ReadSeqUnpack(DistTensor<T>& A, const Location& firstGblLoc, const ObjShape& recvShape, const T* recvBuf){
     //packetShape.size() always less than A.Order()
-    Unsigned order = packetShape.size();
+    Unsigned order = recvShape.size();
     Location firstLocalLocUnpack = A.Global2LocalIndex(firstGblLoc);
     //TODO:  Respect permutations...
     T* dstBuf = A.Buffer(firstLocalLocUnpack);
@@ -194,14 +189,14 @@ ReadSeqUnpack(DistTensor<T>& A, const Location& firstGblLoc, const ObjShape& pac
     Unsigned dstBufPtr = 0;
     std::vector<Unsigned> dstBufStrides = A.LocalStrides();
     Unsigned recvBufPtr = 0;
-    std::vector<Unsigned> recvBufStrides = Dimensions2Strides(packetShape);
+    std::vector<Unsigned> recvBufStrides = Dimensions2Strides(recvShape);
 
     Unsigned localUnpackPtr = 0;
     Unsigned recvPtr = 0;
     Location localUnpackLoc = firstLocalLocUnpack;
-    Location recvLoc(packetShape.size(), 0);
+    Location recvLoc(recvShape.size(), 0);
 
-    bool done = !(ElemwiseLessThan(localUnpackLoc, localShape) && ElemwiseLessThan(recvLoc, packetShape));
+    bool done = !(ElemwiseLessThan(localUnpackLoc, localShape) && ElemwiseLessThan(recvLoc, recvShape));
 
     //TODO: Detect "nice" strides and use MemCopy
     //NOTE: This is basically a copy of PackCommHelper routine
@@ -210,6 +205,8 @@ ReadSeqUnpack(DistTensor<T>& A, const Location& firstGblLoc, const ObjShape& pac
 
     while (!done) {
         dstBuf[dstBufPtr] = recvBuf[recvBufPtr];
+//        PrintVector(localUnpackLoc, "localUnpackLoc");
+//        PrintVector(recvLoc, "recvLoc");
         //Update
         localUnpackLoc[localUnpackPtr]++;
         recvLoc[recvPtr]++;
@@ -217,17 +214,17 @@ ReadSeqUnpack(DistTensor<T>& A, const Location& firstGblLoc, const ObjShape& pac
         dstBufPtr += dstBufStrides[0];
         recvBufPtr += recvBufStrides[0];
 
-        while (recvPtr < order && recvLoc[recvPtr] >= packetShape[recvPtr]) {
+        while (recvPtr < order && recvLoc[recvPtr] >= recvShape[recvPtr]) {
             recvLoc[recvPtr] = 0;
 
-            recvBufPtr -= recvBufStrides[recvPtr] * packetShape[recvPtr];
+            recvBufPtr -= recvBufStrides[recvPtr] * recvShape[recvPtr];
             recvPtr++;
             if (recvPtr >= order) {
                 done = true;
                 break;
             } else {
                 recvLoc[recvPtr]++;
-                recvBufPtr += recvBufStrides[localUnpackPtr];
+                recvBufPtr += recvBufStrides[recvPtr];
             }
         }
         if (done)
@@ -306,7 +303,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
     Unsigned readStride = 1;
     for(i = 0; i < order; i++){
         if(remainder < (A.Dimension(i) * readStride)){
-            packetShape[i] = Max(1, remainder);
+            packetShape[i] = Max(1, remainder / readStride);
         }
 
         if(remainder == 0 && firstPartialPackMode == order - 1){
@@ -321,12 +318,16 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         readStride *= packetShape[i];
     }
 
+//    PrintVector(gvA.ParticipatingShape(), "gvA.ParticipatingShape()");
+//    PrintVector(A.Shape(), "A.Shape()");
+//    PrintVector(packetShape, "packetShape");
     //Get the subset of processes involved in the communication
     ObjShape gvAShape = gvA.ParticipatingShape();
     Unsigned nCommProcs = prod(gvAShape);
 
     //Determine the tensor shape we will send to each process
     ObjShape sendShape = MaxLengths(packetShape, gvAShape);
+//    PrintVector(sendShape, "sendShape");
 
     T* auxBuf = new T[prod(sendShape) * (nCommProcs + 1)];
 //    T* auxBuf = A.auxMemory_.Require(prod(sendShape) * (nCommProcs + 1));
@@ -378,7 +379,15 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         }
 
         //Communicate the data
+//        ObjShape sendBufShape = sendShape;
+//        sendBufShape.push_back(nCommProcs);
+//        PrintArray(sendBuf, sendBufShape, "sendBuf");
+
+//        if(gvA.LinearRank() == 0)
+//            printf("scattering on read\n");
         mpi::Scatter(sendBuf, prod(sendShape), recvBuf, prod(sendShape), 0, comm);
+
+//        PrintArray(recvBuf, sendShape, "recvBuf");
 
         //Unpack it
         Location packLastLoc = dataLoc;
