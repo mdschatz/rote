@@ -78,7 +78,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         //Pack the data
         PROFILE_SECTION("A2APack");
-        PROFILE_FLOPS(prod(maxLocalShapeA));
+        PROFILE_MEMOPS(prod(maxLocalShapeA));
         PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
         PROFILE_STOP;
 
@@ -117,7 +117,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         //Unpack the data (if participating)
         PROFILE_SECTION("A2AUnpack");
-        PROFILE_FLOPS(prod(MaxLocalShape()));
+        PROFILE_MEMOPS(prod(MaxLocalShape()));
         UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
         PROFILE_STOP;
 

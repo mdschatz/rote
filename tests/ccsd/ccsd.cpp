@@ -2963,9 +2963,12 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			t_fj_part1_1__D_0_1__D_3.EmptyData();
 			Permute( Tau_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3, Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3 );
 			   // 1.0 * t_fj_part1_1[D0,D2]_em * t_fj_part1_1[D1,D3]_fn + 1.0 * Tau_efmn_part2_1_part3_1[D0,D1,D2,D3]_emfn
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.Shape())*1);
 			LocalContractAndLocalEliminate(1.0, t_fj_part1_1__D_0__D_2.LockedTensor(), indices_em, false,
 				t_fj_part1_1__D_1__D_3.LockedTensor(), indices_fn, false,
 				1.0, Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.Tensor(), indices_emfn, false);
+PROFILE_STOP;
 			t_fj_part1_1__D_0__D_2.EmptyData();
 			t_fj_part1_1__D_1__D_3.EmptyData();
 			Permute( Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3, Tau_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3 );
@@ -3044,7 +3047,10 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			   // r_bmfe_part0_1_part1_1[D0,D1,D3,D2] <- r_bmfe_part0_1_part1_1[D0,D1,D2,D3]
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( -1.0, r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, 2.0, r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_temp4_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -3127,7 +3133,10 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			   // v_femn_part3_1_part2_1[D0,D1,D3,D2] <- v_femn_part3_1_part2_1[D0,D1,D2,D3]
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( v_femn_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( -1.0, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, 2.0, v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_temp2_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -3232,7 +3241,10 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			   // T_bfnj_part3_1_part2_1[D0,D1,D3,D2] <- T_bfnj_part3_1_part2_1[D0,D1,D2,D3]
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( T_bfnj_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(4*prod(T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			ZAxpBypPx( 0.5, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, Tau_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3, T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -3335,7 +3347,10 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			   // x_bmej_part1_1_part3_1[D0,D1,D3,D2] <- x_bmej_part1_1_part3_1[D0,D1,D2,D3]
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( x_bmej_part1_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, -1.0, x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -3440,9 +3455,12 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			W_temp2_part0_1_part3_1_perm1203__D_3__D_1__S__S.AlignModesWith( modes_1_2, W_bmje__D_0__D_1__D_2__D_3, modes_3_1 );
 			W_temp2_part0_1_part3_1_perm1203__D_3__D_1__S__S.AllGatherRedistFrom( W_temp2_part0_1_part3_1__D_0__D_3__D_1_2__S, modes_0_2 );
 			   // 1.0 * W_temp2_part0_1_part3_1[*,D3,D1,*]_emfn * W_temp1_part1_1_part2_1[D0,*,*,D2]_fnbj + 1.0 * W_bmje[D0,D1,D2,D3]_embj
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(W_bmje_perm3102__D_3__D_1__D_0__D_2.Shape())*W_temp2_part0_1_part3_1_perm1203__D_3__D_1__S__S.Dimension(0)*W_temp2_part0_1_part3_1_perm1203__D_3__D_1__S__S.Dimension(3));
 			LocalContractAndLocalEliminate(1.0, W_temp2_part0_1_part3_1_perm1203__D_3__D_1__S__S.LockedTensor(), indices_emfn, false,
 				W_temp1_part1_1_part2_1_perm1203__S__S__D_0__D_2.LockedTensor(), indices_fnbj, false,
 				1.0, W_bmje_perm3102__D_3__D_1__D_0__D_2.Tensor(), indices_embj, false);
+PROFILE_STOP;
 			W_temp1_part1_1_part2_1_perm1203__S__S__D_0__D_2.EmptyData();
 			W_temp2_part0_1_part3_1_perm1203__D_3__D_1__S__S.EmptyData();
 			W_temp2_part0_1_part3_1__D_0__D_3__D_1_2__S.EmptyData();
@@ -3545,15 +3563,21 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			   // t_fj_part1_1[D0,*] <- t_fj_part1_1[D01,D23]
 			t_fj_part1_1_perm10__S__D_0.AlignModesWith( modes_0, W_bmje_part1_1__D_0__D_1__D_2__D_3, modes_0 );
 			t_fj_part1_1_perm10__S__D_0.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_1_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(u_mnje_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( -1.0, u_mnje_part0_1_part1_1__D_0__D_1__D_2__D_3, 2.0, u_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3, perm_1_0_2_3, W_temp3_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			u_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3.EmptyData();
 			   // W_temp3_part0_1_part1_1[D1,*,D2,D3] <- W_temp3_part0_1_part1_1[D0,D1,D2,D3]
 			W_temp3_part0_1_part1_1_perm0231__D_1__D_2__D_3__S.AlignModesWith( modes_0_2_3, W_bmje_part1_1__D_0__D_1__D_2__D_3, modes_1_2_3 );
 			W_temp3_part0_1_part1_1_perm0231__D_1__D_2__D_3__S.AllToAllRedistFrom( W_temp3_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1 );
 			   // -1.0 * W_temp3_part0_1_part1_1[D1,*,D2,D3]_mjen * t_fj_part1_1[D0,*]_nb + 1.0 * W_bmje_part1_1[D0,D1,D2,D3]_mjeb
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(W_bmje_part1_1_perm1230__D_1__D_2__D_3__D_0.Shape())*W_temp3_part0_1_part1_1_perm0231__D_1__D_2__D_3__S.Dimension(1));
 			LocalContractAndLocalEliminate(-1.0, W_temp3_part0_1_part1_1_perm0231__D_1__D_2__D_3__S.LockedTensor(), indices_mjen, false,
 				t_fj_part1_1_perm10__S__D_0.LockedTensor(), indices_nb, false,
 				1.0, W_bmje_part1_1_perm1230__D_1__D_2__D_3__D_0.Tensor(), indices_mjeb, false);
+PROFILE_STOP;
 			t_fj_part1_1_perm10__S__D_0.EmptyData();
 			W_temp3_part0_1_part1_1_perm0231__D_1__D_2__D_3__S.EmptyData();
 			W_temp3_part0_1_part1_1__D_0__D_1__D_2__D_3.EmptyData();
@@ -3609,18 +3633,27 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 			t_fj_part1_1__D_3__S.AlignModesWith( modes_0, W_temp4_part1_1__D_0__D_1__D_2__D_3, modes_3 );
 			t_fj_part1_1__D_3__S.AllGatherRedistFrom( t_fj_part1_1__D_3__D_2, modes_2 );
 			   // 1.0 * W_temp4_part1_1[D0,D1,D2,D3]_bmef * t_fj_part1_1[D3,*]_fj + 0.0 * W_bmje_part1_1_part2_1[D0,D1,*,D2,D3]_bmejf
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(W_bmje_part1_1_part2_1_perm01324__D_0__D_1__D_2__S__D_3.Shape())*W_temp4_part1_1__D_0__D_1__D_2__D_3.Dimension(3));
 			LocalContract(1.0, W_temp4_part1_1__D_0__D_1__D_2__D_3.LockedTensor(), indices_bmef, false,
 				t_fj_part1_1__D_3__S.LockedTensor(), indices_fj, false,
 				0.0, W_bmje_part1_1_part2_1_perm01324__D_0__D_1__D_2__S__D_3.Tensor(), indices_bmejf, false);
+PROFILE_STOP;
 			   // W_bmje_part1_1_part2_1_W_temp[D0,D1,*,D23] <- W_bmje_part1_1_part2_1[D0,D1,*,D2,D3] (with SumScatter on D3)
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(W_bmje_part1_1_part2_1_perm01324__D_0__D_1__D_2__S__D_3.Shape()));
 			W_bmje_part1_1_part2_1_W_temp__D_0__D_1__S__D_2_3.ReduceScatterRedistFrom( W_bmje_part1_1_part2_1_perm01324__D_0__D_1__D_2__S__D_3, 4 );
+PROFILE_STOP;
 			W_bmje_part1_1_part2_1_perm01324__D_0__D_1__D_2__S__D_3.EmptyData();
 			t_fj_part1_1__D_3__S.EmptyData();
 			t_fj_part1_1__D_3__D_2.EmptyData();
 			   // W_bmje_part1_1_part2_1_W_temp[D0,D1,D2,D3] <- W_bmje_part1_1_part2_1_W_temp[D0,D1,*,D23]
 			W_bmje_part1_1_part2_1_W_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, W_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			W_bmje_part1_1_part2_1_W_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( W_bmje_part1_1_part2_1_W_temp__D_0__D_1__S__D_2_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(W_bmje_part1_1_part2_1_W_temp__D_0__D_1__D_2__D_3.Shape()));
 			YxpBy( W_bmje_part1_1_part2_1_W_temp__D_0__D_1__D_2__D_3, 1.0, W_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			W_bmje_part1_1_part2_1_W_temp__D_0__D_1__D_2__D_3.EmptyData();
 			W_bmje_part1_1_part2_1_W_temp__D_0__D_1__S__D_2_3.EmptyData();
 
@@ -3733,9 +3766,12 @@ W_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			X_temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.AlignModesWith( modes_0_3, X_bmej__D_0__D_1__D_2__D_3, modes_0_3 );
 			X_temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.AllGatherRedistFrom( X_temp1_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_1_2 );
 			   // -1.0 * v_femn_part0_1_part3_1[*,D2,D1,*]_emfn * X_temp1_part1_1_part2_1[D0,*,*,D3]_fnbj + 1.0 * X_bmej[D0,D1,D2,D3]_embj
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(X_bmej_perm2103__D_2__D_1__D_0__D_3.Shape())*v_femn_part0_1_part3_1_perm1203__D_2__D_1__S__S.Dimension(0)*v_femn_part0_1_part3_1_perm1203__D_2__D_1__S__S.Dimension(3));
 			LocalContractAndLocalEliminate(-1.0, v_femn_part0_1_part3_1_perm1203__D_2__D_1__S__S.LockedTensor(), indices_emfn, false,
 				X_temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.LockedTensor(), indices_fnbj, false,
 				1.0, X_bmej_perm2103__D_2__D_1__D_0__D_3.Tensor(), indices_embj, false);
+PROFILE_STOP;
 			X_temp1_part1_1_part2_1_perm1203__S__S__D_0__D_3.EmptyData();
 			v_femn_part0_1_part3_1_perm1203__D_2__D_1__S__S.EmptyData();
 
@@ -3826,9 +3862,12 @@ W_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1_perm10__S__D_0.AlignModesWith( modes_0, X_bmej_part1_1__D_0__D_1__D_2__D_3, modes_0 );
 			t_fj_part1_1_perm10__S__D_0.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_1_2_3 );
 			   // -1.0 * u_mnje_part0_1_part1_1[D1,*,D3,D2]_mjen * t_fj_part1_1[D0,*]_nb + 1.0 * X_bmej_part1_1[D0,D1,D2,D3]_mjeb
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(X_bmej_part1_1_perm1320__D_1__D_3__D_2__D_0.Shape())*u_mnje_part0_1_part1_1_perm0231__D_1__D_3__D_2__S.Dimension(1));
 			LocalContractAndLocalEliminate(-1.0, u_mnje_part0_1_part1_1_perm0231__D_1__D_3__D_2__S.LockedTensor(), indices_mjen, false,
 				t_fj_part1_1_perm10__S__D_0.LockedTensor(), indices_nb, false,
 				1.0, X_bmej_part1_1_perm1320__D_1__D_3__D_2__D_0.Tensor(), indices_mjeb, false);
+PROFILE_STOP;
 			t_fj_part1_1_perm10__S__D_0.EmptyData();
 			u_mnje_part0_1_part1_1_perm0231__D_1__D_3__D_2__S.EmptyData();
 
@@ -3876,11 +3915,17 @@ W_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1__D_3__S.AlignModesWith( modes_0, r_bmfe_part1_1__D_0__D_1__D_2__D_3, modes_3 );
 			t_fj_part1_1__D_3__S.AllGatherRedistFrom( t_fj_part1_1__D_3__D_2, modes_2 );
 			   // 1.0 * r_bmfe_part1_1[D0,D1,D2,D3]_bmef * t_fj_part1_1[D3,*]_fj + 0.0 * X_bmej_part1_1_part3_1[D0,D1,D2,*,D3]_bmejf
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(X_bmej_part1_1_part3_1__D_0__D_1__D_2__S__D_3.Shape())*r_bmfe_part1_1__D_0__D_1__D_2__D_3.Dimension(3));
 			LocalContract(1.0, r_bmfe_part1_1__D_0__D_1__D_2__D_3.LockedTensor(), indices_bmef, false,
 				t_fj_part1_1__D_3__S.LockedTensor(), indices_fj, false,
 				0.0, X_bmej_part1_1_part3_1__D_0__D_1__D_2__S__D_3.Tensor(), indices_bmejf, false);
+PROFILE_STOP;
 			   // X_bmej_part1_1_part3_1[D0,D1,D2,D3] <- X_bmej_part1_1_part3_1[D0,D1,D2,*,D3] (with SumScatter on D3)
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(X_bmej_part1_1_part3_1__D_0__D_1__D_2__S__D_3.Shape()));
 			X_bmej_part1_1_part3_1__D_0__D_1__D_2__D_3.ReduceScatterUpdateRedistFrom( X_bmej_part1_1_part3_1__D_0__D_1__D_2__S__D_3, 1.0, 4 );
+PROFILE_STOP;
 			X_bmej_part1_1_part3_1__D_0__D_1__D_2__S__D_3.EmptyData();
 			t_fj_part1_1__D_3__S.EmptyData();
 			t_fj_part1_1__D_3__D_2.EmptyData();
@@ -3977,11 +4022,17 @@ X_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1__D_0__S.AlignModesWith( modes_0, v_femn_part3_1__D_0__D_1__D_2__D_3, modes_0 );
 			t_fj_part1_1__D_0__S.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_1_2_3 );
 			   // 1.0 * v_femn_part3_1[D0,D1,D2,D3]_emnf * t_fj_part1_1[D0,*]_fi + 0.0 * U_mnie_part1_1_part2_1[D2,D3,*,D1,D0]_emnif
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(U_mnie_part1_1_part2_1_perm30124__D_1__D_2__D_3__S__D_0.Shape())*v_femn_part3_1_perm1230__D_1__D_2__D_3__D_0.Dimension(0));
 			LocalContract(1.0, v_femn_part3_1_perm1230__D_1__D_2__D_3__D_0.LockedTensor(), indices_emnf, false,
 				t_fj_part1_1__D_0__S.LockedTensor(), indices_fi, false,
 				0.0, U_mnie_part1_1_part2_1_perm30124__D_1__D_2__D_3__S__D_0.Tensor(), indices_emnif, false);
+PROFILE_STOP;
 			   // U_mnie_part1_1_part2_1_U_temp[D20,D3,*,D1] <- U_mnie_part1_1_part2_1[D2,D3,*,D1,D0] (with SumScatter on D0)
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(U_mnie_part1_1_part2_1_perm30124__D_1__D_2__D_3__S__D_0.Shape()));
 			U_mnie_part1_1_part2_1_U_temp__D_2_0__D_3__S__D_1.ReduceScatterRedistFrom( U_mnie_part1_1_part2_1_perm30124__D_1__D_2__D_3__S__D_0, 4 );
+PROFILE_STOP;
 			U_mnie_part1_1_part2_1_perm30124__D_1__D_2__D_3__S__D_0.EmptyData();
 			t_fj_part1_1__D_0__S.EmptyData();
 			   // U_mnie_part1_1_part2_1_U_temp[D20,D1,*,D3] <- U_mnie_part1_1_part2_1_U_temp[D20,D3,*,D1]
@@ -3991,7 +4042,10 @@ X_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // U_mnie_part1_1_part2_1_U_temp[D0,D1,D2,D3] <- U_mnie_part1_1_part2_1_U_temp[D20,D1,*,D3]
 			U_mnie_part1_1_part2_1_U_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, U_mnie_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			U_mnie_part1_1_part2_1_U_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( U_mnie_part1_1_part2_1_U_temp__D_2_0__D_1__S__D_3, modes_0_2 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(U_mnie_part1_1_part2_1_U_temp__D_0__D_1__D_2__D_3.Shape()));
 			YxpBy( U_mnie_part1_1_part2_1_U_temp__D_0__D_1__D_2__D_3, 1.0, U_mnie_part1_1_part2_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			U_mnie_part1_1_part2_1_U_temp__D_0__D_1__D_2__D_3.EmptyData();
 			U_mnie_part1_1_part2_1_U_temp__D_2_0__D_1__S__D_3.EmptyData();
 
@@ -4077,9 +4131,12 @@ X_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj__S__D_3.AlignModesWith( modes_1, Q_temp1_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_3 );
 			t_fj__S__D_3.AllGatherRedistFrom( t_fj__D_0_1__D_3, modes_0_1 );
 			   // 1.0 * u_mnje_part0_1_part1_1[D0,D1,D2,*]_mnie * t_fj[*,D3]_ej + 0.0 * Q_temp1_part0_1_part1_1[D0,D1,D2,D3]_mnij
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Q_temp1_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape())*u_mnje_part0_1_part1_1__D_0__D_1__D_2__S.Dimension(3));
 			LocalContractAndLocalEliminate(1.0, u_mnje_part0_1_part1_1__D_0__D_1__D_2__S.LockedTensor(), indices_mnie, false,
 				t_fj__S__D_3.LockedTensor(), indices_ej, false,
 				0.0, Q_temp1_part0_1_part1_1__D_0__D_1__D_2__D_3.Tensor(), indices_mnij, false);
+PROFILE_STOP;
 			t_fj__S__D_3.EmptyData();
 			u_mnje_part0_1_part1_1__D_0__D_1__D_2__S.EmptyData();
 			t_fj__D_0_1__D_3.EmptyData();
@@ -4173,7 +4230,10 @@ X_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // Q_temp1_part1_1_part3_1[D1,D0,D3,D2] <- Q_temp1_part1_1_part3_1[D1,D0,D2,D3]
 			Q_temp1_part1_1_part3_1__D_1__D_0__D_3__D_2.AlignModesWith( modes_0_1_2_3, Q_temp1_part0_1_part2_1__D_0__D_1__D_2__D_3, modes_1_0_3_2 );
 			Q_temp1_part1_1_part3_1__D_1__D_0__D_3__D_2.AllToAllRedistFrom( Q_temp1_part1_1_part3_1__D_1__D_0__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(Q_temp1_part0_1_part2_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 1.0, Q_temp1_part0_1_part2_1__D_0__D_1__D_2__D_3, 1.0, Q_temp1_part1_1_part3_1__D_1__D_0__D_3__D_2, perm_1_0_3_2, Q_mnij_part0_1_part2_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			Q_temp1_part1_1_part3_1__D_1__D_0__D_3__D_2.EmptyData();
 			Q_temp1_part1_1_part3_1__D_1__D_0__D_2__D_3.EmptyData();
 
@@ -4222,11 +4282,17 @@ X_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AlignModesWith( modes_0_1, Tau_efmn__D_0__D_1__D_2__D_3, modes_0_1 );
 			v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AllGatherRedistFrom( v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3 );
 			   // 1.0 * v_femn_part2_1_part3_1[D0,D1,*,*]_mnef * Tau_efmn[D0,D1,D2,D3]_efij + 0.0 * Q_mnij_part0_1_part1_1[*,*,D2,D3,D0,D1]_mnijef
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Q_mnij_part0_1_part1_1__S__S__D_2__D_3__D_0__D_1.Shape())*v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.Dimension(0)*v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.Dimension(1));
 			LocalContract(1.0, v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.LockedTensor(), indices_mnef, false,
 				Tau_efmn__D_0__D_1__D_2__D_3.LockedTensor(), indices_efij, false,
 				0.0, Q_mnij_part0_1_part1_1__S__S__D_2__D_3__D_0__D_1.Tensor(), indices_mnijef, false);
+PROFILE_STOP;
 			   // Q_mnij_part0_1_part1_1[D0,D1,D2,D3] <- Q_mnij_part0_1_part1_1[*,*,D2,D3,D0,D1] (with SumScatter on (D0)(D1))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(Q_mnij_part0_1_part1_1__S__S__D_2__D_3__D_0__D_1.Shape()));
 			Q_mnij_part0_1_part1_1__D_0__D_1__D_2__D_3.ReduceScatterUpdateRedistFrom( Q_mnij_part0_1_part1_1__S__S__D_2__D_3__D_0__D_1, 1.0, modes_5_4 );
+PROFILE_STOP;
 			Q_mnij_part0_1_part1_1__S__S__D_2__D_3__D_0__D_1.EmptyData();
 			v_femn_part2_1_part3_1_perm2301__S__S__D_0__D_1.EmptyData();
 
@@ -4277,7 +4343,10 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 //**** (out of 1)
 
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(q_mnij__D_0__D_1__D_2__D_3.Shape()));
 	YAxpy( 1.0, q_mnij__D_0__D_1__D_2__D_3, Q_mnij__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 
 
 //****
@@ -4377,11 +4446,17 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1__D_2__S.AlignModesWith( modes_0, x_bmej_part3_1__D_0__D_1__D_2__D_3, modes_2 );
 			t_fj_part1_1__D_2__S.AllToAllRedistFrom( t_fj_part1_1__D_0_1__S, modes_0_1_2 );
 			   // 1.0 * x_bmej_part3_1[D0,D1,D2,D3]_bmej * t_fj_part1_1[D2,*]_ei + 0.0 * P_jimb_part0_1_part1_1[D3,*,D1,D0,D2]_jimbe
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(P_jimb_part0_1_part1_1__D_3__S__D_1__D_0__D_2.Shape())*x_bmej_part3_1__D_0__D_1__D_2__D_3.Dimension(2));
 			LocalContract(1.0, x_bmej_part3_1__D_0__D_1__D_2__D_3.LockedTensor(), indices_bmej, true,
 				t_fj_part1_1__D_2__S.LockedTensor(), indices_ei, true,
 				0.0, P_jimb_part0_1_part1_1__D_3__S__D_1__D_0__D_2.Tensor(), indices_jimbe, true);
+PROFILE_STOP;
 			   // P_jimb_part0_1_part1_1_P_temp[D3,*,D12,D0] <- P_jimb_part0_1_part1_1[D3,*,D1,D0,D2] (with SumScatter on D2)
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(P_jimb_part0_1_part1_1__D_3__S__D_1__D_0__D_2.Shape()));
 			P_jimb_part0_1_part1_1_P_temp__D_3__S__D_1_2__D_0.ReduceScatterRedistFrom( P_jimb_part0_1_part1_1__D_3__S__D_1__D_0__D_2, 4 );
+PROFILE_STOP;
 			P_jimb_part0_1_part1_1__D_3__S__D_1__D_0__D_2.EmptyData();
 			t_fj_part1_1__D_2__S.EmptyData();
 			t_fj_part1_1__D_0_1__S.EmptyData();
@@ -4392,15 +4467,21 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // P_jimb_part0_1_part1_1_P_temp[D0,D1,D2,D3] <- P_jimb_part0_1_part1_1_P_temp[D0,*,D12,D3]
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( P_jimb_part0_1_part1_1_P_temp__D_0__S__D_1_2__D_3, modes_1_2 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.Shape()));
 			YxpBy( P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3, 1.0, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			P_jimb_part0_1_part1_1_P_temp__D_0__S__D_1_2__D_3.EmptyData();
 			P_tempShape = P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape();
 			P_tempShape.push_back( g.Shape()[3] );
 			P_jimb_part0_1_part1_1__S__D_2__D_1__D_0__D_3.ResizeTo( P_tempShape );
 			   // 1.0 * w_bmje_part2_1[D0,D1,D2,D3]_bmie * t_fj_part1_1[D3,*]_ej + 0.0 * P_jimb_part0_1_part1_1[*,D2,D1,D0,D3]_jimbe
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(P_jimb_part0_1_part1_1__S__D_2__D_1__D_0__D_3.Shape())*w_bmje_part2_1__D_0__D_1__D_2__D_3.Dimension(3));
 			LocalContract(1.0, w_bmje_part2_1__D_0__D_1__D_2__D_3.LockedTensor(), indices_bmie, true,
 				t_fj_part1_1__D_3__S.LockedTensor(), indices_ej, true,
 				0.0, P_jimb_part0_1_part1_1__S__D_2__D_1__D_0__D_3.Tensor(), indices_jimbe, true);
+PROFILE_STOP;
 			t_fj_part1_1__D_3__S.EmptyData();
 			P_tempShape = P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape();
 			P_jimb_part0_1_part1_1_P_temp__S__D_2__D_1__D_0_3.ResizeTo( P_tempShape );
@@ -4409,7 +4490,10 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			Tau_efmn_part3_1_part2_1__D_2__D_3__S__S.AllGatherRedistFrom( Tau_efmn_part3_1_part2_1__D_2__D_3__D_0__D_1, modes_0_1 );
 			Tau_efmn_part3_1_part2_1__D_2__D_3__D_0__D_1.EmptyData();
 			   // P_jimb_part0_1_part1_1_P_temp[*,D2,D1,D03] <- P_jimb_part0_1_part1_1[*,D2,D1,D0,D3] (with SumScatter on D3)
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(P_jimb_part0_1_part1_1__S__D_2__D_1__D_0__D_3.Shape()));
 			P_jimb_part0_1_part1_1_P_temp__S__D_2__D_1__D_0_3.ReduceScatterRedistFrom( P_jimb_part0_1_part1_1__S__D_2__D_1__D_0__D_3, 4 );
+PROFILE_STOP;
 			P_jimb_part0_1_part1_1__S__D_2__D_1__D_0__D_3.EmptyData();
 			   // P_jimb_part0_1_part1_1_P_temp[*,D1,D2,D03] <- P_jimb_part0_1_part1_1_P_temp[*,D2,D1,D03]
 			P_jimb_part0_1_part1_1_P_temp__S__D_1__D_2__D_0_3.AlignModesWith( modes_0_1_2_3, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
@@ -4418,20 +4502,29 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // P_jimb_part0_1_part1_1_P_temp[D0,D1,D2,D3] <- P_jimb_part0_1_part1_1_P_temp[*,D1,D2,D03]
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( P_jimb_part0_1_part1_1_P_temp__S__D_1__D_2__D_0_3, modes_0_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.Shape()));
 			YxpBy( P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3, 1.0, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			P_tempShape = P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape();
 			P_tempShape.push_back( g.Shape()[2] );
 			P_tempShape.push_back( g.Shape()[3] );
 			P_jimb_part0_1_part1_1_perm321045__D_0__D_1__S__S__D_2__D_3.ResizeTo( P_tempShape );
 			   // 1.0 * r_bmfe[D0,D1,D2,D3]_bmef * Tau_efmn_part3_1_part2_1[D2,D3,*,*]_efij + 0.0 * P_jimb_part0_1_part1_1[*,*,D1,D0,D2,D3]_bmijef
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(P_jimb_part0_1_part1_1_perm321045__D_0__D_1__S__S__D_2__D_3.Shape())*r_bmfe__D_0__D_1__D_2__D_3.Dimension(2)*r_bmfe__D_0__D_1__D_2__D_3.Dimension(3));
 			LocalContract(1.0, r_bmfe__D_0__D_1__D_2__D_3.LockedTensor(), indices_bmef, false,
 				Tau_efmn_part3_1_part2_1__D_2__D_3__S__S.LockedTensor(), indices_efij, false,
 				0.0, P_jimb_part0_1_part1_1_perm321045__D_0__D_1__S__S__D_2__D_3.Tensor(), indices_bmijef, false);
+PROFILE_STOP;
 			Tau_efmn_part3_1_part2_1__D_2__D_3__S__S.EmptyData();
 			P_tempShape = P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape();
 			P_jimb_part0_1_part1_1_P_temp__S__S__D_1_2__D_0_3.ResizeTo( P_tempShape );
 			   // P_jimb_part0_1_part1_1_P_temp[*,*,D12,D03] <- P_jimb_part0_1_part1_1[*,*,D1,D0,D2,D3] (with SumScatter on (D2)(D3))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(P_jimb_part0_1_part1_1_perm321045__D_0__D_1__S__S__D_2__D_3.Shape()));
 			P_jimb_part0_1_part1_1_P_temp__S__S__D_1_2__D_0_3.ReduceScatterRedistFrom( P_jimb_part0_1_part1_1_perm321045__D_0__D_1__S__S__D_2__D_3, modes_5_4 );
+PROFILE_STOP;
 			P_jimb_part0_1_part1_1_perm321045__D_0__D_1__S__S__D_2__D_3.EmptyData();
 			   // P_jimb_part0_1_part1_1_P_temp[*,*,D21,D03] <- P_jimb_part0_1_part1_1_P_temp[*,*,D12,D03]
 			P_jimb_part0_1_part1_1_P_temp__S__S__D_2_1__D_0_3.AlignModesWith( modes_0_1_2_3, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
@@ -4444,7 +4537,10 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // P_jimb_part0_1_part1_1_P_temp[D0,D1,D2,D3] <- P_jimb_part0_1_part1_1_P_temp[*,D1,D2,D03]
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( P_jimb_part0_1_part1_1_P_temp__S__D_1__D_2__D_0_3, modes_0_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.Shape()));
 			YxpBy( P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3, 1.0, P_jimb_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			P_jimb_part0_1_part1_1_P_temp__D_0__D_1__D_2__D_3.EmptyData();
 			P_jimb_part0_1_part1_1_P_temp__S__D_1__D_2__D_0_3.EmptyData();
 
@@ -4500,7 +4596,10 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
 
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(H_me__D_0_1__D_2_3.Shape()));
 	Scal( 0.0, H_me__D_0_1__D_2_3 );
+PROFILE_STOP;
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -4554,7 +4653,10 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // v_femn_part3_1_part2_1[D0,D1,D3,D2] <- v_femn_part3_1_part2_1[D0,D1,D2,D3]
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( v_femn_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, H_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -4647,9 +4749,12 @@ Q_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			H_temp1_part3_1_part2_1__D_2_3__D_1__D_0__S.EmptyData();
 			Permute( H_me_part0_1__D_0_1__D_2_3, H_me_part0_1_perm10__D_2_3__D_0_1 );
 			   // 1.0 * H_temp1_part3_1_part2_1[D23,*,D01,*]_emfn * t_fj_part1_1[*,*]_fn + 1.0 * H_me_part0_1[D01,D23]_em
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(H_me_part0_1_perm10__D_2_3__D_0_1.Shape())*H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.Dimension(1)*H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.Dimension(3));
 			LocalContractAndLocalEliminate(1.0, H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.LockedTensor(), indices_emfn, false,
 				t_fj_part1_1__S__S.LockedTensor(), indices_fn, false,
 				1.0, H_me_part0_1_perm10__D_2_3__D_0_1.Tensor(), indices_em, false);
+PROFILE_STOP;
 			t_fj_part1_1__S__S.EmptyData();
 			H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.EmptyData();
 			Permute( H_me_part0_1_perm10__D_2_3__D_0_1, H_me_part0_1__D_0_1__D_2_3 );
@@ -4690,7 +4795,10 @@ H_temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
 
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(F_ae__D_0_1__D_2_3.Shape()));
 	Scal( 0.0, F_ae__D_0_1__D_2_3 );
+PROFILE_STOP;
 	F_tempShape = v_femn__D_0__D_1__D_2__D_3.Shape();
 	F_temp1__D_0__D_1__D_2__D_3.ResizeTo( F_tempShape );
 	//**** (out of 1)
@@ -4734,7 +4842,10 @@ H_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // r_bmfe_part0_1_part1_1[D0,D1,D3,D2] <- r_bmfe_part0_1_part1_1[D0,D1,D2,D3]
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, -1.0, r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, F_temp2_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -4835,18 +4946,27 @@ H_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // v_femn_part3_1_part2_1[D0,D1,D3,D2] <- v_femn_part3_1_part2_1[D0,D1,D2,D3]
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( v_femn_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, F_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 			   // F_temp1_part2_1_part3_1[*,D1,D2,D3] <- F_temp1_part2_1_part3_1[D0,D1,D2,D3]
 			F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.AlignModesWith( modes_1_2_3, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_1_2_3 );
 			F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.AllGatherRedistFrom( F_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0 );
 			Permute( T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, T_bfnj_part2_1_part3_1_perm1230__D_1__D_2__D_3__D_0 );
 			   // -1.0 * F_temp1_part2_1_part3_1[*,D1,D2,D3]_efmn * T_bfnj_part2_1_part3_1[D0,D1,D2,D3]_fmna + 0.0 * F_ae[D0,*,D1,D2,D3]_eafmn
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(F_ae_perm10234__S__D_0__D_1__D_2__D_3.Shape())*F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.Dimension(1)*F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.Dimension(2)*F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.Dimension(3));
 			LocalContract(-1.0, F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.LockedTensor(), indices_efmn, false,
 				T_bfnj_part2_1_part3_1_perm1230__D_1__D_2__D_3__D_0.LockedTensor(), indices_fmna, false,
 				0.0, F_ae_perm10234__S__D_0__D_1__D_2__D_3.Tensor(), indices_eafmn, false);
+PROFILE_STOP;
 			   // F_ae[D01,D23] <- F_ae[D0,*,D1,D2,D3] (with SumScatter on (D1)(D2)(D3))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(F_ae_perm10234__S__D_0__D_1__D_2__D_3.Shape()));
 			F_ae__D_0_1__D_2_3.ReduceScatterUpdateRedistFrom( F_ae_perm10234__S__D_0__D_1__D_2__D_3, 1.0, modes_4_3_2 );
+PROFILE_STOP;
 			F_ae_perm10234__S__D_0__D_1__D_2__D_3.EmptyData();
 			T_bfnj_part2_1_part3_1_perm1230__D_1__D_2__D_3__D_0.EmptyData();
 			F_temp1_part2_1_part3_1__S__D_1__D_2__D_3.EmptyData();
@@ -4948,9 +5068,12 @@ H_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // t_fj_part0_1_part1_1[*,*] <- t_fj_part0_1_part1_1[D01,D23]
 			t_fj_part0_1_part1_1_perm10__S__S.AllGatherRedistFrom( t_fj_part0_1_part1_1__D_0_1__D_2_3, modes_0_1_2_3 );
 			   // 1.0 * F_temp2_part3_1_part1_1[D01,*,D23,*]_aemf * t_fj_part0_1_part1_1[*,*]_mf + 1.0 * F_ae[D01,D23]_ae
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(F_ae__D_0_1__D_2_3.Shape())*F_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.Dimension(1)*F_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.Dimension(3));
 			LocalContractAndLocalEliminate(1.0, F_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.LockedTensor(), indices_aemf, false,
 				t_fj_part0_1_part1_1_perm10__S__S.LockedTensor(), indices_mf, false,
 				1.0, F_ae__D_0_1__D_2_3.Tensor(), indices_ae, false);
+PROFILE_STOP;
 			t_fj_part0_1_part1_1_perm10__S__S.EmptyData();
 			F_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.EmptyData();
 
@@ -5029,9 +5152,12 @@ H_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part0_1_part1_1_perm10__S__D_0_1.AlignModesWith( modes_0, F_ae_part0_1__D_0_1__D_2_3, modes_0 );
 			t_fj_part0_1_part1_1_perm10__S__D_0_1.AllGatherRedistFrom( t_fj_part0_1_part1_1__D_0_1__D_2_3, modes_2_3 );
 			   // -1.0 * H_me_part0_1[*,D23]_em * t_fj_part0_1_part1_1[D01,*]_ma + 1.0 * F_ae_part0_1[D01,D23]_ea
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(F_ae_part0_1_perm10__D_2_3__D_0_1.Shape())*H_me_part0_1_perm10__D_2_3__S.Dimension(0));
 			LocalContractAndLocalEliminate(-1.0, H_me_part0_1_perm10__D_2_3__S.LockedTensor(), indices_em, false,
 				t_fj_part0_1_part1_1_perm10__S__D_0_1.LockedTensor(), indices_ma, false,
 				1.0, F_ae_part0_1_perm10__D_2_3__D_0_1.Tensor(), indices_ea, false);
+PROFILE_STOP;
 			H_me_part0_1_perm10__D_2_3__S.EmptyData();
 			t_fj_part0_1_part1_1_perm10__S__D_0_1.EmptyData();
 
@@ -5070,7 +5196,10 @@ F_temp2__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
 
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(G_mi__D_0_1__D_2_3.Shape()));
 	Scal( 0.0, G_mi__D_0_1__D_2_3 );
+PROFILE_STOP;
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -5124,7 +5253,10 @@ F_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			   // u_mnje_part1_1_part0_1[D1,D0,D2,D3] <- u_mnje_part1_1_part0_1[D0,D1,D2,D3]
 			u_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3.AlignModesWith( modes_0_1_2_3, u_mnje_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_1_0_2_3 );
 			u_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3.AllToAllRedistFrom( u_mnje_part1_1_part0_1__D_0__D_1__D_2__D_3, modes_0_1 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(u_mnje_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, u_mnje_part0_1_part1_1__D_0__D_1__D_2__D_3, -1.0, u_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3, perm_1_0_2_3, G_temp2_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			u_mnje_part1_1_part0_1__D_1__D_0__D_2__D_3.EmptyData();
 
 			SlidePartitionDown
@@ -5217,7 +5349,10 @@ F_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			   // v_femn_part3_1_part2_1[D0,D1,D3,D2] <- v_femn_part3_1_part2_1[D0,D1,D2,D3]
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( v_femn_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, v_femn_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, G_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			v_femn_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -5305,11 +5440,17 @@ F_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.AlignModesWith( modes_0_1_3, T_bfnj_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3 );
 			G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.AllGatherRedistFrom( G_temp1_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2 );
 			   // 1.0 * G_temp1_part3_1_part2_1[D0,D1,*,D3]_mefn * T_bfnj_part3_1[D0,D1,D2,D3]_efni + 0.0 * G_mi_part0_1[*,D2,D0,D1,D3]_miefn
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(G_mi_part0_1__S__D_2__D_0__D_1__D_3.Shape())*G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.Dimension(1)*G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.Dimension(0)*G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.Dimension(3));
 			LocalContract(1.0, G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.LockedTensor(), indices_mefn, false,
 				T_bfnj_part3_1_perm0132__D_0__D_1__D_3__D_2.LockedTensor(), indices_efni, false,
 				0.0, G_mi_part0_1__S__D_2__D_0__D_1__D_3.Tensor(), indices_miefn, false);
+PROFILE_STOP;
 			   // G_mi_part0_1[D01,D23] <- G_mi_part0_1[*,D2,D0,D1,D3] (with SumScatter on (D0)(D1)(D3))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(G_mi_part0_1__S__D_2__D_0__D_1__D_3.Shape()));
 			G_mi_part0_1__D_0_1__D_2_3.ReduceScatterUpdateRedistFrom( G_mi_part0_1__S__D_2__D_0__D_1__D_3, 1.0, modes_4_3_2 );
+PROFILE_STOP;
 			G_mi_part0_1__S__D_2__D_0__D_1__D_3.EmptyData();
 			G_temp1_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.EmptyData();
 
@@ -5399,9 +5540,12 @@ F_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			G_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.AlignModesWith( modes_0_2, G_mi__D_0_1__D_2_3, modes_0_1 );
 			G_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.LocalRedistFrom( G_temp2_part3_1_part1_1__D_0__S__D_2_3__S );
 			   // 1.0 * G_temp2_part3_1_part1_1[D01,*,D23,*]_mine * t_fj_part0_1_part1_1[*,*]_ne + 1.0 * G_mi[D01,D23]_mi
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(G_mi__D_0_1__D_2_3.Shape())*G_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.Dimension(3)*G_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, G_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.LockedTensor(), indices_mine, false,
 				t_fj_part0_1_part1_1_perm10__S__S.LockedTensor(), indices_ne, false,
 				1.0, G_mi__D_0_1__D_2_3.Tensor(), indices_mi, false);
+PROFILE_STOP;
 			t_fj_part0_1_part1_1_perm10__S__S.EmptyData();
 			G_temp2_part3_1_part1_1_perm0213__D_0_1__D_2_3__S__S.EmptyData();
 			G_temp2_part3_1_part1_1__D_0__S__D_2_3__S.EmptyData();
@@ -5480,9 +5624,12 @@ F_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part0_1__S__D_2_3.AlignModesWith( modes_1, G_mi_part0_1__D_0_1__D_2_3, modes_1 );
 			t_fj_part0_1__S__D_2_3.AllGatherRedistFrom( t_fj_part0_1__D_0_1__D_2_3, modes_0_1 );
 			   // 1.0 * H_me_part0_1_part1_1[D01,*]_me * t_fj_part0_1[*,D23]_ei + 1.0 * G_mi_part0_1[D01,D23]_mi
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(G_mi_part0_1__D_0_1__D_2_3.Shape())*H_me_part0_1_part1_1__D_0_1__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, H_me_part0_1_part1_1__D_0_1__S.LockedTensor(), indices_me, false,
 				t_fj_part0_1__S__D_2_3.LockedTensor(), indices_ei, false,
 				1.0, G_mi_part0_1__D_0_1__D_2_3.Tensor(), indices_mi, false);
+PROFILE_STOP;
 			H_me_part0_1_part1_1__D_0_1__S.EmptyData();
 			t_fj_part0_1__S__D_2_3.EmptyData();
 
@@ -5520,7 +5667,10 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
 
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(z_ai__D_0_1__D_2_3.Shape()));
 	Scal( 0.0, z_ai__D_0_1__D_2_3 );
+PROFILE_STOP;
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -5574,7 +5724,10 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // U_mnie_part1_1_part0_1[D1,D0,D2,D3] <- U_mnie_part1_1_part0_1[D0,D1,D2,D3]
 			U_mnie_part1_1_part0_1__D_1__D_0__D_2__D_3.AlignModesWith( modes_0_1_2_3, U_mnie_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_1_0_2_3 );
 			U_mnie_part1_1_part0_1__D_1__D_0__D_2__D_3.AllToAllRedistFrom( U_mnie_part1_1_part0_1__D_0__D_1__D_2__D_3, modes_0_1 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(U_mnie_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, U_mnie_part0_1_part1_1__D_0__D_1__D_2__D_3, -1.0, U_mnie_part1_1_part0_1__D_1__D_0__D_2__D_3, perm_1_0_2_3, z_small_temp5_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			U_mnie_part1_1_part0_1__D_1__D_0__D_2__D_3.EmptyData();
 
 			SlidePartitionDown
@@ -5671,7 +5824,10 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // x_bmej_part1_1_part3_1[D0,D1,D3,D2] <- x_bmej_part1_1_part3_1[D0,D1,D2,D3]
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( x_bmej_part1_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, w_bmje_part1_1_part2_1__D_0__D_1__D_2__D_3, -1.0, x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, z_small_temp4_part1_1_part2_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			x_bmej_part1_1_part3_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -5752,7 +5908,10 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			   // r_bmfe_part0_1_part1_1[D0,D1,D3,D2] <- r_bmfe_part0_1_part1_1[D0,D1,D2,D3]
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, r_bmfe_part0_1_part1_1__D_0__D_1__D_2__D_3, -1.0, r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, z_small_temp2_part0_1_part1_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			r_bmfe_part0_1_part1_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -5833,11 +5992,17 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			Tau_efmn_part3_1_part2_1_perm0132__D_2__D_3__D_1__S.AlignModesWith( modes_0_1_3, z_small_temp2_part1_1__D_0__D_1__D_2__D_3, modes_2_3_1 );
 			Tau_efmn_part3_1_part2_1_perm0132__D_2__D_3__D_1__S.AllToAllRedistFrom( Tau_efmn_part3_1_part2_1__D_0__D_3__D_2__D_1, modes_0_2 );
 			   // 1.0 * z_small_temp2_part1_1[D0,D1,D2,D3]_aefm * Tau_efmn_part3_1_part2_1[D2,D3,*,D1]_efmi + 0.0 * z_ai_part1_1[D0,*,D2,D3,D1]_aiefm
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(z_ai_part1_1__D_0__S__D_2__D_3__D_1.Shape())*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(2)*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(1)*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(3));
 			LocalContract(1.0, z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.LockedTensor(), indices_aefm, false,
 				Tau_efmn_part3_1_part2_1_perm0132__D_2__D_3__D_1__S.LockedTensor(), indices_efmi, false,
 				0.0, z_ai_part1_1__D_0__S__D_2__D_3__D_1.Tensor(), indices_aiefm, false);
+PROFILE_STOP;
 			   // z_ai_part1_1[D01,D23] <- z_ai_part1_1[D0,*,D2,D3,D1] (with SumScatter on (D2)(D3)(D1))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(z_ai_part1_1__D_0__S__D_2__D_3__D_1.Shape()));
 			z_ai_part1_1__D_0_1__D_2_3.ReduceScatterUpdateRedistFrom( z_ai_part1_1__D_0__S__D_2__D_3__D_1, 1.0, modes_4_3_2 );
+PROFILE_STOP;
 			z_ai_part1_1__D_0__S__D_2__D_3__D_1.EmptyData();
 			Tau_efmn_part3_1_part2_1_perm0132__D_2__D_3__D_1__S.EmptyData();
 			Tau_efmn_part3_1_part2_1__D_0__D_3__D_2__D_1.EmptyData();
@@ -5948,7 +6113,10 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			H_me_part0_1__S__S.AllGatherRedistFrom( H_me_part0_1__D_0_1__D_2_3, modes_0_1_2_3 );
 			z_small_tempShape = T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape();
 			z_small_temp3_part2_1_part3_1__D_0__D_1__D_2__D_3.ResizeTo( z_small_tempShape );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, z_small_temp3_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 			   // z_small_temp3_part2_1_part3_1[D01,*,D2,D3] <- z_small_temp3_part2_1_part3_1[D0,D1,D2,D3]
 			z_small_temp3_part2_1_part3_1__D_0_1__S__D_2__D_3.AlignModesWith( modes_0_2, z_ai_part1_1__D_0_1__D_2_3, modes_0_1 );
@@ -5958,9 +6126,12 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.AlignModesWith( modes_0_2, z_ai_part1_1__D_0_1__D_2_3, modes_0_1 );
 			z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.AllToAllRedistFrom( z_small_temp3_part2_1_part3_1__D_0_1__S__D_2__D_3, modes_3 );
 			   // 1.0 * z_small_temp3_part2_1_part3_1[D01,*,D23,*]_aime * H_me_part0_1[*,*]_me + 1.0 * z_ai_part1_1[D01,D23]_ai
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(z_ai_part1_1__D_0_1__D_2_3.Shape())*z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.Dimension(3)*z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.LockedTensor(), indices_aime, false,
 				H_me_part0_1__S__S.LockedTensor(), indices_me, false,
 				1.0, z_ai_part1_1__D_0_1__D_2_3.Tensor(), indices_ai, false);
+PROFILE_STOP;
 			H_me_part0_1__S__S.EmptyData();
 			z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.EmptyData();
 			z_small_temp3_part2_1_part3_1__D_0_1__S__D_2__D_3.EmptyData();
@@ -6011,9 +6182,12 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.AlignModesWith( modes_0_2, z_ai_part1_1__D_0_1__D_2_3, modes_0_1 );
 			z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.AllToAllRedistFrom( z_small_temp4_part2_1_part1_1__D_0_1__S__D_2__D_3, modes_3 );
 			   // 1.0 * z_small_temp4_part2_1_part1_1[D01,*,D23,*]_aiem * t_fj_part1_1[*,*]_em + 1.0 * z_ai_part1_1[D01,D23]_ai
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(z_ai_part1_1__D_0_1__D_2_3.Shape())*z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.Dimension(3)*z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.LockedTensor(), indices_aiem, false,
 				t_fj_part1_1__S__S.LockedTensor(), indices_em, false,
 				1.0, z_ai_part1_1__D_0_1__D_2_3.Tensor(), indices_ai, false);
+PROFILE_STOP;
 			t_fj_part1_1__S__S.EmptyData();
 			z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.EmptyData();
 			z_small_temp4_part2_1_part1_1__D_0_1__S__D_2__D_3.EmptyData();
@@ -6064,11 +6238,17 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			z_small_temp5_part2_1_part0_1__D_0__D_3__D_2__D_1.EmptyData();
 			Permute( T_bfnj_part2_1__D_0__D_1__D_2__D_3, T_bfnj_part2_1_perm2310__D_2__D_3__D_1__D_0 );
 			   // -1.0 * z_small_temp5_part2_1_part0_1[D2,D3,*,D1]_imne * T_bfnj_part2_1[D0,D1,D2,D3]_mnea + 0.0 * z_ai_part1_1[D0,*,D1,D2,D3]_iamne
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.Shape())*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(0)*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(3)*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(1));
 			LocalContract(-1.0, z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.LockedTensor(), indices_imne, false,
 				T_bfnj_part2_1_perm2310__D_2__D_3__D_1__D_0.LockedTensor(), indices_mnea, false,
 				0.0, z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.Tensor(), indices_iamne, false);
+PROFILE_STOP;
 			   // z_ai_part1_1[D01,D23] <- z_ai_part1_1[D0,*,D1,D2,D3] (with SumScatter on (D1)(D2)(D3))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.Shape()));
 			z_ai_part1_1__D_0_1__D_2_3.ReduceScatterUpdateRedistFrom( z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1, 1.0, modes_4_3_2 );
+PROFILE_STOP;
 			z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.EmptyData();
 			T_bfnj_part2_1_perm2310__D_2__D_3__D_1__D_0.EmptyData();
 			z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.EmptyData();
@@ -6113,9 +6293,12 @@ G_temp1__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1_perm10__S__D_0_1.AlignModesWith( modes_0, z_ai_part1_1__D_0_1__D_2_3, modes_0 );
 			t_fj_part1_1_perm10__S__D_0_1.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_2_3 );
 			   // -1.0 * G_mi_part1_1_part0_1[*,D23]_im * t_fj_part1_1[D01,*]_ma + 1.0 * z_ai_part1_1[D01,D23]_ia
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(z_ai_part1_1_perm10__D_2_3__D_0_1.Shape())*G_mi_part1_1_part0_1_perm10__D_2_3__S.Dimension(0));
 			LocalContractAndLocalEliminate(-1.0, G_mi_part1_1_part0_1_perm10__D_2_3__S.LockedTensor(), indices_im, false,
 				t_fj_part1_1_perm10__S__D_0_1.LockedTensor(), indices_ma, false,
 				1.0, z_ai_part1_1_perm10__D_2_3__D_0_1.Tensor(), indices_ia, false);
+PROFILE_STOP;
 			G_mi_part1_1_part0_1_perm10__D_2_3__S.EmptyData();
 			t_fj_part1_1_perm10__S__D_0_1.EmptyData();
 
@@ -6183,7 +6366,10 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 
 	Z_tempShape = Z_temp1__D_0__D_1__D_2__D_3.Shape();
 	Z_temp1_perm1302__D_1__D_3__D_0__D_2.ResizeTo( Z_tempShape );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Z_temp1_perm1302__D_1__D_3__D_0__D_2.Shape()));
 	Scal( 0.0, Z_temp1_perm1302__D_1__D_3__D_0__D_2 );
+PROFILE_STOP;
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -6237,7 +6423,10 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			   // T_bfnj_part3_1_part2_1[D0,D1,D3,D2] <- T_bfnj_part3_1_part2_1[D0,D1,D2,D3]
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( T_bfnj_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, Z_temp2_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -6329,9 +6518,12 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			T_bfnj_part1_1_part2_1_perm2103__S__S__D_0__D_2.AlignModesWith( modes_0_3, Z_temp1__D_0__D_1__D_2__D_3, modes_0_2 );
 			T_bfnj_part1_1_part2_1_perm2103__S__S__D_0__D_2.AllGatherRedistFrom( T_bfnj_part1_1_part2_1__D_0__D_1__D_3__D_2, modes_1_3 );
 			   // 1.0 * X_bmej_part2_1_part1_1[D1,*,*,D3]_bjme * T_bfnj_part1_1_part2_1[D0,*,*,D2]_meai + 1.0 * Z_temp1[D0,D1,D2,D3]_bjai
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Z_temp1_perm1302__D_1__D_3__D_0__D_2.Shape())*X_bmej_part2_1_part1_1_perm0312__D_1__D_3__S__S.Dimension(1)*X_bmej_part2_1_part1_1_perm0312__D_1__D_3__S__S.Dimension(2));
 			LocalContractAndLocalEliminate(1.0, X_bmej_part2_1_part1_1_perm0312__D_1__D_3__S__S.LockedTensor(), indices_bjme, false,
 				T_bfnj_part1_1_part2_1_perm2103__S__S__D_0__D_2.LockedTensor(), indices_meai, false,
 				1.0, Z_temp1_perm1302__D_1__D_3__D_0__D_2.Tensor(), indices_bjai, false);
+PROFILE_STOP;
 			T_bfnj_part1_1_part2_1_perm2103__S__S__D_0__D_2.EmptyData();
 			X_bmej_part2_1_part1_1_perm0312__D_1__D_3__S__S.EmptyData();
 			T_bfnj_part1_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
@@ -6422,7 +6614,10 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			   // Z_temp1_part3_1_part2_1[D0,D1,D3,D2] <- Z_temp1_part3_1_part2_1[D0,D1,D2,D3]
 			Z_temp1_part3_1_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, Z_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			Z_temp1_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( Z_temp1_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(Z_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( -0.5, Z_temp1_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, Z_temp1_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, accum_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			Z_temp1_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
 			SlidePartitionDown
@@ -6515,11 +6710,17 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			W_bmje_part0_1_part2_1_perm0213__S__S__D_3__D_1.AlignModesWith( modes_1_3, Z_temp2__D_0__D_1__D_2__D_3, modes_3_1 );
 			W_bmje_part0_1_part2_1_perm0213__S__S__D_3__D_1.AllGatherRedistFrom( W_bmje_part0_1_part2_1__D_0__D_3__D_2__D_1, modes_0_2 );
 			   // 0.5 * W_bmje_part0_1_part2_1[*,D3,*,D1]_bjme * Z_temp2[D0,D1,D2,D3]_meai + 0.0 * accum_part1_1_part3_1[D0,*,D2,*,D1,D3]_bjaime
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(accum_part1_1_part3_1_perm130254__S__S__D_0__D_2__D_3__D_1.Shape())*W_bmje_part0_1_part2_1_perm0213__S__S__D_3__D_1.Dimension(1)*W_bmje_part0_1_part2_1_perm0213__S__S__D_3__D_1.Dimension(3));
 			LocalContract(0.5, W_bmje_part0_1_part2_1_perm0213__S__S__D_3__D_1.LockedTensor(), indices_bjme, false,
 				Z_temp2_perm3102__D_3__D_1__D_0__D_2.LockedTensor(), indices_meai, false,
 				0.0, accum_part1_1_part3_1_perm130254__S__S__D_0__D_2__D_3__D_1.Tensor(), indices_bjaime, false);
+PROFILE_STOP;
 			   // accum_part1_1_part3_1[D0,D1,D2,D3] <- accum_part1_1_part3_1[D0,*,D2,*,D1,D3] (with SumScatter on (D1)(D3))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(accum_part1_1_part3_1_perm130254__S__S__D_0__D_2__D_3__D_1.Shape()));
 			accum_part1_1_part3_1__D_0__D_1__D_2__D_3.ReduceScatterUpdateRedistFrom( accum_part1_1_part3_1_perm130254__S__S__D_0__D_2__D_3__D_1, 1.0, modes_5_4 );
+PROFILE_STOP;
 			accum_part1_1_part3_1_perm130254__S__S__D_0__D_2__D_3__D_1.EmptyData();
 			W_bmje_part0_1_part2_1_perm0213__S__S__D_3__D_1.EmptyData();
 			W_bmje_part0_1_part2_1__D_0__D_3__D_2__D_1.EmptyData();
@@ -6601,9 +6802,12 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			T_bfnj_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.AlignModesWith( modes_0_1_3, accum_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3 );
 			T_bfnj_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.AllGatherRedistFrom( T_bfnj_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2 );
 			   // -1.0 * G_mi_part0_1[*,D2]_im * T_bfnj_part3_1_part2_1[D0,D1,*,D3]_mabj + 1.0 * accum_part3_1[D0,D1,D2,D3]_iabj
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(accum_part3_1_perm2013__D_2__D_0__D_1__D_3.Shape())*G_mi_part0_1_perm10__D_2__S.Dimension(0));
 			LocalContractAndLocalEliminate(-1.0, G_mi_part0_1_perm10__D_2__S.LockedTensor(), indices_im, false,
 				T_bfnj_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.LockedTensor(), indices_mabj, false,
 				1.0, accum_part3_1_perm2013__D_2__D_0__D_1__D_3.Tensor(), indices_iabj, false);
+PROFILE_STOP;
 			G_mi_part0_1_perm10__D_2__S.EmptyData();
 			T_bfnj_part3_1_part2_1_perm2013__S__D_0__D_1__D_3.EmptyData();
 
@@ -6693,9 +6897,12 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			T_bfnj_part2_1_part3_1__S__D_1__D_2__D_3.AlignModesWith( modes_1_2_3, accum_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_1_2_3 );
 			T_bfnj_part2_1_part3_1__S__D_1__D_2__D_3.AllGatherRedistFrom( T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0 );
 			   // 1.0 * F_ae[D0,*]_ae * T_bfnj_part2_1_part3_1[*,D1,D2,D3]_ebij + 1.0 * accum_part2_1_part3_1[D0,D1,D2,D3]_abij
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(accum_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape())*F_ae__D_0__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, F_ae__D_0__S.LockedTensor(), indices_ae, false,
 				T_bfnj_part2_1_part3_1__S__D_1__D_2__D_3.LockedTensor(), indices_ebij, false,
 				1.0, accum_part2_1_part3_1__D_0__D_1__D_2__D_3.Tensor(), indices_abij, false);
+PROFILE_STOP;
 			F_ae__D_0__S.EmptyData();
 			T_bfnj_part2_1_part3_1__S__D_1__D_2__D_3.EmptyData();
 
@@ -6743,9 +6950,12 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1_perm10__S__D_0.AlignModesWith( modes_0, accum_part2_1__D_0__D_1__D_2__D_3, modes_0 );
 			t_fj_part1_1_perm10__S__D_0.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_1_2_3 );
 			   // -1.0 * P_jimb_part0_1_part2_1[D2,D3,*,D1]_ijbm * t_fj_part1_1[D0,*]_ma + 1.0 * accum_part2_1[D0,D1,D2,D3]_ijba
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(accum_part2_1_perm2310__D_2__D_3__D_1__D_0.Shape())*P_jimb_part0_1_part2_1_perm0132__D_2__D_3__D_1__S.Dimension(2));
 			LocalContractAndLocalEliminate(-1.0, P_jimb_part0_1_part2_1_perm0132__D_2__D_3__D_1__S.LockedTensor(), indices_ijbm, false,
 				t_fj_part1_1_perm10__S__D_0.LockedTensor(), indices_ma, false,
 				1.0, accum_part2_1_perm2310__D_2__D_3__D_1__D_0.Tensor(), indices_ijba, false);
+PROFILE_STOP;
 			P_jimb_part0_1_part2_1_perm0132__D_2__D_3__D_1__S.EmptyData();
 			t_fj_part1_1_perm10__S__D_0.EmptyData();
 
@@ -6793,11 +7003,17 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			t_fj_part1_1__D_0__S.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_1_2_3 );
 			Permute( r_bmfe_part1_1__D_0__D_1__D_2__D_3, r_bmfe_part1_1_perm1230__D_1__D_2__D_3__D_0 );
 			   // 1.0 * r_bmfe_part1_1[D0,D1,D2,D3]_jabe * t_fj_part1_1[D0,*]_ei + 0.0 * accum_part2_1_part3_1[D2,D3,*,D1,D0]_jabie
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(accum_part2_1_part3_1_perm30124__D_1__D_2__D_3__S__D_0.Shape())*r_bmfe_part1_1_perm1230__D_1__D_2__D_3__D_0.Dimension(0));
 			LocalContract(1.0, r_bmfe_part1_1_perm1230__D_1__D_2__D_3__D_0.LockedTensor(), indices_jabe, false,
 				t_fj_part1_1__D_0__S.LockedTensor(), indices_ei, false,
 				0.0, accum_part2_1_part3_1_perm30124__D_1__D_2__D_3__S__D_0.Tensor(), indices_jabie, false);
+PROFILE_STOP;
 			   // accum_part2_1_part3_1_Z_temp[D20,D3,*,D1] <- accum_part2_1_part3_1[D2,D3,*,D1,D0] (with SumScatter on D0)
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(accum_part2_1_part3_1_perm30124__D_1__D_2__D_3__S__D_0.Shape()));
 			accum_part2_1_part3_1_Z_temp__D_2_0__D_3__S__D_1.ReduceScatterRedistFrom( accum_part2_1_part3_1_perm30124__D_1__D_2__D_3__S__D_0, 4 );
+PROFILE_STOP;
 			accum_part2_1_part3_1_perm30124__D_1__D_2__D_3__S__D_0.EmptyData();
 			r_bmfe_part1_1_perm1230__D_1__D_2__D_3__D_0.EmptyData();
 			t_fj_part1_1__D_0__S.EmptyData();
@@ -6808,7 +7024,10 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			   // accum_part2_1_part3_1_Z_temp[D0,D1,D2,D3] <- accum_part2_1_part3_1_Z_temp[D20,D1,*,D3]
 			accum_part2_1_part3_1_Z_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, accum_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			accum_part2_1_part3_1_Z_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( accum_part2_1_part3_1_Z_temp__D_2_0__D_1__S__D_3, modes_0_2 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(accum_part2_1_part3_1_Z_temp__D_0__D_1__D_2__D_3.Shape()));
 			YxpBy( accum_part2_1_part3_1_Z_temp__D_0__D_1__D_2__D_3, 1.0, accum_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			accum_part2_1_part3_1_Z_temp__D_0__D_1__D_2__D_3.EmptyData();
 			accum_part2_1_part3_1_Z_temp__D_2_0__D_1__S__D_3.EmptyData();
 
@@ -6921,7 +7140,10 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			   // accum_part3_1_part2_1[D1,D0,D3,D2] <- accum_part3_1_part2_1[D0,D1,D3,D2]
 			accum_part3_1_part2_1__D_1__D_0__D_3__D_2.AlignModesWith( modes_0_1_2_3, accum_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_1_0_3_2 );
 			accum_part3_1_part2_1__D_1__D_0__D_3__D_2.AllToAllRedistFrom( accum_part3_1_part2_1__D_0__D_1__D_3__D_2, modes_0_1 );
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(3*prod(accum_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 1.0, accum_part2_1_part3_1__D_0__D_1__D_2__D_3, 1.0, accum_part3_1_part2_1__D_1__D_0__D_3__D_2, perm_1_0_3_2, Z_abij_part2_1_part3_1__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 			accum_part3_1_part2_1__D_1__D_0__D_3__D_2.EmptyData();
 			accum_part3_1_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 			   // Tau_efmn_part2_1_part3_1[D2,D1,D0,D3] <- Tau_efmn_part2_1_part3_1[D0,D1,D2,D3]
@@ -6939,11 +7161,17 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			Tau_efmn_part2_1_part3_1__D_2__D_3__S__S.AlignModesWith( modes_0_1, y_abef__D_0__D_1__D_2__D_3, modes_2_3 );
 			Tau_efmn_part2_1_part3_1__D_2__D_3__S__S.AllGatherRedistFrom( Tau_efmn_part2_1_part3_1__D_2__D_3__D_0__D_1, modes_0_1 );
 			   // 1.0 * y_abef[D0,D1,D2,D3]_abef * Tau_efmn_part2_1_part3_1[D2,D3,*,*]_efij + 0.0 * Z_abij_part2_1_part3_1[D0,D1,*,*,D2,D3]_abijef
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Z_abij_part2_1_part3_1__D_0__D_1__S__S__D_2__D_3.Shape())*y_abef__D_0__D_1__D_2__D_3.Dimension(2)*y_abef__D_0__D_1__D_2__D_3.Dimension(3));
 			LocalContract(1.0, y_abef__D_0__D_1__D_2__D_3.LockedTensor(), indices_abef, false,
 				Tau_efmn_part2_1_part3_1__D_2__D_3__S__S.LockedTensor(), indices_efij, false,
 				0.0, Z_abij_part2_1_part3_1__D_0__D_1__S__S__D_2__D_3.Tensor(), indices_abijef, false);
+PROFILE_STOP;
 			   // Z_abij_part2_1_part3_1[D0,D1,D2,D3] <- Z_abij_part2_1_part3_1[D0,D1,*,*,D2,D3] (with SumScatter on (D2)(D3))
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(2*prod(Z_abij_part2_1_part3_1__D_0__D_1__S__S__D_2__D_3.Shape()));
 			Z_abij_part2_1_part3_1__D_0__D_1__D_2__D_3.ReduceScatterUpdateRedistFrom( Z_abij_part2_1_part3_1__D_0__D_1__S__S__D_2__D_3, 1.0, modes_5_4 );
+PROFILE_STOP;
 			Z_abij_part2_1_part3_1__D_0__D_1__S__S__D_2__D_3.EmptyData();
 			Tau_efmn_part2_1_part3_1__D_2__D_3__S__S.EmptyData();
 			Tau_efmn_part2_1_part3_1__D_2__D_3__D_0__D_1.EmptyData();
@@ -7045,9 +7273,12 @@ z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 			Tau_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AlignModesWith( modes_0_1, Z_abij__D_0__D_1__D_2__D_3, modes_0_1 );
 			Tau_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.AllGatherRedistFrom( Tau_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3, modes_2_3 );
 			   // 1.0 * Q_mnij_part0_1_part1_1[*,*,D2,D3]_ijmn * Tau_efmn_part2_1_part3_1[D0,D1,*,*]_mnab + 1.0 * Z_abij[D0,D1,D2,D3]_ijab
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(Z_abij_perm2301__D_2__D_3__D_0__D_1.Shape())*Q_mnij_part0_1_part1_1_perm2301__D_2__D_3__S__S.Dimension(0)*Q_mnij_part0_1_part1_1_perm2301__D_2__D_3__S__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, Q_mnij_part0_1_part1_1_perm2301__D_2__D_3__S__S.LockedTensor(), indices_ijmn, false,
 				Tau_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.LockedTensor(), indices_mnab, false,
 				1.0, Z_abij_perm2301__D_2__D_3__D_0__D_1.Tensor(), indices_ijab, false);
+PROFILE_STOP;
 			Q_mnij_part0_1_part1_1_perm2301__D_2__D_3__S__S.EmptyData();
 			Tau_efmn_part2_1_part3_1_perm2301__S__S__D_0__D_1.EmptyData();
 
@@ -7095,7 +7326,10 @@ Z_temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 //**** (out of 1)
 
+PROFILE_SECTION("COMPUTE");
+PROFILE_FLOPS(prod(v_femn__D_0__D_1__D_2__D_3.Shape()));
 	Yxpy( v_femn__D_0__D_1__D_2__D_3, Z_abij__D_0__D_1__D_2__D_3 );
+PROFILE_STOP;
 
 
 //****
@@ -7105,7 +7339,7 @@ Z_temp1__D_0__D_1__D_2__D_3.EmptyData();
     /*****************************************/
     mpi::Barrier(g.OwningComm());
     runTime = mpi::Time() - startTime;
-    double flops = pow(n_o, 2) * pow(n_v, 2) * (11 + 2 * pow(n_o + n_v, 2));
+    long long flops = Timer::nflops("COMPUTE");
     gflops = flops / (1e9 * runTime);
 #ifdef CORRECTNESS
     DistTensor<double> diff_Z(dist__D_0__D_1__D_2__D_3, g);

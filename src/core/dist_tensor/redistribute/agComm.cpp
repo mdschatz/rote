@@ -77,7 +77,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Pack the data
     PROFILE_SECTION("AGPack");
-    PROFILE_FLOPS(prod(commDataShape));
+    PROFILE_MEMOPS(prod(commDataShape));
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
@@ -119,7 +119,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Unpack the data (if participating)
     PROFILE_SECTION("AGUnpack");
-    PROFILE_FLOPS(prod(MaxLocalShape()));
+    PROFILE_MEMOPS(prod(MaxLocalShape()));
     UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
 
