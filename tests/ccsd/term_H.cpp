@@ -99,7 +99,8 @@ void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
     Unsigned i;
     const Int commRank = mpi::CommRank(mpi::COMM_WORLD);
 
-ObjShape H_tempShape;
+//START_DECL
+ObjShape overwrite_tmpShape_H;
 TensorDistribution dist__S__S = tmen::StringToTensorDist("[(),()]");
 TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
 TensorDistribution dist__D_0__D_1__D_3__D_2 = tmen::StringToTensorDist("[(0),(1),(3),(2)]");
@@ -286,29 +287,30 @@ DistTensor<double> v_femn_part3_1_part2_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D
 DistTensor<double> v_femn_part3_2__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
 // v_femn has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
-ObjShape v_femn__D_0__D_1__D_2__D_3_H_tempShape( 4 );
-v_femn__D_0__D_1__D_2__D_3_H_tempShape[ 0 ] = n_v;
-v_femn__D_0__D_1__D_2__D_3_H_tempShape[ 1 ] = n_v;
-v_femn__D_0__D_1__D_2__D_3_H_tempShape[ 2 ] = n_o;
-v_femn__D_0__D_1__D_2__D_3_H_tempShape[ 3 ] = n_o;
-v_femn__D_0__D_1__D_2__D_3.ResizeTo( v_femn__D_0__D_1__D_2__D_3_H_tempShape );
+ObjShape v_femn__D_0__D_1__D_2__D_3_tmpShape_H( 4 );
+v_femn__D_0__D_1__D_2__D_3_tmpShape_H[ 0 ] = n_v;
+v_femn__D_0__D_1__D_2__D_3_tmpShape_H[ 1 ] = n_v;
+v_femn__D_0__D_1__D_2__D_3_tmpShape_H[ 2 ] = n_o;
+v_femn__D_0__D_1__D_2__D_3_tmpShape_H[ 3 ] = n_o;
+v_femn__D_0__D_1__D_2__D_3.ResizeTo( v_femn__D_0__D_1__D_2__D_3_tmpShape_H );
 MakeUniform( v_femn__D_0__D_1__D_2__D_3 );
-H_tempShape = v_femn__D_0__D_1__D_2__D_3.Shape();
-H_temp1__D_0__D_1__D_2__D_3.ResizeTo( H_tempShape );
+overwrite_tmpShape_H = v_femn__D_0__D_1__D_2__D_3.Shape();
+H_temp1__D_0__D_1__D_2__D_3.ResizeTo( overwrite_tmpShape_H );
 // t_fj has 2 dims
 //	Starting distribution: [D01,D23] or _D_0_1__D_2_3
-ObjShape t_fj__D_0_1__D_2_3_H_tempShape( 2 );
-t_fj__D_0_1__D_2_3_H_tempShape[ 0 ] = n_v;
-t_fj__D_0_1__D_2_3_H_tempShape[ 1 ] = n_o;
-t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_H_tempShape );
+ObjShape t_fj__D_0_1__D_2_3_tmpShape_H( 2 );
+t_fj__D_0_1__D_2_3_tmpShape_H[ 0 ] = n_v;
+t_fj__D_0_1__D_2_3_tmpShape_H[ 1 ] = n_o;
+t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_tmpShape_H );
 MakeUniform( t_fj__D_0_1__D_2_3 );
 // H_me has 2 dims
-ObjShape H_me__D_0_1__D_2_3_H_tempShape( 2 );
-H_me__D_0_1__D_2_3_H_tempShape[ 0 ] = n_o;
-H_me__D_0_1__D_2_3_H_tempShape[ 1 ] = n_v;
-H_me__D_0_1__D_2_3.ResizeTo( H_me__D_0_1__D_2_3_H_tempShape );
+ObjShape H_me__D_0_1__D_2_3_tmpShape_H( 2 );
+H_me__D_0_1__D_2_3_tmpShape_H[ 0 ] = n_o;
+H_me__D_0_1__D_2_3_tmpShape_H[ 1 ] = n_v;
+H_me__D_0_1__D_2_3.ResizeTo( H_me__D_0_1__D_2_3_tmpShape_H );
 MakeUniform( H_me__D_0_1__D_2_3 );
 //**** (out of 1)
+//END_DECL
 
 //******************************
 //* Load tensors
@@ -346,6 +348,7 @@ Read(check_H, fullName.str(), BINARY_FLAT, false);
     mpi::Barrier(g.OwningComm());
     startTime = mpi::Time();
 
+//START_CODE
 
 PROFILE_SECTION("COMPUTE");
 PROFILE_FLOPS(prod(H_me__D_0_1__D_2_3.Shape()));
@@ -501,7 +504,7 @@ PROFILE_STOP;
 			Permute( H_me_part0_1__D_0_1__D_2_3, H_me_part0_1_perm10__D_2_3__D_0_1 );
 			   // 1.0 * H_temp1_part3_1_part2_1[D23,*,D01,*]_emfn * t_fj_part1_1[*,*]_fn + 1.0 * H_me_part0_1[D01,D23]_em
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(H_me_part0_1_perm10__D_2_3__D_0_1.Shape())*H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.Dimension(1)*H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.Dimension(3));
+PROFILE_FLOPS(2*prod(H_me_part0_1_perm10__D_2_3__D_0_1.Shape())*H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.Dimension(1)*H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.Dimension(3));
 			LocalContractAndLocalEliminate(1.0, H_temp1_part3_1_part2_1_perm0213__D_2_3__D_0_1__S__S.LockedTensor(), indices_emfn, false,
 				t_fj_part1_1__S__S.LockedTensor(), indices_fn, false,
 				1.0, H_me_part0_1_perm10__D_2_3__D_0_1.Tensor(), indices_em, false);
@@ -545,7 +548,7 @@ PROFILE_STOP;
 H_temp1__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
-
+//END_CODE
 
     /*****************************************/
     mpi::Barrier(g.OwningComm());

@@ -99,7 +99,8 @@ void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
     Unsigned i;
     const Int commRank = mpi::CommRank(mpi::COMM_WORLD);
 
-ObjShape Tau_tempShape;
+//START_DECL
+ObjShape overwrite_tmpShape_Tau;
 TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
 TensorDistribution dist__D_0__D_2 = tmen::StringToTensorDist("[(0),(2)]");
 TensorDistribution dist__D_1__D_3 = tmen::StringToTensorDist("[(1),(3)]");
@@ -187,29 +188,30 @@ DistTensor<double> t_fj_part1_1__D_1__D_3( dist__D_1__D_3, g );
 DistTensor<double> t_fj_part1_2__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 // t_fj has 2 dims
 //	Starting distribution: [D01,D23] or _D_0_1__D_2_3
-ObjShape t_fj__D_0_1__D_2_3_Tau_tempShape( 2 );
-t_fj__D_0_1__D_2_3_Tau_tempShape[ 0 ] = n_v;
-t_fj__D_0_1__D_2_3_Tau_tempShape[ 1 ] = n_o;
-t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_Tau_tempShape );
+ObjShape t_fj__D_0_1__D_2_3_tmpShape_Tau( 2 );
+t_fj__D_0_1__D_2_3_tmpShape_Tau[ 0 ] = n_v;
+t_fj__D_0_1__D_2_3_tmpShape_Tau[ 1 ] = n_o;
+t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_tmpShape_Tau );
 MakeUniform( t_fj__D_0_1__D_2_3 );
 // T_bfnj has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
-ObjShape T_bfnj__D_0__D_1__D_2__D_3_Tau_tempShape( 4 );
-T_bfnj__D_0__D_1__D_2__D_3_Tau_tempShape[ 0 ] = n_v;
-T_bfnj__D_0__D_1__D_2__D_3_Tau_tempShape[ 1 ] = n_v;
-T_bfnj__D_0__D_1__D_2__D_3_Tau_tempShape[ 2 ] = n_o;
-T_bfnj__D_0__D_1__D_2__D_3_Tau_tempShape[ 3 ] = n_o;
-T_bfnj__D_0__D_1__D_2__D_3.ResizeTo( T_bfnj__D_0__D_1__D_2__D_3_Tau_tempShape );
+ObjShape T_bfnj__D_0__D_1__D_2__D_3_tmpShape_Tau( 4 );
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_Tau[ 0 ] = n_v;
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_Tau[ 1 ] = n_v;
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_Tau[ 2 ] = n_o;
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_Tau[ 3 ] = n_o;
+T_bfnj__D_0__D_1__D_2__D_3.ResizeTo( T_bfnj__D_0__D_1__D_2__D_3_tmpShape_Tau );
 MakeUniform( T_bfnj__D_0__D_1__D_2__D_3 );
 // Tau_efmn has 4 dims
-ObjShape Tau_efmn__D_0__D_1__D_2__D_3_Tau_tempShape( 4 );
-Tau_efmn__D_0__D_1__D_2__D_3_Tau_tempShape[ 0 ] = n_v;
-Tau_efmn__D_0__D_1__D_2__D_3_Tau_tempShape[ 1 ] = n_v;
-Tau_efmn__D_0__D_1__D_2__D_3_Tau_tempShape[ 2 ] = n_o;
-Tau_efmn__D_0__D_1__D_2__D_3_Tau_tempShape[ 3 ] = n_o;
-Tau_efmn__D_0__D_1__D_2__D_3.ResizeTo( Tau_efmn__D_0__D_1__D_2__D_3_Tau_tempShape );
+ObjShape Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_Tau( 4 );
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_Tau[ 0 ] = n_v;
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_Tau[ 1 ] = n_v;
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_Tau[ 2 ] = n_o;
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_Tau[ 3 ] = n_o;
+Tau_efmn__D_0__D_1__D_2__D_3.ResizeTo( Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_Tau );
 MakeUniform( Tau_efmn__D_0__D_1__D_2__D_3 );
 //**** (out of 1)
+//END_DECL
 
 //******************************
 //* Load tensors
@@ -255,6 +257,7 @@ Read(check_Tau, fullName.str(), BINARY_FLAT, false);
     mpi::Barrier(g.OwningComm());
     startTime = mpi::Time();
 
+//START_CODE
 
 	Tau_efmn__D_0__D_1__D_2__D_3 = T_bfnj__D_0__D_1__D_2__D_3;
 
@@ -313,7 +316,7 @@ Read(check_Tau, fullName.str(), BINARY_FLAT, false);
 			Permute( Tau_efmn_part2_1_part3_1__D_0__D_1__D_2__D_3, Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3 );
 			   // 1.0 * t_fj_part1_1[D0,D2]_em * t_fj_part1_1[D1,D3]_fn + 1.0 * Tau_efmn_part2_1_part3_1[D0,D1,D2,D3]_emfn
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.Shape())*1);
+PROFILE_FLOPS(2*prod(Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.Shape())*1);
 			LocalContractAndLocalEliminate(1.0, t_fj_part1_1__D_0__D_2.LockedTensor(), indices_em, false,
 				t_fj_part1_1__D_1__D_3.LockedTensor(), indices_fn, false,
 				1.0, Tau_efmn_part2_1_part3_1_perm0213__D_0__D_2__D_1__D_3.Tensor(), indices_emfn, false);
@@ -354,7 +357,7 @@ PROFILE_STOP;
 
 //****
 
-
+//END_CODE
 
     /*****************************************/
     mpi::Barrier(g.OwningComm());

@@ -99,7 +99,8 @@ void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
     Unsigned i;
     const Int commRank = mpi::CommRank(mpi::COMM_WORLD);
 
-ObjShape z_small_tempShape;
+//START_DECL
+ObjShape overwrite_tmpShape_z_small;
 TensorDistribution dist__S__S = tmen::StringToTensorDist("[(),()]");
 TensorDistribution dist__S__D_2_3 = tmen::StringToTensorDist("[(),(2,3)]");
 TensorDistribution dist__D_0__S__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(),(1),(2),(3)]");
@@ -666,85 +667,86 @@ z_ai_part1_1_perm10__D_2_3__D_0_1.SetLocalPermutation( perm_1_0 );
 DistTensor<double> z_ai_part1_2__D_0_1__D_2_3( dist__D_0_1__D_2_3, g );
 // G_mi has 2 dims
 //	Starting distribution: [D01,D23] or _D_0_1__D_2_3
-ObjShape G_mi__D_0_1__D_2_3_z_small_tempShape( 2 );
-G_mi__D_0_1__D_2_3_z_small_tempShape[ 0 ] = n_o;
-G_mi__D_0_1__D_2_3_z_small_tempShape[ 1 ] = n_o;
-G_mi__D_0_1__D_2_3.ResizeTo( G_mi__D_0_1__D_2_3_z_small_tempShape );
+ObjShape G_mi__D_0_1__D_2_3_tmpShape_z_small( 2 );
+G_mi__D_0_1__D_2_3_tmpShape_z_small[ 0 ] = n_o;
+G_mi__D_0_1__D_2_3_tmpShape_z_small[ 1 ] = n_o;
+G_mi__D_0_1__D_2_3.ResizeTo( G_mi__D_0_1__D_2_3_tmpShape_z_small );
 MakeUniform( G_mi__D_0_1__D_2_3 );
 // t_fj has 2 dims
-ObjShape t_fj__D_0_1__D_2_3_z_small_tempShape( 2 );
-t_fj__D_0_1__D_2_3_z_small_tempShape[ 0 ] = n_v;
-t_fj__D_0_1__D_2_3_z_small_tempShape[ 1 ] = n_o;
-t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_z_small_tempShape );
+ObjShape t_fj__D_0_1__D_2_3_tmpShape_z_small( 2 );
+t_fj__D_0_1__D_2_3_tmpShape_z_small[ 0 ] = n_v;
+t_fj__D_0_1__D_2_3_tmpShape_z_small[ 1 ] = n_o;
+t_fj__D_0_1__D_2_3.ResizeTo( t_fj__D_0_1__D_2_3_tmpShape_z_small );
 MakeUniform( t_fj__D_0_1__D_2_3 );
 // U_mnie has 4 dims
 //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
-ObjShape U_mnie__D_0__D_1__D_2__D_3_z_small_tempShape( 4 );
-U_mnie__D_0__D_1__D_2__D_3_z_small_tempShape[ 0 ] = n_o;
-U_mnie__D_0__D_1__D_2__D_3_z_small_tempShape[ 1 ] = n_o;
-U_mnie__D_0__D_1__D_2__D_3_z_small_tempShape[ 2 ] = n_o;
-U_mnie__D_0__D_1__D_2__D_3_z_small_tempShape[ 3 ] = n_v;
-U_mnie__D_0__D_1__D_2__D_3.ResizeTo( U_mnie__D_0__D_1__D_2__D_3_z_small_tempShape );
+ObjShape U_mnie__D_0__D_1__D_2__D_3_tmpShape_z_small( 4 );
+U_mnie__D_0__D_1__D_2__D_3_tmpShape_z_small[ 0 ] = n_o;
+U_mnie__D_0__D_1__D_2__D_3_tmpShape_z_small[ 1 ] = n_o;
+U_mnie__D_0__D_1__D_2__D_3_tmpShape_z_small[ 2 ] = n_o;
+U_mnie__D_0__D_1__D_2__D_3_tmpShape_z_small[ 3 ] = n_v;
+U_mnie__D_0__D_1__D_2__D_3.ResizeTo( U_mnie__D_0__D_1__D_2__D_3_tmpShape_z_small );
 MakeUniform( U_mnie__D_0__D_1__D_2__D_3 );
-z_small_tempShape = U_mnie__D_0__D_1__D_2__D_3.Shape();
-z_small_temp5__D_0__D_1__D_2__D_3.ResizeTo( z_small_tempShape );
+overwrite_tmpShape_z_small = U_mnie__D_0__D_1__D_2__D_3.Shape();
+z_small_temp5__D_0__D_1__D_2__D_3.ResizeTo( overwrite_tmpShape_z_small );
 // T_bfnj has 4 dims
-ObjShape T_bfnj__D_0__D_1__D_2__D_3_z_small_tempShape( 4 );
-T_bfnj__D_0__D_1__D_2__D_3_z_small_tempShape[ 0 ] = n_v;
-T_bfnj__D_0__D_1__D_2__D_3_z_small_tempShape[ 1 ] = n_v;
-T_bfnj__D_0__D_1__D_2__D_3_z_small_tempShape[ 2 ] = n_o;
-T_bfnj__D_0__D_1__D_2__D_3_z_small_tempShape[ 3 ] = n_o;
-T_bfnj__D_0__D_1__D_2__D_3.ResizeTo( T_bfnj__D_0__D_1__D_2__D_3_z_small_tempShape );
+ObjShape T_bfnj__D_0__D_1__D_2__D_3_tmpShape_z_small( 4 );
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_z_small[ 0 ] = n_v;
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_z_small[ 1 ] = n_v;
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_z_small[ 2 ] = n_o;
+T_bfnj__D_0__D_1__D_2__D_3_tmpShape_z_small[ 3 ] = n_o;
+T_bfnj__D_0__D_1__D_2__D_3.ResizeTo( T_bfnj__D_0__D_1__D_2__D_3_tmpShape_z_small );
 MakeUniform( T_bfnj__D_0__D_1__D_2__D_3 );
 // w_bmje has 4 dims
-ObjShape w_bmje__D_0__D_1__D_2__D_3_z_small_tempShape( 4 );
-w_bmje__D_0__D_1__D_2__D_3_z_small_tempShape[ 0 ] = n_v;
-w_bmje__D_0__D_1__D_2__D_3_z_small_tempShape[ 1 ] = n_o;
-w_bmje__D_0__D_1__D_2__D_3_z_small_tempShape[ 2 ] = n_o;
-w_bmje__D_0__D_1__D_2__D_3_z_small_tempShape[ 3 ] = n_v;
-w_bmje__D_0__D_1__D_2__D_3.ResizeTo( w_bmje__D_0__D_1__D_2__D_3_z_small_tempShape );
+ObjShape w_bmje__D_0__D_1__D_2__D_3_tmpShape_z_small( 4 );
+w_bmje__D_0__D_1__D_2__D_3_tmpShape_z_small[ 0 ] = n_v;
+w_bmje__D_0__D_1__D_2__D_3_tmpShape_z_small[ 1 ] = n_o;
+w_bmje__D_0__D_1__D_2__D_3_tmpShape_z_small[ 2 ] = n_o;
+w_bmje__D_0__D_1__D_2__D_3_tmpShape_z_small[ 3 ] = n_v;
+w_bmje__D_0__D_1__D_2__D_3.ResizeTo( w_bmje__D_0__D_1__D_2__D_3_tmpShape_z_small );
 MakeUniform( w_bmje__D_0__D_1__D_2__D_3 );
 // x_bmej has 4 dims
-ObjShape x_bmej__D_0__D_1__D_2__D_3_z_small_tempShape( 4 );
-x_bmej__D_0__D_1__D_2__D_3_z_small_tempShape[ 0 ] = n_v;
-x_bmej__D_0__D_1__D_2__D_3_z_small_tempShape[ 1 ] = n_o;
-x_bmej__D_0__D_1__D_2__D_3_z_small_tempShape[ 2 ] = n_v;
-x_bmej__D_0__D_1__D_2__D_3_z_small_tempShape[ 3 ] = n_o;
-x_bmej__D_0__D_1__D_2__D_3.ResizeTo( x_bmej__D_0__D_1__D_2__D_3_z_small_tempShape );
+ObjShape x_bmej__D_0__D_1__D_2__D_3_tmpShape_z_small( 4 );
+x_bmej__D_0__D_1__D_2__D_3_tmpShape_z_small[ 0 ] = n_v;
+x_bmej__D_0__D_1__D_2__D_3_tmpShape_z_small[ 1 ] = n_o;
+x_bmej__D_0__D_1__D_2__D_3_tmpShape_z_small[ 2 ] = n_v;
+x_bmej__D_0__D_1__D_2__D_3_tmpShape_z_small[ 3 ] = n_o;
+x_bmej__D_0__D_1__D_2__D_3.ResizeTo( x_bmej__D_0__D_1__D_2__D_3_tmpShape_z_small );
 MakeUniform( x_bmej__D_0__D_1__D_2__D_3 );
-z_small_tempShape = w_bmje__D_0__D_1__D_2__D_3.Shape();
-z_small_temp4__D_0__D_1__D_2__D_3.ResizeTo( z_small_tempShape );
+overwrite_tmpShape_z_small = w_bmje__D_0__D_1__D_2__D_3.Shape();
+z_small_temp4__D_0__D_1__D_2__D_3.ResizeTo( overwrite_tmpShape_z_small );
 // H_me has 2 dims
-ObjShape H_me__D_0_1__D_2_3_z_small_tempShape( 2 );
-H_me__D_0_1__D_2_3_z_small_tempShape[ 0 ] = n_o;
-H_me__D_0_1__D_2_3_z_small_tempShape[ 1 ] = n_v;
-H_me__D_0_1__D_2_3.ResizeTo( H_me__D_0_1__D_2_3_z_small_tempShape );
+ObjShape H_me__D_0_1__D_2_3_tmpShape_z_small( 2 );
+H_me__D_0_1__D_2_3_tmpShape_z_small[ 0 ] = n_o;
+H_me__D_0_1__D_2_3_tmpShape_z_small[ 1 ] = n_v;
+H_me__D_0_1__D_2_3.ResizeTo( H_me__D_0_1__D_2_3_tmpShape_z_small );
 MakeUniform( H_me__D_0_1__D_2_3 );
 // r_bmfe has 4 dims
-ObjShape r_bmfe__D_0__D_1__D_2__D_3_z_small_tempShape( 4 );
-r_bmfe__D_0__D_1__D_2__D_3_z_small_tempShape[ 0 ] = n_v;
-r_bmfe__D_0__D_1__D_2__D_3_z_small_tempShape[ 1 ] = n_o;
-r_bmfe__D_0__D_1__D_2__D_3_z_small_tempShape[ 2 ] = n_v;
-r_bmfe__D_0__D_1__D_2__D_3_z_small_tempShape[ 3 ] = n_v;
-r_bmfe__D_0__D_1__D_2__D_3.ResizeTo( r_bmfe__D_0__D_1__D_2__D_3_z_small_tempShape );
+ObjShape r_bmfe__D_0__D_1__D_2__D_3_tmpShape_z_small( 4 );
+r_bmfe__D_0__D_1__D_2__D_3_tmpShape_z_small[ 0 ] = n_v;
+r_bmfe__D_0__D_1__D_2__D_3_tmpShape_z_small[ 1 ] = n_o;
+r_bmfe__D_0__D_1__D_2__D_3_tmpShape_z_small[ 2 ] = n_v;
+r_bmfe__D_0__D_1__D_2__D_3_tmpShape_z_small[ 3 ] = n_v;
+r_bmfe__D_0__D_1__D_2__D_3.ResizeTo( r_bmfe__D_0__D_1__D_2__D_3_tmpShape_z_small );
 MakeUniform( r_bmfe__D_0__D_1__D_2__D_3 );
-z_small_tempShape = r_bmfe__D_0__D_1__D_2__D_3.Shape();
-z_small_temp2__D_0__D_1__D_2__D_3.ResizeTo( z_small_tempShape );
+overwrite_tmpShape_z_small = r_bmfe__D_0__D_1__D_2__D_3.Shape();
+z_small_temp2__D_0__D_1__D_2__D_3.ResizeTo( overwrite_tmpShape_z_small );
 // Tau_efmn has 4 dims
-ObjShape Tau_efmn__D_0__D_1__D_2__D_3_z_small_tempShape( 4 );
-Tau_efmn__D_0__D_1__D_2__D_3_z_small_tempShape[ 0 ] = n_v;
-Tau_efmn__D_0__D_1__D_2__D_3_z_small_tempShape[ 1 ] = n_v;
-Tau_efmn__D_0__D_1__D_2__D_3_z_small_tempShape[ 2 ] = n_o;
-Tau_efmn__D_0__D_1__D_2__D_3_z_small_tempShape[ 3 ] = n_o;
-Tau_efmn__D_0__D_1__D_2__D_3.ResizeTo( Tau_efmn__D_0__D_1__D_2__D_3_z_small_tempShape );
+ObjShape Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_z_small( 4 );
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_z_small[ 0 ] = n_v;
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_z_small[ 1 ] = n_v;
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_z_small[ 2 ] = n_o;
+Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_z_small[ 3 ] = n_o;
+Tau_efmn__D_0__D_1__D_2__D_3.ResizeTo( Tau_efmn__D_0__D_1__D_2__D_3_tmpShape_z_small );
 MakeUniform( Tau_efmn__D_0__D_1__D_2__D_3 );
 // z_ai has 2 dims
-ObjShape z_ai__D_0_1__D_2_3_z_small_tempShape( 2 );
-z_ai__D_0_1__D_2_3_z_small_tempShape[ 0 ] = n_v;
-z_ai__D_0_1__D_2_3_z_small_tempShape[ 1 ] = n_o;
-z_ai__D_0_1__D_2_3.ResizeTo( z_ai__D_0_1__D_2_3_z_small_tempShape );
+ObjShape z_ai__D_0_1__D_2_3_tmpShape_z_small( 2 );
+z_ai__D_0_1__D_2_3_tmpShape_z_small[ 0 ] = n_v;
+z_ai__D_0_1__D_2_3_tmpShape_z_small[ 1 ] = n_o;
+z_ai__D_0_1__D_2_3.ResizeTo( z_ai__D_0_1__D_2_3_tmpShape_z_small );
 MakeUniform( z_ai__D_0_1__D_2_3 );
 //**** (out of 1)
+//END_DECL
 
 //******************************
 //* Load tensors
@@ -782,6 +784,7 @@ Read(check_z_small, fullName.str(), BINARY_FLAT, false);
     mpi::Barrier(g.OwningComm());
     startTime = mpi::Time();
 
+//START_CODE
 
 PROFILE_SECTION("COMPUTE");
 PROFILE_FLOPS(prod(z_ai__D_0_1__D_2_3.Shape()));
@@ -1096,11 +1099,11 @@ PROFILE_STOP;
 			       z_ai_part1_1__D_0_1__D_2_3,
 			  z_ai_part1B__D_0_1__D_2_3, z_ai_part1_2__D_0_1__D_2_3, 1, blkSize );
 
-			z_small_tempShape = z_ai_part1_1__D_0_1__D_2_3.Shape();
-			z_small_tempShape.push_back( g.Shape()[2] );
-			z_small_tempShape.push_back( g.Shape()[3] );
-			z_small_tempShape.push_back( g.Shape()[1] );
-			z_ai_part1_1__D_0__S__D_2__D_3__D_1.ResizeTo( z_small_tempShape );
+			overwrite_tmpShape_z_small = z_ai_part1_1__D_0_1__D_2_3.Shape();
+			overwrite_tmpShape_z_small.push_back( g.Shape()[2] );
+			overwrite_tmpShape_z_small.push_back( g.Shape()[3] );
+			overwrite_tmpShape_z_small.push_back( g.Shape()[1] );
+			z_ai_part1_1__D_0__S__D_2__D_3__D_1.ResizeTo( overwrite_tmpShape_z_small );
 			   // Tau_efmn_part3_1_part2_1[D0,D3,D2,D1] <- Tau_efmn_part3_1_part2_1[D0,D1,D2,D3]
 			Tau_efmn_part3_1_part2_1__D_0__D_3__D_2__D_1.AlignModesWith( modes_0_1_3, z_small_temp2_part1_1__D_0__D_1__D_2__D_3, modes_2_3_1 );
 			Tau_efmn_part3_1_part2_1__D_0__D_3__D_2__D_1.AllToAllRedistFrom( Tau_efmn_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_1_3 );
@@ -1109,7 +1112,7 @@ PROFILE_STOP;
 			Tau_efmn_part3_1_part2_1_perm0132__D_2__D_3__D_1__S.AllToAllRedistFrom( Tau_efmn_part3_1_part2_1__D_0__D_3__D_2__D_1, modes_0_2 );
 			   // 1.0 * z_small_temp2_part1_1[D0,D1,D2,D3]_aefm * Tau_efmn_part3_1_part2_1[D2,D3,*,D1]_efmi + 0.0 * z_ai_part1_1[D0,*,D2,D3,D1]_aiefm
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(z_ai_part1_1__D_0__S__D_2__D_3__D_1.Shape())*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(2)*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(1)*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(3));
+PROFILE_FLOPS(2*prod(z_ai_part1_1__D_0__S__D_2__D_3__D_1.Shape())*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(2)*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(1)*z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.Dimension(3));
 			LocalContract(1.0, z_small_temp2_part1_1_perm0231__D_0__D_2__D_3__D_1.LockedTensor(), indices_aefm, false,
 				Tau_efmn_part3_1_part2_1_perm0132__D_2__D_3__D_1__S.LockedTensor(), indices_efmi, false,
 				0.0, z_ai_part1_1__D_0__S__D_2__D_3__D_1.Tensor(), indices_aiefm, false);
@@ -1227,8 +1230,8 @@ PROFILE_STOP;
 			T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( T_bfnj_part3_1_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
 			   // H_me_part0_1[*,*] <- H_me_part0_1[D01,D23]
 			H_me_part0_1__S__S.AllGatherRedistFrom( H_me_part0_1__D_0_1__D_2_3, modes_0_1_2_3 );
-			z_small_tempShape = T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape();
-			z_small_temp3_part2_1_part3_1__D_0__D_1__D_2__D_3.ResizeTo( z_small_tempShape );
+			overwrite_tmpShape_z_small = T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape();
+			z_small_temp3_part2_1_part3_1__D_0__D_1__D_2__D_3.ResizeTo( overwrite_tmpShape_z_small );
 PROFILE_SECTION("COMPUTE");
 PROFILE_FLOPS(3*prod(T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3.Shape()));
 			YAxpPx( 2.0, T_bfnj_part2_1_part3_1__D_0__D_1__D_2__D_3, -1.0, T_bfnj_part3_1_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, z_small_temp3_part2_1_part3_1__D_0__D_1__D_2__D_3 );
@@ -1243,7 +1246,7 @@ PROFILE_STOP;
 			z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.AllToAllRedistFrom( z_small_temp3_part2_1_part3_1__D_0_1__S__D_2__D_3, modes_3 );
 			   // 1.0 * z_small_temp3_part2_1_part3_1[D01,*,D23,*]_aime * H_me_part0_1[*,*]_me + 1.0 * z_ai_part1_1[D01,D23]_ai
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(z_ai_part1_1__D_0_1__D_2_3.Shape())*z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.Dimension(3)*z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.Dimension(1));
+PROFILE_FLOPS(2*prod(z_ai_part1_1__D_0_1__D_2_3.Shape())*z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.Dimension(3)*z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, z_small_temp3_part2_1_part3_1_perm0231__D_0_1__D_2_3__S__S.LockedTensor(), indices_aime, false,
 				H_me_part0_1__S__S.LockedTensor(), indices_me, false,
 				1.0, z_ai_part1_1__D_0_1__D_2_3.Tensor(), indices_ai, false);
@@ -1299,7 +1302,7 @@ PROFILE_STOP;
 			z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.AllToAllRedistFrom( z_small_temp4_part2_1_part1_1__D_0_1__S__D_2__D_3, modes_3 );
 			   // 1.0 * z_small_temp4_part2_1_part1_1[D01,*,D23,*]_aiem * t_fj_part1_1[*,*]_em + 1.0 * z_ai_part1_1[D01,D23]_ai
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(z_ai_part1_1__D_0_1__D_2_3.Shape())*z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.Dimension(3)*z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.Dimension(1));
+PROFILE_FLOPS(2*prod(z_ai_part1_1__D_0_1__D_2_3.Shape())*z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.Dimension(3)*z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.Dimension(1));
 			LocalContractAndLocalEliminate(1.0, z_small_temp4_part2_1_part1_1_perm0231__D_0_1__D_2_3__S__S.LockedTensor(), indices_aiem, false,
 				t_fj_part1_1__S__S.LockedTensor(), indices_em, false,
 				1.0, z_ai_part1_1__D_0_1__D_2_3.Tensor(), indices_ai, false);
@@ -1340,11 +1343,11 @@ PROFILE_STOP;
 			       T_bfnj_part2_1__D_0__D_1__D_2__D_3,
 			  T_bfnj_part2B__D_0__D_1__D_2__D_3, T_bfnj_part2_2__D_0__D_1__D_2__D_3, 2, blkSize );
 
-			z_small_tempShape = z_ai_part1_1__D_0_1__D_2_3.Shape();
-			z_small_tempShape.push_back( g.Shape()[1] );
-			z_small_tempShape.push_back( g.Shape()[2] );
-			z_small_tempShape.push_back( g.Shape()[3] );
-			z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.ResizeTo( z_small_tempShape );
+			overwrite_tmpShape_z_small = z_ai_part1_1__D_0_1__D_2_3.Shape();
+			overwrite_tmpShape_z_small.push_back( g.Shape()[1] );
+			overwrite_tmpShape_z_small.push_back( g.Shape()[2] );
+			overwrite_tmpShape_z_small.push_back( g.Shape()[3] );
+			z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.ResizeTo( overwrite_tmpShape_z_small );
 			   // z_small_temp5_part2_1_part0_1[D0,D3,D2,D1] <- z_small_temp5_part2_1_part0_1[D0,D1,D2,D3]
 			z_small_temp5_part2_1_part0_1__D_0__D_3__D_2__D_1.AlignModesWith( modes_0_1_3, T_bfnj_part2_1__D_0__D_1__D_2__D_3, modes_2_3_1 );
 			z_small_temp5_part2_1_part0_1__D_0__D_3__D_2__D_1.AllToAllRedistFrom( z_small_temp5_part2_1_part0_1__D_0__D_1__D_2__D_3, modes_1_3 );
@@ -1355,7 +1358,7 @@ PROFILE_STOP;
 			Permute( T_bfnj_part2_1__D_0__D_1__D_2__D_3, T_bfnj_part2_1_perm2310__D_2__D_3__D_1__D_0 );
 			   // -1.0 * z_small_temp5_part2_1_part0_1[D2,D3,*,D1]_imne * T_bfnj_part2_1[D0,D1,D2,D3]_mnea + 0.0 * z_ai_part1_1[D0,*,D1,D2,D3]_iamne
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.Shape())*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(0)*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(3)*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(1));
+PROFILE_FLOPS(2*prod(z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.Shape())*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(0)*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(3)*z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.Dimension(1));
 			LocalContract(-1.0, z_small_temp5_part2_1_part0_1_perm2013__S__D_2__D_3__D_1.LockedTensor(), indices_imne, false,
 				T_bfnj_part2_1_perm2310__D_2__D_3__D_1__D_0.LockedTensor(), indices_mnea, false,
 				0.0, z_ai_part1_1_perm10342__S__D_0__D_2__D_3__D_1.Tensor(), indices_iamne, false);
@@ -1410,7 +1413,7 @@ PROFILE_STOP;
 			t_fj_part1_1_perm10__S__D_0_1.AllGatherRedistFrom( t_fj_part1_1__D_0_1__D_2_3, modes_2_3 );
 			   // -1.0 * G_mi_part1_1_part0_1[*,D23]_im * t_fj_part1_1[D01,*]_ma + 1.0 * z_ai_part1_1[D01,D23]_ia
 PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(prod(z_ai_part1_1_perm10__D_2_3__D_0_1.Shape())*G_mi_part1_1_part0_1_perm10__D_2_3__S.Dimension(0));
+PROFILE_FLOPS(2*prod(z_ai_part1_1_perm10__D_2_3__D_0_1.Shape())*G_mi_part1_1_part0_1_perm10__D_2_3__S.Dimension(0));
 			LocalContractAndLocalEliminate(-1.0, G_mi_part1_1_part0_1_perm10__D_2_3__S.LockedTensor(), indices_im, false,
 				t_fj_part1_1_perm10__S__D_0_1.LockedTensor(), indices_ma, false,
 				1.0, z_ai_part1_1_perm10__D_2_3__D_0_1.Tensor(), indices_ia, false);
@@ -1479,7 +1482,7 @@ z_small_temp4__D_0__D_1__D_2__D_3.EmptyData();
 z_small_temp2__D_0__D_1__D_2__D_3.EmptyData();
 //****
 
-
+//END_CODE
 
     /*****************************************/
     mpi::Barrier(g.OwningComm());
