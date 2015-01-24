@@ -157,11 +157,11 @@ void FastPackCommHelper_fast(const PackData& packData, const Mode packMode, T co
                 dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
                 srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
                 modePtr++;
-                ptr = modeOrder[modePtr];
                 if (modePtr >= order) {
                     done = true;
                     break;
                 } else {
+                    ptr = modeOrder[modePtr];
                     curLoc[ptr]++;
                     dstBufPtr += dstBufStrides[ptr];
                     srcBufPtr += srcBufStrides[ptr];
@@ -186,11 +186,11 @@ void FastPackCommHelper_fast(const PackData& packData, const Mode packMode, T co
                 dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
                 srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
                 modePtr++;
-                ptr = modeOrder[modePtr];
                 if (modePtr >= order) {
                     done = true;
                     break;
                 } else {
+                    ptr = modeOrder[modePtr];
                     curLoc[ptr]++;
                     dstBufPtr += dstBufStrides[ptr];
                     srcBufPtr += srcBufStrides[ptr];
