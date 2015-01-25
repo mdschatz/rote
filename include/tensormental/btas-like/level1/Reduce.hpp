@@ -67,28 +67,6 @@ void LocalReduce_fast(const ModeArray& reduceModes, const ObjShape& reduceShape,
 }
 
 template <typename T>
-void LocalReduceElemSelectHelper(const Unsigned elemMode, const ModeArray& nonReduceModes, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
-    Unsigned i;
-    if(nonReduceModes.size() == 0){
-        LocalReduce_fast(reduceModes, FilterVector(reduceShape, reduceModes), &(srcBuf[0]), FilterVector(srcStrides, reduceModes), &(dstBuf[0]));
-    }else{
-        Mode nonReduceMode = nonReduceModes[elemMode];
-        Unsigned srcBufPtr = 0;
-        Unsigned dstBufPtr = 0;
-
-        for(i = 0; i < reduceShape[nonReduceMode]; i++){
-            if(elemMode == 0){
-                LocalReduce_fast(reduceModes, FilterVector(reduceShape, reduceModes), &(srcBuf[srcBufPtr]), FilterVector(srcStrides, reduceModes), &(dstBuf[dstBufPtr]));
-            }else{
-                LocalReduceElemSelectHelper(elemMode - 1, nonReduceModes, reduceModes, reduceShape, &(srcBuf[srcBufPtr]), srcStrides, &(dstBuf[dstBufPtr]), dstStrides);
-            }
-            srcBufPtr += srcStrides[nonReduceMode];
-            dstBufPtr += dstStrides[nonReduceMode];
-        }
-    }
-}
-
-template <typename T>
 void LocalReduceElemSelect_fast(const Unsigned elemMode, const ModeArray& nonReduceModes, const ModeArray& reduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
     const std::vector<Unsigned> loopEnd = reduceShape;
 
@@ -139,6 +117,53 @@ void LocalReduceElemSelect_fast(const Unsigned elemMode, const ModeArray& nonRed
     }
 }
 
+template <typename T>
+void LocalReduceElemSelect_merged(const Unsigned nReduceModes, const ObjShape& reduceShape, T const * const srcBuf, const std::vector<Unsigned>& srcStrides, T * const dstBuf, const std::vector<Unsigned>& dstStrides){
+    const std::vector<Unsigned> loopEnd = reduceShape;
+
+    Unsigned srcBufPtr = 0;
+    Unsigned dstBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+
+    if(!done && order == 0){
+        dstBuf[0] += srcBuf[0];
+        return;
+    }
+
+    while(!done){
+        dstBuf[dstBufPtr] += srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr]++;
+        srcBufPtr += srcStrides[ptr];
+        if(ptr >= nReduceModes)
+          dstBufPtr += dstStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            srcBufPtr -= srcStrides[ptr] * (loopEnd[ptr]);
+            if(ptr >= nReduceModes)
+              dstBufPtr -= dstStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                srcBufPtr += srcStrides[ptr];
+                if(ptr >= nReduceModes)
+                    dstBufPtr += dstStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
+    }
+}
+
 ////////////////////////////////////
 // Local interfaces
 ////////////////////////////////////
@@ -162,11 +187,27 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
         tensorModes[i] = i;
     ModeArray nonReduceModes = NegFilterVector(tensorModes, reduceModes);
 
+    const ObjShape shapeA = A.Shape();
     const std::vector<Unsigned> srcStrides = A.Strides();
     const std::vector<Unsigned> dstStrides = PermuteVector(B.Strides(), permBToA);
 
-//    LocalReduceElemSelectHelper(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), srcStrides, B.Buffer(), dstStrides);
-    LocalReduceElemSelect_fast(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), srcStrides, B.Buffer(), dstStrides);
+//    LocalReduceElemSelect_fast(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), srcStrides, B.Buffer(), dstStrides);
+    std::vector<Unsigned> srcReduceStrides = FilterVector(srcStrides, reduceModes);
+    std::vector<Unsigned> srcNonReduceStrides = NegFilterVector(srcStrides, reduceModes);
+    std::vector<Unsigned> useSrcStrides = srcReduceStrides;
+    useSrcStrides.insert(useSrcStrides.end(), srcNonReduceStrides.begin(), srcNonReduceStrides.end());
+
+    std::vector<Unsigned> dstReduceStrides = FilterVector(dstStrides, reduceModes);
+    std::vector<Unsigned> dstNonReduceStrides = NegFilterVector(dstStrides, reduceModes);
+    std::vector<Unsigned> useDstStrides = dstReduceStrides;
+    useDstStrides.insert(useDstStrides.end(), dstNonReduceStrides.begin(), dstNonReduceStrides.end());
+
+    std::vector<Unsigned> srcReduceShape = FilterVector(shapeA, reduceModes);
+    std::vector<Unsigned> srcNonReduceShape = NegFilterVector(shapeA, reduceModes);
+    std::vector<Unsigned> useSrcShape = srcReduceShape;
+    useSrcShape.insert(useSrcShape.end(), srcNonReduceShape.begin(), srcNonReduceShape.end());
+
+    LocalReduceElemSelect_merged(reduceModes.size(), useSrcShape, A.LockedBuffer(), useSrcStrides, B.Buffer(), useDstStrides);
 }
 
 template <typename T>
@@ -196,6 +237,7 @@ void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const ModeArray& redu
     for(i = 0; i < reduceModes.size(); i++)
         shapeB[reduceModes[i]] = Min(A.GetGridView().Dimension(reduceModes[i]), A.Dimension(reduceModes[i]));
     B.ResizeTo(shapeB);
+    Zero(B);
 
     if(B.Participating()){
         //Account for the local data being permuted
