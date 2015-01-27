@@ -189,6 +189,9 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
     Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
 
+//    PrintVector(sendGridLoc, "sendGridLoc");
+//    PrintVector(recvGridLoc, "recvGridLoc");
+
     //Create the communicator to involve all processes we need to fix misalignment
     ModeArray misalignedModes;
     for(Unsigned i = 0; i < firstOwnerB.size(); i++){
