@@ -79,23 +79,55 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 
     Tensor<T> MPA, MPB, MPC;
 
+    //Check that the strides of each tensor are amenable to a direct Gemm call, and if not, permute
+    //NOTE: I think the check is currently overly conservative.
+    bool reallyPermuteA = permuteA;
+    bool reallyPermuteB = permuteB;
+    bool reallyPermuteC = permuteC;
+    if(!reallyPermuteA){
+        const ObjShape pShapeA = PermuteVector(A.Shape(), permA);
+        const std::vector<Unsigned> pStridesA = PermuteVector(A.Strides(), permA);
+        if(pStridesA[0] != 1)
+            reallyPermuteA = true;
+        for(i = 1; i < A.Order(); i++)
+            reallyPermuteA |= (pStridesA[i] != (pShapeA[i-1] * pStridesA[i-1]));
+    }
+
+    if(!reallyPermuteB){
+        const ObjShape pShapeB = PermuteVector(B.Shape(), permB);
+        const std::vector<Unsigned> pStridesB = PermuteVector(B.Strides(), permB);
+        if(pStridesB[0] != 1)
+            reallyPermuteB = true;
+        for(i = 1; i < B.Order(); i++)
+            reallyPermuteB |= (pStridesB[i] != (pShapeB[i-1] * pStridesB[i-1]));
+    }
+
+    if(!reallyPermuteC){
+        const ObjShape pShapeC = PermuteVector(C.Shape(), permC);
+        const std::vector<Unsigned> pStridesC = PermuteVector(C.Strides(), permC);
+        if(pStridesC[0] != 1)
+            reallyPermuteC = true;
+        for(i = 1; i < C.Order(); i++)
+            reallyPermuteC |= (pStridesC[i] != (pShapeC[i-1] * pStridesC[i-1]));
+    }
+
     //Create a matrix view of the tensors (permute if needed)
     //Then call Gemm
-    if(permuteA){
+    if(reallyPermuteA){
 //        PA.ResizeTo(PermuteVector(A.Shape(), permA));
         Permute(A, PA, permA);
         ViewAsMatrix(MPA, PA, nIndicesM);
     }else{
         ViewAsMatrix(MPA, A, nIndicesM);
     }
-    if(permuteB){
+    if(reallyPermuteB){
 //        PB.ResizeTo(PermuteVector(B.Shape(), permB));
         Permute(B, PB, permB);
         ViewAsMatrix(MPB, PB, nIndicesContract);
     }else{
         ViewAsMatrix(MPB, B, nIndicesContract);
     }
-    if(permuteC){
+    if(reallyPermuteC){
 //        PC.ResizeTo(PermuteVector(C.Shape(), permC));
         Permute(C, PC, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
@@ -126,11 +158,14 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
         Permute(IPC, C, invPermC);
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
-//        PrintArray(MPA.LockedBuffer(), MPA.Shape(), "MPA in");
-//        PrintArray(MPB.LockedBuffer(), MPB.Shape(), "MPB in");
-//        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC in");
+//        PrintData(A, "A in");
+//        PrintData(B, "B in");
+//        PrintData(C, "C in");
+//        PrintData(MPA, "MPA in");
+//        PrintData(MPB, "MPB in");
+//        PrintData(MPC, "MPC in");
         Gemm(alpha, MPA, MPB, beta, MPC);
-//        PrintArray(MPC.LockedBuffer(), MPC.Shape(), "MPC out");
+//        PrintData(MPC, "MPC out");
     }
     PROFILE_STOP;
 }
