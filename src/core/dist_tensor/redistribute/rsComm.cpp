@@ -104,6 +104,7 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 
 //    ObjShape sendShape = commDataShape;
 //    sendShape.insert(sendShape.end(), nRedistProcs);
+//    PrintVector(sendShape, "sendShape");
 //    PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Communicate the data
@@ -119,6 +120,7 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
         AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
         sendBuf = &(alignRecvBuf[0]);
         recvBuf = &(alignSendBuf[0]);
+//        PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
     }
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
@@ -200,41 +202,79 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
         for(j = 0; j < sortedCommModes.size(); j++){
             procGridLoc[sortedCommModes[j]] = sortedCommLoc[j];
         }
-
+//        PrintVector(procGridLoc, "procGridLoc");
         //This is the first element p_i needs using A's alignment for B.
-        Location procGridViewLocB = GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist());
+        //Note the following 4 work, but accidentally assign a valid firstLoc no matter what.
+//        Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
+//        Location myFirstLocUnaligned = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(myFirstLoc, A.Alignments()), A.Shape()), A.Shape());
+//        Location procFirstLoc = DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist()));
+//        Location procFirstLocUnaligned = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procFirstLoc, Alignments()), Shape()), Shape());
+
+        //Get my first elem location
+        Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
+
+        //Determine what grid location p_i corresponds to AFTER alignment has been performed
+        //so we correctly determine what elements to pack
         Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-        Location alignAinB = ElemwiseMod(GridLoc2ParticipatingGridViewLoc(firstElemOwnerA, gridShape, TensorDist()), ModeStrides());
-
-        Location procFirstElemLoc = DetermineFirstUnalignedElem(procGridViewLocB, alignAinB);
-        //Determine where to pack this information as B's alignment may differ from A's (meaning we pack data in different process order).
         Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstElemOwnerA, firstElemOwnerB);
+        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
+        Location procLocAfterRealign = ElemwiseMod(ElemwiseSum(ElemwiseSum(procGridLoc, alignDiff), g.Shape()), g.Shape());
+        Location procFirstLoc = DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procLocAfterRealign, gridShape, TensorDist()));
 
-        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), gridShape), gridShape);
-        Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
-        Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
+        //Because we might be misaligned within a mode we are communicating on, recalculate the correct slot to pack the data to
+        Location procPackLocSlice = FilterVector(procLocAfterRealign, sortedCommModes);
+        Unsigned adjustedPackLoc = Loc2LinearLoc(procPackLocSlice, FilterVector(gridShape, sortedCommModes));
+
+//        PrintVector(firstElemOwnerA, "firstElemOwnerA");
+//        PrintVector(firstElemOwnerB, "firstElemOwnerB");
+//        PrintVector(alignDiff, "alignDiff");
+//        PrintVector(procLocAfterRealign, "procLocAfterRealign");
+//        PrintVector(procFirstLoc, "procFirstLoc");
+        //Fixes many terms but breaks U
+//        Location procGridViewLocB = GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist());
+//        Location procFirstElemLoc = DetermineFirstElem(procGridViewLocB);
+//        Unsigned adjustedProcLinLoc = i;
+
+
+        //Determine where to pack this information as B's alignment may differ from A's (meaning we pack data in different process order).
+        //Fixes U but breaks many terms
+//        Location procGridViewLocB = GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist());
+//        Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+//        Location alignAinB = ElemwiseMod(GridLoc2ParticipatingGridViewLoc(firstElemOwnerA, gridShape, TensorDist()), ModeStrides());
+//        Location procFirstElemLoc = DetermineFirstUnalignedElem(procGridViewLocB, alignAinB);
+//        //Determine where to pack this information as B's alignment may differ from A's (meaning we pack data in different process order).
+//        Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+//        std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstElemOwnerA, firstElemOwnerB);
+//
+//        Location adjustedProcGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), gridShape), gridShape);
+//        Location adjustedProcGridLocSlice = FilterVector(adjustedProcGridLoc, sortedCommModes);
+//        Unsigned adjustedProcLinLoc = Loc2LinearLoc(adjustedProcGridLocSlice, FilterVector(gridShape, sortedCommModes));
+//        PrintVector(procGridLoc, "procGridLoc");
+//        PrintVector(alignDiff, "alignDiff");
+//        PrintVector(adjustedProcGridLoc, "adjustedProcGridLoc");
+//        PrintVector(adjustedProcGridLocSlice, "adjustedProcGridLocSlice");
 //        printf("i: %d adjustedLoc: %d\n", i, adjustedProcLinLoc);
 //        PrintVector(sortedCommModes, "sortedModes");
 //        PrintVector(g.Loc(), "myLoc");
-//        PrintVector(procGridLoc, "procGridLoc");
 //        PrintVector(procFirstElemLoc, "sendBuf first elem is");
 
 
         //Determine the first element I need to send to p_i
         //The first element I own is
-        Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
+//        Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
 
         //Iterate to figure out the first elem I need to send p_i
         Location firstSendLoc = myFirstLoc;
 
 //        PrintVector(myFirstLoc, "myFirstLoc");
-//        PrintVector(procFirstElemLoc, "procFirstElemLoc");
+//        PrintVector(adjustedProcFirstElemLoc, "adjustedProcFirstElemLoc");
+
         bool found = true;
         for(j = 0; j < nonRModes.size(); j++){
             Mode nonRMode = nonRModes[j];
             Unsigned myFirstIndex = myFirstLoc[nonRMode];
-            Unsigned sendFirstIndex = procFirstElemLoc[nonRMode];
+            Unsigned sendFirstIndex = procFirstLoc[nonRMode];
+//            Unsigned sendFirstIndex = adjustedProcFirstElemLoc[nonRMode];
             Unsigned myModeStride = A.ModeStride(nonRMode);
             Unsigned sendProcModeStride = ModeStride(nonRMode);
 
@@ -255,6 +295,9 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //            PrintVector(firstSendLoc, "haha sending first loc");
 //        else
 //            PrintVector(firstSendLoc, "nope sending first loc");
+
+        //Convert this value back to a Global Loc I own.
+//        Location actualFirstSendLoc = ElemwiseMod(ElemwiseSum(firstSendLoc, A.Alignments()), A.Shape());
 
         //Check this is a valid location to pack
         Location firstRecvLoc = firstSendLoc;
@@ -288,7 +331,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             packData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
 
 //            PrintPackData(packData, "rsPackData");
-            PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedProcLinLoc * nElemsPerProc]));
+            PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedPackLoc * nElemsPerProc]));
         }
     }
 }
