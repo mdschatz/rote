@@ -260,6 +260,7 @@ Read(check_Tau, fullName.str(), BINARY_FLAT, false);
 //******************************
 //* Load tensors
 //******************************
+    long long flops = 0;
     double gflops;
     double startTime;
     double runTime;
@@ -343,12 +344,12 @@ Read(check_Tau, fullName.str(), BINARY_FLAT, false);
 			t_fj_lvl1_part1_1__D_0__D_2.AlignModesWith( modes_0_1, Tau_efmn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3, modes_0_2 );
 			t_fj_lvl1_part1_1__D_0__D_2.AllGatherRedistFrom( t_fj_lvl1_part1_1__D_0_1__D_2_3, modes_1_3 );
 			   // 1.0 * t_fj_lvl1_part1_1[D0,D2]_em * t_fj_lvl2_part1_1[D1,D3]_fn + 1.0 * Tau_efmn_lvl1_part2_1_lvl2_part3_1[D0,D1,D2,D3]_emfn
-PROFILE_SECTION("COMPUTE");
-PROFILE_FLOPS(2*prod(Tau_efmn_lvl1_part2_1_lvl2_part3_1_perm0213__D_0__D_2__D_1__D_3.Shape())*1);
+if(commRank == 0){
+flops += 2*1*t_fj_lvl1_part1_1__D_0__D_2.Dimension(1)*t_fj_lvl2_part1_1__D_1__D_3.Dimension(1)*t_fj_lvl1_part1_1__D_0__D_2.Dimension(0)*t_fj_lvl2_part1_1__D_1__D_3.Dimension(0);
+}
 			LocalContractAndLocalEliminate(1.0, t_fj_lvl1_part1_1__D_0__D_2.LockedTensor(), indices_em, false,
 				t_fj_lvl2_part1_1__D_1__D_3.LockedTensor(), indices_fn, false,
 				1.0, Tau_efmn_lvl1_part2_1_lvl2_part3_1_perm0213__D_0__D_2__D_1__D_3.Tensor(), indices_emfn, false);
-PROFILE_STOP;
 			t_fj_lvl1_part1_1__D_0__D_2.EmptyData();
 			t_fj_lvl2_part1_1__D_1__D_3.EmptyData();
 			Permute( Tau_efmn_lvl1_part2_1_lvl2_part3_1_perm0213__D_0__D_2__D_1__D_3, Tau_efmn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3 );
@@ -391,7 +392,6 @@ PROFILE_STOP;
     /*****************************************/
     mpi::Barrier(g.OwningComm());
     runTime = mpi::Time() - startTime;
-    long long flops = Timer::nflops("COMPUTE");
     gflops = flops / (1e9 * runTime);
 #ifdef CORRECTNESS
     DistTensor<double> diff_Tau(dist__D_0__D_1__D_2__D_3, g);
@@ -409,9 +409,10 @@ PROFILE_STOP;
     //------------------------------------//
 
     //****
-
+#ifdef PROFILE
     if (commRank == 0)
         Timer::printTimers();
+#endif
 
     //****
     if (commRank == 0) {

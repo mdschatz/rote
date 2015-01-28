@@ -40,9 +40,9 @@ return; \
 
 #define PROFILE_RETURN return;
 
-#define PROFILE_FLOPS(n) do_flops(n)
+#define PROFILE_FLOPS(n)
 
-#define PROFILE_MEMOPS(n) do_memops(n)
+#define PROFILE_MEMOPS(n)
 
 #endif
 
@@ -129,15 +129,15 @@ class Timer
 
         void stop()
         {
-            #ifdef _OPENMP
+//            #ifdef _OPENMP
 //            if (!omp_in_parallel())
   //          {
     //            interval += toc()*omp_get_max_threads();
       //          count++;
         //    }
           //  else
-            #pragma omp critical
-            #endif
+//            #pragma omp critical
+//            #endif
 //            {
                 interval += toc();
                 count++;

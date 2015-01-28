@@ -257,9 +257,9 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
     std::ifstream file;
     switch(format){
         case ASCII_MATLAB:
-        case ASCII: file.open(filename); break;
+        case ASCII: file.open(filename.c_str()); break;
         case BINARY_FLAT:
-        case BINARY: file.open(filename, std::ios::binary); break;
+        case BINARY: file.open(filename.c_str(), std::ios::binary); break;
         default: LogicError("Unsupported distributed read format");
     }
     if( !file.is_open() ){
@@ -431,9 +431,9 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
     std::ifstream file;
     switch(format){
         case ASCII_MATLAB:
-        case ASCII: file.open(filename); break;
+        case ASCII: file.open(filename.c_str()); break;
         case BINARY_FLAT:
-        case BINARY: file.open(filename, std::ios::binary); break;
+        case BINARY: file.open(filename.c_str(), std::ios::binary); break;
         default: LogicError("Unsupported distributed read format");
     }
     if( !file.is_open() ){
