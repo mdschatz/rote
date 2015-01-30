@@ -68,7 +68,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        const ObjShape commDataShape = MaxLocalShape();
+        const ObjShape commDataShape = A.MaxLocalShape();
         const Unsigned sendSize = prod(commDataShape);
         const Unsigned recvSize = prod(commDataShape);
 
@@ -81,16 +81,16 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
         T* recvBuf = &(auxBuf[sendSize]);
 
         PackAGCommSendBuf(A, sendBuf);
+//        PrintArray(sendBuf, commDataShape, "sendBuf");
 
         AlignCommBufRedist(A, sendBuf, sendSize, recvBuf, sendSize);
 
+//        PrintArray(recvBuf, commDataShape, "recvBuf from SendRecv");
         //Packing is what is stored in memory
         PROFILE_SECTION("LocalUnpack");
         UnpackLocalCommRedist(A, recvBuf);
         PROFILE_STOP;
         this->auxMemory_.Release();
-
-//        PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
     }else{
         //Packing is what is stored in memory
         PROFILE_SECTION("LocalUnpack");
