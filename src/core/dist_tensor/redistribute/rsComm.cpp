@@ -148,7 +148,6 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 template <typename T>
 void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& rModes, const ModeArray& commModes, T * const sendBuf)
 {
-    Unsigned i,j;
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
 
@@ -163,7 +162,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 
     //TODO: I know I made a method to get this
     ModeArray nonRModes;
-    for(i = 0; i < order; i++){
+    for(Unsigned i = 0; i < order; i++){
         if(std::find(rModes.begin(), rModes.end(), i) == rModes.end())
             nonRModes.insert(nonRModes.end(), i);
     }
@@ -171,7 +170,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     //Different striding information
     const std::vector<Unsigned> commLCMs = LCMs(gvAShape, gvBShape);
     std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
-    for(i = 0; i < rModes.size(); i++)
+    for(Unsigned i = 0; i < rModes.size(); i++)
         modeStrideFactor[rModes[i]] = 1;
 
     const ObjShape sendShape = MaxLocalShape();
@@ -193,8 +192,8 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //    PrintData(*this, "thisData");
     //For each process we send to, we need to determine the first element we need to send them
     PARALLEL_FOR
-    for(i = 0; i < nRedistProcsAll; i++){
-
+    for(Unsigned i = 0; i < nRedistProcsAll; i++){
+        Unsigned j;
         //Invert the process order based on the communicator used, to the actual process location
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
         Location procGridLoc = myGridLoc;

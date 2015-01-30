@@ -138,7 +138,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
 template <typename T>
 void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf){
-    Unsigned i,j;
+//    Unsigned i,j;
     const Unsigned order = A.Order();
     const T* dataBuf = A.LockedBuffer();
 
@@ -169,10 +169,11 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     std::sort(sortedCommModes.begin(), sortedCommModes.end());
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
+    int tid;
     //For each process we send to, we need to determine the first element we need to send them
-//    PARALLEL_FOR
-    for(i = 0; i < nRedistProcsAll; i++){
-
+    PARALLEL_FOR
+    for(Unsigned i = 0; i < nRedistProcsAll; i++){
+        Unsigned j;
         //Invert the process order based on the communicator used, to the actual process location
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
         Location procGridLoc = myGridLoc;
@@ -283,7 +284,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
 template<typename T>
 void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A){
-    Unsigned i, j;
+
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();
 
@@ -315,9 +316,9 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     //For each process we recv from, we need to determine the first element we get from them
-//    PARALLEL_FOR
-    for(i = 0; i < nRedistProcsAll; i++){
-
+    PARALLEL_FOR
+    for(Unsigned i = 0; i < nRedistProcsAll; i++){
+        Unsigned j;
         //Invert the process order based on the communicator used, to the actual process location
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
         Location procGridLoc = myGridLoc;
