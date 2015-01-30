@@ -275,7 +275,7 @@ public:
     //
     Int CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes);
     void LocalCommRedist(const DistTensor<T>& A);
-    void UnpackLocalCommRedist(const DistTensor<T>& A);
+    void UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpackBuf);
 
     //
     // Local redist interface routines

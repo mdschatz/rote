@@ -58,13 +58,45 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
     if(!(Participating()))
         return;
 
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+
+    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
-    //Packing is what is stored in memory
-    PROFILE_SECTION("LocalUnpack");
-    UnpackLocalCommRedist(A);
-    PROFILE_STOP;
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+        const ObjShape commDataShape = MaxLocalShape();
+        const Unsigned sendSize = prod(commDataShape);
+        const Unsigned recvSize = prod(commDataShape);
+
+        T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+
+//        printf("aligningRS\n");
+//        PrintData(A, "A");
+//        PrintData(*this, "*this");
+        T* sendBuf = &(auxBuf[0]);
+        T* recvBuf = &(auxBuf[sendSize]);
+
+        PackAGCommSendBuf(A, sendBuf);
+
+        AlignCommBufRedist(A, sendBuf, sendSize, recvBuf, sendSize);
+
+        //Packing is what is stored in memory
+        PROFILE_SECTION("LocalUnpack");
+        UnpackLocalCommRedist(A, recvBuf);
+        PROFILE_STOP;
+        this->auxMemory_.Release();
+
+//        PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+    }else{
+        //Packing is what is stored in memory
+        PROFILE_SECTION("LocalUnpack");
+        UnpackLocalCommRedist(A, A.LockedBuffer());
+        PROFILE_STOP;
+    }
 
 //    const T* myBuf = LockedBuffer();
 //    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
@@ -74,11 +106,11 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 //TODO: Optimize strides when unpacking
 //TODO: Check that logic works out (modeStrides being global info applied to local info)
 template <typename T>
-void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A)
+void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpackBuf)
 {
     Unsigned order = A.Order();
     T* dataBuf = Buffer();
-    const T* srcBuf = A.LockedBuffer();
+//    const T* srcBuf = A.LockedBuffer();
 
     //GridView information
     const tmen::GridView gvA = A.GetGridView();
@@ -112,7 +144,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A)
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
         const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);
         Unsigned srcBufPtr = Loc2LinearLoc(firstLocInA, A.LocalShape(), A.LocalStrides());
-        PackCommHelper(unpackData, order - 1, &(srcBuf[srcBufPtr]), &(dataBuf[0]));
+        PackCommHelper(unpackData, order - 1, &(unpackBuf[srcBufPtr]), &(dataBuf[0]));
     }
 }
 
