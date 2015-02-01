@@ -42,14 +42,14 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
     //Set up tmp2 for holding beta*B
     ObjShape tmp2Shape = Shape();
     TensorDistribution tmp2Dist = TensorDist();
-    std::vector<Unsigned> tmp2Aligns = Alignments();
+//    std::vector<Unsigned> tmp2Aligns = Alignments();
     Permutation tmp2Perm = localPerm_;
     std::vector<Unsigned> tmp2Strides = LocalStrides();
 
     for(i = 0; i < sortedRModes.size(); i++){
         Mode rMode = sortedRModes[i];
         tmp2Dist.insert(tmp2Dist.begin() + rMode, blank);
-        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
+//        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
 
         for(j = 0; j < tmp2Perm.size(); j++)
             if(tmp2Perm[j] >= rMode)
@@ -68,9 +68,11 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
         tmp2Shape.insert(tmp2Shape.begin() + rMode, Min(1, A.Dimension(rMode)));
     }
 
-
     DistTensor<T> tmp2(tmp2Shape, tmen::TensorDistToString(tmp2Dist), g);
     tmp2.SetLocalPermutation(tmp2Perm);
+    std::vector<Unsigned> tmp2Aligns = Alignments();
+    for(i = 0; i < rModes.size(); i++)
+        tmp2Aligns.push_back(0);
 
     tmp2.Attach(tmp2Shape, tmp2Aligns, Buffer(), tmp2Strides, g);
 
