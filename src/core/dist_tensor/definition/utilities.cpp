@@ -272,8 +272,8 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     }
 
     //Create arrays representing how each commMode is exchanged in the redistribution
-    ModeArray tenModesFrom(order);
-    ModeArray tenModesTo(order);
+    ModeArray tenModesFrom(g.Order(), -1);
+    ModeArray tenModesTo(g.Order(), -1);
     for(i = 0; i < commModes.size(); i++){
         Mode commMode = commModes[i];
         for(j = 0; j < distA.size(); j++){
@@ -292,12 +292,23 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
         }
     }
     //Form the fromTo list defining how commModes move
-    std::vector<std::pair<Mode, Mode> > tensorModeFromTo;
-    for(i = 0; i < commModes.size(); i++){
+    std::vector<std::pair<Mode, Mode> > tensorModeFromTo(g.Order());
+    for(i = 0; i < tenModesFrom.size(); i++){
         std::pair<Mode, Mode> newPair(tenModesFrom[i], tenModesTo[i]);
-        tensorModeFromTo.push_back(newPair);
+        tensorModeFromTo[i] = newPair;
     }
 
+    int commRank = mpi::CommRank(MPI_COMM_WORLD);
+    if(commRank == 0){
+        for(i = 0; i < symGridModes.size(); i++){
+            printf("[%d] ", i);
+            PrintVector(symGridModes[i], "symGroup");
+        }
+        printf("commMode changes\n");
+        for(i = 0; i < tensorModeFromTo.size(); i++){
+            printf("%d --> %d\n", tensorModeFromTo[i].first, tensorModeFromTo[i].second);
+        }
+    }
 
 
     //Using the information regarding how each mode is exchanged, create a list of
@@ -306,16 +317,24 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     ModeArray a2aCommModes;
     for(i = 0; i < symGridModes.size(); i++){
         ModeArray symGroup = symGridModes[i];
-        DetermineSCC(symGroup, tensorModeFromTo, p2pCommModes);
+        if(commRank == 0)
+            PrintVector(symGroup, "Finding SCC for group");
+        std::vector<std::pair<Mode, Mode> > tensorModeFromToSubset(symGroup.size());
+        for(j = 0; j < symGroup.size(); j++){
+            tensorModeFromToSubset[j] = tensorModeFromTo[symGroup[j]];
+        }
+        DetermineSCC(symGroup, tensorModeFromToSubset, p2pCommModes);
 
         //a2aModes are those that weren't added to p2pModes by the DetermineSCC function
-        for(i = 0; i < symGroup.size(); i++){
-            Mode commMode = symGroup[i];
+        for(j = 0; j < symGroup.size(); j++){
+            Mode commMode = symGroup[j];
             if(std::find(p2pCommModes.begin(), p2pCommModes.end(), commMode) == p2pCommModes.end())
                 a2aCommModes.push_back(commMode);
         }
     }
 
+    A2AP2PData ret;
+    if(p2pCommModes.size() != 0){
     //Determine the distribution prefixes shared by input and output distributions
     TensorDistribution prefixDist = CreatePrefixDistribution(distA, distB);
     //(Prefix | A2AModesIn)
@@ -331,13 +350,18 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     //(Prefix | P2PModesOut | A2AModesOut)
     TensorDistribution A2AOpt4Dist = CreateA2AOptDist4(prefixP2PDist, distB, a2aCommModes);
 
-    A2AP2PData ret;
+    ret.doOpt = true;
     ret.a2aModes = a2aCommModes;
     ret.p2pModes = p2pCommModes;
     ret.opt1Dist = A2AOpt1Dist;
     ret.opt2Dist = A2AOpt2Dist;
     ret.opt3Dist = A2AOpt3Dist;
     ret.opt4Dist = A2AOpt4Dist;
+    ret.p2pModes = p2pCommModes;
+    ret.a2aModes = a2aCommModes;
+    }else{
+        ret.doOpt = false;
+    }
     return ret;
 
 }

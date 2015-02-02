@@ -59,7 +59,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     //Ripped from AlignCommBufRedist
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
 
     ModeArray misalignedModes;
     for(Unsigned i = 0; i < firstOwnerB.size(); i++){
@@ -129,37 +128,26 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
     //Make sure we account for alignments
+
 //    PrintData(A, "Adata");
 //    PrintData(*this, "Bdata");
-
+//
 //    const Location myLoc = g.Loc();
 //    PrintVector(myLoc, "myLoc");
-
-//    PrintVector(myGridViewLocA, "myGridViewLocA");
-//    PrintVector(myGridViewLocB, "myGridViewLocB");
-//    PrintVector(alignDiff, "alignDiff");
+//    PrintVector(gvA.ParticipatingLoc(), "gvALoc");
+//    PrintVector(gvB.ParticipatingLoc(), "gvBLoc");
+//
+//    PrintVector(myFirstElemA, "myFirstElemA");
+//    PrintVector(ownergvB, "ownergvB");
+//    PrintVector(myFirstElemB, "myFirstElemB");
+//    PrintVector(ownergvA, "ownergvA");
+//
 //    PrintVector(sendLoc, "sendLoc");
 //    PrintVector(recvLoc, "recvLoc");
-
+//    printf("sendRank: %d, recvRank: %d\n", sendLinLoc, recvLinLoc);
+//
 //    PrintVector(firstOwnerA, "firstOwnerA");
 //    PrintVector(firstOwnerB, "firstOwnerB");
-
-    Location alignedSendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(sendLoc, alignDiff), g.Shape()), g.Shape());
-    Location alignedRecvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(recvLoc, alignDiff), g.Shape()), g.Shape());
-
-//    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
-//    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
-
-    Location alignedSendSliceLoc = FilterVector(alignedSendGridLoc, actualCommModes);
-    Location alignedRecvSliceLoc = FilterVector(alignedRecvGridLoc, actualCommModes);
-    ObjShape gridSliceShape = FilterVector(g.Shape(), actualCommModes);
-
-//    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
-//    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
-//    PrintVector(gridSliceShape, "gridSliceShape");
-
-//    Unsigned sendLinLoc = Loc2LinearLoc(alignedSendSliceLoc, gridSliceShape);
-//    Unsigned recvLinLoc = Loc2LinearLoc(alignedRecvSliceLoc, gridSliceShape);
 
 //    printf("sendSize %d\n", sendSize);
 

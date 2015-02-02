@@ -1,49 +1,52 @@
 #include "tensormental/util/graph_util.hpp"
-
+#include "tensormental.hpp"
+#include "tensormental/io/Print.hpp"
 
 namespace tmen{
 
 //Modification of Tarjan's algorithm for determining strongly connected components.
 //https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
 //NOTE: std::vectors abused here.  The stack variables should really be stacks...
-void StrongConnect(const Unsigned minIndex, TarjanVertex& v, std::vector<TarjanVertex>& S,
-                   const TarjanVertex& parent, std::vector<std::pair<Mode, Mode> >& ES,
+void StrongConnect(Unsigned& minIndex, TarjanVertex& v, std::vector<TarjanVertex>& S,
                    std::map<Mode, TarjanVertex>& mode2TarjanVertexMap, const ModeArray& commModes, const std::vector<std::pair<Mode, Mode> >& tensorModeFromTo,
                    ModeArray& p2pModes){
-    Unsigned i;
+    int commRank = mpi::CommRank(MPI_COMM_WORLD);
+    Unsigned i, j, k;
     // Set the depth index for v to the smallest unused index
     v.index = minIndex;
     v.lowlink = minIndex;
     mode2TarjanVertexMap[v.id] = v;
+    minIndex += 1;
     S.push_back(v);
-    if(parent.id != -1){
-        //Find the edge and add it to ES
-        for(i = 0; i < tensorModeFromTo.size(); i++){
-            std::pair<Mode, Mode> possEdge = tensorModeFromTo[i];
-            if(possEdge.first == parent.id && possEdge.second == v.id){
-                ES.push_back(possEdge);
-                break;
-            }
-        }
-    }
 
     //Consider successors of v
     TarjanVertex w;
+    if(commRank == 0)
+        printf("tensorModeFromTo size: %d\n", tensorModeFromTo.size());
     for(i = 0; i < tensorModeFromTo.size(); i++){
         Mode tensorModeFrom = tensorModeFromTo[i].first;
         Mode tensorModeTo = tensorModeFromTo[i].second;
         if(tensorModeFrom == v.id){
             w = mode2TarjanVertexMap[tensorModeTo];
             if(w.index == -1){
-                StrongConnect(minIndex + 1, w, S,
-                              v, ES,
+                if(commRank == 0){
+                    printf("recurring on v.id = %d and parent id: %d\n", w.id, v.id);
+                }
+                StrongConnect(minIndex, w, S,
                               mode2TarjanVertexMap, commModes, tensorModeFromTo,
                               p2pModes);
                 v.lowlink = Min(v.lowlink, w.lowlink);
             }else{
-                for(i = 0; i < S.size(); i++){
-                    if(S[i].id == w.id)
+                if(commRank == 0){
+                    printf("searching through stack of size: %d for id: %d\n", S.size(), w.id);
+                }
+                for(j = 0; j < S.size(); j++){
+                    if(S[j].id == w.id){
+                        if(commRank == 0){
+                            printf("found an edge, adding it to the ES\n", S.size(), w.id);
+                        }
                         v.lowlink = Min(v.lowlink, w.index);
+                    }
                 }
             }
             mode2TarjanVertexMap[v.id] = v;
@@ -52,28 +55,56 @@ void StrongConnect(const Unsigned minIndex, TarjanVertex& v, std::vector<TarjanV
 
     // If v is a root node, pop the stack and generate an SCC
     if(v.lowlink == v.index){
+        if(commRank == 0)
+            printf("found root node with id: %d\n", v.id);
+
+        if(commRank == 0){
+            printf("Stack contains:");
+            for(i = 0; i < S.size(); i++)
+                printf(" %d", S[i].id);
+            printf("\n");
+        }
+        //Create SCC
         std::vector<TarjanVertex> sccVertices;
-        std::vector<std::pair<Mode, Mode> > sccEdges;
         do{
-            w = S[S.size() - 1];
-            sccVertices.push_back(w);
-            S.pop_back();
-            std::pair<Mode, Mode> edge = ES[ES.size() - 1];
-            sccEdges.push_back(edge);
-            ES.pop_back();
+            if(S.size() > 0){
+                w = S[S.size() - 1];
+                sccVertices.push_back(w);
+                S.pop_back();
+            }
         }while(w.id != v.id);
-        //output
-        while(sccEdges.size() != 0){
-            std::pair<Mode, Mode> sccEdge = sccEdges[sccEdges.size() - 1];
+        //output SCC
+
+        printf("modes in SCC:");
+        for(i = 0; i < sccVertices.size(); i++)
+            printf(" %d", sccVertices[i].id);
+        printf("\n");
+
+        if(sccVertices.size() > 1){
+            Mode edgeSrc = sccVertices[sccVertices.size() - 1].id;
+            Mode edgeDst = sccVertices[0].id;
             for(i = 0; i < tensorModeFromTo.size(); i++){
                 std::pair<Mode, Mode> possEdge = tensorModeFromTo[i];
-                if(possEdge.first == sccEdge.first && possEdge.second == sccEdge.second){
+                if(possEdge.first == edgeSrc && possEdge.second == edgeDst){
                     p2pModes.push_back(commModes[i]);
                 }
             }
-            sccEdges.pop_back();
+            for(i = 1; i < sccVertices.size(); i++){
+                edgeSrc = sccVertices[i-1].id;
+                edgeDst = sccVertices[i].id;
+                for(j = 0; j < tensorModeFromTo.size(); j++){
+                    std::pair<Mode, Mode> possEdge = tensorModeFromTo[j];
+                    if(possEdge.first == edgeSrc && possEdge.second == edgeDst){
+                        p2pModes.push_back(commModes[j]);
+                    }
+                }
+            }
         }
+        if(commRank == 0)
+            PrintVector(p2pModes, "p2pModes after found SCC");
     }
+    if(commRank == 0)
+        printf("returning\n");
 }
 
 //Modification of Tarjan's algorithm for determining strongly connected components.
@@ -85,20 +116,24 @@ DetermineSCC(const ModeArray& commModes, const std::vector<std::pair<Mode, Mode>
     Unsigned minIndex = 0;
     std::vector<TarjanVertex > S;
 
+    int commRank = mpi::CommRank(MPI_COMM_WORLD);
     //Create the list of tensor mode start points (Tarjan vertices)
     std::vector<Mode> vertices;
     std::vector<TarjanVertex > tarjanVertices;
     std::map<Mode, TarjanVertex> mode2TarjanVertexMap;
     for(i = 0; i < tensorModeFromTo.size(); i++){
         Mode possVertex = tensorModeFromTo[i].first;
-        if(std::find(vertices.begin(), vertices.end(), possVertex) == vertices.end()){
-            vertices.push_back(possVertex);
+        if(possVertex != -1){
+            if(std::find(vertices.begin(), vertices.end(), possVertex) == vertices.end()){
+                vertices.push_back(possVertex);
 
-            TarjanVertex v;
-            v.id = possVertex;
-            v.index = -1;
-            v.lowlink = -1;
-            mode2TarjanVertexMap[possVertex] = v;
+                TarjanVertex v;
+                v.id = possVertex;
+                v.index = -1;
+                v.lowlink = -1;
+                tarjanVertices.push_back(v);
+                mode2TarjanVertexMap[possVertex] = v;
+            }
         }
     }
 
@@ -107,13 +142,24 @@ DetermineSCC(const ModeArray& commModes, const std::vector<std::pair<Mode, Mode>
     root.index = -1;
     root.lowlink = -1;
 
+    if(commRank == 0){
+        printf("Created %d tarjan vertices\n", tarjanVertices.size());
+        for(i = 0; i < tarjanVertices.size(); i++){
+            TarjanVertex v = tarjanVertices[i];
+            printf("v.id: %d, v.index: %d, v.lowlink: %d\n", v.id, v.index, v.lowlink);
+        }
+    }
+
     //Perform Tarjan's algorithm
     for(i = 0; i < tarjanVertices.size(); i++){
         TarjanVertex v = tarjanVertices[i];
         if(v.index == -1){
             std::vector<std::pair<Mode, Mode> > ES;
-            StrongConnect(0, v, S,
-                          root, ES,
+
+            if(commRank == 0){
+                printf("Running SCC on vertex id: %d\n", v.id);
+            }
+            StrongConnect(minIndex, v, S,
                           mode2TarjanVertexMap, commModes, tensorModeFromTo,
                           p2pModes);
         }
@@ -148,7 +194,8 @@ CreatePrefixA2ADistribution(const TensorDistribution& prefixDist, const TensorDi
     for(i = 0; i < a2aModes.size(); i++){
         Mode a2aMode = a2aModes[i];
         for(j = 0; j < inDist.size(); j++){
-            if(std::find(inDist.begin(), inDist.end(), a2aMode) != inDist.end()){
+            ModeDistribution modeDist = inDist[j];
+            if(std::find(modeDist.begin(), modeDist.end(), a2aMode) != modeDist.end()){
                 ret[j].push_back(a2aMode);
                 break;
             }
@@ -164,7 +211,8 @@ CreateA2AOptDist1(const TensorDistribution& prefixA2ADist, const TensorDistribut
     for(i = 0; i < p2pModes.size(); i++){
         Mode p2pMode = p2pModes[i];
         for(j = 0; j < prefixA2ADist.size(); j++){
-            if(std::find(inDist.begin(), inDist.end(), p2pMode) != inDist.end()){
+            ModeDistribution modeDist = inDist[j];
+            if(std::find(modeDist.begin(), modeDist.end(), p2pMode) != modeDist.end()){
                 ret[j].push_back(p2pMode);
                 break;
             }
@@ -182,7 +230,8 @@ CreateA2AOptDist2(const TensorDistribution& prefixA2ADist, const TensorDistribut
     for(i = 0; i < p2pModes.size(); i++){
         Mode p2pMode = p2pModes[i];
         for(j = 0; j < outDist.size(); j++){
-            if(std::find(outDist.begin(), outDist.end(), p2pMode) != outDist.end()){
+            ModeDistribution modeDist = outDist[j];
+            if(std::find(modeDist.begin(), modeDist.end(), p2pMode) != modeDist.end()){
                 ret[j].push_back(p2pMode);
                 break;
             }
@@ -199,7 +248,8 @@ CreatePrefixP2PDistribution(const TensorDistribution& prefixDist, const TensorDi
     for(i = 0; i < p2pModes.size(); i++){
         Mode p2pMode = p2pModes[i];
         for(j = 0; j < outDist.size(); j++){
-            if(std::find(outDist.begin(), outDist.end(), p2pMode) != outDist.end()){
+            ModeDistribution modeDist = outDist[j];
+            if(std::find(modeDist.begin(), modeDist.end(), p2pMode) != modeDist.end()){
                 ret[j].push_back(p2pMode);
                 break;
             }
@@ -216,7 +266,8 @@ CreateA2AOptDist3(const TensorDistribution& prefixP2PDist, const TensorDistribut
     for(i = 0; i < a2aModes.size(); i++){
         Mode a2aMode = a2aModes[i];
         for(j = 0; j < inDist.size(); j++){
-            if(std::find(inDist.begin(), inDist.end(), a2aMode) != inDist.end()){
+            ModeDistribution modeDist = inDist[j];
+            if(std::find(modeDist.begin(), modeDist.end(), a2aMode) != modeDist.end()){
                 ret[j].push_back(a2aMode);
                 break;
             }
@@ -234,7 +285,8 @@ CreateA2AOptDist4(const TensorDistribution& prefixP2PDist, const TensorDistribut
     for(i = 0; i < a2aModes.size(); i++){
         Mode a2aMode = a2aModes[i];
         for(j = 0; j < outDist.size(); j++){
-            if(std::find(outDist.begin(), outDist.end(), a2aMode) != outDist.end()){
+            ModeDistribution modeDist = outDist[j];
+            if(std::find(modeDist.begin(), modeDist.end(), a2aMode) != modeDist.end()){
                 ret[j].push_back(a2aMode);
                 break;
             }

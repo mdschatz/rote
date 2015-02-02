@@ -111,6 +111,7 @@ struct TarjanVertex{
 };
 
 struct A2AP2PData{
+    bool doOpt;
     TensorDistribution opt1Dist;
     TensorDistribution opt2Dist;
     TensorDistribution opt3Dist;

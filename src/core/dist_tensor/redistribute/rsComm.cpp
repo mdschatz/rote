@@ -95,8 +95,6 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
-
-
     //Pack the data
     PROFILE_SECTION("RSPack");
     PackRSCommSendBuf(A, reduceModes, commModes, sendBuf);
@@ -309,7 +307,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             const Location localLoc = A.Global2LocalIndex(firstSendLoc);
 //            PrintVector(localLoc, "localLoc");
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, A.localPerm_), A.LocalStrides());
-//            printf("dataBufPtr: %d\n", dataBufPtr);
 
             PackData packData;
             packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
