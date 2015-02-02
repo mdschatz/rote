@@ -21,49 +21,51 @@ void StrongConnect(Unsigned& minIndex, TarjanVertex& v, std::vector<TarjanVertex
 
     //Consider successors of v
     TarjanVertex w;
-    if(commRank == 0)
-        printf("tensorModeFromTo size: %d\n", tensorModeFromTo.size());
+//    printf("looking for successor of v.id: %d\n", v.id);
     for(i = 0; i < tensorModeFromTo.size(); i++){
         Mode tensorModeFrom = tensorModeFromTo[i].first;
         Mode tensorModeTo = tensorModeFromTo[i].second;
         if(tensorModeFrom == v.id){
-            w = mode2TarjanVertexMap[tensorModeTo];
-            if(w.index == -1){
-                if(commRank == 0){
-                    printf("recurring on v.id = %d and parent id: %d\n", w.id, v.id);
-                }
-                StrongConnect(minIndex, w, S,
-                              mode2TarjanVertexMap, commModes, tensorModeFromTo,
-                              p2pModes);
-                v.lowlink = Min(v.lowlink, w.lowlink);
-            }else{
-                if(commRank == 0){
-                    printf("searching through stack of size: %d for id: %d\n", S.size(), w.id);
-                }
-                for(j = 0; j < S.size(); j++){
-                    if(S[j].id == w.id){
-                        if(commRank == 0){
-                            printf("found an edge, adding it to the ES\n", S.size(), w.id);
+//            printf("found an edge: %d --> %d\n", tensorModeFrom, tensorModeTo);
+            std::map<Mode, TarjanVertex>::iterator it;
+//            printf("mode2vertexMap:\n");
+//            for(it = mode2TarjanVertexMap.begin(); it != mode2TarjanVertexMap.end(); it++){
+//                printf("mode: %d maps to {id: %d, index: %d, lowlink: %d}\n", it->first, (it->second).id, (it->second).index, (it->second).lowlink);
+//            }
+//            printf("\n");
+            if(mode2TarjanVertexMap.find(tensorModeTo) != mode2TarjanVertexMap.end()){
+                w = mode2TarjanVertexMap[tensorModeTo];
+//                printf("retrieved vertex from map: {id: %d, index: %d, lowlink: %d}\n", w.id, w.index, w.lowlink);
+                if(w.index == -1){
+//                    printf("recurring on v.id = %d and parent id: %d\n", w.id, v.id);
+                    StrongConnect(minIndex, w, S,
+                                  mode2TarjanVertexMap, commModes, tensorModeFromTo,
+                                  p2pModes);
+                    v.lowlink = Min(v.lowlink, w.lowlink);
+                    mode2TarjanVertexMap[v.id] = v;
+                }else{
+//                    printf("searching for w.id: %d through stack of size: %d\n", w.id, S.size());
+                    for(j = 0; j < S.size(); j++){
+                        if(S[j].id == w.id){
+//                            printf("found w: %d already in S\n", w.id);
+                            v.lowlink = Min(v.lowlink, w.index);
+                            mode2TarjanVertexMap[v.id] = v;
                         }
-                        v.lowlink = Min(v.lowlink, w.index);
                     }
                 }
             }
-            mode2TarjanVertexMap[v.id] = v;
         }
     }
 
     // If v is a root node, pop the stack and generate an SCC
     if(v.lowlink == v.index){
-        if(commRank == 0)
-            printf("found root node with id: %d\n", v.id);
+//        printf("found root node with id: %d\n", v.id);
 
-        if(commRank == 0){
-            printf("Stack contains:");
-            for(i = 0; i < S.size(); i++)
-                printf(" %d", S[i].id);
-            printf("\n");
-        }
+//        printf("Stack contains:");
+//        for(i = 0; i < S.size(); i++)
+//            printf(" %d", S[i].id);
+//        printf("\n");
+
         //Create SCC
         std::vector<TarjanVertex> sccVertices;
         do{
@@ -75,10 +77,10 @@ void StrongConnect(Unsigned& minIndex, TarjanVertex& v, std::vector<TarjanVertex
         }while(w.id != v.id);
         //output SCC
 
-        printf("modes in SCC:");
-        for(i = 0; i < sccVertices.size(); i++)
-            printf(" %d", sccVertices[i].id);
-        printf("\n");
+//        printf("modes in SCC:");
+//        for(i = 0; i < sccVertices.size(); i++)
+//            printf(" %d", sccVertices[i].id);
+//        printf("\n");
 
         if(sccVertices.size() > 1){
             Mode edgeSrc = sccVertices[sccVertices.size() - 1].id;
@@ -100,11 +102,9 @@ void StrongConnect(Unsigned& minIndex, TarjanVertex& v, std::vector<TarjanVertex
                 }
             }
         }
-        if(commRank == 0)
-            PrintVector(p2pModes, "p2pModes after found SCC");
+//        PrintVector(p2pModes, "p2pModes after found SCC");
     }
-    if(commRank == 0)
-        printf("returning\n");
+//    printf("returning\n");
 }
 
 //Modification of Tarjan's algorithm for determining strongly connected components.
@@ -143,10 +143,10 @@ DetermineSCC(const ModeArray& commModes, const std::vector<std::pair<Mode, Mode>
     root.lowlink = -1;
 
     if(commRank == 0){
-        printf("Created %d tarjan vertices\n", tarjanVertices.size());
+//        printf("Created %d tarjan vertices\n", tarjanVertices.size());
         for(i = 0; i < tarjanVertices.size(); i++){
             TarjanVertex v = tarjanVertices[i];
-            printf("v.id: %d, v.index: %d, v.lowlink: %d\n", v.id, v.index, v.lowlink);
+//            printf("v.id: %d, v.index: %d, v.lowlink: %d\n", v.id, v.index, v.lowlink);
         }
     }
 
@@ -156,9 +156,7 @@ DetermineSCC(const ModeArray& commModes, const std::vector<std::pair<Mode, Mode>
         if(v.index == -1){
             std::vector<std::pair<Mode, Mode> > ES;
 
-            if(commRank == 0){
-                printf("Running SCC on vertex id: %d\n", v.id);
-            }
+//            printf("Running SCC on vertex id: %d\n", v.id);
             StrongConnect(minIndex, v, S,
                           mode2TarjanVertexMap, commModes, tensorModeFromTo,
                           p2pModes);

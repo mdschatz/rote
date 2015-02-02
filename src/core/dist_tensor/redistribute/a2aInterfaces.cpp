@@ -29,9 +29,9 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     A2AP2PData optData = DetermineA2AP2POptData(A, commModes);
 
     int commRank = mpi::CommRank(MPI_COMM_WORLD);
-    if(commRank == 0){
-        PrintA2AOptData(optData, "optData");
-    }
+//    if(commRank == 0){
+//        PrintA2AOptData(optData, "optData");
+//    }
 
     if(optData.doOpt == true){
         const tmen::Grid& g = A.Grid();
@@ -42,14 +42,14 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
 
         DistTensor<T> temp1(optData.opt1Dist, g);
         temp1.PermutationRedistFrom(A, a2ap2pModes);
-        Print(temp1, "temp1");
+//        Print(temp1, "temp1");
         DistTensor<T> temp2(optData.opt2Dist, g);
         temp2.PermutationRedistFrom(temp1, p2pModes);
-        Print(temp2, "temp2");
+//        Print(temp2, "temp2");
         temp1.EmptyData();
         DistTensor<T> temp3(optData.opt3Dist, g);
         temp3.PermutationRedistFrom(temp2, a2ap2pModes);
-        Print(temp3, "temp3");
+//        Print(temp3, "temp3");
         temp2.EmptyData();
         DistTensor<T> temp4(optData.opt4Dist, g);
         temp4.ResizeTo(temp3);
@@ -58,10 +58,10 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
             temp4.PermutationRedistFrom(temp3, a2aModes);
         else
             temp4.AllToAllCommRedist(temp3, a2aModes);
-        Print(temp4, "temp4");
+//        Print(temp4, "temp4");
         temp3.EmptyData();
         PermutationRedistFrom(temp4, a2ap2pModes);
-        Print(*this, "final");
+//        Print(*this, "final");
         temp4.EmptyData();
     }else{
         AllToAllCommRedist(A, sortedCommModes);

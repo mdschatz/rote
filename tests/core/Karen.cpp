@@ -49,33 +49,31 @@ void TestRS(mpi::Comm comm){
 void TestA2A(mpi::Comm comm){
     //Set up the Grid object
     ObjShape gridShape(4);
-    gridShape[0] = 3;
+    gridShape[0] = 2;
     gridShape[1] = 2;
-    gridShape[2] = 3;
-    gridShape[3] = 3;
+    gridShape[2] = 1;
+    gridShape[3] = 2;
     //Takes the MPI communicator we want to build the grid over and the shape of the grid
     Grid g(comm, gridShape);
 
     //Set up an input DistTensor
-    ObjShape in_shape(4);
-    in_shape[0] = 4;
-    in_shape[1] = 7;
-    in_shape[2] = 2;
-    in_shape[3] = 3;
+    ObjShape in_shape(2);
+    in_shape[0] = 10;
+    in_shape[1] = 10;
     //Takes the shape of the global object, the distribution, and the grid
-    DistTensor<double> input(in_shape, "[(0),(1),(2),(3)]", g);
+    DistTensor<double> input(in_shape, "[(0,2,1),(3)]", g);
     //Give input some random values
     MakeUniform(input);
 
 
     //Do the same for an output DistTensor
-    DistTensor<double> output(in_shape, "[(0),(1),(3),()]", g);
+    DistTensor<double> output(in_shape, "[(0,2,3),(1)]", g);
 
     PrintData(input, "in_data");
 //        PrintData(output, "out_data");
     Print(input, "in_shape");
     ModeArray commModes(2);
-    commModes[0] = 2;
+    commModes[0] = 1;
     commModes[1] = 3;
 
     output.AllToAllRedistFrom(input, commModes);
@@ -86,34 +84,38 @@ void TestA2A(mpi::Comm comm){
 void TestP(mpi::Comm comm){
     //Set up the Grid object
     ObjShape gridShape(4);
-    gridShape[0] = 3;
+    gridShape[0] = 4;
     gridShape[1] = 2;
-    gridShape[2] = 3;
+    gridShape[2] = 2;
     gridShape[3] = 3;
     //Takes the MPI communicator we want to build the grid over and the shape of the grid
     Grid g(comm, gridShape);
 
     //Set up an input DistTensor
-    ObjShape in_shape(4);
-    in_shape[0] = 4;
-    in_shape[1] = 5;
-    in_shape[2] = 4;
-    in_shape[3] = 6;
+    ObjShape in_shape(2);
+    in_shape[0] = 8;
+    in_shape[1] = 10;
     //Takes the shape of the global object, the distribution, and the grid
-    DistTensor<double> input(in_shape, "[(0),(),(),(2,3)]", g);
+    DistTensor<double> input(in_shape, "[(2,0),(1,3)]", g);
     //Give input some random values
     MakeUniform(input);
 
 
     //Do the same for an output DistTensor
-    DistTensor<double> output(in_shape, "[(0),(),(),(3,2)]", g);
+    std::vector<Unsigned> aligns(2);
+    aligns[0] = 1;
+    aligns[1] = 1;
+    DistTensor<double> output(in_shape, "[(0,1),(3,2)]", aligns, g);
+
 
     PrintData(input, "in_data");
 //        PrintData(output, "out_data");
     Print(input, "in_shape");
-    ModeArray commModes(2);
-    commModes[0] = 2;
-    commModes[1] = 3;
+    ModeArray commModes(4);
+    commModes[0] = 0;
+    commModes[1] = 1;
+    commModes[2] = 2;
+    commModes[3] = 3;
 
     output.PermutationRedistFrom(input, commModes);
 //        PrintData(output, "out_data_after");
@@ -187,7 +189,7 @@ int main( int argc, char* argv[] ) {
 
     try
     {
-        TestRead("data_8_3_bin_flat");
+        TestP(comm);
 
 
     }

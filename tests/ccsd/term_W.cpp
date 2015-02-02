@@ -991,82 +991,6 @@ Read(check_W, fullName.str(), BINARY_FLAT, false);
 	//Outputs:
 	//  W_bmje__D_0__D_1__D_2__D_3
 
-	tempShape = r_bmfe__D_0__D_1__D_2__D_3.Shape();
-	Wtemp4__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
-	//**** (out of 1)
-	//**** Is real	0 shadows
-		//Outputs:
-		//  Wtemp4__D_0__D_1__D_2__D_3
-	PartitionDown(r_bmfe__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0T__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0B__D_0__D_1__D_2__D_3, 0, 0);
-	PartitionDown(Wtemp4__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0B__D_0__D_1__D_2__D_3, 0, 0);
-	while(Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3.Dimension(0) < Wtemp4__D_0__D_1__D_2__D_3.Dimension(0))
-	{
-		RepartitionDown
-		( r_bmfe_lvl1_part0T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_0__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		       r_bmfe_lvl1_part0_1__D_0__D_1__D_2__D_3,
-		  r_bmfe_lvl1_part0B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
-		RepartitionDown
-		( Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_0__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		       Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3,
-		  Wtemp4_lvl1_part0B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
-
-		//**** (out of 1)
-		//**** Is real	0 shadows
-			//Outputs:
-			//  Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3
-		PartitionDown(r_bmfe_lvl1_part0_1__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, 1, 0);
-		PartitionDown(Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, 1, 0);
-		while(Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3.Dimension(1) < Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3.Dimension(1))
-		{
-			RepartitionDown
-			( r_bmfe_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
-			  /**/ /**/
-			       r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
-			  r_bmfe_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
-			RepartitionDown
-			( Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
-			  /**/ /**/
-			       Wtemp4_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
-			  Wtemp4_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
-
-			   // r_bmfe_lvl1_part0_1_lvl2_part1_1[D0,D1,D3,D2] <- r_bmfe_lvl1_part0_1_lvl2_part1_1[D0,D1,D2,D3]
-			r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
-			r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, modes_2_3 );
-if(commRank == 0){
-flops += 3*prod(r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3.Shape());
-}
-			YAxpPx( -1.0, r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, 2.0, r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, Wtemp4_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3 );
-			r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2.EmptyData();
-
-			SlidePartitionDown
-			( r_bmfe_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
-			       r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
-			  /**/ /**/
-			  r_bmfe_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1 );
-			SlidePartitionDown
-			( Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
-			       Wtemp4_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
-			  /**/ /**/
-			  Wtemp4_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1 );
-
-		}
-		//****
-
-		SlidePartitionDown
-		( r_bmfe_lvl1_part0T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_0__D_0__D_1__D_2__D_3,
-		       r_bmfe_lvl1_part0_1__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		  r_bmfe_lvl1_part0B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_2__D_0__D_1__D_2__D_3, 0 );
-		SlidePartitionDown
-		( Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_0__D_0__D_1__D_2__D_3,
-		       Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3,
-		  /**/ /**/
-		  Wtemp4_lvl1_part0B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_2__D_0__D_1__D_2__D_3, 0 );
-
-	}
-	//****
 	tempShape = u_mnje__D_0__D_1__D_2__D_3.Shape();
 	Wtemp3__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
 	//**** (out of 1)
@@ -1122,9 +1046,6 @@ flops += 3*prod(r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3.Shape());
 			   // u_mnje_lvl1_part1_1_lvl2_part0_1[D1,D0,D2,D3] <- u_mnje_lvl1_part1_1_lvl2_part0_1[D0,D1,D2,D3]
 			u_mnje_lvl1_part1_1_lvl2_part0_1__D_1__D_0__D_2__D_3.AlignModesWith( modes_0_1_2_3, u_mnje_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, modes_1_0_2_3 );
 			u_mnje_lvl1_part1_1_lvl2_part0_1__D_1__D_0__D_2__D_3.AllToAllRedistFrom( u_mnje_lvl1_part1_1_lvl2_part0_1__D_0__D_1__D_2__D_3, modes_0_1 );
-if(commRank == 0){
-flops += 3*prod(u_mnje_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3.Shape());
-}
 			YAxpPx( -1.0, u_mnje_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, 2.0, u_mnje_lvl1_part1_1_lvl2_part0_1__D_1__D_0__D_2__D_3, perm_1_0_2_3, Wtemp3_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3 );
 			u_mnje_lvl1_part1_1_lvl2_part0_1__D_1__D_0__D_2__D_3.EmptyData();
 
@@ -1220,9 +1141,6 @@ flops += 3*prod(u_mnje_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3.Shape());
 			   // v_femn_lvl1_part3_1_lvl2_part2_1[D0,D1,D3,D2] <- v_femn_lvl1_part3_1_lvl2_part2_1[D0,D1,D2,D3]
 			v_femn_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, v_femn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			v_femn_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( v_femn_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
-if(commRank == 0){
-flops += 3*prod(v_femn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3.Shape());
-}
 			YAxpPx( -1.0, v_femn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3, 2.0, v_femn_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, Wtemp2_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3 );
 			v_femn_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
@@ -1263,8 +1181,6 @@ flops += 3*prod(v_femn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3.Shape());
 
 	}
 	//****
-	Permute( Wtemp2__D_0__D_1__D_2__D_3, Wtemp2_perm1203__D_1__D_2__D_0__D_3 );
-	Wtemp2__D_0__D_1__D_2__D_3.EmptyData();
 	tempShape = T_bfnj__D_0__D_1__D_2__D_3.Shape();
 	Wtemp1__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
 	//**** (out of 1)
@@ -1332,9 +1248,6 @@ flops += 3*prod(v_femn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3.Shape());
 			   // T_bfnj_lvl1_part3_1_lvl2_part2_1[D0,D1,D3,D2] <- T_bfnj_lvl1_part3_1_lvl2_part2_1[D0,D1,D2,D3]
 			T_bfnj_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, T_bfnj_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			T_bfnj_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( T_bfnj_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_2__D_3, modes_2_3 );
-if(commRank == 0){
-flops += 4*prod(T_bfnj_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3.Shape());
-}
 			ZAxpBypPx( 0.5, T_bfnj_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3, -1.0, Tau_efmn_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3, T_bfnj_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, Wtemp1_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3 );
 			T_bfnj_lvl1_part3_1_lvl2_part2_1__D_0__D_1__D_3__D_2.EmptyData();
 
@@ -1438,9 +1351,6 @@ flops += 4*prod(T_bfnj_lvl1_part2_1_lvl2_part3_1__D_0__D_1__D_2__D_3.Shape());
 			   // x_bmej_lvl1_part1_1_lvl2_part3_1[D0,D1,D3,D2] <- x_bmej_lvl1_part1_1_lvl2_part3_1[D0,D1,D2,D3]
 			x_bmej_lvl1_part1_1_lvl2_part3_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, w_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
 			x_bmej_lvl1_part1_1_lvl2_part3_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( x_bmej_lvl1_part1_1_lvl2_part3_1__D_0__D_1__D_2__D_3, modes_2_3 );
-if(commRank == 0){
-flops += 3*prod(w_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3.Shape());
-}
 			YAxpPx( 2.0, w_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3, -1.0, x_bmej_lvl1_part1_1_lvl2_part3_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, W_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3 );
 			x_bmej_lvl1_part1_1_lvl2_part3_1__D_0__D_1__D_3__D_2.EmptyData();
 
@@ -1481,6 +1391,8 @@ flops += 3*prod(w_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3.Shape());
 
 	}
 	//****
+	Permute( Wtemp2__D_0__D_1__D_2__D_3, Wtemp2_perm1203__D_1__D_2__D_0__D_3 );
+	Wtemp2__D_0__D_1__D_2__D_3.EmptyData();
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -1536,9 +1448,6 @@ flops += 3*prod(w_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3.Shape());
 			tempShape.push_back( g.Shape()[3] );
 			W_bmje_lvl1_part0_1_lvl2_part2_1_perm310245__D_1__D_2__S__S__D_0__D_3.ResizeTo( tempShape );
 			   // 1.0 * Wtemp2[D0,D1,D2,D3]_emfn * Wtemp1_lvl1_part0_1_lvl2_part3_1[*,D0,D3,*]_fnbj + 0.0 * W_bmje_lvl1_part0_1_lvl2_part2_1[*,D2,*,D1,D0,D3]_embjfn
-if(commRank == 0){
-flops += 2*1*Wtemp2_perm1203__D_1__D_2__D_0__D_3.Dimension(0)*Wtemp2_perm1203__D_1__D_2__D_0__D_3.Dimension(3)*1*Wtemp2_perm1203__D_1__D_2__D_0__D_3.Dimension(1)*Wtemp2_perm1203__D_1__D_2__D_0__D_3.Dimension(2)*1*Wtemp1_lvl1_part0_1_lvl2_part3_1_perm1203__D_0__D_3__S__S.Dimension(0)*Wtemp1_lvl1_part0_1_lvl2_part3_1_perm1203__D_0__D_3__S__S.Dimension(3);
-}
 			LocalContract(1.0, Wtemp2_perm1203__D_1__D_2__D_0__D_3.LockedTensor(), indices_emfn, false,
 				Wtemp1_lvl1_part0_1_lvl2_part3_1_perm1203__D_0__D_3__S__S.LockedTensor(), indices_fnbj, false,
 				0.0, W_bmje_lvl1_part0_1_lvl2_part2_1_perm310245__D_1__D_2__S__S__D_0__D_3.Tensor(), indices_embjfn, false);
@@ -1557,9 +1466,6 @@ flops += 2*1*Wtemp2_perm1203__D_1__D_2__D_0__D_3.Dimension(0)*Wtemp2_perm1203__D
 			W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, W_bmje_lvl1_part0_1_lvl2_part2_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__S__D_2__D_1_3, modes_1_3 );
 			W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__S__D_2__D_1_3.EmptyData();
-if(commRank == 0){
-flops += 2*prod(W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.Shape());
-}
 			YxpBy( W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3, 1.0, W_bmje_lvl1_part0_1_lvl2_part2_1__D_0__D_1__D_2__D_3 );
 			W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.EmptyData();
 
@@ -1638,9 +1544,6 @@ flops += 2*prod(W_bmje_lvl1_part0_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.Shape(
 			t_fj_lvl2_part1_1_perm10__S__D_0.AlignModesWith( modes_0, W_bmje_lvl1_part1_1__D_0__D_1__D_2__D_3, modes_0 );
 			t_fj_lvl2_part1_1_perm10__S__D_0.AllGatherRedistFrom( t_fj_lvl2_part1_1__D_0_1__D_2_3, modes_1_2_3 );
 			   // -1.0 * Wtemp3_lvl1_part0_1_lvl2_part1_1[D1,*,D2,D3]_mjen * t_fj_lvl2_part1_1[D0,*]_nb + 1.0 * W_bmje_lvl1_part1_1[D0,D1,D2,D3]_mjeb
-if(commRank == 0){
-flops += 2*1*Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.Dimension(1)*1*Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.Dimension(3)*Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.Dimension(2)*Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.Dimension(0)*1*t_fj_lvl2_part1_1_perm10__S__D_0.Dimension(0);
-}
 			LocalContractAndLocalEliminate(-1.0, Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.LockedTensor(), indices_mjen, false,
 				t_fj_lvl2_part1_1_perm10__S__D_0.LockedTensor(), indices_nb, false,
 				1.0, W_bmje_lvl1_part1_1_perm1230__D_1__D_2__D_3__D_0.Tensor(), indices_mjeb, false);
@@ -1677,6 +1580,79 @@ flops += 2*1*Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.Dimensi
 	}
 	//****
 	Wtemp3__D_0__D_1__D_2__D_3.EmptyData();
+	tempShape = r_bmfe__D_0__D_1__D_2__D_3.Shape();
+	Wtemp4__D_0__D_1__D_2__D_3.ResizeTo( tempShape );
+	//**** (out of 1)
+	//**** Is real	0 shadows
+		//Outputs:
+		//  Wtemp4__D_0__D_1__D_2__D_3
+	PartitionDown(r_bmfe__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0T__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0B__D_0__D_1__D_2__D_3, 0, 0);
+	PartitionDown(Wtemp4__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0B__D_0__D_1__D_2__D_3, 0, 0);
+	while(Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3.Dimension(0) < Wtemp4__D_0__D_1__D_2__D_3.Dimension(0))
+	{
+		RepartitionDown
+		( r_bmfe_lvl1_part0T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_0__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		       r_bmfe_lvl1_part0_1__D_0__D_1__D_2__D_3,
+		  r_bmfe_lvl1_part0B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
+		RepartitionDown
+		( Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_0__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		       Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3,
+		  Wtemp4_lvl1_part0B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_2__D_0__D_1__D_2__D_3, 0, blkSize );
+
+		//**** (out of 1)
+		//**** Is real	0 shadows
+			//Outputs:
+			//  Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3
+		PartitionDown(r_bmfe_lvl1_part0_1__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, 1, 0);
+		PartitionDown(Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, 1, 0);
+		while(Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3.Dimension(1) < Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3.Dimension(1))
+		{
+			RepartitionDown
+			( r_bmfe_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
+			  /**/ /**/
+			       r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
+			  r_bmfe_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
+			RepartitionDown
+			( Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
+			  /**/ /**/
+			       Wtemp4_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
+			  Wtemp4_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1, blkSize );
+
+			   // r_bmfe_lvl1_part0_1_lvl2_part1_1[D0,D1,D3,D2] <- r_bmfe_lvl1_part0_1_lvl2_part1_1[D0,D1,D2,D3]
+			r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2.AlignModesWith( modes_0_1_2_3, r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, modes_0_1_3_2 );
+			r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2.AllToAllRedistFrom( r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, modes_2_3 );
+			YAxpPx( -1.0, r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3, 2.0, r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2, perm_0_1_3_2, Wtemp4_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3 );
+			r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_3__D_2.EmptyData();
+
+			SlidePartitionDown
+			( r_bmfe_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
+			       r_bmfe_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
+			  /**/ /**/
+			  r_bmfe_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1 );
+			SlidePartitionDown
+			( Wtemp4_lvl1_part0_1_lvl2_part1T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_1_lvl2_part1_0__D_0__D_1__D_2__D_3,
+			       Wtemp4_lvl1_part0_1_lvl2_part1_1__D_0__D_1__D_2__D_3,
+			  /**/ /**/
+			  Wtemp4_lvl1_part0_1_lvl2_part1B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_1_lvl2_part1_2__D_0__D_1__D_2__D_3, 1 );
+
+		}
+		//****
+
+		SlidePartitionDown
+		( r_bmfe_lvl1_part0T__D_0__D_1__D_2__D_3,  r_bmfe_lvl1_part0_0__D_0__D_1__D_2__D_3,
+		       r_bmfe_lvl1_part0_1__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		  r_bmfe_lvl1_part0B__D_0__D_1__D_2__D_3, r_bmfe_lvl1_part0_2__D_0__D_1__D_2__D_3, 0 );
+		SlidePartitionDown
+		( Wtemp4_lvl1_part0T__D_0__D_1__D_2__D_3,  Wtemp4_lvl1_part0_0__D_0__D_1__D_2__D_3,
+		       Wtemp4_lvl1_part0_1__D_0__D_1__D_2__D_3,
+		  /**/ /**/
+		  Wtemp4_lvl1_part0B__D_0__D_1__D_2__D_3, Wtemp4_lvl1_part0_2__D_0__D_1__D_2__D_3, 0 );
+
+	}
+	//****
 	//**** (out of 1)
 	//**** Is real	0 shadows
 		//Outputs:
@@ -1735,9 +1711,6 @@ flops += 2*1*Wtemp3_lvl1_part0_1_lvl2_part1_1_perm0231__D_1__D_2__D_3__S.Dimensi
 			tempShape.push_back( g.Shape()[3] );
 			W_bmje_lvl1_part1_1_lvl2_part2_1_perm01324__D_0__D_1__D_2__S__D_3.ResizeTo( tempShape );
 			   // 1.0 * Wtemp4_lvl1_part1_1[D0,D1,D2,D3]_bmef * t_fj_lvl2_part1_1[D3,*]_fj + 0.0 * W_bmje_lvl1_part1_1_lvl2_part2_1[D0,D1,*,D2,D3]_bmejf
-if(commRank == 0){
-flops += 2*1*Wtemp4_lvl1_part1_1__D_0__D_1__D_2__D_3.Dimension(3)*1*Wtemp4_lvl1_part1_1__D_0__D_1__D_2__D_3.Dimension(2)*Wtemp4_lvl1_part1_1__D_0__D_1__D_2__D_3.Dimension(0)*Wtemp4_lvl1_part1_1__D_0__D_1__D_2__D_3.Dimension(1)*1*t_fj_lvl2_part1_1__D_3__S.Dimension(1);
-}
 			LocalContract(1.0, Wtemp4_lvl1_part1_1__D_0__D_1__D_2__D_3.LockedTensor(), indices_bmef, false,
 				t_fj_lvl2_part1_1__D_3__S.LockedTensor(), indices_fj, false,
 				0.0, W_bmje_lvl1_part1_1_lvl2_part2_1_perm01324__D_0__D_1__D_2__S__D_3.Tensor(), indices_bmejf, false);
@@ -1752,9 +1725,6 @@ flops += 2*1*Wtemp4_lvl1_part1_1__D_0__D_1__D_2__D_3.Dimension(3)*1*Wtemp4_lvl1_
 			W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.AlignModesWith( modes_0_1_2_3, W_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3, modes_0_1_2_3 );
 			W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.AllToAllRedistFrom( W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__S__D_2_3, modes_2_3 );
 			W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__S__D_2_3.EmptyData();
-if(commRank == 0){
-flops += 2*prod(W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.Shape());
-}
 			YxpBy( W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3, 1.0, W_bmje_lvl1_part1_1_lvl2_part2_1__D_0__D_1__D_2__D_3 );
 			W_bmje_lvl1_part1_1_lvl2_part2_1_temp__D_0__D_1__D_2__D_3.EmptyData();
 

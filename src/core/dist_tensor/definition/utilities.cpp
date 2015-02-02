@@ -253,6 +253,8 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     TensorDistribution distA = A.TensorDist();
     TensorDistribution distB = TensorDist();
 
+//    PrintData(A, "inData");
+//    PrintData(*this, "outData");
     //Determine which modes communicating over that share the same dimension
     ObjShape gShape = g.Shape();
     std::vector<ModeArray> symGridModes;
@@ -299,16 +301,14 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     }
 
     int commRank = mpi::CommRank(MPI_COMM_WORLD);
-    if(commRank == 0){
-        for(i = 0; i < symGridModes.size(); i++){
-            printf("[%d] ", i);
-            PrintVector(symGridModes[i], "symGroup");
-        }
-        printf("commMode changes\n");
-        for(i = 0; i < tensorModeFromTo.size(); i++){
-            printf("%d --> %d\n", tensorModeFromTo[i].first, tensorModeFromTo[i].second);
-        }
-    }
+//    for(i = 0; i < symGridModes.size(); i++){
+//        printf("[%d] ", i);
+//        PrintVector(symGridModes[i], "symGroup");
+//    }
+//    printf("commMode changes\n");
+//    for(i = 0; i < tensorModeFromTo.size(); i++){
+//        printf("%d --> %d\n", tensorModeFromTo[i].first, tensorModeFromTo[i].second);
+//    }
 
 
     //Using the information regarding how each mode is exchanged, create a list of
@@ -317,12 +317,18 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     ModeArray a2aCommModes;
     for(i = 0; i < symGridModes.size(); i++){
         ModeArray symGroup = symGridModes[i];
-        if(commRank == 0)
-            PrintVector(symGroup, "Finding SCC for group");
+//        PrintVector(symGroup, "Finding SCC for group");
+
         std::vector<std::pair<Mode, Mode> > tensorModeFromToSubset(symGroup.size());
         for(j = 0; j < symGroup.size(); j++){
             tensorModeFromToSubset[j] = tensorModeFromTo[symGroup[j]];
         }
+
+//        printf("Considering edges:\n");
+//        for(j = 0; j < tensorModeFromToSubset.size(); j++)
+//            printf("%d --> %d\n", tensorModeFromToSubset[j].first, tensorModeFromToSubset[j].second);
+//        printf("\n");
+
         DetermineSCC(symGroup, tensorModeFromToSubset, p2pCommModes);
 
         //a2aModes are those that weren't added to p2pModes by the DetermineSCC function
