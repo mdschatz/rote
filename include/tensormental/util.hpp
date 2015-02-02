@@ -18,5 +18,6 @@
 // Declare the intertwined core parts of our library
 #include "tensormental/util/vec_util.hpp"
 #include "tensormental/util/btas_util.hpp"
+#include "tensormental/util/graph_util.hpp"
 
 #endif // ifndef TMEN_CORE_HPP

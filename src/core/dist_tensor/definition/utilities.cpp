@@ -7,7 +7,7 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "tensormental.hpp"
-
+#include "tensormental/util/graph_util.hpp"
 namespace tmen {
 
 template<typename T>
@@ -234,59 +234,113 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
 
 }
 
-//template<typename T>
-//A2AP2PData
-//DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& commModes)
-//{
-//    const tmen::Grid& g = A.Grid();
-//    Unsigned i, j;
-//    Unsigned order = A.Order();
-//    TensorDistribution distA = A.TensorDist();
-//    TensorDistribution distB = TensorDist();
-//    TensorDistribution baseDist(distA.size());
-//
-//    for(i = 0; i < order; i++){
-//        ModeDistribution modeDistA = distA[i];
-//        ModeDistribution modeDistB = distB[i];
-//        ModeDistribution baseModeDist;
-//        for(j = 0; j < modeDistA.size() & j < modeDistB.size(); i++){
-//            if(modeDistA[i] == modeDistB[i])
-//                baseModeDist.push_back(modeDistA[i]);
-//            else
-//                break;
-//        }
-//    }
-//
-//    ObjShape gShape = g.Shape();
-//    std::vector<ModeArray> symGridModes;
-//    ModeArray oldCommModes = commModes;
-//    while(oldCommModes.size() > 0){
-//        ModeArray newGroup;
-//        Mode matchMode = oldCommModes[oldCommModes.size() - 1];
-//        newGroup.push_back(matchMode);
-//        oldCommModes.erase(oldCommModes.end() - 1);
-//        for(i = oldCommModes.size() - 1; i < oldCommModes.size(); i--){
-//            if(gShape[oldCommModes[i]] == gShape[matchMode]){
-//                newGroup.push_back(oldCommModes[i]);
-//                oldCommModes.erase(oldCommModes.begin() + i);
-//            }
-//        }
-//        symGridModes.push_back(newGroup);
-//    }
-//
-//    ModeArray nonSymModes;
-//    for(i = symGridModes.size() - 1; i < symGridModes.size(); i--){
-//        if(symGridModes[i].size() == 1){
-//            nonSymModes.push_back(symGridModes[i][0]);
-//            symGridModes.erase(symGridModes.begin() + i);
-//        }
-//    }
-//
-//    A2AP2PData ret;
-//    return ret;
-//
-//
-//}
+//Creates information for optimizing A2A routines as P2P calls when applicable
+//Idea is this:
+//For all modes of grid we're communicating over that share the same dimension
+//Exchange these as a P2P instead of an A2A
+//Only perform the A2A exchange on modes we absolutely have to.
+//These are modes that don't form a dimension-invariant permutation cycle with any other modes.
+template<typename T>
+A2AP2PData
+DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& commModes)
+{
+    const tmen::Grid& g = A.Grid();
+    ModeArray sortedCommModes = commModes;
+    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+
+    Unsigned i, j;
+    Unsigned order = A.Order();
+    TensorDistribution distA = A.TensorDist();
+    TensorDistribution distB = TensorDist();
+
+    //Determine which modes communicating over that share the same dimension
+    ObjShape gShape = g.Shape();
+    std::vector<ModeArray> symGridModes;
+    ModeArray oldCommModes = commModes;
+    while(oldCommModes.size() > 0){
+        ModeArray newGroup;
+        Mode matchMode = oldCommModes[oldCommModes.size() - 1];
+        newGroup.push_back(matchMode);
+        oldCommModes.erase(oldCommModes.end() - 1);
+        for(i = oldCommModes.size() - 1; i < oldCommModes.size(); i--){
+            if(gShape[oldCommModes[i]] == gShape[matchMode]){
+                newGroup.push_back(oldCommModes[i]);
+                oldCommModes.erase(oldCommModes.begin() + i);
+            }
+        }
+        symGridModes.push_back(newGroup);
+    }
+
+    //Create arrays representing how each commMode is exchanged in the redistribution
+    ModeArray tenModesFrom(order);
+    ModeArray tenModesTo(order);
+    for(i = 0; i < commModes.size(); i++){
+        Mode commMode = commModes[i];
+        for(j = 0; j < distA.size(); j++){
+            ModeDistribution modeDist = distA[j];
+            if(std::find(modeDist.begin(), modeDist.end(), commMode) != modeDist.end()){
+                tenModesFrom[commMode] = j;
+                break;
+            }
+        }
+        for(j = 0; j < distB.size(); j++){
+            ModeDistribution modeDist = distB[j];
+            if(std::find(modeDist.begin(), modeDist.end(), commMode) != modeDist.end()){
+                tenModesTo[commMode] = j;
+                break;
+            }
+        }
+    }
+    //Form the fromTo list defining how commModes move
+    std::vector<std::pair<Mode, Mode> > tensorModeFromTo;
+    for(i = 0; i < commModes.size(); i++){
+        std::pair<Mode, Mode> newPair(tenModesFrom[i], tenModesTo[i]);
+        tensorModeFromTo.push_back(newPair);
+    }
+
+
+
+    //Using the information regarding how each mode is exchanged, create a list of
+    //p2p-redistributable commModes and a2a-redistributable commModes
+    ModeArray p2pCommModes;
+    ModeArray a2aCommModes;
+    for(i = 0; i < symGridModes.size(); i++){
+        ModeArray symGroup = symGridModes[i];
+        DetermineSCC(symGroup, tensorModeFromTo, p2pCommModes);
+
+        //a2aModes are those that weren't added to p2pModes by the DetermineSCC function
+        for(i = 0; i < symGroup.size(); i++){
+            Mode commMode = symGroup[i];
+            if(std::find(p2pCommModes.begin(), p2pCommModes.end(), commMode) == p2pCommModes.end())
+                a2aCommModes.push_back(commMode);
+        }
+    }
+
+    //Determine the distribution prefixes shared by input and output distributions
+    TensorDistribution prefixDist = CreatePrefixDistribution(distA, distB);
+    //(Prefix | A2AModesIn)
+    TensorDistribution prefixA2ADist = CreatePrefixA2ADistribution(prefixDist, distA, a2aCommModes);
+    //(Prefix | A2AModesIn | P2PModesIn)
+    TensorDistribution A2AOpt1Dist = CreatePrefixA2ADistribution(prefixA2ADist, distA, p2pCommModes);
+    //(Prefix | A2AModesIn | P2PModesOut)
+    TensorDistribution A2AOpt2Dist = CreatePrefixA2ADistribution(prefixA2ADist, distB, p2pCommModes);
+    //(Prefix | P2PModesOut)
+    TensorDistribution prefixP2PDist = CreatePrefixP2PDistribution(prefixDist, distB, p2pCommModes);
+    //(Prefix | P2PModesOut | A2AModesIn)
+    TensorDistribution A2AOpt3Dist = CreateA2AOptDist3(prefixP2PDist, distA, a2aCommModes);
+    //(Prefix | P2PModesOut | A2AModesOut)
+    TensorDistribution A2AOpt4Dist = CreateA2AOptDist4(prefixP2PDist, distB, a2aCommModes);
+
+    A2AP2PData ret;
+    ret.a2aModes = a2aCommModes;
+    ret.p2pModes = p2pCommModes;
+    ret.opt1Dist = A2AOpt1Dist;
+    ret.opt2Dist = A2AOpt2Dist;
+    ret.opt3Dist = A2AOpt3Dist;
+    ret.opt4Dist = A2AOpt4Dist;
+    return ret;
+
+}
 
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \

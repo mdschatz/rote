@@ -239,6 +239,8 @@ public:
     //
     Int CheckAllToAllDoubleModeCommRedist(const DistTensor<T>& A, const std::pair<Mode, Mode>& a2aModes, const std::pair<ModeArray, ModeArray >& a2aCommGroups);
     void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
+    void AllToAllCommRedistTry(const DistTensor<T>& A, const ModeArray& commModes);
+    A2AP2PData DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& commModes);
     void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
     void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
 

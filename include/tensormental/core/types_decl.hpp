@@ -104,6 +104,21 @@ struct ElemSelectData{
     Permutation permutation;
 };
 
+struct TarjanVertex{
+    Mode id;
+    Unsigned index;
+    Unsigned lowlink;
+};
+
+struct A2AP2PData{
+    TensorDistribution opt1Dist;
+    TensorDistribution opt2Dist;
+    TensorDistribution opt3Dist;
+    TensorDistribution opt4Dist;
+    ModeArray p2pModes;
+    ModeArray a2aModes;
+};
+
 //template<typename Real>
 //using Complex = std::complex<Real>;
 
