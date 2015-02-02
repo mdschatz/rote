@@ -139,10 +139,20 @@ DistTensor<T>::DetermineFirstElem(const Location& gridViewLoc) const
     CallStackEntry cse("DistTensor::DetermineFirstElem");
 #endif
     Unsigned i;
+
+    const GridView gv = GetGridView();
+    const ObjShape participatingShape = gv.ParticipatingShape();
     Location ret(gridViewLoc.size());
     for(i = 0; i < gridViewLoc.size(); i++){
-        ret[i] = Shift(gridViewLoc[i], modeAlignments_[i], ModeStride(i));
+        ret[i] = gridViewLoc[i] - modeAlignments_[i];
+
+        if(gridViewLoc[i] < modeAlignments_[i])
+            ret[i] += ModeStride(i);
     }
+//    Location ret(gridViewLoc.size());
+//    for(i = 0; i < gridViewLoc.size(); i++){
+//        ret[i] = Shift(gridViewLoc[i], modeAlignments_[i], ModeStride(i));
+//    }
 
     return ret;
 }
@@ -223,6 +233,60 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
                   alignedSendBuf, recvSize, recvLinLoc, sendRecvComm);
 
 }
+
+//template<typename T>
+//A2AP2PData
+//DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& commModes)
+//{
+//    const tmen::Grid& g = A.Grid();
+//    Unsigned i, j;
+//    Unsigned order = A.Order();
+//    TensorDistribution distA = A.TensorDist();
+//    TensorDistribution distB = TensorDist();
+//    TensorDistribution baseDist(distA.size());
+//
+//    for(i = 0; i < order; i++){
+//        ModeDistribution modeDistA = distA[i];
+//        ModeDistribution modeDistB = distB[i];
+//        ModeDistribution baseModeDist;
+//        for(j = 0; j < modeDistA.size() & j < modeDistB.size(); i++){
+//            if(modeDistA[i] == modeDistB[i])
+//                baseModeDist.push_back(modeDistA[i]);
+//            else
+//                break;
+//        }
+//    }
+//
+//    ObjShape gShape = g.Shape();
+//    std::vector<ModeArray> symGridModes;
+//    ModeArray oldCommModes = commModes;
+//    while(oldCommModes.size() > 0){
+//        ModeArray newGroup;
+//        Mode matchMode = oldCommModes[oldCommModes.size() - 1];
+//        newGroup.push_back(matchMode);
+//        oldCommModes.erase(oldCommModes.end() - 1);
+//        for(i = oldCommModes.size() - 1; i < oldCommModes.size(); i--){
+//            if(gShape[oldCommModes[i]] == gShape[matchMode]){
+//                newGroup.push_back(oldCommModes[i]);
+//                oldCommModes.erase(oldCommModes.begin() + i);
+//            }
+//        }
+//        symGridModes.push_back(newGroup);
+//    }
+//
+//    ModeArray nonSymModes;
+//    for(i = symGridModes.size() - 1; i < symGridModes.size(); i--){
+//        if(symGridModes[i].size() == 1){
+//            nonSymModes.push_back(symGridModes[i][0]);
+//            symGridModes.erase(symGridModes.begin() + i);
+//        }
+//    }
+//
+//    A2AP2PData ret;
+//    return ret;
+//
+//
+//}
 
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
