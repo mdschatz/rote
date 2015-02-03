@@ -40,17 +40,17 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
         std::sort(a2aModes.begin(), a2aModes.end());
         ModeArray a2ap2pModes = ConcatenateVectors(a2aModes, p2pModes);
 
-        DistTensor<T> temp1(optData.opt1Dist, g);
-        temp1.PermutationRedistFrom(A, a2ap2pModes);
+//        DistTensor<T> temp1(optData.opt1Dist, g);
+//        temp1.PermutationRedistFrom(A, a2ap2pModes);
 //        Print(temp1, "temp1");
-        DistTensor<T> temp2(optData.opt2Dist, g);
-        temp2.PermutationRedistFrom(temp1, p2pModes);
+//        DistTensor<T> temp2(optData.opt2Dist, g);
+//        temp2.PermutationRedistFrom(temp1, p2pModes);
 //        Print(temp2, "temp2");
-        temp1.EmptyData();
+//        temp1.EmptyData();
         DistTensor<T> temp3(optData.opt3Dist, g);
-        temp3.PermutationRedistFrom(temp2, a2ap2pModes);
+        temp3.PermutationRedistFrom(A, a2ap2pModes);
 //        Print(temp3, "temp3");
-        temp2.EmptyData();
+//        temp2.EmptyData();
         DistTensor<T> temp4(optData.opt4Dist, g);
         temp4.ResizeTo(temp3);
         //NOTE: Fix this bug

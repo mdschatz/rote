@@ -344,11 +344,11 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     //Determine the distribution prefixes shared by input and output distributions
     TensorDistribution prefixDist = CreatePrefixDistribution(distA, distB);
     //(Prefix | A2AModesIn)
-    TensorDistribution prefixA2ADist = CreatePrefixA2ADistribution(prefixDist, distA, a2aCommModes);
+//    TensorDistribution prefixA2ADist = CreatePrefixA2ADistribution(prefixDist, distA, a2aCommModes);
     //(Prefix | A2AModesIn | P2PModesIn)
-    TensorDistribution A2AOpt1Dist = CreatePrefixA2ADistribution(prefixA2ADist, distA, p2pCommModes);
+//    TensorDistribution A2AOpt1Dist = CreatePrefixA2ADistribution(prefixA2ADist, distA, p2pCommModes);
     //(Prefix | A2AModesIn | P2PModesOut)
-    TensorDistribution A2AOpt2Dist = CreatePrefixA2ADistribution(prefixA2ADist, distB, p2pCommModes);
+//    TensorDistribution A2AOpt2Dist = CreatePrefixA2ADistribution(prefixA2ADist, distB, p2pCommModes);
     //(Prefix | P2PModesOut)
     TensorDistribution prefixP2PDist = CreatePrefixP2PDistribution(prefixDist, distB, p2pCommModes);
     //(Prefix | P2PModesOut | A2AModesIn)
@@ -359,8 +359,8 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     ret.doOpt = true;
     ret.a2aModes = a2aCommModes;
     ret.p2pModes = p2pCommModes;
-    ret.opt1Dist = A2AOpt1Dist;
-    ret.opt2Dist = A2AOpt2Dist;
+//    ret.opt1Dist = A2AOpt1Dist;
+//    ret.opt2Dist = A2AOpt2Dist;
     ret.opt3Dist = A2AOpt3Dist;
     ret.opt4Dist = A2AOpt4Dist;
     ret.p2pModes = p2pCommModes;
