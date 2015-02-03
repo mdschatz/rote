@@ -47,22 +47,26 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
 //        temp2.PermutationRedistFrom(temp1, p2pModes);
 //        Print(temp2, "temp2");
 //        temp1.EmptyData();
-        DistTensor<T> temp3(optData.opt3Dist, g);
-        temp3.PermutationRedistFrom(A, a2ap2pModes);
+        if(a2aModes.size() == 0){
+            PermutationRedistFrom(A, p2pModes);
+        }else{
+            DistTensor<T> temp3(optData.opt3Dist, g);
+            temp3.PermutationRedistFrom(A, a2ap2pModes);
 //        Print(temp3, "temp3");
 //        temp2.EmptyData();
-        DistTensor<T> temp4(optData.opt4Dist, g);
-        temp4.ResizeTo(temp3);
+            DistTensor<T> temp4(optData.opt4Dist, g);
+            temp4.ResizeTo(temp3);
         //NOTE: Fix this bug
-        if(a2aModes.size() == 0)
-            temp4.PermutationRedistFrom(temp3, a2aModes);
-        else
-            temp4.AllToAllCommRedist(temp3, a2aModes);
+            if(a2aModes.size() == 0)
+                temp4.PermutationRedistFrom(temp3, a2aModes);
+            else
+                temp4.AllToAllCommRedist(temp3, a2aModes);
 //        Print(temp4, "temp4");
-        temp3.EmptyData();
-        PermutationRedistFrom(temp4, a2ap2pModes);
+            temp3.EmptyData();
+            PermutationRedistFrom(temp4, a2ap2pModes);
 //        Print(*this, "final");
-        temp4.EmptyData();
+            temp4.EmptyData();
+        }
     }else{
         AllToAllCommRedist(A, sortedCommModes);
     }
