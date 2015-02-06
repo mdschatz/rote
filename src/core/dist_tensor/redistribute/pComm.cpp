@@ -60,10 +60,14 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 
+    std::vector<Unsigned> alignA = A.Alignments();
+    std::vector<Unsigned> alignB = Alignments();
+
     ModeArray misalignedModes;
-    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
-        if(firstOwnerB[i] != firstOwnerA[i]){
-            misalignedModes.insert(misalignedModes.end(), i);
+    for(Unsigned i = 0; i < alignA.size(); i++){
+        if(alignA[i] != alignB[i]){
+            ModeDistribution modeDist = A.ModeDist(i);
+            misalignedModes.insert(misalignedModes.end(), modeDist.begin(), modeDist.end());
         }
     }
 
@@ -145,18 +149,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 //    PrintVector(sendLoc, "sendLoc");
 //    PrintVector(recvLoc, "recvLoc");
 //    printf("sendRank: %d, recvRank: %d\n", sendLinLoc, recvLinLoc);
-//
-//    PrintVector(firstOwnerA, "firstOwnerA");
-//    PrintVector(firstOwnerB, "firstOwnerB");
-
-//    printf("sendSize %d\n", sendSize);
-
-//    printf("sendLinLoc: %d\n", sendLinLoc);
-//    printf("recvLinLoc: %d\n", recvLinLoc);
-//    printf("CommRank: %d\n", mpi::CommRank(sendRecvComm));
-//    printf("CommSize: %d\n", mpi::CommSize(sendRecvComm));
-//
-//    printf("sendSize: %d, recvSize: %d\n", sendSize, recvSize);
 
     mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
                   recvBuf, recvSize, recvLinLoc, sendRecvComm);
