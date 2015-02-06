@@ -176,7 +176,12 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         Unsigned j;
         //Invert the process order based on the communicator used, to the actual process location
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
-        Location procGridLoc = myGridLoc;
+//        Location procGridLoc = myGridLoc;
+        Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
+        Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+        std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+        Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
+        Location procGridLoc = sendGridLoc;
 
         for(j = 0; j < sortedCommModes.size(); j++){
             procGridLoc[sortedCommModes[j]] = sortedCommLoc[j];
@@ -187,15 +192,21 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
         //Determine what grid location p_i corresponds to AFTER alignment has been performed
         //so we correctly determine what elements to pack
-        Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-        Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
-        Location procLocAfterRealign = ElemwiseMod(ElemwiseSum(ElemwiseSum(procGridLoc, alignDiff), g.Shape()), g.Shape());
-        Location procFirstLoc = DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procLocAfterRealign, gridShape, TensorDist()));
+//        Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+//        Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+//        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
+
+//        Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+//        Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
+//        std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+//        Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
+//        Location procLocBeforeRealign = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
+//        Location procLocAfterRealign = ElemwiseMod(ElemwiseSum(ElemwiseSum(procGridLoc, alignDiff), g.Shape()), g.Shape());
+        Location procFirstLoc = DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist()));
 
         //Because we might be misaligned within a mode we are communicating on, recalculate the correct slot to pack the data to
-        Location procPackLocSlice = FilterVector(procLocAfterRealign, sortedCommModes);
-        Unsigned adjustedPackLoc = Loc2LinearLoc(procPackLocSlice, FilterVector(gridShape, sortedCommModes));
+//        Location procPackLocSlice = FilterVector(procLocAfterRealign, sortedCommModes);
+//        Unsigned adjustedPackLoc = Loc2LinearLoc(procPackLocSlice, FilterVector(gridShape, sortedCommModes));
 
 
         //This is the first element p_i needs using A's alignment for B.
@@ -277,7 +288,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
                 packData.loopIncs[j] = 1;
 
 //            PrintPackData(packData, "a2aPackData");
-            PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[adjustedPackLoc * nElemsPerProc]));
+            PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
         }
     }
 }
@@ -335,8 +346,14 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         //so we correctly determine what elements to unpack
         Location firstElemOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
         Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
-        Location procLocBeforeRealign = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), g.Shape()), g.Shape());
+//        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
+        Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+        Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
+        std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+        Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
+        Location procLocBeforeRealign = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
+
+//        Location procLocBeforeRealign = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(procGridLoc, alignDiff), g.Shape()), g.Shape());
         Location procFirstLoc = A.DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procLocBeforeRealign, gridShape, A.TensorDist()));
 
 //        PrintData(A, "Adata");

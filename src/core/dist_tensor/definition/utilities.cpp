@@ -36,6 +36,24 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
     return ownerLoc;
 }
 
+template<typename T>
+Location
+DistTensor<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsigned>& newAlignment) const
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::DetermineOwner");
+    AssertValidEntry( loc );
+#endif
+    Unsigned i;
+    const tmen::GridView gv = GetGridView();
+    Location ownerLoc = Alignments();
+
+    for(i = 0; i < gv.ParticipatingOrder(); i++){
+        ownerLoc[i] = (loc[i] + newAlignment[i]) % ModeStride(i);
+    }
+    return ownerLoc;
+}
+
 //TODO: Change Global2LocalIndex to incorporate localPerm_ info
 template<typename T>
 Location
@@ -189,24 +207,43 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 
-//    PrintVector(firstOwnerA, "firstOwnerA");
-//    PrintVector(firstOwnerB, "firstOwnerB");
 
-    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
+
+    std::vector<Unsigned> alignA = A.Alignments();
+    std::vector<Unsigned> alignB = Alignments();
+
+    std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+//    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
 //    PrintVector(alignDiff, "alignDiff");
 //    PrintVector(g.Loc(), "myLoc");
 //    PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
-    Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
-    Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
+    Location alignedFirstOwnerA = GridLoc2GridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+    Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
+    Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(gvA.ParticipatingLoc(), alignBinA);
 
+    Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
+    Location recvGridLoc = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
+//    Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
+//    Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
+
+//    PrintVector(firstOwnerA, "firstOwnerA");
+//    PrintVector(firstOwnerB, "firstOwnerB");
+//    PrintVector(alignA, "alignA");
+//    PrintVector(alignB, "alignB");
+//    PrintVector(alignBinA, "alignBinA");
+//    PrintVector(myFirstElemLocA, "myFirstElemLocA");
+//    PrintVector(myFirstElemLocAligned, "myFirstElemLocAligned");
 //    PrintVector(sendGridLoc, "sendGridLoc");
 //    PrintVector(recvGridLoc, "recvGridLoc");
+//    PrintVector(GridLoc2ParticipatingGridViewLoc(sendGridLoc, g.Shape(), A.TensorDist()), "gvASendLoc");
+//    PrintVector(GridLoc2ParticipatingGridViewLoc(recvGridLoc, g.Shape(), A.TensorDist()), "gvARecvLoc");
 
     //Create the communicator to involve all processes we need to fix misalignment
     ModeArray misalignedModes;
-    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
-        if(firstOwnerB[i] != firstOwnerA[i]){
-            misalignedModes.insert(misalignedModes.end(), i);
+    for(Unsigned i = 0; i < alignA.size(); i++){
+        if(alignBinA[i] != alignA[i]){
+            ModeDistribution modeDist = A.ModeDist(i);
+            misalignedModes.insert(misalignedModes.end(), modeDist.begin(), modeDist.end());
         }
     }
     std::sort(misalignedModes.begin(), misalignedModes.end());

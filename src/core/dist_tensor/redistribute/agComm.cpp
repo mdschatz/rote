@@ -69,11 +69,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
-//    std::cout << "srcBuf:";
-//    for(Unsigned i = 0; i < prod(A.LocalShape()); i++){
-//      std::cout << " " <<  dataBuf[i];
-//    }
-//    std::cout << std::endl;
 
     //Pack the data
     PROFILE_SECTION("AGPack");
@@ -89,11 +84,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-//        printf("aligningAG\n");
-//        PrintData(A, "A");
-//        PrintData(*this, "*this");
-//        PrintVector(firstOwnerA, "firstOwnerA");
-//        PrintVector(firstOwnerB, "firstOwnerB");
         T* alignSendBuf = &(auxBuf[0]);
         T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
 
@@ -123,7 +113,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
 
-//    PrintData(*this, "data after AGComm");
 //    const T* myBuf = LockedBuffer();
 //    PrintArray(myBuf, LocalShape(), "myBuf");
 

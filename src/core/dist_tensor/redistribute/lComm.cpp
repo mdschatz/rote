@@ -86,7 +86,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
         AlignCommBufRedist(A, sendBuf, sendSize, recvBuf, sendSize);
 
         DistTensor<T> tmp(A.TensorDist(), A.Grid());
-        tmp.AlignWith(*this);
+//        tmp.AlignWith(*this);
         tmp.SetLocalPermutation(A.LocalPermutation());
         Location alignBinA = GridLoc2GridViewLoc(firstOwnerB, A.Grid().Shape(), A.TensorDist());
         tmp.Attach(A.Shape(), alignBinA, recvBuf, Dimensions2Strides(commDataShape), A.Grid());
