@@ -48,7 +48,13 @@ SetRealPart( Real& alpha, const Real& beta )
 template<typename Real>
 inline void
 SetRealPart( std::complex<Real>& alpha, const Real& beta )
-{ alpha.real(beta); }
+{ 
+#if __cplusplus > 199711L
+alpha.real(beta); 
+#else
+alpha.real() = beta;
+#endif
+}
 
 template<typename Real>
 inline void
@@ -63,7 +69,13 @@ SetImagPart( Real& alpha, const Real& beta )
 template<typename Real>
 inline void
 SetImagPart( std::complex<Real>& alpha, const Real& beta )
-{ alpha.imag(beta); }
+{ 
+#if __cplusplus > 199711L
+alpha.imag(beta); 
+#else
+alpha.imag() = beta;
+#endif
+}
 
 template<typename Real>
 inline void
@@ -73,7 +85,13 @@ UpdateRealPart( Real& alpha, const Real& beta )
 template<typename Real>
 inline void
 UpdateRealPart( std::complex<Real>& alpha, const Real& beta )
-{ alpha.real( alpha.real()+beta ); }
+{ 
+#if __cplusplus > 199711L
+alpha.real( alpha.real()+beta ); 
+#else
+alpha.real() += beta;
+#endif
+}
 
 template<typename Real>
 inline void
@@ -88,7 +106,13 @@ UpdateImagPart( Real& alpha, const Real& beta )
 template<typename Real>
 inline void
 UpdateImagPart( std::complex<Real>& alpha, const Real& beta )
-{ alpha.imag( alpha.imag()+beta ); }
+{ 
+#if __cplusplus > 199711L
+alpha.imag( alpha.imag()+beta ); 
+#else
+alpha.imag() += beta;
+#endif
+}
 
 template<typename F>
 inline BASE(F)
