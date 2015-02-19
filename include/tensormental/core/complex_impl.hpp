@@ -52,7 +52,8 @@ SetRealPart( std::complex<Real>& alpha, const Real& beta )
 #if __cplusplus > 199711L
 alpha.real(beta); 
 #else
-alpha.real() = beta;
+std::complex<Real> tmp(beta, 0);
+alpha = tmp;
 #endif
 }
 
@@ -73,7 +74,8 @@ SetImagPart( std::complex<Real>& alpha, const Real& beta )
 #if __cplusplus > 199711L
 alpha.imag(beta); 
 #else
-alpha.imag() = beta;
+std::complex<Real> tmp(0, beta);
+alpha = tmp;
 #endif
 }
 
@@ -89,7 +91,8 @@ UpdateRealPart( std::complex<Real>& alpha, const Real& beta )
 #if __cplusplus > 199711L
 alpha.real( alpha.real()+beta ); 
 #else
-alpha.real() += beta;
+std::complex<Real> tmp(beta, 0);
+alpha += tmp;
 #endif
 }
 
@@ -110,7 +113,8 @@ UpdateImagPart( std::complex<Real>& alpha, const Real& beta )
 #if __cplusplus > 199711L
 alpha.imag( alpha.imag()+beta ); 
 #else
-alpha.imag() += beta;
+std::complex<Real> tmp(0, beta);
+alpha += beta;
 #endif
 }
 
