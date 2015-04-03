@@ -33,7 +33,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
 //        PrintA2AOptData(optData, "optData");
 //    }
 
-    if(optData.doOpt == true){
+    if(optData.doOpt && OPT){
         const tmen::Grid& g = A.Grid();
         ModeArray p2pModes = optData.p2pModes;
         ModeArray a2aModes = optData.a2aModes;

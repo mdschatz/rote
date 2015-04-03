@@ -77,6 +77,12 @@
 # define DEBUG_ONLY(cmd) cmd;
 #endif
 
+#ifdef A2A_OPT
+#define OPT true
+#else
+#define OPT false
+#endif
+
 // Declare the intertwined core parts of our library
 //#include "tensormental/core/timer_decl.hpp"
 #include "tensormental/core/memory_decl.hpp"
