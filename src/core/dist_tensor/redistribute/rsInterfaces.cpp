@@ -80,7 +80,13 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
     if(alpha == T(0)){
         Zero(tmp);
     }else{
-        LocalReduce(A, tmp, sortedRModes);
+        //TODO: Respect alpha
+//        const tmen::GridView gvA = A.GetGridView();
+//        if(ElemwiseLessThanEqualTo(FilterVector(A.Shape(), sortedRModes), FilterVector(gvA.ParticipatingShape(), sortedRModes))){
+//            tmp.LockedAttach(tmp.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalStrides(), g);
+//        }else{
+            LocalReduce(A, tmp, sortedRModes);
+//        }
     }
 
 //    Print(tmp, "tmp");
