@@ -390,6 +390,9 @@ public:
     void LockedAttach
     ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
       const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
+    void LockedAttach
+        ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
+          const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
 
     //
     // Though the following routines are meant for complex data, all

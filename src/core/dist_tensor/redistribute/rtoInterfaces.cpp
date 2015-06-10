@@ -76,7 +76,11 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
     if(alpha == T(0))
         Zero(tmp);
     else{
-        LocalReduce(A, tmp, rModes);
+        if(ElemwiseLessThanEqualTo(FilterVector(A.Shape(), sortedRModes), FilterVector(A.GridViewShape(), sortedRModes))){
+            tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
+        }else{
+            LocalReduce(A, tmp, rModes);
+        }
     }
 
     ModeArray commModes;

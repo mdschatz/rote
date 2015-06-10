@@ -42,14 +42,12 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
     //Set up tmp2 for holding beta*B
     ObjShape tmp2Shape = Shape();
     TensorDistribution tmp2Dist = TensorDist();
-//    std::vector<Unsigned> tmp2Aligns = Alignments();
     Permutation tmp2Perm = localPerm_;
     std::vector<Unsigned> tmp2Strides = LocalStrides();
 
     for(i = 0; i < sortedRModes.size(); i++){
         Mode rMode = sortedRModes[i];
         tmp2Dist.insert(tmp2Dist.begin() + rMode, blank);
-//        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
 
         for(j = 0; j < tmp2Perm.size(); j++)
             if(tmp2Perm[j] >= rMode)
@@ -82,14 +80,16 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
     }else{
         //TODO: Respect alpha
 //        const tmen::GridView gvA = A.GetGridView();
-//        if(ElemwiseLessThanEqualTo(FilterVector(A.Shape(), sortedRModes), FilterVector(gvA.ParticipatingShape(), sortedRModes))){
-//            tmp.LockedAttach(tmp.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalStrides(), g);
-//        }else{
+        if(ElemwiseLessThanEqualTo(FilterVector(A.Shape(), sortedRModes), FilterVector(A.GridViewShape(), sortedRModes))){
+            tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
+        }else{
             LocalReduce(A, tmp, sortedRModes);
-//        }
+        }
     }
+    DistTensor<T> tmpCheck(A.TensorDist(), g);
+    tmpCheck.AlignWith(A);
+    LocalReduce(A, tmpCheck, sortedRModes);
 
-//    Print(tmp, "tmp");
 
     ModeArray commModes;
     for(i = 0; i < sortedRModes.size(); i++){

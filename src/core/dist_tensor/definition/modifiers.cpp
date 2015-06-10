@@ -146,6 +146,27 @@ DistTensor<T>::LockedAttach
 }
 
 template<typename T>
+void
+DistTensor<T>::LockedAttach
+( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
+  const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const tmen::Grid& g )
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensor::LockedAttach");
+#endif
+    grid_ = &g;
+    shape_ = shape;
+    modeAlignments_ = modeAlignments;
+    localPerm_ = perm;
+    SetShifts();
+    if(Participating() ){
+        //Account for local permutation
+        ObjShape localShape = PermuteVector(Lengths(shape, ModeShifts(), ModeStrides()), localPerm_);
+        tensor_.LockedAttach(localShape, buffer, strides);
+    }
+}
+
+template<typename T>
 void DistTensor<T>::ResizeTo( const DistTensor<T>& A)
 {
 #ifndef RELEASE
