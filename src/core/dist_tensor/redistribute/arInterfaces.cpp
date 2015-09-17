@@ -19,12 +19,12 @@ namespace tmen{
 
 template<typename T>
 void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes)
+DistTensor<T>::AllReduceUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes)
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+    CallStackEntry cse("DistTensor::AllReduceUpdateRedistFrom");
 #endif
-    PROFILE_SECTION("RSRedist");
+    PROFILE_SECTION("ARRedist");
     Unsigned i, j;
     const tmen::GridView gv = A.GetGridView();
     const tmen::Grid& g = A.Grid();
@@ -100,8 +100,8 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 
 //    PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");
-//    Print(tmp, "tmp before RS");
-    tmp2.ReduceScatterUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes);
+//    Print(tmp, "tmp before AR");
+    tmp2.AllReduceUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes);
 
 //    Print(tmp2, "tmp2");
 
@@ -113,17 +113,17 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
+void DistTensor<T>::AllReduceRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
     ObjShape newShape = NegFilterVector(A.Shape(), rModes);
     ResizeTo(newShape);
-    ReduceScatterUpdateRedistFrom(T(1), A, T(0), rModes);
+    AllReduceUpdateRedistFrom(T(1), A, T(0), rModes);
 }
 
 template <typename T>
-void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode){
+void DistTensor<T>::AllReduceRedistFrom(const DistTensor<T>& A, const Mode reduceMode){
     ModeArray reduceModes(1);
     reduceModes[0] = reduceMode;
-    ReduceScatterRedistFrom(A, reduceModes);
+    AllReduceRedistFrom(A, reduceModes);
 }
 
 ////////////////////////////////
@@ -132,24 +132,24 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode r
 
 template<typename T>
 void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
+DistTensor<T>::AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+    CallStackEntry cse("DistTensor::AllReduceUpdateRedistFrom");
 #endif
-    ReduceScatterUpdateRedistFrom(T(1), A, beta, reduceModes);
+    AllReduceUpdateRedistFrom(T(1), A, beta, reduceModes);
 }
 
 template<typename T>
 void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode)
+DistTensor<T>::AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode)
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+    CallStackEntry cse("DistTensor::AllReduceUpdateRedistFrom");
 #endif
     ModeArray reduceModes(1);
     reduceModes[0] = reduceMode;
-    ReduceScatterUpdateRedistFrom(A, beta, reduceModes);
+    AllReduceUpdateRedistFrom(A, beta, reduceModes);
 }
 
 #define PROTO(T) template class DistTensor<T>

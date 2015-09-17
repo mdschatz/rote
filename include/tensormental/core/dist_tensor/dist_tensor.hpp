@@ -297,6 +297,23 @@ public:
     void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes);
 
     //
+    // AllReduce workhorse routines
+    //
+    Int CheckAllReduceCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
+    void AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
+    void PackARCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
+    void UnpackARUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
+
+    //
+    // AllReduce interface routines
+    //
+    void AllReduceUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
+    void AllReduceRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
+    void AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode);
+    void AllReduceRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
+    void AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
+
+    //
     // Reduce-scatter workhorse routines
     //
     Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode);
