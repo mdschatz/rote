@@ -16,40 +16,16 @@ namespace tmen{
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
 Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
-    if(A.Order() != Order()){
-        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    const ObjShape gvOutShape = GetGridView().ParticipatingShape();
-    const ObjShape gvInShape = A.GetGridView().ParticipatingShape();
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckSameGridViewShape(GetGridView().ParticipatingShape(), A.GetGridView().ParticipatingShape());
+	ret &= CheckSameCommModes(outDist, inDist);
+	ret &= CheckSameNonDist(outDist, inDist);
 
-    if(AnyElemwiseNotEqual(gvOutShape, gvInShape)){
-		std::stringstream msg;
-		msg << "Invalid Permutation redistribution\n"
-		    << tmen::TensorDistToString(TensorDist())
-		    << " <-- "
-		    << tmen::TensorDistToString(A.TensorDist())
-		    << std::endl
-		    << "Mode distributions must correspond to equal logical grid dimensions"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-
-    const tmen::TensorDistribution outDist = TensorDist();
-    const tmen::TensorDistribution inDist = TensorDist();
-    if(outDist[Order()].size() != inDist[Order()].size() || !EqualUnderPermutation(outDist[Order()], inDist[Order()])){
-    	std::stringstream msg;
-		msg << "Invalid Permutation redistribution\n"
-		    << tmen::TensorDistToString(TensorDist())
-		    << " <-- "
-		    << tmen::TensorDistToString(A.TensorDist())
-		    << std::endl
-		    << "Non-distributed mode distribution must shate same modes"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-    return true;
-
+    return ret;
 }
 
 template <typename T>

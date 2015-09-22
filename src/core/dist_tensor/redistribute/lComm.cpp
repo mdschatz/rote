@@ -15,38 +15,15 @@ namespace tmen{
 
 template<typename T>
 Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
-    if(A.Order() != Order()){
-        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    const TensorDistribution outDist = TensorDist();
-    const TensorDistribution inDist = A.TensorDist();
-    for(Unsigned i = 0; i < Order(); i++){
-    	if(!(IsPrefix(inDist[i], outDist[i]))){
-    		std::stringstream msg;
-    		msg << "Invalid Local redistribution\n"
-    		    << tmen::TensorDistToString(outDist)
-    		    << " <-- "
-    		    << tmen::TensorDistToString(inDist)
-    		    << std::endl
-    		    << "Input mode-" << i << " mode distribution must be prefix of output mode distribution"
-    			<< std::endl;
-    		LogicError(msg.str());
-    	}
-    }
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckInIsPrefix(outDist, inDist);
+	ret &= CheckSameNonDist(outDist, inDist);
 
-    if(outDist[Order()].size() != inDist[Order()].size() || !(EqualUnderPermutation(outDist[Order()], inDist[Order()]))){
-		std::stringstream msg;
-		msg << "Invalid Local redistribution\n"
-		    << tmen::TensorDistToString(outDist)
-		    << " <-- "
-		    << tmen::TensorDistToString(inDist)
-		    << std::endl
-		    << "Non-distributed mode distribution must be same"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-    return true;
+    return ret;
 }
 
 template<typename T>

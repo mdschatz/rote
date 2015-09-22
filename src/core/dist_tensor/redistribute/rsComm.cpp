@@ -17,71 +17,16 @@ namespace tmen{
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
 Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
-	Unsigned i;
-	if(A.Order() != Order()){
-        LogicError("CheckReduceScatterRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    const TensorDistribution outDist = TensorDist();
-    const TensorDistribution inDist = A.TensorDist();
-    ModeDistribution commModesOut;
-    ModeDistribution commModesIn;
-    for(i = 0; i < Order(); i++){
-    	if(std::find(reduceModes.begin(), reduceModes.end(), i) != reduceModes.end()){
-			if(!(IsPrefix(inDist[i], outDist[i]))){
-				std::stringstream msg;
-				msg << "Invalid ReduceScatter redistribution\n"
-					<< tmen::TensorDistToString(outDist)
-					<< " <-- "
-					<< tmen::TensorDistToString(inDist)
-					<< std::endl
-					<< "Input mode-" << i << " mode distribution must be prefix of output mode distribution"
-					<< std::endl;
-				LogicError(msg.str());
-			}
-			commModesOut = ConcatenateVectors(commModesOut, GetSuffix(inDist[i], outDist[i]));
-    	}else{
-    		if(!(IsPrefix(outDist[i], inDist[i]))){
-				std::stringstream msg;
-				msg << "Invalid ReduceScatter redistribution\n"
-					<< tmen::TensorDistToString(outDist)
-					<< " <-- "
-					<< tmen::TensorDistToString(inDist)
-					<< std::endl
-					<< "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
-					<< std::endl;
-				LogicError(msg.str());
-    		}
-    		commModesIn = ConcatenateVectors(commModesIn, GetSuffix(outDist[i], inDist[i]));
-    	}
-    }
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckPartition(outDist, inDist);
+	ret &= CheckSameCommModes(outDist, inDist);
+	ret &= CheckSameNonDist(outDist, inDist);
 
-    if(outDist[Order()].size() != inDist[Order()].size() || !IsSame(inDist[Order()], outDist[Order()])){
-    	std::stringstream msg;
-		msg << "Invalid ReduceScatter redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Output Non-distributed mode distribution must be same"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-
-    const ModeDistribution nonDistSuffix = GetSuffix(outDist[Order()], inDist[Order()]);
-    if(commModesOut.size() != commModesIn.size() || !EqualUnderPermutation(commModesOut, commModesIn)){
-    	std::stringstream msg;
-    	msg << "Invalid ReduceScatter redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Cannot determine modes communicated over"
-			<< std::endl;
-    	LogicError(msg.str());
-    }
-
-    return true;
+    return ret;
 }
 
 template <typename T>

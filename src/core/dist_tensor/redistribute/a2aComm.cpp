@@ -16,84 +16,16 @@ namespace tmen{
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
 Int DistTensor<T>::CheckAllToAllCommRedist(const DistTensor<T>& A){
-    if(A.Order() != Order()){
-        LogicError("CheckAllToAllRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    Unsigned i;
-    const TensorDistribution outDist = TensorDist();
-    const TensorDistribution inDist = A.TensorDist();
-    ModeDistribution commModesOut;
-    ModeDistribution commModesIn;
-    ModeArray sourceModes;
-    ModeArray sinkModes;
-    for(i = 0; i < Order(); i++){
-    	if(inDist[i].size() != outDist[i].size()){
-			if(IsPrefix(inDist[i], outDist[i])){
-				commModesOut = ConcatenateVectors(commModesOut, GetSuffix(inDist[i], outDist[i]));
-				sinkModes.push_back(i);
-			}
-			else if(IsPrefix(outDist[i], inDist[i])){
-				commModesIn = ConcatenateVectors(commModesIn, GetSuffix(outDist[i], inDist[i]));
-				sourceModes.push_back(i);
-			}
-    	}else if(!IsSame(inDist[i], outDist[i])){
-			std::stringstream msg;
-			msg << "Invalid AllToAll redistribution\n"
-				<< tmen::TensorDistToString(outDist)
-				<< " <-- "
-				<< tmen::TensorDistToString(inDist)
-				<< std::endl
-				<< "Cannot form partition"
-				<< std::endl;
-			LogicError(msg.str());
-		}
-    }
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckPartition(outDist, inDist);
+	ret &= CheckSameCommModes(outDist, inDist);
+	ret &= CheckSameNonDist(outDist, inDist);
 
-    Unsigned j = 0;
-    for(i = 0; i < sourceModes.size() && j < sinkModes.size(); i++){
-    	if(sourceModes[i] == sinkModes[j]){
-        	std::stringstream msg;
-    		msg << "Invalid AllToAll redistribution\n"
-    			<< tmen::TensorDistToString(outDist)
-    			<< " <-- "
-    			<< tmen::TensorDistToString(inDist)
-    			<< std::endl
-    			<< "Cannot form partition"
-    			<< std::endl;
-    		LogicError(msg.str());
-    	}else if(sourceModes[i] > sinkModes[j]){
-    		i--;
-    		j++;
-    	}else if(sourceModes[i] < sinkModes[j]){
-    		continue;
-    	}
-    }
-
-    if(outDist[Order()].size() != inDist[Order()].size() || !EqualUnderPermutation(outDist[Order()], inDist[Order()])){
-    	std::stringstream msg;
-		msg << "Invalid AllToAll redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Output Non-distributed mode distribution must be same"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-
-    if(commModesOut.size() != commModesIn.size() || !EqualUnderPermutation(commModesOut, commModesIn)){
-    	std::stringstream msg;
-    	msg << "Invalid AllToAll redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Cannot determine modes communicated over"
-			<< std::endl;
-    	LogicError(msg.str());
-    }
-    return true;
+    return ret;
 }
 
 template <typename T>

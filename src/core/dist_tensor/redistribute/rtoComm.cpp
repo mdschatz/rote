@@ -17,69 +17,15 @@ namespace tmen{
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
 Int DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
-	Unsigned i;
-	if(A.Order() != Order()){
-        LogicError("CheckReduceToOneRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    const TensorDistribution outDist = TensorDist();
-    const TensorDistribution inDist = A.TensorDist();
-    ModeDistribution commModes;
-    for(i = 0; i < Order(); i++){
-    	if(std::find(reduceModes.begin(), reduceModes.end(), i) != reduceModes.end()){
-			if(!(IsPrefix(outDist[i], inDist[i]))){
-				std::stringstream msg;
-				msg << "Invalid Reduce-to-one redistribution\n"
-					<< tmen::TensorDistToString(outDist)
-					<< " <-- "
-					<< tmen::TensorDistToString(inDist)
-					<< std::endl
-					<< "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
-					<< std::endl;
-				LogicError(msg.str());
-			}
-			commModes = ConcatenateVectors(commModes, GetSuffix(outDist[i], inDist[i]));
-    	}else{
-    		if(outDist[i].size() != inDist[i].size() || !(IsSame(outDist[i], inDist[i]))){
-				std::stringstream msg;
-				msg << "Invalid Reduce-to-one redistribution\n"
-					<< tmen::TensorDistToString(outDist)
-					<< " <-- "
-					<< tmen::TensorDistToString(inDist)
-					<< std::endl
-					<< "Output mode-" << i << " mode distribution must be same as input mode distribution"
-					<< std::endl;
-				LogicError(msg.str());
-    		}
-    	}
-    }
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOutIsPrefix(outDist, inDist);
+	ret &= CheckSameCommModes(outDist, inDist);
 
-    if(!IsPrefix(inDist[Order()], outDist[Order()])){
-    	std::stringstream msg;
-		msg << "Invalid Reduce-to-one redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Output Non-distributed mode distribution cannot be formed"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-
-    const ModeDistribution nonDistSuffix = GetSuffix(outDist[Order()], inDist[Order()]);
-    if(nonDistSuffix.size() != commModes.size() || !EqualUnderPermutation(nonDistSuffix, commModes)){
-    	std::stringstream msg;
-    	msg << "Invalid Reduce-to-one redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Output Non-distributed mode distribution cannot be formed"
-			<< std::endl;
-    	LogicError(msg.str());
-    }
-
-    return true;
+    return ret;
 }
 
 template <typename T>

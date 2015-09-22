@@ -17,60 +17,15 @@ namespace tmen{
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
 Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
-    if(A.Order() != Order()){
-        LogicError("CheckGatherToOneRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    const TensorDistribution outDist = TensorDist();
-    const TensorDistribution inDist = A.TensorDist();
-    ModeDistribution commModes;
-    for(Unsigned i = 0; i < Order(); i++){
-    	if(!(IsPrefix(outDist[i], inDist[i]))){
-    		std::stringstream msg;
-    		msg << "Invalid Gather-to-one redistribution\n"
-    		    << tmen::TensorDistToString(outDist)
-    		    << " <-- "
-    		    << tmen::TensorDistToString(inDist)
-    		    << std::endl
-    		    << "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
-    			<< std::endl;
-    		LogicError(msg.str());
-    	}
-    	commModes = ConcatenateVectors(commModes, GetSuffix(outDist[i], inDist[i]));
-    }
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOutIsPrefix(outDist, inDist);
+	ret &= CheckSameCommModes(outDist, inDist);
 
-    if(!IsPrefix(inDist[Order()], outDist[Order()])){
-    	std::stringstream msg;
-		msg << "Invalid Gather-to-one redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Output Non-distributed mode distribution cannot be formed"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-
-    ModeDistribution nonDistModes;
-    ModeDistribution outNonDist = outDist[Order()];
-    ModeDistribution inNonDist = inDist[Order()];
-    std::sort(outNonDist.begin(), outNonDist.end());
-    std::sort(inNonDist.begin(), inNonDist.end());
-    std::set_difference(outNonDist.begin(), outNonDist.end(), inNonDist.begin(), inNonDist.end(), std::inserter(nonDistModes, nonDistModes.end()));
-
-    if(nonDistModes.size() != commModes.size() || !EqualUnderPermutation(nonDistModes, commModes)){
-    	std::stringstream msg;
-    	msg << "Invalid Gather-to-one redistribution\n"
-			<< tmen::TensorDistToString(outDist)
-			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
-			<< std::endl
-			<< "Output Non-distributed mode distribution cannot be formed"
-			<< std::endl;
-    	LogicError(msg.str());
-    }
-
-    return true;
+    return ret;
 }
 
 template <typename T>

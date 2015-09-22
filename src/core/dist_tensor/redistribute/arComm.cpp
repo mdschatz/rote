@@ -15,54 +15,15 @@ namespace tmen{
 
 template <typename T>
 Int DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
-    if(A.Order() != Order()){
-        LogicError("CheckAllReduceRedist: Objects being redistributed must be of same order");
-    }
+	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution inDist = A.TensorDist();
 
-    Unsigned i;
-    const TensorDistribution outDist = TensorDist();
-    const TensorDistribution inDist = A.TensorDist();
-    for(i = 0; i < Order(); i++){
-    	if(std::find(reduceModes.begin(), reduceModes.end(), i) != reduceModes.end()){
-			if(!(IsPrefix(outDist[i], inDist[i]))){
-				std::stringstream msg;
-				msg << "Invalid AllReduce redistribution\n"
-					<< tmen::TensorDistToString(outDist)
-					<< " <-- "
-					<< tmen::TensorDistToString(inDist)
-					<< std::endl
-					<< "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
-					<< std::endl;
-				LogicError(msg.str());
-			}
-    	}else{
-    		if(outDist[i].size() != inDist[i].size() || !(IsSame(outDist[i], inDist[i]))){
-				std::stringstream msg;
-				msg << "Invalid AllReduce redistribution\n"
-					<< tmen::TensorDistToString(outDist)
-					<< " <-- "
-					<< tmen::TensorDistToString(inDist)
-					<< std::endl
-					<< "Output mode-" << i << " mode distribution must be same as input mode distribution"
-					<< std::endl;
-				LogicError(msg.str());
-    		}
-    	}
-    }
+	bool ret = true;
+	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOutIsPrefix(outDist, inDist);
+	ret &= CheckSameNonDist(outDist, inDist);
 
-    if(outDist[Order()].size() != inDist[Order()].size() || !(IsSame(outDist[Order()], inDist[Order()]))){
-		std::stringstream msg;
-		msg << "Invalid AllGather redistribution\n"
-		    << tmen::TensorDistToString(outDist)
-		    << " <-- "
-		    << tmen::TensorDistToString(inDist)
-		    << std::endl
-		    << "Non-distributed mode distribution must be same"
-			<< std::endl;
-		LogicError(msg.str());
-    }
-
-	return true;
+    return ret;
 }
 
 template <typename T>

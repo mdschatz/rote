@@ -95,6 +95,7 @@
 #include "tensormental/core/tensor.hpp"
 #include "tensormental/core/imports/mpi.hpp"
 #include "tensormental/util/vec_util.hpp"
+#include "tensormental/util/ten_dist_util.hpp"
 #include "tensormental/core/grid_decl.hpp"
 #include "tensormental/core/grid_view_decl.hpp"
 #include "tensormental/core/dist_tensor.hpp"
