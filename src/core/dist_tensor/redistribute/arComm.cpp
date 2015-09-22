@@ -14,16 +14,8 @@
 namespace tmen{
 
 template <typename T>
-Int DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
-	const TensorDistribution outDist = TensorDist();
-	const TensorDistribution inDist = A.TensorDist();
-
-	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
-	ret &= CheckOutIsPrefix(outDist, inDist);
-	ret &= CheckSameNonDist(outDist, inDist);
-
-    return ret;
+Int DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A){
+	return CheckAllGatherCommRedist(A);
 }
 
 template <typename T>

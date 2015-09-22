@@ -46,13 +46,14 @@ void RunTest(const Grid& g, const char* outDist, const char* inDist, const CommT
 			case AG:      B.AllGatherRedistFrom(A, modes); break;
 			case A2A:     B.AllToAllRedistFrom(A, modes); break;
 			case Local:   B.LocalRedistFrom(A); break;
-			case RS:      B.ReduceScatterRedistFrom(A, modes); break;
-			case RTO:     B.ReduceToOneRedistFrom(A, modes); break;
-			case AR:      B.AllReduceRedistFrom(A, modes); break;
 			case GTO:     B.GatherToOneRedistFrom(A, modes); break;
 //			case BCast:   B.BroadcastRedistFrom(A, modes); break;
 //			case Scatter: B.ScatterRedistFrom(A, modes); break;
 			case Perm:    B.PermutationRedistFrom(A, modes); break;
+			//Following are ignored since are equivalent to non-reduce cases
+//			case RS:      B.ReduceScatterRedistFrom(A, modes); break;
+//			case RTO:     B.ReduceToOneRedistFrom(A, modes); break;
+//			case AR:      B.AllReduceRedistFrom(A, modes); break;
 		}
 		if(commRank == 0)
 			std::cout << (shouldFail ? "Failure" : "Success") << std::endl;

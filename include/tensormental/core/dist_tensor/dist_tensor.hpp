@@ -299,7 +299,7 @@ public:
     //
     // AllReduce workhorse routines
     //
-    Int CheckAllReduceCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes);
+    Int CheckAllReduceCommRedist(const DistTensor<T>& A);
     void AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
     void PackARCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
     void UnpackARUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
@@ -316,7 +316,7 @@ public:
     //
     // Reduce-scatter workhorse routines
     //
-    Int CheckReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes);
+    Int CheckReduceScatterCommRedist(const DistTensor<T>& A);
     void ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
     void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
     void UnpackRSUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
@@ -333,7 +333,7 @@ public:
     //
     // Reduce-to-one workhorse routines
     //
-    Int  CheckReduceToOneCommRedist(const DistTensor<T>& A, const ModeArray& rModes);
+    Int  CheckReduceToOneCommRedist(const DistTensor<T>& A);
     void ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes, const ModeArray& commModes);
 
     //

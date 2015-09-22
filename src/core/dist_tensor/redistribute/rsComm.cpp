@@ -16,17 +16,8 @@ namespace tmen{
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
-Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
-	const TensorDistribution outDist = TensorDist();
-	const TensorDistribution inDist = A.TensorDist();
-
-	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
-	ret &= CheckPartition(outDist, inDist);
-	ret &= CheckSameCommModes(outDist, inDist);
-	ret &= CheckSameNonDist(outDist, inDist);
-
-    return ret;
+Int DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A){
+	return CheckAllToAllCommRedist(A);
 }
 
 template <typename T>
