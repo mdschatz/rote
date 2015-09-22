@@ -36,7 +36,7 @@ void RunTest(const Grid& g, const char* outDist, const char* inDist, const CommT
 	ObjShape tenShape(tenOrder);
 
 	for(i = 0; i < tenOrder; i++)
-		tenShape[i] = 20;
+		tenShape[i] = 4;
 
 	try{
 		DistTensor<double> A(tenShape, inDist, g);

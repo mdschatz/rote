@@ -42,8 +42,8 @@ Location
 DistTensor<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsigned>& newAlignment) const
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::DetermineOwner");
-    AssertValidEntry( loc );
+    CallStackEntry entry("DistTensor::DetermineOwnerNewAlignment");
+//    AssertValidEntry( loc );
 #endif
     Unsigned i;
     const tmen::GridView gv = GetGridView();
