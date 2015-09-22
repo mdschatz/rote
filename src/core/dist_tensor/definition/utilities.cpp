@@ -18,13 +18,14 @@ DistTensor<T>::ComplainIfReal() const
         LogicError("Called complex-only routine with real data");
 }
 
+//TODO: FIX THIS CHECK
 template<typename T>
 Location
 DistTensor<T>::DetermineOwner(const Location& loc) const
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::DetermineOwner");
-    AssertValidEntry( loc );
+//    AssertValidEntry( loc );
 #endif
     Unsigned i;
     const tmen::GridView gv = GetGridView();

@@ -16,46 +16,67 @@ namespace tmen{
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
-Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A, const Mode rMode, const ModeArray& gridModes){
-//    Unsigned i;
-//    const tmen::GridView gvA = A.GetGridView();
-//
-//  //Test elimination of mode
-//  const Unsigned AOrder = A.Order();
-//  const Unsigned BOrder = B.Order();
-//
-//  //Check that redist modes are assigned properly on input and output
-//  ModeDistribution BScatterModeDist = B.ModeDist(scatterMode);
-//  ModeDistribution AGatherModeDist = A.ModeDist(reduceMode);
-//  ModeDistribution AScatterModeDist = A.ModeDist(scatterMode);
-//
-//  //Test elimination of mode
-//  if(BOrder != AOrder - 1){
-//      LogicError("CheckGatherScatterRedist: Full Reduction requires elimination of mode being reduced");
-//  }
-//
-//  //Test no wrapping of mode to reduce
-//  if(A.Dimension(reduceMode) > gvA.Dimension(reduceMode))
-//      LogicError("CheckGatherScatterRedist: Full Reduction requires global mode dimension <= gridView dimension");
+Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
+    if(A.Order() != Order()){
+        LogicError("CheckGatherToOneRedist: Objects being redistributed must be of same order");
+    }
 
-    //Make sure all indices are distributed similarly between input and output (excluding reduce+scatter indices)
+    const TensorDistribution outDist = TensorDist();
+    const TensorDistribution inDist = A.TensorDist();
+    ModeDistribution commModes;
+    for(Unsigned i = 0; i < Order(); i++){
+    	if(!(IsPrefix(outDist[i], inDist[i]))){
+    		std::stringstream msg;
+    		msg << "Invalid Gather-to-one redistribution\n"
+    		    << tmen::TensorDistToString(outDist)
+    		    << " <-- "
+    		    << tmen::TensorDistToString(inDist)
+    		    << std::endl
+    		    << "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
+    			<< std::endl;
+    		LogicError(msg.str());
+    	}
+    	commModes = ConcatenateVectors(commModes, GetSuffix(outDist[i], inDist[i]));
+    }
 
-//  for(i = 0; i < BOrder; i++){
-//      Mode mode = i;
-//      if(mode == scatterMode){
-//          ModeDistribution check(BScatterModeDist.end() - AGatherModeDist.size(), BScatterModeDist.end());
-//            if(AnyElemwiseNotEqual(check, AGatherModeDist))
-//                LogicError("CheckGatherScatterRedist: Gather mode distribution of A must be a suffix of Scatter mode distribution of B");
-//      }
-//  }
+    if(!IsPrefix(inDist[Order()], outDist[Order()])){
+    	std::stringstream msg;
+		msg << "Invalid Gather-to-one redistribution\n"
+			<< tmen::TensorDistToString(outDist)
+			<< " <-- "
+			<< tmen::TensorDistToString(inDist)
+			<< std::endl
+			<< "Output Non-distributed mode distribution cannot be formed"
+			<< std::endl;
+		LogicError(msg.str());
+    }
 
-    return 1;
+    ModeDistribution nonDistModes;
+    ModeDistribution outNonDist = outDist[Order()];
+    ModeDistribution inNonDist = inDist[Order()];
+    std::sort(outNonDist.begin(), outNonDist.end());
+    std::sort(inNonDist.begin(), inNonDist.end());
+    std::set_difference(outNonDist.begin(), outNonDist.end(), inNonDist.begin(), inNonDist.end(), std::inserter(nonDistModes, nonDistModes.end()));
+
+    if(nonDistModes.size() != commModes.size() || !EqualUnderPermutation(nonDistModes, commModes)){
+    	std::stringstream msg;
+    	msg << "Invalid Gather-to-one redistribution\n"
+			<< tmen::TensorDistToString(outDist)
+			<< " <-- "
+			<< tmen::TensorDistToString(inDist)
+			<< std::endl
+			<< "Output Non-distributed mode distribution cannot be formed"
+			<< std::endl;
+    	LogicError(msg.str());
+    }
+
+    return true;
 }
 
 template <typename T>
 void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
-//    if(!CheckGatherToOneCommRedist(A, gatherMode, commGroups))
-//      LogicError("GatherToOneRedist: Invalid redistribution request");
+    if(!CheckGatherToOneCommRedist(A))
+      LogicError("GatherToOneRedist: Invalid redistribution request");
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
 

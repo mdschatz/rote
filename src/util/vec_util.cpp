@@ -246,6 +246,19 @@ std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsi
 }
 
 template<typename T>
+bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2){
+    Unsigned i;
+
+    if(vec1.size() != vec2.size())
+        return false;
+    for(i = 0; i < vec1.size(); i++){
+        if(vec1[i] != vec2[i])
+            return false;
+    }
+    return true;
+}
+
+template<typename T>
 bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2){
     Unsigned i;
     Unsigned vec1Len = vec1.size();
@@ -271,6 +284,20 @@ bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2){
             return false;
     }
     return true;
+}
+
+template<typename T>
+std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2){
+	Unsigned i = 0;
+    std::vector<T> ret;
+    if(vec1.size() != 0){
+		for(i = 0; i < vec1.size(); i++)
+			if(vec1[i] != vec2[i])
+				break;
+    }
+    ret.insert(ret.end(), vec2.begin() + i, vec2.end());
+
+    return ret;
 }
 
 template<typename T>
@@ -342,8 +369,10 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template std::vector<T> PermuteVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
+	template bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template T Min(const std::vector<T>& vec); \
 	template T Max(const std::vector<T>& vec); \

@@ -15,16 +15,37 @@ namespace tmen{
 
 template<typename T>
 Int
-DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A, const Mode& allGatherMode, const ModeArray& redistModes){
-    if(A.Order() != Order()){
+DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
+	if(A.Order() != Order()){
         LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
     }
 
-    ModeDistribution allGatherDistA = A.ModeDist(allGatherMode);
+    const TensorDistribution outDist = TensorDist();
+    const TensorDistribution inDist = A.TensorDist();
+    for(Unsigned i = 0; i < Order(); i++){
+    	if(!(IsPrefix(outDist[i], inDist[i]))){
+    		std::stringstream msg;
+    		msg << "Invalid AllGather redistribution\n"
+    		    << tmen::TensorDistToString(outDist)
+    		    << " <-- "
+    		    << tmen::TensorDistToString(inDist)
+    		    << std::endl
+    		    << "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
+    			<< std::endl;
+    		LogicError(msg.str());
+    	}
+    }
 
-    const ModeDistribution check = ConcatenateVectors(ModeDist(allGatherMode), redistModes);
-    if(AnyElemwiseNotEqual(check, allGatherDistA)){
-        LogicError("CheckAllGatherRedist: [Output distribution ++ redistModes] does not match Input distribution");
+    if(outDist[Order()].size() != inDist[Order()].size() || !(EqualUnderPermutation(outDist[Order()], inDist[Order()]))){
+		std::stringstream msg;
+		msg << "Invalid AllGather redistribution\n"
+		    << tmen::TensorDistToString(outDist)
+		    << " <-- "
+		    << tmen::TensorDistToString(inDist)
+		    << std::endl
+		    << "Non-distributed mode distribution must be same"
+			<< std::endl;
+		LogicError(msg.str());
     }
 
     return true;
@@ -35,8 +56,8 @@ void
 DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AllGatherCommRedist");
-//    if(!CheckAllGatherCommRedist(A, agMode, gridModes))
-//        LogicError("AllGatherRedist: Invalid redistribution request");
+    if(!CheckAllGatherCommRedist(A))
+        LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
     const tmen::Grid& g = A.Grid();
 

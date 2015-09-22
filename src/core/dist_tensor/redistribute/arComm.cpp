@@ -13,49 +13,62 @@
 
 namespace tmen{
 
-//TODO: Properly Check indices and distributions match between input and output
-//TODO: FLESH OUT THIS CHECK
 template <typename T>
-Int DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A, const Mode reduceMode, const Mode scatterMode){
-//    Unsigned i;
-//    const tmen::GridView gvA = A.GetGridView();
-//
-//  //Test elimination of mode
-//  const Unsigned AOrder = A.Order();
-//  const Unsigned BOrder = B.Order();
-//
-//  //Check that redist modes are assigned properly on input and output
-//  ModeDistribution BScatterModeDist = B.ModeDist(scatterMode);
-//  ModeDistribution AReduceModeDist = A.ModeDist(reduceMode);
-//  ModeDistribution AScatterModeDist = A.ModeDist(scatterMode);
-//
-//  //Test elimination of mode
-//  if(BOrder != AOrder - 1){
-//      LogicError("CheckAllReduceRedist: Full Reduction requires elimination of mode being reduced");
-//  }
-//
-//  //Test no wrapping of mode to reduce
-//  if(A.Dimension(reduceMode) > gvA.Dimension(reduceMode))
-//      LogicError("CheckAllReduceRedist: Full Reduction requires global mode dimension <= gridView dimension");
+Int DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A, const ModeArray& reduceModes){
+    if(A.Order() != Order()){
+        LogicError("CheckAllReduceRedist: Objects being redistributed must be of same order");
+    }
 
-    //Make sure all indices are distributed similarly between input and output (excluding reduce+scatter indices)
+    Unsigned i;
+    const TensorDistribution outDist = TensorDist();
+    const TensorDistribution inDist = A.TensorDist();
+    for(i = 0; i < Order(); i++){
+    	if(std::find(reduceModes.begin(), reduceModes.end(), i) != reduceModes.end()){
+			if(!(IsPrefix(outDist[i], inDist[i]))){
+				std::stringstream msg;
+				msg << "Invalid AllReduce redistribution\n"
+					<< tmen::TensorDistToString(outDist)
+					<< " <-- "
+					<< tmen::TensorDistToString(inDist)
+					<< std::endl
+					<< "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
+					<< std::endl;
+				LogicError(msg.str());
+			}
+    	}else{
+    		if(outDist[i].size() != inDist[i].size() || !(IsSame(outDist[i], inDist[i]))){
+				std::stringstream msg;
+				msg << "Invalid AllReduce redistribution\n"
+					<< tmen::TensorDistToString(outDist)
+					<< " <-- "
+					<< tmen::TensorDistToString(inDist)
+					<< std::endl
+					<< "Output mode-" << i << " mode distribution must be same as input mode distribution"
+					<< std::endl;
+				LogicError(msg.str());
+    		}
+    	}
+    }
 
-//  for(i = 0; i < BOrder; i++){
-//      Mode mode = i;
-//      if(mode == scatterMode){
-//          ModeDistribution check(BScatterModeDist.end() - AReduceModeDist.size(), BScatterModeDist.end());
-//            if(AnyElemwiseNotEqual(check, AReduceModeDist))
-//                LogicError("CheckAllReduceRedist: Reduce mode distribution of A must be a suffix of Scatter mode distribution of B");
-//      }
-//  }
+    if(outDist[Order()].size() != inDist[Order()].size() || !(IsSame(outDist[Order()], inDist[Order()]))){
+		std::stringstream msg;
+		msg << "Invalid AllGather redistribution\n"
+		    << tmen::TensorDistToString(outDist)
+		    << " <-- "
+		    << tmen::TensorDistToString(inDist)
+		    << std::endl
+		    << "Non-distributed mode distribution must be same"
+			<< std::endl;
+		LogicError(msg.str());
+    }
 
-    return 1;
+	return true;
 }
 
 template <typename T>
 void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
-//    if(!CheckAllReduceCommRedist(A, reduceMode, scatterMode))
-//      LogicError("AllReduceRedist: Invalid redistribution request");
+    if(!CheckAllReduceCommRedist(A, reduceModes))
+      LogicError("AllReduceRedist: Invalid redistribution request");
     const tmen::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);

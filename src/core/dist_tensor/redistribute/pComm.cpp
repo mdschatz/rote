@@ -15,42 +15,47 @@ namespace tmen{
 
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
-Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A, const Mode permuteMode, const ModeArray& redistModes){
-    Unsigned i;
-    const tmen::GridView gvA = A.GetGridView();
-
-    const Unsigned AOrder = A.Order();
-    const Unsigned BOrder = Order();
-
-    //Test order retained
-    if(BOrder != AOrder){
-        LogicError("CheckPermutationRedist: Permutation retains the same order of objects");
+Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
+    if(A.Order() != Order()){
+        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
     }
 
-    //Test dimension has been resized correctly
-    //NOTE: Uses fancy way of performing Ceil() on integer division
-    if(Dimension(permuteMode) != A.Dimension(permuteMode))
-        LogicError("CheckPartialReduceScatterRedist: Permutation retains the same dimension of indices");
+    const ObjShape gvOutShape = GetGridView().ParticipatingShape();
+    const ObjShape gvInShape = A.GetGridView().ParticipatingShape();
 
-    //Make sure all indices are distributed similarly
-    for(i = 0; i < BOrder; i++){
-        Mode mode = i;
-        if(mode == permuteMode){
-            if(!EqualUnderPermutation(ModeDist(mode), A.ModeDist(mode)))
-                LogicError("CheckPermutationRedist: Distribution of permuted mode does not involve same modes of grid as input");
-        }else{
-            if(AnyElemwiseNotEqual(ModeDist(mode), A.ModeDist(mode)))
-                LogicError("CheckPartialReduceScatterRedist: All modes must be distributed similarly");
-        }
+    if(AnyElemwiseNotEqual(gvOutShape, gvInShape)){
+		std::stringstream msg;
+		msg << "Invalid Permutation redistribution\n"
+		    << tmen::TensorDistToString(TensorDist())
+		    << " <-- "
+		    << tmen::TensorDistToString(A.TensorDist())
+		    << std::endl
+		    << "Mode distributions must correspond to equal logical grid dimensions"
+			<< std::endl;
+		LogicError(msg.str());
     }
-    return 1;
+
+    const tmen::TensorDistribution outDist = TensorDist();
+    const tmen::TensorDistribution inDist = TensorDist();
+    if(outDist[Order()].size() != inDist[Order()].size() || !EqualUnderPermutation(outDist[Order()], inDist[Order()])){
+    	std::stringstream msg;
+		msg << "Invalid Permutation redistribution\n"
+		    << tmen::TensorDistToString(TensorDist())
+		    << " <-- "
+		    << tmen::TensorDistToString(A.TensorDist())
+		    << std::endl
+		    << "Non-distributed mode distribution must shate same modes"
+			<< std::endl;
+		LogicError(msg.str());
+    }
+    return true;
 
 }
 
 template <typename T>
 void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
-//    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
-//            LogicError("PermutationRedist: Invalid redistribution request");
+    if(!CheckPermutationCommRedist(A))
+		LogicError("PermutationRedist: Invalid redistribution request");
 
     const tmen::Grid& g = A.Grid();
     const tmen::GridView gvA = A.GetGridView();
@@ -148,10 +153,9 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 //
 //    PrintVector(sendLoc, "sendLoc");
 //    PrintVector(recvLoc, "recvLoc");
-//    printf("sendRank: %d, recvRank: %d\n", sendLinLoc, recvLinLoc);
-
-    mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
-                  recvBuf, recvSize, recvLinLoc, sendRecvComm);
+//    printf("myRank: %d, sendRank: %d, recvRank: %d\n", mpi::CommRank(sendRecvComm), sendLinLoc, recvLinLoc);
+	mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
+				  recvBuf, recvSize, recvLinLoc, sendRecvComm);
 
     PROFILE_STOP;
 
@@ -173,148 +177,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     this->auxMemory_.Release();
 }
-
-//template <typename T>
-//void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
-////    if(!CheckPermutationCommRedist(A, permuteMode, commModes))
-////            LogicError("PermutationRedist: Invalid redistribution request");
-//
-//    const tmen::Grid& g = A.Grid();
-//    const tmen::GridView gvA = A.GetGridView();
-//    const tmen::GridView gvB = GetGridView();
-//
-//    //Ripped from AlignCommBufRedist
-//    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-//    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-//    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
-//
-//    ModeArray misalignedModes;
-//    for(Unsigned i = 0; i < firstOwnerB.size(); i++){
-//        if(firstOwnerB[i] != firstOwnerA[i]){
-//            misalignedModes.insert(misalignedModes.end(), i);
-//        }
-//    }
-//
-//    ModeArray actualCommModes = misalignedModes;
-//    for(Unsigned i = 0; i < commModes.size(); i++){
-//        if(std::find(actualCommModes.begin(), actualCommModes.end(), commModes[i]) == actualCommModes.end()){
-//            actualCommModes.insert(actualCommModes.end(), commModes[i]);
-//        }
-//    }
-//    std::sort(actualCommModes.begin(), actualCommModes.end());
-//
-////    PrintVector(actualCommModes, "actualCommModes");
-//    mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
-//
-//    //Skip if we aren't participating
-//    if(!A.Participating())
-//        return;
-//
-//    Unsigned sendSize, recvSize;
-//
-//    //Determine buffer sizes for communication
-//    //NOTE: Next line is example of clang not detecting dead code/unused var.
-////    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
-//    const ObjShape commDataShape = MaxLocalShape();
-//    recvSize = prod(commDataShape);
-//    sendSize = recvSize;
-//
-//    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-//    T* sendBuf = &(auxBuf[0]);
-//    T* recvBuf = &(auxBuf[sendSize]);
-//
-//    const T* dataBuf = A.LockedBuffer();
-//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
-//
-//    //Pack the data
-//    PROFILE_SECTION("PermutationPack");
-//    PackAGCommSendBuf(A, sendBuf);
-//    PROFILE_STOP;
-//
-//    ObjShape sendShape = commDataShape;
-//    PrintArray(sendBuf, sendShape, "sendBuf");
-//
-//    //Determine who I send+recv data from
-//    PROFILE_SECTION("PermutationComm");
-//
-//    ModeArray sortedCommModes = commModes;
-//    std::sort(sortedCommModes.begin(), sortedCommModes.end());
-//
-//
-//    const Location myGridViewLocA = gvA.ParticipatingLoc();
-//    const Location sendLoc = GridViewLoc2GridLoc(myGridViewLocA, gvB);
-////    const Unsigned sendLinLoc = Loc2LinearLoc(FilterVector(sendLoc, sortedCommModes), FilterVector(g.Shape(), sortedCommModes));
-//
-//    const Location myGridViewLocB = gvB.ParticipatingLoc();
-//    const Location recvLoc = GridViewLoc2GridLoc(myGridViewLocB, gvA);
-////    const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, sortedCommModes), FilterVector(g.Shape(), sortedCommModes));
-//
-//    //Make sure we account for alignments
-//    PrintData(A, "Adata");
-//    PrintData(*this, "Bdata");
-//
-//    const Location myLoc = g.Loc();
-//    PrintVector(myLoc, "myLoc");
-//
-//    PrintVector(myGridViewLocA, "myGridViewLocA");
-//    PrintVector(myGridViewLocB, "myGridViewLocB");
-//    PrintVector(alignDiff, "alignDiff");
-//    PrintVector(sendLoc, "sendLoc");
-//    PrintVector(recvLoc, "recvLoc");
-//
-////    PrintVector(firstOwnerA, "firstOwnerA");
-////    PrintVector(firstOwnerB, "firstOwnerB");
-//
-//    Location alignedSendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(sendLoc, alignDiff), g.Shape()), g.Shape());
-//    Location alignedRecvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(recvLoc, alignDiff), g.Shape()), g.Shape());
-//
-//    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
-//    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
-//
-//    Location alignedSendSliceLoc = FilterVector(alignedSendGridLoc, actualCommModes);
-//    Location alignedRecvSliceLoc = FilterVector(alignedRecvGridLoc, actualCommModes);
-//    ObjShape gridSliceShape = FilterVector(g.Shape(), actualCommModes);
-//
-////    PrintVector(alignedSendGridLoc, "alignedSendGridLoc");
-////    PrintVector(alignedRecvGridLoc, "alignedRecvGridLoc");
-////    PrintVector(gridSliceShape, "gridSliceShape");
-//
-//    Unsigned sendLinLoc = Loc2LinearLoc(alignedSendSliceLoc, gridSliceShape);
-//    Unsigned recvLinLoc = Loc2LinearLoc(alignedRecvSliceLoc, gridSliceShape);
-//
-////    printf("sendSize %d\n", sendSize);
-//
-//    printf("sendLinLoc: %d\n", sendLinLoc);
-//    printf("recvLinLoc: %d\n", recvLinLoc);
-//    printf("CommRank: %d\n", mpi::CommRank(sendRecvComm));
-//    printf("CommSize: %d\n", mpi::CommSize(sendRecvComm));
-//
-//    printf("sendSize: %d, recvSize: %d\n", sendSize, recvSize);
-//
-//    printf("sendrecving");
-//    mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
-//                  recvBuf, recvSize, recvLinLoc, sendRecvComm);
-//
-//    PROFILE_STOP;
-//
-//    ObjShape recvShape = commDataShape;
-//    PrintArray(recvBuf, recvShape, "recvBuf");
-//
-//    if(!(Participating())){
-//        this->auxMemory_.Release();
-//        return;
-//    }
-//
-//    //Unpack the data (if participating)
-//    PROFILE_SECTION("PermutationUnpack");
-//    UnpackPCommRecvBuf(recvBuf, A);
-//    PROFILE_STOP;
-//
-//    const T* myBuf = LockedBuffer();
-//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
-//
-//    this->auxMemory_.Release();
-//}
 
 template <typename T>
 void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)

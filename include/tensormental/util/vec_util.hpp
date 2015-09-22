@@ -98,6 +98,12 @@ template<typename T>
 std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter);
 
 template<typename T>
+bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
+std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
 bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>

@@ -14,47 +14,46 @@
 namespace tmen{
 
 template<typename T>
-Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A, const Mode localMode, const ModeArray& gridRedistModes){
-    if(A.Order() != Order())
-        LogicError("CheckLocalRedist: Objects being redistributed must be of same order");
-
-    Unsigned i, j;
-    TensorDistribution distA = A.TensorDist();
-    ModeDistribution localModeDistA = A.ModeDist(localMode);
-    ModeDistribution localModeDistB = ModeDist(localMode);
-
-    if(localModeDistB.size() != localModeDistA.size() + gridRedistModes.size())
-        LogicError("CheckLocalReist: Input object cannot be redistributed to output object");
-
-    ModeArray check(localModeDistB);
-    for(i = 0; i < localModeDistA.size(); i++)
-        check[i] = localModeDistA[i];
-    for(i = 0; i < gridRedistModes.size(); i++)
-        check[localModeDistA.size() + i] = gridRedistModes[i];
-
-    for(i = 0; i < check.size(); i++){
-        if(check[i] != localModeDistB[i])
-            LogicError("CheckLocalRedist: Output distribution cannot be formed from supplied parameters");
+Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
+    if(A.Order() != Order()){
+        LogicError("CheckAllGatherRedist: Objects being redistributed must be of same order");
     }
 
-    ModeArray boundModes;
-    for(i = 0; i < distA.size(); i++){
-        for(j = 0; j < distA[i].size(); j++){
-            boundModes.push_back(distA[i][j]);
-        }
+    const TensorDistribution outDist = TensorDist();
+    const TensorDistribution inDist = A.TensorDist();
+    for(Unsigned i = 0; i < Order(); i++){
+    	if(!(IsPrefix(inDist[i], outDist[i]))){
+    		std::stringstream msg;
+    		msg << "Invalid Local redistribution\n"
+    		    << tmen::TensorDistToString(outDist)
+    		    << " <-- "
+    		    << tmen::TensorDistToString(inDist)
+    		    << std::endl
+    		    << "Input mode-" << i << " mode distribution must be prefix of output mode distribution"
+    			<< std::endl;
+    		LogicError(msg.str());
+    	}
     }
 
-    for(i = 0; i < gridRedistModes.size(); i++)
-        if(std::find(boundModes.begin(), boundModes.end(), gridRedistModes[i]) != boundModes.end())
-            LogicError("CheckLocalRedist: Attempting to redistribute with already bound mode of the grid");
-
-    return 1;
+    if(outDist[Order()].size() != inDist[Order()].size() || !(EqualUnderPermutation(outDist[Order()], inDist[Order()]))){
+		std::stringstream msg;
+		msg << "Invalid Local redistribution\n"
+		    << tmen::TensorDistToString(outDist)
+		    << " <-- "
+		    << tmen::TensorDistToString(inDist)
+		    << std::endl
+		    << "Non-distributed mode distribution must be same"
+			<< std::endl;
+		LogicError(msg.str());
+    }
+    return true;
 }
 
 template<typename T>
 void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
-//    if(!CheckLocalCommRedist(A, localMode, gridRedistModes))
-//        LogicError("LocalRedist: Invalid redistribution request");
+    if(!CheckLocalCommRedist(A))
+        LogicError("LocalRedist: Invalid redistribution request");
+
     if(!(Participating()))
         return;
 
