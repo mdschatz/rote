@@ -15,6 +15,38 @@ bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder){
 	return true;
 }
 
+bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist){
+	Unsigned nonDistMode = outDist.size() - 1;
+	if(!IsPrefix(outDist[nonDistMode], inDist[nonDistMode])){
+    	std::stringstream msg;
+		msg << "Invalid redistribution\n"
+			<< tmen::TensorDistToString(outDist)
+			<< " <-- "
+			<< tmen::TensorDistToString(inDist)
+			<< std::endl
+			<< "Output Non-distributed mode distribution must be prefix"
+			<< std::endl;
+		LogicError(msg.str());
+    }
+	return true;
+}
+
+bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist){
+	Unsigned nonDistMode = outDist.size() - 1;
+	if(!IsPrefix(inDist[nonDistMode], outDist[nonDistMode])){
+    	std::stringstream msg;
+		msg << "Invalid redistribution\n"
+			<< tmen::TensorDistToString(outDist)
+			<< " <-- "
+			<< tmen::TensorDistToString(inDist)
+			<< std::endl
+			<< "Input Non-distributed mode distribution must be prefix"
+			<< std::endl;
+		LogicError(msg.str());
+    }
+	return true;
+}
+
 bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistribution& inDist){
 	Unsigned nonDistMode = outDist.size() - 1;
 	if(outDist[nonDistMode].size() != inDist[nonDistMode].size() || !EqualUnderPermutation(outDist[nonDistMode], inDist[nonDistMode])){

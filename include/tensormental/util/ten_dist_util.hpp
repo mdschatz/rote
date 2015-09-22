@@ -21,6 +21,8 @@ bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder);
 
 bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
+bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
+bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
 bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
 bool CheckSameCommModes(const TensorDistribution& outDist, const TensorDistribution& inDist);

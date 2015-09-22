@@ -15,6 +15,7 @@
 #include "tensormental/tests/RSGRedist.hpp"
 #include "tensormental/tests/PRedist.hpp"
 #include "tensormental/tests/A2ARedist.hpp"
+#include "tensormental/tests/BCastRedist.hpp"
 
 using namespace tmen;
 
@@ -127,6 +128,7 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
     Print(A, "A");
 
     std::vector<AGGTest> aggTests = CreateAGGTests(A, args);
+    std::vector<BCastTest> bcastTests = CreateBCastTests(A, args);
     std::vector<GTOGTest> gtogTests = CreateGTOGTests(A, args);
     std::vector<LGTest> lgTests = CreateLGTests(A, args);
     std::vector<RSGTest> rsgTests = CreateRSGTests(A, args);
@@ -199,17 +201,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestPRedist(A, pMode, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing ReduceScatterG tests\n");
-    }
-    for(i = 0; i < rsgTests.size(); i++){
-        RSGTest thisTest = rsgTests[i];
-        ModeArray rModes = thisTest.first.first;
-        ModeArray sModes = thisTest.first.second;
-        TensorDistribution resDist = thisTest.second;
-
-        TestRSGRedist(A, rModes, sModes, resDist);
-    }
+//    if(commRank == 0){
+//        printf("Performing ReduceScatterG tests\n");
+//    }
+//    for(i = 0; i < rsgTests.size(); i++){
+//        RSGTest thisTest = rsgTests[i];
+//        ModeArray rModes = thisTest.first.first;
+//        ModeArray sModes = thisTest.first.second;
+//        TensorDistribution resDist = thisTest.second;
+//
+//        TestRSGRedist(A, rModes, sModes, resDist);
+//    }
 //
 //    if(commRank == 0){
 //            printf("Performing ReduceToOneG tests\n");
@@ -222,7 +224,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestRTOGRedist(A, rModes, resDist);
 //    }
 //
-//
+    if(commRank == 0){
+        printf("Performing Broadcast tests\n");
+    }
+    printf("bcast Size: %d\n", bcastTests.size());
+    for(i = 0; i < bcastTests.size(); i++){
+        BCastTest thisTest = bcastTests[i];
+        TensorDistribution resDist = thisTest.first;
+        const ModeArray bcastModes = thisTest.second;
+
+        TestBCastRedist(resDist, A, bcastModes);
+    }
 
 }
 
@@ -302,7 +314,6 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
                                AB,  A2, mode);
         }
     }
-
 }
 
 int 
@@ -370,25 +381,10 @@ main( int argc, char* argv[] )
                 A.SetLocalPermutation(permA);
                 A.ResizeTo(A.Shape());
                 Set(A);
-//                DistTensorTest<int>(A, args, g);
-                PerformTest<int>(A, args, g);
+                DistTensorTest<int>(A, args, g);
+//                PerformTest<int>(A, args, g);
             }
         }while(next_permutation(permA.begin(), permA.end()));
-
-//        A.SetLocalPermutation(permA);
-//        A.ResizeToUnderPerm(A.Shape());
-//        Set(A);
-
-//        DistTensorTest<int>( A, args, g );
-//        PerformTest<int>(A, args, g);
-
-//        if( commRank == 0 )
-//        {
-//            std::cout << "--------------------" << std::endl
-//                      << "Testing with floats:" << std::endl
-//                      << "--------------------" << std::endl;
-//        }
-//        DistTensorTest<float>( args, g );
 //
 //        if( commRank == 0 )
 //        {

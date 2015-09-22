@@ -98,6 +98,7 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
     Unsigned res = 1;
 
     bool shouldbeParticipating = !AnyPositiveElem(FilterVector(myGridLoc, dist[order]));
+//    printf("shouldBeParticipating: %s\n", (shouldbeParticipating ? "true" : "false"));
     if(shouldbeParticipating && !A.Participating())
         res = 1;
 
@@ -116,6 +117,7 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
             res = 0;
         }
 
+//        Print(actual, "actual");
 //        printf("dist: %s\n", tmen::TensorDistToString(A.TensorDist()).c_str());
 //        PrintVector(strides, "strides");
 //        PrintVector(myGridLoc, "myGridLoc");
@@ -125,7 +127,7 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
 //            PrintVector(localLoc, "checking localLoc");
 //            PrintVector(actualLoc, "checking globalLoc");
 
-            if(A.GetLocal(localLoc) != actual.Get(actualLoc)){
+            if(A.Get(localLoc) != actual.Get(actualLoc)){
 //                printf("localVal: %d globalVal: %d\n", A.GetLocal(localLoc), actual.Get(actualLoc));
                 res = 0;
                 break;

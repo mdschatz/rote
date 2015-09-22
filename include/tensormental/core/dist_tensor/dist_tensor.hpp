@@ -262,6 +262,17 @@ public:
     void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
+    // Broadcast workhorse routines
+    //
+    bool CheckBroadcastCommRedist(const DistTensor<T>& A);
+    void BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
+
+    //
+    // Broadcast interface routines
+    //
+    void BroadcastRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
+
+    //
     // Gather-to-one workhorse routines
     //
     bool CheckGatherToOneCommRedist(const DistTensor<T>& A);
