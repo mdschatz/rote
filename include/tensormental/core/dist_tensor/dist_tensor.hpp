@@ -238,7 +238,7 @@ public:
     //
     // All-to-all workhorse routines
     //
-    Int CheckAllToAllCommRedist(const DistTensor<T>& A);
+    bool CheckAllToAllCommRedist(const DistTensor<T>& A);
     void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
     A2AP2PData DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& commModes);
     void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
@@ -252,7 +252,7 @@ public:
     //
     // Allgather workhorse routines
     //
-    Int CheckAllGatherCommRedist(const DistTensor<T>& A);
+    bool CheckAllGatherCommRedist(const DistTensor<T>& A);
     void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
     void PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
 
@@ -264,7 +264,7 @@ public:
     //
     // Gather-to-one workhorse routines
     //
-    Int  CheckGatherToOneCommRedist(const DistTensor<T>& A);
+    bool CheckGatherToOneCommRedist(const DistTensor<T>& A);
     void GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
 
     //
@@ -275,7 +275,7 @@ public:
     //
     // Local redist workhorse routines
     //
-    Int CheckLocalCommRedist(const DistTensor<T>& A);
+    bool CheckLocalCommRedist(const DistTensor<T>& A);
     void LocalCommRedist(const DistTensor<T>& A);
     void UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpackBuf);
 
@@ -287,7 +287,7 @@ public:
     //
     // Point-to-point workhorse routines
     //
-    Int CheckPermutationCommRedist(const DistTensor<T>& A);
+    bool CheckPermutationCommRedist(const DistTensor<T>& A);
     void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes);
     void UnpackPCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
 
@@ -299,7 +299,7 @@ public:
     //
     // AllReduce workhorse routines
     //
-    Int CheckAllReduceCommRedist(const DistTensor<T>& A);
+    bool CheckAllReduceCommRedist(const DistTensor<T>& A);
     void AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
     void PackARCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
     void UnpackARUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
@@ -316,7 +316,7 @@ public:
     //
     // Reduce-scatter workhorse routines
     //
-    Int CheckReduceScatterCommRedist(const DistTensor<T>& A);
+    bool CheckReduceScatterCommRedist(const DistTensor<T>& A);
     void ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
     void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
     void UnpackRSUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
@@ -333,7 +333,7 @@ public:
     //
     // Reduce-to-one workhorse routines
     //
-    Int  CheckReduceToOneCommRedist(const DistTensor<T>& A);
+    bool CheckReduceToOneCommRedist(const DistTensor<T>& A);
     void ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes, const ModeArray& commModes);
 
     //

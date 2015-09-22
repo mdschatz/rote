@@ -16,7 +16,7 @@ namespace tmen{
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
-Int DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
 	const TensorDistribution outDist = TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 

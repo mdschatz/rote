@@ -15,7 +15,7 @@ namespace tmen{
 
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
-Int DistTensor<T>::CheckAllToAllCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckAllToAllCommRedist(const DistTensor<T>& A){
 	const TensorDistribution outDist = TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 

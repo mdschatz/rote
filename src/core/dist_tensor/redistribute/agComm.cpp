@@ -14,8 +14,7 @@ x   Copyright (c) 2009-2013, Jack Poulson
 namespace tmen{
 
 template<typename T>
-Int
-DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
 	const TensorDistribution outDist = TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 

@@ -15,7 +15,7 @@ namespace tmen{
 
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
-Int DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
 	const TensorDistribution outDist = TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 

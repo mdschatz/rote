@@ -14,13 +14,13 @@
 namespace tmen{
 
 template <typename T>
-Int DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A){
 	return CheckAllGatherCommRedist(A);
 }
 
 template <typename T>
 void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
-    if(!CheckAllReduceCommRedist(A, reduceModes))
+    if(!CheckAllReduceCommRedist(A))
       LogicError("AllReduceRedist: Invalid redistribution request");
     const tmen::Grid& g = A.Grid();
 

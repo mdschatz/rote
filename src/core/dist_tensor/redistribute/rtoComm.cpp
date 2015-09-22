@@ -16,13 +16,13 @@ namespace tmen{
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
-Int DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A){
 	return CheckGatherToOneCommRedist(A);
 }
 
 template <typename T>
 void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
-    if(!CheckReduceToOneCommRedist(A, reduceModes))
+    if(!CheckReduceToOneCommRedist(A))
       LogicError("ReduceToOneRedist: Invalid redistribution request");
 
     const tmen::Grid& g = A.Grid();

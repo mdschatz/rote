@@ -14,7 +14,7 @@
 namespace tmen{
 
 template<typename T>
-Int DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
+bool DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
 	const TensorDistribution outDist = TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
