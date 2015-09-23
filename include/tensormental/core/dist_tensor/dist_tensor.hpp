@@ -356,6 +356,17 @@ public:
     void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& rModes);
     void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode rMode);
 
+    //
+    // Scatter workhorse routines
+    //
+    bool CheckScatterCommRedist(const DistTensor<T>& A);
+    void ScatterCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
+
+    //
+    // Scatter interface routines
+    //
+    void ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
+
     void AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize);
 
     //

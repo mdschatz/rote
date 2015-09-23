@@ -16,6 +16,7 @@
 #include "tensormental/tests/PRedist.hpp"
 #include "tensormental/tests/A2ARedist.hpp"
 #include "tensormental/tests/BCastRedist.hpp"
+#include "tensormental/tests/ScatterRedist.hpp"
 
 using namespace tmen;
 
@@ -129,6 +130,7 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 
     std::vector<AGGTest> aggTests = CreateAGGTests(A, args);
     std::vector<BCastTest> bcastTests = CreateBCastTests(A, args);
+    std::vector<ScatterTest> scatterTests = CreateScatterTests(A, args);
     std::vector<GTOGTest> gtogTests = CreateGTOGTests(A, args);
     std::vector<LGTest> lgTests = CreateLGTests(A, args);
     std::vector<RSGTest> rsgTests = CreateRSGTests(A, args);
@@ -224,18 +226,29 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestRTOGRedist(A, rModes, resDist);
 //    }
 //
+//    if(commRank == 0){
+//        printf("Performing Broadcast tests\n");
+//    }
+//    printf("bcast Size: %d\n", bcastTests.size());
+//    for(i = 0; i < bcastTests.size(); i++){
+//        BCastTest thisTest = bcastTests[i];
+//        TensorDistribution resDist = thisTest.first;
+//        const ModeArray bcastModes = thisTest.second;
+//
+//        TestBCastRedist(resDist, A, bcastModes);
+//    }
+
     if(commRank == 0){
-        printf("Performing Broadcast tests\n");
+        printf("Performing Scatter tests\n");
     }
-    printf("bcast Size: %d\n", bcastTests.size());
-    for(i = 0; i < bcastTests.size(); i++){
-        BCastTest thisTest = bcastTests[i];
+    printf("scatter Size: %d\n", scatterTests.size());
+    for(i = 0; i < scatterTests.size(); i++){
+        ScatterTest thisTest = scatterTests[i];
         TensorDistribution resDist = thisTest.first;
         const ModeArray bcastModes = thisTest.second;
 
-        TestBCastRedist(resDist, A, bcastModes);
+        TestScatterRedist(resDist, A, bcastModes);
     }
-
 }
 
 template<typename T>
