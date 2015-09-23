@@ -20,6 +20,8 @@
 
 using namespace tmen;
 
+enum CommTypes {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
+
 void Usage(){
     std::cout << "./DistTensor <gridOrder> <gridDim0> <gridDim1> ... <tenOrder> <tenDim0> <tenDim1> ... \"<tensorDist>\"\n";
     std::cout << "<gridOrder>  : order of the grid ( >0 )\n";
@@ -108,16 +110,6 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
 
 template<typename T>
 void
-TestCopyBuffer(const DistTensor<T>& A){
-    DistTensor<T> B(A.Shape(), A.TensorDist(), A.Alignments(), A.Grid());
-//    B.SetAlignmentsAndResize(A);
-    B.CopyLocalBuffer(A);
-    Print(B, "B after CopyLocalBuffer");
-//    CheckResult(B);
-}
-
-template<typename T>
-void
 DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 {
 #ifndef RELEASE
@@ -138,10 +130,6 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
     std::vector<A2ATest> a2aTests = CreateA2ATests(A, args);
     std::vector<RTOGTest> rtogTests = CreateRTOGTests(A, args);
 
-//    if(commRank == 0){
-//        printf("Performing CopyLocalBuffer tests\n");
-//    }
-//    TestCopyBuffer(A);
 //
 //    if(commRank == 0){
 //        printf("Performing All-to-all tests\n");
@@ -249,46 +237,6 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //
 //        TestScatterRedist(resDist, A, bcastModes);
 //    }
-}
-
-template<typename T>
-void
-PrintLocalView(const Tensor<T>& A){
-    Unsigned i;
-    const Unsigned order = A.Order();
-    printf("        Local tensor info:\n");
-    printf("          shape:");
-    if(order > 0)
-        printf(" %d", A.Dimension(0));
-    for(i = 1; i < order; i++)
-        printf(" x %d", A.Dimension(i));
-    printf("\n");
-
-    Print(A, "        data: ");
-
-}
-
-template<typename T>
-void
-PrintView(const char* msg, const DistTensor<T>& A){
-    Unsigned i;
-    const Unsigned order = A.Order();
-    printf("    Info for: %s\n", msg);
-    printf("      shape:");
-    if(order > 0)
-        printf(" %d", A.Dimension(0));
-    for(i = 1; i < order; i++)
-        printf(" x %d", A.Dimension(i));
-    printf("\n");
-
-    printf("      alignments:");
-    if(order > 0)
-        printf(" %d", A.ModeAlignment(0));
-    for(i = 1; i < order; i++)
-        printf(" x %d", A.ModeAlignment(i));
-    printf("\n");
-
-    PrintLocalView(A.LockedTensor());
 }
 
 template<typename T>
