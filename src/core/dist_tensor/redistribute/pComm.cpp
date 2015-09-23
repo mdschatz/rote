@@ -166,10 +166,11 @@ void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor
     PackData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
-    unpackData.srcBufStrides = PermuteVector(Dimensions2Strides(MaxLocalShape()), localPerm_);
+    unpackData.srcBufStrides = Dimensions2Strides(PermuteVector(MaxLocalShape(), localPerm_));
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
+//    PrintPackData(unpackData, "unpackData");
     PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
 }
 

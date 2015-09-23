@@ -60,20 +60,21 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	localPackStrides = ElemwiseDivide(LCMs(gvBShape, gvAShape), gvAShape);
 	ObjShape commDataShape(maxLocalShapeA.size());
 	commDataShape = IntCeils(maxLocalShapeA, localPackStrides);
-//        PrintVector(commDataShape, "commDataShape");
-//        printf("nRedistProcs: %d\n", nRedistProcs);
+
+//	PrintVector(commDataShape, "commDataShape");
+//	printf("nRedistProcs: %d\n", nRedistProcs);
 
 	sendSize = prod(commDataShape);
 	recvSize = sendSize;
 
 	T* auxBuf;
-	auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+	auxBuf = this->auxMemory_.Require((sendSize + recvSize) * nRedistProcs);
 
 	T* sendBuf = &(auxBuf[0]);
-	T* recvBuf = sendBuf;
+	T* recvBuf = &(auxBuf[sendSize * nRedistProcs]);
 
-//        const T* dataBuf = A.LockedBuffer();
-//        PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+//	const T* dataBuf = A.LockedBuffer();
+//	PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
 	//Pack the data
 	PROFILE_SECTION("ScatterPack");
@@ -82,57 +83,57 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 		PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
 	PROFILE_STOP;
 
-
-	ObjShape sendShape = commDataShape;
-	sendShape.insert(sendShape.end(), nRedistProcs);
-//        PrintVector(sendShape, "sendShape");
-//        PrintArray(sendBuf, sendShape, "sendBuf");
+//	ObjShape sendShape = commDataShape;
+//	sendShape.insert(sendShape.end(), nRedistProcs);
+//	PrintVector(sendShape, "sendShape");
+//	PrintArray(sendBuf, sendShape, "sendBuf");
 
 	//Communicate the data
 	PROFILE_SECTION("ScatterComm");
-	Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-	Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-//        printf("distA: %s\n", tmen::TensorDistToString(gvA.Distribution()).c_str());
-//        PrintVector(A.Alignments(), "A.Alignments()");
-//        PrintVector(firstOwnerA, "firstOwnerA");
+	if(Participating()){
+		Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+		Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+	//        printf("distA: %s\n", tmen::TensorDistToString(gvA.Distribution()).c_str());
+	//        PrintVector(A.Alignments(), "A.Alignments()");
+	//        PrintVector(firstOwnerA, "firstOwnerA");
 
-//        printf("distB: %s\n", tmen::TensorDistToString(gvB.Distribution()).c_str());
-//        PrintVector(Alignments(), "B.Alignments()");
-//        PrintVector(firstOwnerB, "firstOwnerB");
-	if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-//                PrintVector(g.Loc(), "myGridLoc");
-//                PrintVector(firstOwnerA, "firstOwnerA");
-//                PrintVector(firstOwnerB, "firstOwnerB");
-		T* alignSendBuf = &(sendBuf[0]);
-		T* alignRecvBuf = &(sendBuf[sendSize]);
-		AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
-		sendBuf = &(alignRecvBuf[0]);
-		recvBuf = sendBuf;
-//            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+	//        printf("distB: %s\n", tmen::TensorDistToString(gvB.Distribution()).c_str());
+	//        PrintVector(Alignments(), "B.Alignments()");
+	//        PrintVector(firstOwnerB, "firstOwnerB");
+		if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+	//                PrintVector(g.Loc(), "myGridLoc");
+	//                PrintVector(firstOwnerA, "firstOwnerA");
+	//                PrintVector(firstOwnerB, "firstOwnerB");
+			T* alignSendBuf = &(sendBuf[0]);
+			T* alignRecvBuf = &(sendBuf[sendSize * nRedistProcs]);
+			AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+			sendBuf = &(alignRecvBuf[0]);
+			recvBuf = &(alignSendBuf[0]);
+	//            PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+		}
+		mpi::Scatter(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
 	}
-
-	mpi::Scatter(sendBuf, sendSize, recvSize, 0, comm);
 	//Perform a send/recv to realign the data (if needed)
 	PROFILE_STOP;
 
 	if(!(Participating())){
+//		printf("done\n");
 		this->auxMemory_.Release();
 		return;
 	}
 
-//        ObjShape recvShape = commDataShape;
-//        recvShape.insert(recvShape.end(), nRedistProcs);
-//        PrintArray(recvBuf, recvShape, "recvBuf");
+//	ObjShape recvShape = commDataShape;
+//	PrintArray(recvBuf, recvShape, "recvBuf");
 
 	//Unpack the data (if participating)
 	PROFILE_SECTION("ScatterUnpack");
 	PROFILE_MEMOPS(prod(MaxLocalShape()));
 	if(Participating())
-		UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
+		UnpackPCommRecvBuf(recvBuf, A);
 	PROFILE_STOP;
 
-//        const T* myBuf = LockedBuffer();
-//        PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+//	const T* myBuf = LockedBuffer();
+//	PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
 
 	this->auxMemory_.Release();
 }

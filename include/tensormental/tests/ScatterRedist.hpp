@@ -115,13 +115,14 @@ TestScatterRedist( const TensorDistribution& resDist, const DistTensor<T>& A, co
     Permutation perm = DefaultPermutation(order);
 
     do{
-    	if(commRank == 0){
-            printf("Testing ");
-            PrintVector(perm, "Output Perm");
-    	}
-        B.SetLocalPermutation(perm);
-        B.ScatterRedistFrom(A, scatterModes);
-        CheckResult(B, check);
+			if(commRank == 0){
+				printf("Testing ");
+				PrintVector(perm, "Output Perm");
+			}
+			B.SetLocalPermutation(perm);
+			B.ScatterRedistFrom(A, scatterModes);
+			Print(B, "check");
+//	        CheckResult(B, check);
     }while(next_permutation(perm.begin(), perm.end()));
 }
 

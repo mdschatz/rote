@@ -383,12 +383,11 @@ main( int argc, char* argv[] )
 
         Unsigned count = 0;
         do{
-            if(count <= 0)
+            if(count < 0)
                 count++;
             else{
                 if(commRank == 0){
-                    printf("Testing ");
-                    PrintVector(permA, "Input Perm");
+                    PrintVector(permA, "Testing Input Perm");
                 }
 
                 A.SetLocalPermutation(permA);
