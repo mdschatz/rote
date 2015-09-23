@@ -67,7 +67,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
     //Pack the data
-    PROFILE_SECTION("AGPack");
+    PROFILE_SECTION("BCastPack");
     PROFILE_MEMOPS(prod(commDataShape));
     if(A.Participating())
     	PackAGCommSendBuf(A, sendBuf);
@@ -76,7 +76,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //    PrintArray(sendBuf, commDataShape, "sendBuf");
 
     //Communicate the data
-    PROFILE_SECTION("AGComm");
+    PROFILE_SECTION("BCastComm");
     //If unaligned, realign with send/recv BEFORE Allgather (ensures data arrives in correct place)
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
@@ -105,7 +105,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
-    PROFILE_SECTION("AGUnpack");
+    PROFILE_SECTION("BCastUnpack");
     PROFILE_MEMOPS(prod(MaxLocalShape()));
     if(Participating())
     	UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
