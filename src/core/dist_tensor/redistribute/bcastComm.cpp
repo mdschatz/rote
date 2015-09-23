@@ -91,7 +91,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //        PrintArray(sendBuf, commDataShape, "postsendBuf");
     }
 
-//    PrintArray(sendBuf, commDataShape, "sendBuf before ag");
+//    PrintArray(sendBuf, commDataShape, "sendBuf before bcast");
     mpi::Broadcast(sendBuf, sendSize, 0, comm);
     PROFILE_STOP;
 
@@ -101,14 +101,13 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
     }
 
 //    ObjShape recvShape = commDataShape;
-//    recvShape.insert(recvShape.end(), nRedistProcs);
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
     PROFILE_SECTION("BCastUnpack");
     PROFILE_MEMOPS(prod(MaxLocalShape()));
     if(Participating())
-    	UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
+    	UnpackPCommRecvBuf(recvBuf, A);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

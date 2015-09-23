@@ -226,29 +226,29 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestRTOGRedist(A, rModes, resDist);
 //    }
 //
-//    if(commRank == 0){
-//        printf("Performing Broadcast tests\n");
-//    }
-//    printf("bcast Size: %d\n", bcastTests.size());
-//    for(i = 0; i < bcastTests.size(); i++){
-//        BCastTest thisTest = bcastTests[i];
-//        TensorDistribution resDist = thisTest.first;
-//        const ModeArray bcastModes = thisTest.second;
-//
-//        TestBCastRedist(resDist, A, bcastModes);
-//    }
-
     if(commRank == 0){
-        printf("Performing Scatter tests\n");
+        printf("Performing Broadcast tests\n");
     }
-    printf("scatter Size: %d\n", scatterTests.size());
-    for(i = 0; i < scatterTests.size(); i++){
-        ScatterTest thisTest = scatterTests[i];
+    printf("bcast Size: %d\n", bcastTests.size());
+    for(i = 0; i < bcastTests.size(); i++){
+        BCastTest thisTest = bcastTests[i];
         TensorDistribution resDist = thisTest.first;
         const ModeArray bcastModes = thisTest.second;
 
-        TestScatterRedist(resDist, A, bcastModes);
+        TestBCastRedist(resDist, A, bcastModes);
     }
+
+//    if(commRank == 0){
+//        printf("Performing Scatter tests\n");
+//    }
+//    printf("scatter Size: %d\n", scatterTests.size());
+//    for(i = 0; i < scatterTests.size(); i++){
+//        ScatterTest thisTest = scatterTests[i];
+//        TensorDistribution resDist = thisTest.first;
+//        const ModeArray bcastModes = thisTest.second;
+//
+//        TestScatterRedist(resDist, A, bcastModes);
+//    }
 }
 
 template<typename T>

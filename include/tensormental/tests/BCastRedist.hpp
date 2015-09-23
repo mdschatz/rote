@@ -61,12 +61,11 @@ TestBCastRedist( const TensorDistribution& resDist, const DistTensor<T>& A, cons
 
     do{
     	if(commRank == 0){
-            printf("Testing ");
-            PrintVector(perm, "Output Perm");
+            PrintVector(perm, "Testing Output Perm");
     	}
         B.SetLocalPermutation(perm);
         B.BroadcastRedistFrom(A, bcastModes);
-        CheckResult(B, check);
+        Print(B, "check");
     }while(next_permutation(perm.begin(), perm.end()));
 }
 

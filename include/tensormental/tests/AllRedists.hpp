@@ -124,11 +124,11 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
 //        PrintVector(myFirstElem, "myFirstLoc");
         while(!stop){
 
-//            PrintVector(localLoc, "checking localLoc");
-//            PrintVector(actualLoc, "checking globalLoc");
+            PrintVector(localLoc, "checking localLoc");
+            PrintVector(actualLoc, "checking actualLoc");
 
-            if(A.Get(localLoc) != actual.Get(actualLoc)){
-//                printf("localVal: %d globalVal: %d\n", A.GetLocal(localLoc), actual.Get(actualLoc));
+            if(A.GetLocal(localLoc) != actual.Get(actualLoc)){
+                printf("localVal: %d globalVal: %d\n", A.GetLocal(localLoc), actual.Get(actualLoc));
                 res = 0;
                 break;
             }
@@ -137,18 +137,18 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
                 break;
 
             //Update
-            actualLoc[modePtr] += strides[modePtr];
-            localLoc[modePtr]++;
+            actualLoc[modePtr]++;
+            localLoc[modePtr] += strides[modePtr];
             while(actualLoc[modePtr] >= globalShape[modePtr]){
-                actualLoc[modePtr] = myFirstElem[modePtr];
-                localLoc[modePtr] = 0;
+                actualLoc[modePtr] = 0;
+                localLoc[modePtr] = myFirstElem[modePtr];
                 modePtr++;
                 if(modePtr == order){
                     stop = true;
                     break;
                 }else{
-                    localLoc[modePtr]++;
-                    actualLoc[modePtr] += strides[modePtr];
+                    localLoc[modePtr] += strides[modePtr];
+                    actualLoc[modePtr]++;
                 }
             }
             modePtr = 0;
