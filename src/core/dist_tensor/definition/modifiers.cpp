@@ -224,7 +224,7 @@ DistTensor<T>::Set( const Location& loc, T u )
 
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
         const Location localLoc = Global2LocalIndex(loc);
-        SetLocal(localLoc, u);
+        SetLocal(PermuteVector(localLoc, localPerm_), u);
     }
 }
 
@@ -518,7 +518,7 @@ DistTensor<T>::EmptyData()
 template<typename T>
 void
 DistTensor<T>::SetLocal( const Location& loc, T alpha )
-{ tensor_.Set(PermuteVector(loc, localPerm_), alpha); }
+{ tensor_.Set(loc, alpha); }
 
 template<typename T>
 void
@@ -532,7 +532,9 @@ DistTensor<T>::SetLocalPermutation(const Permutation& perm)
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetLocalPermutation");
 #endif
+    Permutation permOldToNew = DeterminePermutation(localPerm_, perm);
     localPerm_ = perm;
+    tensor_.ResizeTo(PermuteVector(tensor_.Shape(), permOldToNew));
 }
 
 template<typename T>

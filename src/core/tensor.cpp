@@ -789,6 +789,7 @@ Tensor<T>::ResizeTo( const Tensor<T>& A )
     if ( Viewing() && AnyElemwiseNotEqual(A.shape_, shape_) )
         LogicError("Cannot increase the size of this tensor");
 #endif
+    shape_.resize(A.shape_.size(), 0);
     ResizeTo(A.shape_);
 }
 
@@ -814,7 +815,7 @@ Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& stride
 {
 	//TODO: Implement general stride
 	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(strides, strides_);
-	std::cout << "Resizing with realloc: " << reallocate << std::endl;
+
 	shape_ = shape;
 	if(reallocate){
 		strides_ = strides;
@@ -847,6 +848,7 @@ Tensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides
     if( Viewing() && ( AnyElemwiseNotEqual(shape, shape_) || AnyElemwiseNotEqual(strides, strides_) ) )
         LogicError("Cannot increase the size of this matrix");
 #endif
+    shape_.resize(shape.size(), 0);
     ResizeTo_( shape, strides );
 }
 
@@ -878,7 +880,6 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");
 #endif
-
     const Unsigned order = A.Order();
     const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
