@@ -143,7 +143,7 @@ PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist,
 		case BCast:   B.BroadcastRedistFrom(A, commModes); break;
 		case Scatter: B.ScatterRedistFrom(A, commModes); break;
 		case Local:   B.LocalRedistFrom(A); break;
-//		case Perm:    B.PermutationRedistFrom(A, commModes); break;
+		case Perm:    B.PermutationRedistFrom(A, commModes); break;
     }
 
 	DistTensor<T> check(A.Shape(), resDist, g);
@@ -172,7 +172,7 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
 		case BCast:   tests = CreateBCastTests(inputDist); redistName = "Broadcast"; break;
 		case Scatter: tests = CreateScatterTests(inputDist); redistName = "Scatter"; break;
 		case Local:   tests = CreateLGTests(g.Order(), inputDist); redistName = "Local"; break;
-//		case Perm:    tests = CreatePTests(A, args); redistName = "Permutation"; break;
+		case Perm:    tests = CreatePTests(g, inputDist); redistName = "Permutation"; break;
 //		case RTO:     tests = CreateRTOGTests(A, args); redistName = "ReduceToOne"; break;
 //		case AR:      tests = CreateARTests(A, args); redistName = "AllReduce"; break;
 //		case RS:      tests = CreateRSGTests(A, args); redistName = "ReduceScatter"; break;
@@ -267,11 +267,11 @@ DistTensorTest( const Params& args, const Grid& g )
     std::vector<Permutation> perms = CreatePerms(args.tenOrder);
 
 //    PerformRedistTests<T>(AG,      perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
+//    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(BCast,   perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(Scatter, perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(RTO,     perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(AR,      perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(RS,      perms, args.tensorShape, args.tensorDist, g);
