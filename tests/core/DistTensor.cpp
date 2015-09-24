@@ -124,8 +124,9 @@ PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist,
         std::cout << (tmen::TensorDistToString(resDist)).c_str() << " <-- "
         		  << (tmen::TensorDistToString(A.TensorDist())).c_str()
 				  << std::endl;
-        PrintVector(outputPerm, "output perm");
         PrintVector(A.LocalPermutation(), "input perm");
+        PrintVector(outputPerm, "output perm");
+
     }
 
     DistTensor<T> B(resDist, g);
@@ -139,7 +140,7 @@ PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist,
 //		case AR:      B.AllReduceRedistFrom(A, commModes); break;
 //		case RTO:     B.ReduceToOneRedistFrom(A, commModes); break;
 //		case GTO:     B.GatherToOneRedistFrom(A, commModes); break;
-//		case BCast:   B.BroadcastRedistFrom(A, commModes); break;
+		case BCast:   B.BroadcastRedistFrom(A, commModes); break;
 		case Scatter: B.ScatterRedistFrom(A, commModes); break;
 //		case Local:   B.LocalRedistFrom(A, commModes); break;
 //		case Perm:    B.PermutationRedistFrom(A, commModes); break;
@@ -167,7 +168,7 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
     switch(commType){
 //		case AG:      tests = CreateAGGTests(A, args); redistName = "AllGather"; break;
 //		case A2A:     tests = CreateA2ATests(A, args); redistName = "AllToAll"; break;
-//		case BCast:   tests = CreateBCastTests(A, args); redistName = "Broadcast"; break;
+		case BCast:   tests = CreateBCastTests(inputDist); redistName = "Broadcast"; break;
 		case Scatter: tests = CreateScatterTests(inputDist); redistName = "Scatter"; break;
 //		case Local:   tests = CreateLGTests(A, args); redistName = "Local"; break;
 //		case Perm:    tests = CreatePTests(A, args); redistName = "Permutation"; break;
