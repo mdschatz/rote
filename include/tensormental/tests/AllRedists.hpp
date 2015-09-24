@@ -137,6 +137,7 @@ void AllCombinationsHelper(const ModeArray& input, Unsigned arrPos, Unsigned k, 
     Unsigned i;
 
     if(arrPos == k){
+    	std::sort(piece.begin(), piece.end());
         combinations.push_back(piece);
     }
     else{

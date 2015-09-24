@@ -5,131 +5,141 @@
 #include "tensormental/tests/AllRedists.hpp"
 using namespace tmen;
 
-typedef std::pair< std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray> >, TensorDistribution> A2ATest;
-
-template<typename T>
-TensorDistribution
-DetermineResultingDistributionA2A(const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& commGroups){
-    Unsigned i;
-
-    TensorDistribution newDist = A.TensorDist();
-
-    for(i = 0; i < a2aModesFrom.size(); i++)
-        newDist[a2aModesFrom[i]].erase(newDist[a2aModesFrom[i]].end() - commGroups[i].size(), newDist[a2aModesFrom[i]].end());
-
-    for(i = 0; i < a2aModesTo.size(); i++)
-        newDist[a2aModesTo[i]].insert(newDist[a2aModesTo[i]].end(), commGroups[i].begin(), commGroups[i].end());
-
-    return newDist;
-}
-
-
-template<typename T>
 void
-CreateA2ATestsHelper(const DistTensor<T>& A, const ModeArray& modesFrom, const ModeArray& modesTo, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<A2ATest>& tests){
+CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesGroup, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
+	Unsigned order = distA.size() - 1;
+	Unsigned i, j;
 
-    if(pos == modesFrom.size()){
-        std::pair<ModeArray, ModeArray> modesFromTo(modesFrom, modesTo);
-        std::pair<std::pair<ModeArray, ModeArray>, std::vector<ModeArray> > t1(modesFromTo, pieceComms);
-        TensorDistribution resDist = DetermineResultingDistributionA2A(A, modesFrom, modesTo, pieceComms);
-        A2ATest test(t1, resDist);
-        tests.push_back(test);
-    }else{
-        Unsigned i;
-        std::vector<ModeArray> modeCommGroups = commGroups[pos];
+	if(modesToMove.size() == 0){
+//		printf("adding fullTest\n");
+//		for(i = 0; i < partialTests.size(); i++){
+//			PrintVector(partialTests[i].second, "commModes");
+//			std::cout << TensorDistToString(partialTests[i].first) << std::endl;
+//		}
+//		printf("done\n");
+		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
 
-        for(i = 0; i < modeCommGroups.size(); i++){
-            std::vector<ModeArray> newPieceComm = pieceComms;
-            newPieceComm[pos] = modeCommGroups[i];
-            CreateA2ATestsHelper(A, modesFrom, modesTo, pos + 1, commGroups, newPieceComm, tests);
-        }
-    }
+		return;
+	}
+
+	std::vector<RedistTest > newPartialTests;
+	Mode modeToMove = modesToMove[modesToMove.size() - 1];
+	ModeArray newModesToMove = modesToMove;
+	newModesToMove.erase(newModesToMove.end() - 1);
+
+	for(i = 0; i < partialTests.size(); i++){
+		const TensorDistribution partialDist = partialTests[i].first;
+		const ModeArray partialModes = partialTests[i].second;
+
+		for(j = 0; j < sinkModesGroup.size(); j++){
+			Mode modeDistToChange = sinkModesGroup[j];
+			TensorDistribution resDist = partialDist;
+			resDist[modeDistToChange].push_back(modeToMove);
+			RedistTest newTest;
+			newTest.first = resDist;
+			newTest.second = partialModes;
+
+			newPartialTests.push_back(newTest);
+		}
+	}
+//	printf("newPartialTests\n");
+//	for(i = 0; i < partialTests.size(); i++){
+//		PrintVector(partialTests[i].second, "commModes");
+//		std::cout << TensorDistToString(partialTests[i].first) << std::endl;
+//	}
+//	printf("done\n");
+	CreateA2ATestsSinkHelper(newModesToMove, sinkModesGroup, distA, newPartialTests, fullTests);
 }
 
-template<typename T>
-std::vector<A2ATest>
-CreateA2ATests(const DistTensor<T>& A, const Params& args){
-    std::vector<A2ATest> ret;
+void
+CreateA2ATestsSrcHelper(const ModeArray& srcModesGroup, const ModeArray& sinkModesGroup, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
+	Unsigned order = distA.size() - 1;
+	Unsigned i, j;
 
-    Unsigned i, j, k, l, m;
-    const Unsigned order = A.Order();
-    const GridView gv = A.GetGridView();
-    ModeArray gridModes(order);
-    for(i = 0; i < gridModes.size(); i++)
-        gridModes[i] = i;
+	if(srcModesGroup.size() == 0){
+//		printf("calling sink\n");
+//		PrintVector(sinkModesGroup, "sinkModesGroup");
+//		for(i = 0; i < partialTests.size(); i++){
+//			PrintVector(partialTests[i].second, "commModes");
+//			std::cout << TensorDistToString(partialTests[i].first) << std::endl;
+//		}
+//		printf("done\n");
+	    std::vector<ModeArray> sinkTenModesGroups;
+	    for(i = 1; i < order; i++){
+	    	std::vector<ModeArray> newTenModesGroups = AllCombinations(sinkModesGroup, i);
+	    	sinkTenModesGroups.insert(sinkTenModesGroups.end(), newTenModesGroups.begin(), newTenModesGroups.end());
+	    }
 
-    for(i = 1; i <= order; i++){
-        std::vector<ModeArray> a2aModeFromCombos = AllCombinations(gridModes, i);
-        std::vector<ModeArray> a2aModeToCombos = AllCombinations(gridModes, i);
-        for(j = 0; j < a2aModeFromCombos.size(); j++){
-            ModeArray a2aModesFrom = a2aModeFromCombos[j];
-            for(k = 0; k < a2aModeToCombos.size(); k++){
-                ModeArray a2aModesTo = a2aModeToCombos[k];
+		for(i = 0; i < partialTests.size(); i++){
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialCommModes = partialTests[i].second;
 
-                std::vector<std::vector<ModeArray> > commGroups(a2aModesFrom.size());
+			std::vector<RedistTest> thisPartialTests;
+			RedistTest partialTest;
+			partialTest.first = partialDist;
+			partialTest.second = partialCommModes;
+			thisPartialTests.push_back(partialTest);
 
-                for(l = 0; l < a2aModesFrom.size(); l++){
-                    Mode a2aModeFrom = a2aModesFrom[l];
-                    ModeDistribution a2aFromDist = A.ModeDist(a2aModeFrom);
+			CreateA2ATestsSinkHelper(partialCommModes, sinkModesGroup, distA, thisPartialTests, fullTests);
+		}
+		return;
+	}
 
-                    for(m = 0; m < a2aFromDist.size(); m++){
-                        ModeArray commGroup(a2aFromDist.end() - m-1, a2aFromDist.end());
-                        commGroups[l].push_back(commGroup);
-                    }
-                }
-                std::vector<ModeArray> pieceComms(a2aModesFrom.size());
+	std::vector<RedistTest > newPartialTests;
+	Mode tenModeToRedist = srcModesGroup[srcModesGroup.size() - 1];
+	ModeArray newTenModesToRedist(srcModesGroup.begin(), srcModesGroup.end() - 1);
 
-                CreateA2ATestsHelper(A, a2aModesFrom, a2aModesTo, 0, commGroups, pieceComms, ret);
-            }
-        }
+	for(i = 0; i < partialTests.size(); i++){
+		const TensorDistribution partialDist = partialTests[i].first;
+		const ModeArray partialCommModes = partialTests[i].second;
+		const ModeDistribution modeDistToRedist = partialDist[tenModeToRedist];
+
+		for(j = 1; j <= modeDistToRedist.size(); j++){
+			ModeArray newCommModes = partialCommModes;
+			newCommModes.insert(newCommModes.end(), modeDistToRedist.end() - j, modeDistToRedist.end());
+			ModeDistribution newModeDist = modeDistToRedist;
+			newModeDist.erase(newModeDist.end() - j, newModeDist.end());
+			TensorDistribution newTenDist = partialDist;
+			newTenDist[tenModeToRedist] = newModeDist;
+			RedistTest newTest;
+			newTest.first = newTenDist;
+			newTest.second = newCommModes;
+
+			newPartialTests.push_back(newTest);
+		}
+	}
+	CreateA2ATestsSrcHelper(newTenModesToRedist, sinkModesGroup, distA, newPartialTests, fullTests);
+}
+
+std::vector<RedistTest>
+CreateA2ATests(const TensorDistribution& distA){
+    Unsigned i;
+    std::vector<RedistTest > ret;
+    const Unsigned order = distA.size() - 1;
+    ModeArray tensorModes = DefaultPermutation(order);
+
+    std::vector<ModeArray> srcTenModesGroups;
+    for(i = 1; i < order; i++){
+    	std::vector<ModeArray> newRedistModesGroups = AllCombinations(tensorModes, i);
+    	srcTenModesGroups.insert(srcTenModesGroups.end(), newRedistModesGroups.begin(), newRedistModesGroups.end());
     }
 
+    for(i = 0; i < srcTenModesGroups.size(); i++){
+    	ModeArray srcModesGroup = srcTenModesGroups[i];
+    	ModeArray sinkModesGroup;
+    	std::set_difference(tensorModes.begin(), tensorModes.end(), srcModesGroup.begin(), srcModesGroup.end(), back_inserter(sinkModesGroup));
+
+    	TensorDistribution resDist = distA;
+    	std::vector<RedistTest> partialTests;
+    	RedistTest partialTest;
+    	ModeArray blankModes;
+    	partialTest.first = resDist;
+    	partialTest.second = blankModes;
+    	partialTests.push_back(partialTest);
+
+    	CreateA2ATestsSrcHelper(srcModesGroup, sinkModesGroup, distA, partialTests, ret);
+    }
     return ret;
-}
-
-template<typename T>
-void
-TestA2ARedist( const DistTensor<T>& A, const ModeArray& a2aModesFrom, const ModeArray& a2aModesTo, const std::vector<ModeArray >& commGroups, const TensorDistribution& resDist){
-#ifndef RELEASE
-    CallStackEntry entry("TestA2ARedist");
-#endif
-    Unsigned i;
-    Unsigned order = A.Order();
-    const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    const Grid& g = A.Grid();
-
-    DistTensor<T> B(resDist, g);
-    B.AlignWith(A);
-    B.SetDistribution(resDist);
-
-    if(commRank == 0){
-        printf("All-to-alling modes (");
-        if(a2aModesFrom.size() > 0)
-            printf("%d", a2aModesFrom[0]);
-        for(i = 1; i < a2aModesFrom.size(); i++)
-            printf(", %d", a2aModesFrom[i]);
-        printf("),(");
-        if(a2aModesTo.size() > 0)
-            printf("%d", a2aModesTo[0]);
-        for(i = 1; i < a2aModesTo.size(); i++)
-            printf(", %d", a2aModesTo[i]);
-        printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
-    }
-
-    Tensor<T> check(A.Shape());
-    Set(check);
-
-    Permutation perm = DefaultPermutation(order);
-
-    do{
-        if(commRank == 0){
-            printf("Testing ");
-            PrintVector(perm, "permB");
-        }
-        B.SetLocalPermutation(perm);
-        B.AllToAllRedistFrom(A, a2aModesFrom, a2aModesTo, commGroups);
-        CheckResult(B, check);
-    }while(next_permutation(perm.begin(), perm.end()));
 }
 
 #endif // ifndef TMEN_TESTS_A2AREDIST_HPP
