@@ -113,10 +113,18 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
     Permutation invPermB = DetermineInversePermutation(localPerm_);
     Permutation invPermA = DetermineInversePermutation(A.localPerm_);
 
+//    PackData unpackData;
+//    unpackData.loopShape = PermuteVector(LocalShape(), invPermB);
+//    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPermB);
+//    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), invPermA);
+//    unpackData.loopStarts = zeros;
+//    unpackData.loopIncs = ones;
+
+    Permutation in2OutPerm = DeterminePermutation(A.localPerm_, localPerm_);
     PackData unpackData;
-    unpackData.loopShape = PermuteVector(LocalShape(), invPermB);
-    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPermB);
-    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), invPermA);
+    unpackData.loopShape = LocalShape();
+    unpackData.dstBufStrides = LocalStrides();
+    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_)), in2OutPerm);
     unpackData.loopStarts = zeros;
     unpackData.loopIncs = ones;
 
@@ -124,7 +132,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
 
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
         const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);
-        Unsigned srcBufPtr = Loc2LinearLoc(firstLocInA, A.LocalShape(), A.LocalStrides());
+        Unsigned srcBufPtr = Loc2LinearLoc(PermuteVector(firstLocInA, A.localPerm_), A.LocalShape(), A.LocalStrides());
         PackCommHelper(unpackData, order - 1, &(unpackBuf[srcBufPtr]), &(dataBuf[0]));
     }
 }
