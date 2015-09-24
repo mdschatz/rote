@@ -139,7 +139,7 @@ PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist,
 //		case RS:      B.ReduceScatterRedistFrom(A, commModes); break;
 //		case AR:      B.AllReduceRedistFrom(A, commModes); break;
 //		case RTO:     B.ReduceToOneRedistFrom(A, commModes); break;
-//		case GTO:     B.GatherToOneRedistFrom(A, commModes); break;
+		case GTO:     B.GatherToOneRedistFrom(A, commModes); break;
 		case BCast:   B.BroadcastRedistFrom(A, commModes); break;
 		case Scatter: B.ScatterRedistFrom(A, commModes); break;
 		case Local:   B.LocalRedistFrom(A); break;
@@ -176,7 +176,7 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
 //		case RTO:     tests = CreateRTOGTests(A, args); redistName = "ReduceToOne"; break;
 //		case AR:      tests = CreateARTests(A, args); redistName = "AllReduce"; break;
 //		case RS:      tests = CreateRSGTests(A, args); redistName = "ReduceScatter"; break;
-//		case GTO:     tests = CreateGTOGTests(A, args); redistName = "GatherToOne"; break;
+		case GTO:     tests = CreateGTOGTests(inputDist); redistName = "GatherToOne"; break;
     }
 
     if(commRank == 0){
@@ -204,7 +204,6 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
     }
 //
 //    std::vector<GTOGTest> gtogTests = CreateGTOGTests(A, args);
-//    std::vector<LGTest> lgTests = CreateLGTests(A, args);
 //    std::vector<RSGTest> rsgTests = CreateRSGTests(A, args);
 //    std::vector<PTest> pTests = CreatePTests(A, args);
 //    std::vector<A2ATest> a2aTests = CreateA2ATests(A, args);
@@ -234,18 +233,6 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
 //        TensorDistribution resDist = thisTest.second;
 //
 //        TestGTOGRedist(A, gModes, redistGroups, resDist);
-//    }
-//
-//    if(commRank == 0){
-//        printf("Performing LocalG redist tests\n");
-//    }
-//    for(i = 0; i < lgTests.size(); i++){
-//        LGTest thisTest = lgTests[i];
-//        ModeArray lModes = thisTest.first.first;
-//        std::vector<ModeArray> commGroups = thisTest.first.second;
-//        TensorDistribution resDist = thisTest.second;
-//
-//        TestLGRedist(A, lModes, commGroups, resDist);
 //    }
 //
 //    if(commRank == 0){
@@ -311,12 +298,12 @@ DistTensorTest( const Params& args, const Grid& g )
 //    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(BCast,   perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(Scatter, perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
+//    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(RTO,     perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(AR,      perms, args.tensorShape, args.tensorDist, g);
 //    PerformRedistTests<T>(RS,      perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(GTO,     perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(GTO,     perms, args.tensorShape, args.tensorDist, g);
 }
 
 template<typename T>
