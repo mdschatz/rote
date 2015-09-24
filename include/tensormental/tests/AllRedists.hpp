@@ -17,39 +17,6 @@ typedef std::pair< TensorDistribution, ModeArray> RedistTest;
 
 template<typename T>
 void
-Set(Tensor<T>& A)
-{
-    Unsigned order = A.Order();
-    Location loc(order, 0);
-
-    Unsigned ptr = 0;
-    Unsigned counter = 0;
-    bool stop = !ElemwiseLessThan(loc, A.Shape());
-
-    while(!stop){
-        A.Set(loc, counter);
-
-        if(order == 0)
-            break;
-        //Update
-        counter++;
-        loc[ptr]++;
-        while(loc[ptr] == A.Dimension(ptr)){
-            loc[ptr] = 0;
-            ptr++;
-            if(ptr == order){
-                stop = true;
-                break;
-            }else{
-                loc[ptr]++;
-            }
-        }
-        ptr = 0;
-    }
-}
-
-template<typename T>
-void
 Set(DistTensor<T>& A)
 {
     Unsigned order = A.Order();
