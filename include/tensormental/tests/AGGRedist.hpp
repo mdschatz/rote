@@ -5,121 +5,68 @@
 #include "tensormental/tests/AllRedists.hpp"
 using namespace tmen;
 
-typedef std::pair< std::pair<ModeArray, std::vector<ModeArray> >, TensorDistribution> AGGTest;
-
-
-template<typename T>
-TensorDistribution
-DetermineResultingDistributionAGG(const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& redistModes){
-    Unsigned i;
-    const TensorDistribution ADist = A.TensorDist();
-    TensorDistribution ret(ADist);
-    for(i = 0; i < redistModes.size(); i++)
-        ret[agModes[i]].erase(ret[agModes[i]].end() - redistModes[i].size(), ret[agModes[i]].end());
-
-    return ret;
-}
-
-
-template<typename T>
 void
-CreateAGGTestsHelper(const DistTensor<T>& A, const ModeArray& agModes, Unsigned pos, const std::vector<std::vector<ModeArray> >& commGroups, const std::vector<ModeArray>& pieceComms, std::vector<AGGTest>& tests){
+CreateAGTestsHelper(const ModeArray& tenModesToRedist, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
+	Unsigned order = distA.size() - 1;
+	Unsigned i, j;
 
-//    printf("n: %d, p: %d\n", modesFrom.size(), pos);
-    if(pos == agModes.size()){
-        ModeArray testAGModes = agModes;
-        std::pair<ModeArray, std::vector<ModeArray> > t1(testAGModes, pieceComms);
-        TensorDistribution resDist = DetermineResultingDistributionAGG(A, agModes, pieceComms);
-        AGGTest test(t1, resDist);
-        tests.push_back(test);
-    }else{
-//        printf("recurring\n");
-        Unsigned i;
-        std::vector<ModeArray> modeCommGroups = commGroups[pos];
+	if(tenModesToRedist.size() == 0){
+		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
+		return;
+	}
 
-        for(i = 0; i < modeCommGroups.size(); i++){
-//            printf("ping\n");
-            std::vector<ModeArray> newPieceComm = pieceComms;
-            newPieceComm[pos] = modeCommGroups[i];
-            CreateAGGTestsHelper(A, agModes, pos + 1, commGroups, newPieceComm, tests);
-        }
-//        printf("done recurring\n");
-    }
+	std::vector<RedistTest > newPartialTests;
+	Mode tenModeToRedist = tenModesToRedist[tenModesToRedist.size() - 1];
+	ModeArray newTenModesToRedist(tenModesToRedist.begin(), tenModesToRedist.end() - 1);
+
+	for(i = 0; i < partialTests.size(); i++){
+		const TensorDistribution partialDist = partialTests[i].first;
+		const ModeArray partialCommModes = partialTests[i].second;
+		const ModeDistribution modeDistToRedist = partialDist[tenModeToRedist];
+
+		for(j = 1; j <= modeDistToRedist.size(); j++){
+			ModeArray newCommModes = partialCommModes;
+			newCommModes.insert(newCommModes.end(), modeDistToRedist.end() - j, modeDistToRedist.end());
+			ModeDistribution newModeDist = modeDistToRedist;
+			newModeDist.erase(newModeDist.end() - j, newModeDist.end());
+			TensorDistribution newTenDist = partialDist;
+			newTenDist[tenModeToRedist] = newModeDist;
+			RedistTest newTest;
+			newTest.first = newTenDist;
+			newTest.second = newCommModes;
+
+			newPartialTests.push_back(newTest);
+		}
+	}
+	CreateAGTestsHelper(newTenModesToRedist, distA, newPartialTests, fullTests);
 }
 
-template<typename T>
-std::vector<AGGTest >
-CreateAGGTests(const DistTensor<T>& A, const Params& args){
-    Unsigned i, j, k, l;
-    std::vector<AGGTest > ret;
+std::vector<RedistTest >
+CreateAGTests(const TensorDistribution& distA){
+    Unsigned i;
+    std::vector<RedistTest > ret;
+    const Unsigned order = distA.size() - 1;
+    ModeArray tensorModes = DefaultPermutation(order);
 
-    const Unsigned order = A.Order();
-    const TensorDistribution distA = A.TensorDist();
-    ModeArray gridModes(order);
-    for(i = 0; i < gridModes.size(); i++)
-        gridModes[i] = i;
+    std::vector<ModeArray> redistModesGroups;
+    for(i = 1; i < order; i++){
+    	std::vector<ModeArray> newRedistModesGroups = AllCombinations(tensorModes, i);
+    	redistModesGroups.insert(redistModesGroups.end(), newRedistModesGroups.begin(), newRedistModesGroups.end());
+    }
 
-    for(i = 1; i <= order; i++){
-        std::vector<ModeArray> agModeCombos = AllCombinations(gridModes, i);
-        for(j = 0; j < agModeCombos.size(); j++){
-            ModeArray agModes = agModeCombos[j];
+    for(i = 0; i < redistModesGroups.size(); i++){
+    	ModeArray redistModesGroup = redistModesGroups[i];
+    	TensorDistribution resDist = distA;
+    	std::vector<RedistTest> partialTests;
+    	RedistTest partialTest;
+    	ModeArray blankModes;
+    	partialTest.first = resDist;
+    	partialTest.second = blankModes;
+    	partialTests.push_back(partialTest);
 
-            std::vector<std::vector<ModeArray> > commGroups(agModes.size());
-
-            for(k = 0; k < agModes.size(); k++){
-                Mode agMode = agModes[k];
-                ModeDistribution agDist = A.ModeDist(agMode);
-
-                for(l = 0; l < agDist.size(); l++){
-                    ModeArray commGroup(agDist.end() - l - 1, agDist.end());
-                    commGroups[k].push_back(commGroup);
-                }
-            }
-
-
-            std::vector<ModeArray> pieceComms(agModes.size());
-
-            CreateAGGTestsHelper(A, agModes, 0, commGroups, pieceComms, ret);
-        }
+    	CreateAGTestsHelper(redistModesGroup, distA, partialTests, ret);
     }
     return ret;
-}
-
-template<typename T>
-void
-TestAGGRedist( const DistTensor<T>& A, const ModeArray& agModes, const std::vector<ModeArray>& redistGroups, const TensorDistribution& resDist )
-{
-#ifndef RELEASE
-    CallStackEntry entry("TestAGGRedist");
-#endif
-    Unsigned i;
-    Unsigned order = A.Order();
-    const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    const Grid& g = A.Grid();
-
-    DistTensor<T> B(resDist, g);
-    B.AlignWith(A);
-    B.SetDistribution(resDist);
-
-    if(commRank == 0){
-        printf("Allgathering modes (");
-        if(agModes.size() > 0)
-            printf("%d", agModes[0]);
-        for(i = 1; i < agModes.size(); i++)
-            printf(", %d", agModes[i]);
-        printf("): %s <-- %s\n", (tmen::TensorDistToString(B.TensorDist())).c_str(), (tmen::TensorDistToString(A.TensorDist())).c_str());
-    }
-
-    Tensor<T> check(A.Shape());
-    Set(check);
-
-    Permutation perm = DefaultPermutation(order);
-
-    do{
-        B.SetLocalPermutation(perm);
-        B.AllGatherRedistFrom(A, agModes, redistGroups);
-        CheckResult(B, check);
-    }while(next_permutation(perm.begin(), perm.end()));
 }
 
 #endif // ifndef TMEN_TESTS_AGGREDIST_HPP
