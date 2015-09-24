@@ -49,7 +49,7 @@ CreateAGTests(const TensorDistribution& distA){
     ModeArray tensorModes = DefaultPermutation(order);
 
     std::vector<ModeArray> redistModesGroups;
-    for(i = 1; i < order; i++){
+    for(i = 1; i <= order; i++){
     	std::vector<ModeArray> newRedistModesGroups = AllCombinations(tensorModes, i);
     	redistModesGroups.insert(redistModesGroups.end(), newRedistModesGroups.begin(), newRedistModesGroups.end());
     }
