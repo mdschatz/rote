@@ -5,25 +5,22 @@
 #include "tensormental/tests/AllRedists.hpp"
 using namespace tmen;
 
-typedef std::pair< TensorDistribution, ModeArray> ScatterTest;
-
-template<typename T>
 void
-CreateScatterTestsHelper(const ModeArray& modesToMove, const DistTensor<T>& A, const std::vector<std::pair<ModeArray, TensorDistribution> >& partialTests, std::vector<ScatterTest>& fullTests){
-	Unsigned order = A.Order();
+CreateScatterTestsHelper(const ModeArray& modesToMove, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
+	Unsigned order = distA.size() - 1;
 
 	if(modesToMove.size() == 1){
 		Unsigned i, j;
 		for(i = 0; i < partialTests.size(); i++){
-			const ModeArray partialModes = partialTests[i].first;
-			const TensorDistribution partialDist = partialTests[i].second;
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialModes = partialTests[i].second;
 
 			for(j = 0; j < order; j++){
 				ModeArray resModes = partialModes;
 				TensorDistribution resDist = partialDist;
 				resDist[j].push_back(modesToMove[modesToMove.size()-1]);
 				resModes.push_back(modesToMove[modesToMove.size()-1]);
-				ScatterTest fullTest;
+				RedistTest fullTest;
 				fullTest.first = resDist;
 				fullTest.second = resModes;
 				fullTests.push_back(fullTest);
@@ -31,62 +28,60 @@ CreateScatterTestsHelper(const ModeArray& modesToMove, const DistTensor<T>& A, c
 		}
 	}else{
 		Unsigned i, j;
-		std::vector<std::pair<ModeArray, TensorDistribution> > newPartialTests;
+		std::vector<RedistTest > newPartialTests;
 		ModeArray newModesToMove = modesToMove;
 		Mode modeToMove = newModesToMove[newModesToMove.size() - 1];
 		newModesToMove.erase(newModesToMove.end() - 1);
 
 		for(i = 0; i < partialTests.size(); i++){
-			const ModeArray partialModes = partialTests[i].first;
-			const TensorDistribution partialDist = partialTests[i].second;
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialModes = partialTests[i].second;
 
 			for(j = 0; j < order; j++){
 				ModeArray resModes = partialModes;
 				TensorDistribution resDist = partialDist;
 				resDist[j].push_back(modeToMove);
 				resModes.push_back(modeToMove);
-				std::pair<ModeArray, TensorDistribution> newPartialTest;
-				newPartialTest.first = resModes;
-				newPartialTest.second = resDist;
+				std::pair<TensorDistribution, ModeArray> newPartialTest;
+				newPartialTest.first = resDist;
+				newPartialTest.second = resModes;
 
 				newPartialTests.push_back(newPartialTest);
 			}
 		}
-		CreateScatterTestsHelper(newModesToMove, A, newPartialTests, fullTests);
+		CreateScatterTestsHelper(newModesToMove, distA, newPartialTests, fullTests);
 	}
 }
 
-template<typename T>
-std::vector<ScatterTest >
-CreateScatterTests(const DistTensor<T>& A, const Params& args){
+std::vector<RedistTest>
+CreateScatterTests(const TensorDistribution& distA){
     Unsigned i;
-    std::vector<ScatterTest > ret;
+    std::vector<RedistTest > ret;
 
-    const Unsigned order = A.Order();
-    const TensorDistribution distA = A.TensorDist();
+    const Unsigned order = distA.size() - 1;
 
     for(i = 1; i <= distA[order].size(); i++){
-    	ScatterTest scatterTest;
+    	RedistTest scatterTest;
     	TensorDistribution resDist = distA;
     	ModeArray commModes;
     	commModes.insert(commModes.end(), resDist[order].end() - i, resDist[order].end());
     	resDist[order].erase(resDist[order].end() - i, resDist[order].end());
-    	std::vector<std::pair<ModeArray, TensorDistribution> > partialTests;
-    	std::pair<ModeArray, TensorDistribution> partialTest;
+    	std::vector<RedistTest> partialTests;
+    	RedistTest partialTest;
     	ModeArray blankModes;
-    	partialTest.first = blankModes;
-    	partialTest.second = resDist;
+    	partialTest.first = resDist;
+    	partialTest.second = blankModes;
     	partialTests.push_back(partialTest);
 
 //    	std::cout << "making tests with: " << tmen::TensorDistToString(resDist) << std::endl;
-    	CreateScatterTestsHelper(commModes, A, partialTests, ret);
+    	CreateScatterTestsHelper(commModes, distA, partialTests, ret);
     }
     return ret;
 }
 
 template<typename T>
 void
-TestScatterRedist( const TensorDistribution& resDist, const DistTensor<T>& A, const ModeArray& scatterModes )
+TestScatterRedist( const TensorDistribution& resDist, const DistTensor<T>& A, const Permutation& inputPerm, const Permutation& outputPerm, const ModeArray& scatterModes )
 {
 #ifndef RELEASE
     CallStackEntry entry("TestScatterRedist");

@@ -13,6 +13,8 @@ typedef struct Arguments{
   TensorDistribution tensorDist;
 } Params;
 
+typedef std::pair< TensorDistribution, ModeArray> RedistTest;
+
 template<typename T>
 void
 Set(Tensor<T>& A)
@@ -80,13 +82,12 @@ Set(DistTensor<T>& A)
 }
 
 template<typename T>
-bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
+bool CheckResult(const DistTensor<T>& A, const DistTensor<T>& check){
 #ifndef RELEASE
     CallStackEntry entry("CheckResult");
 #endif
     mpi::Barrier(mpi::COMM_WORLD);
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
-    const ObjShape globalShape = A.Shape();
 
     const Unsigned order = A.Order();
     const std::vector<Unsigned> myFirstElem = A.ModeShifts();
@@ -106,12 +107,14 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
         if(A.AllocatedMemory() > 1)
             res = 1;
     }else{
-        Location actualLoc = myFirstElem;
-        Location localLoc(order, 0);
+    	const Tensor<T> tensorA = A.LockedTensor();
+    	const Tensor<T> tensorActual = check.LockedTensor();
+    	const Permutation permCheckToA = DeterminePermutation(check.LocalPermutation(), A.LocalPermutation());
+    	const ObjShape checkShape = check.Shape();
+        Location checkLoc(order, 0);
 
         Unsigned modePtr = 0;
-        bool stop = !ElemwiseLessThan(actualLoc, globalShape);
-
+        bool stop = !ElemwiseLessThan(checkLoc, checkShape);
 
         if(stop && A.AllocatedMemory() > 1){
             res = 0;
@@ -123,12 +126,11 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
 //        PrintVector(myGridLoc, "myGridLoc");
 //        PrintVector(myFirstElem, "myFirstLoc");
         while(!stop){
+//            PrintVector(checkLoc, "checking Loc");
+            Location locA = PermuteVector(checkLoc, permCheckToA);
 
-            PrintVector(localLoc, "checking localLoc");
-            PrintVector(actualLoc, "checking actualLoc");
-
-            if(A.GetLocal(localLoc) != actual.Get(actualLoc)){
-                printf("localVal: %d globalVal: %d\n", A.GetLocal(localLoc), actual.Get(actualLoc));
+            if(A.Get(locA) != check.Get(checkLoc)){
+                printf("val: %d checkVal: %d\n", A.Get(locA), check.Get(checkLoc));
                 res = 0;
                 break;
             }
@@ -137,18 +139,15 @@ bool CheckResult(const DistTensor<T>& A, const Tensor<T>& actual){
                 break;
 
             //Update
-            actualLoc[modePtr]++;
-            localLoc[modePtr] += strides[modePtr];
-            while(actualLoc[modePtr] >= globalShape[modePtr]){
-                actualLoc[modePtr] = 0;
-                localLoc[modePtr] = myFirstElem[modePtr];
+            checkLoc[modePtr]++;
+            while(checkLoc[modePtr] >= checkShape[modePtr]){
+                checkLoc[modePtr] = 0;
                 modePtr++;
                 if(modePtr == order){
                     stop = true;
                     break;
                 }else{
-                    localLoc[modePtr] += strides[modePtr];
-                    actualLoc[modePtr]++;
+                    checkLoc[modePtr]++;
                 }
             }
             modePtr = 0;

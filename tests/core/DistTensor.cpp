@@ -108,27 +108,105 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     }
 }
 
+//TODO: Fix for reduce tests
 template<typename T>
 void
-DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
-{
+PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist, const DistTensor<T>& A, const Permutation& outputPerm, const ModeArray& commModes){
 #ifndef RELEASE
-    CallStackEntry entry("DistTensorTest");
+    CallStackEntry entry("PerformSingleTest");
 #endif
-    Unsigned i;
+	Unsigned i;
+    Unsigned order = A.Order();
+    const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
+    const Grid& g = A.Grid();
+
+    if(commRank == 0){
+        std::cout << (tmen::TensorDistToString(resDist)).c_str() << " <-- "
+        		  << (tmen::TensorDistToString(A.TensorDist())).c_str()
+				  << std::endl;
+        PrintVector(outputPerm, "output perm");
+        PrintVector(A.LocalPermutation(), "input perm");
+    }
+
+    DistTensor<T> B(resDist, g);
+    B.AlignWith(A);
+    B.SetLocalPermutation(outputPerm);
+
+    switch(commType){
+//		case AG:      B.AllGatherRedistFrom(A, commModes); break;
+//		case A2A:     B.AllToAllRedistFrom(A, commModes); break;
+//		case RS:      B.ReduceScatterRedistFrom(A, commModes); break;
+//		case AR:      B.AllReduceRedistFrom(A, commModes); break;
+//		case RTO:     B.ReduceToOneRedistFrom(A, commModes); break;
+//		case GTO:     B.GatherToOneRedistFrom(A, commModes); break;
+//		case BCast:   B.BroadcastRedistFrom(A, commModes); break;
+		case Scatter: B.ScatterRedistFrom(A, commModes); break;
+//		case Local:   B.LocalRedistFrom(A, commModes); break;
+//		case Perm:    B.PermutationRedistFrom(A, commModes); break;
+    }
+
+//    Print(A, "input");
+//    Print(B, "output");
+	DistTensor<T> check(A.Shape(), resDist, g);
+	check.SetLocalPermutation(outputPerm);
+	Set(check);
+	CheckResult(B, check);
+}
+
+template<typename T>
+void
+PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& perms, const ObjShape& tenShape, const TensorDistribution& inputDist, const Grid& g){
+#ifndef RELEASE
+    CallStackEntry entry("PerformRedistTests");
+#endif
+    Unsigned i, j, k;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
 
-    Print(A, "A");
+    std::vector<RedistTest> tests;
+    std::string redistName;
+    switch(commType){
+//		case AG:      tests = CreateAGGTests(A, args); redistName = "AllGather"; break;
+//		case A2A:     tests = CreateA2ATests(A, args); redistName = "AllToAll"; break;
+//		case BCast:   tests = CreateBCastTests(A, args); redistName = "Broadcast"; break;
+		case Scatter: tests = CreateScatterTests(inputDist); redistName = "Scatter"; break;
+//		case Local:   tests = CreateLGTests(A, args); redistName = "Local"; break;
+//		case Perm:    tests = CreatePTests(A, args); redistName = "Permutation"; break;
+//		case RTO:     tests = CreateRTOGTests(A, args); redistName = "ReduceToOne"; break;
+//		case AR:      tests = CreateARTests(A, args); redistName = "AllReduce"; break;
+//		case RS:      tests = CreateRSGTests(A, args); redistName = "ReduceScatter"; break;
+//		case GTO:     tests = CreateGTOGTests(A, args); redistName = "GatherToOne"; break;
+    }
 
-    std::vector<AGGTest> aggTests = CreateAGGTests(A, args);
-    std::vector<BCastTest> bcastTests = CreateBCastTests(A, args);
-    std::vector<ScatterTest> scatterTests = CreateScatterTests(A, args);
-    std::vector<GTOGTest> gtogTests = CreateGTOGTests(A, args);
-    std::vector<LGTest> lgTests = CreateLGTests(A, args);
-    std::vector<RSGTest> rsgTests = CreateRSGTests(A, args);
-    std::vector<PTest> pTests = CreatePTests(A, args);
-    std::vector<A2ATest> a2aTests = CreateA2ATests(A, args);
-    std::vector<RTOGTest> rtogTests = CreateRTOGTests(A, args);
+    if(commRank == 0){
+    	std::cout << "Performing " << redistName << " tests" << std::endl;
+    }
+
+	for(j = 0; j < perms.size(); j++){
+		Permutation inputPerm = perms[j];
+		DistTensor<T> A(tenShape, inputDist, g);
+		A.SetLocalPermutation(inputPerm);
+		Set(A);
+		for(k = 0; k < perms.size(); k++){
+			Permutation outputPerm = perms[k];
+			for(i = 0; i < tests.size(); i++){
+				RedistTest thisTest = tests[i];
+				TensorDistribution resDist = thisTest.first;
+				ModeArray commModes = thisTest.second;
+
+				PerformSingleTest(commType, resDist, A, outputPerm, commModes);
+    		}
+    	}
+    }
+//
+//    std::vector<AGGTest> aggTests = CreateAGGTests(A, args);
+//    std::vector<BCastTest> bcastTests = CreateBCastTests(A, args);
+//    std::vector<ScatterTest> scatterTests = CreateScatterTests(A, args);
+//    std::vector<GTOGTest> gtogTests = CreateGTOGTests(A, args);
+//    std::vector<LGTest> lgTests = CreateLGTests(A, args);
+//    std::vector<RSGTest> rsgTests = CreateRSGTests(A, args);
+//    std::vector<PTest> pTests = CreatePTests(A, args);
+//    std::vector<A2ATest> a2aTests = CreateA2ATests(A, args);
+//    std::vector<RTOGTest> rtogTests = CreateRTOGTests(A, args);
 
 //
 //    if(commRank == 0){
@@ -214,17 +292,17 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //        TestRTOGRedist(A, rModes, resDist);
 //    }
 //
-    if(commRank == 0){
-        printf("Performing Broadcast tests\n");
-    }
-    printf("bcast Size: %d\n", bcastTests.size());
-    for(i = 0; i < bcastTests.size(); i++){
-        BCastTest thisTest = bcastTests[i];
-        TensorDistribution resDist = thisTest.first;
-        const ModeArray bcastModes = thisTest.second;
-
-        TestBCastRedist(resDist, A, bcastModes);
-    }
+//    if(commRank == 0){
+//        printf("Performing Broadcast tests\n");
+//    }
+//    printf("bcast Size: %d\n", bcastTests.size());
+//    for(i = 0; i < bcastTests.size(); i++){
+//        BCastTest thisTest = bcastTests[i];
+//        TensorDistribution resDist = thisTest.first;
+//        const ModeArray bcastModes = thisTest.second;
+//
+//        TestBCastRedist(resDist, A, bcastModes);
+//    }
 
 //    if(commRank == 0){
 //        printf("Performing Scatter tests\n");
@@ -237,6 +315,58 @@ DistTensorTest( const DistTensor<T>& A, const Params& args, const Grid& g )
 //
 //        TestScatterRedist(resDist, A, bcastModes);
 //    }
+}
+
+std::vector<Permutation>
+CreatePerms(const Unsigned& order){
+	Unsigned i, j;
+	std::vector<Permutation> ret;
+
+
+	Permutation perm = DefaultPermutation(order);
+	do{
+		ret.push_back(perm);
+	}while(next_permutation(perm.begin(), perm.end()));
+
+	return ret;
+}
+
+template<typename T>
+void
+DistTensorTest( const Params& args, const Grid& g )
+{
+#ifndef RELEASE
+    CallStackEntry entry("DistTensorTest");
+#endif
+
+    std::vector<Permutation> perms = CreatePerms(args.tenOrder);
+//    Unsigned count = 0;
+//    do{
+//        if(count < 0)
+//            count++;
+//        else{
+//            if(commRank == 0){
+//                PrintVector(permA, "Testing Input Perm");
+//            }
+//
+//            A.SetLocalPermutation(permA);
+//            A.ResizeTo(A.Shape());
+//            Set(A);
+////                DistTensorTest<int>(A, args, g);
+////                PerformTest<int>(A, args, g);
+//        }
+//    }while(next_permutation(permA.begin(), permA.end()));
+
+    PerformRedistTests<T>(AG,      perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(BCast,   perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Scatter, perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(RTO,     perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(AR,      perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(RS,      perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(GTO,     perms, args.tensorShape, args.tensorDist, g);
 }
 
 template<typename T>
@@ -324,36 +454,7 @@ main( int argc, char* argv[] )
                       << "------------------" << std::endl;
         }
 
-
-        DistTensor<int> A(args.tensorShape, args.tensorDist, g);
-        ObjShape origShape = A.Shape();
-        Permutation permA = DefaultPermutation(A.Order());
-
-        Unsigned count = 0;
-        do{
-            if(count < 0)
-                count++;
-            else{
-                if(commRank == 0){
-                    PrintVector(permA, "Testing Input Perm");
-                }
-
-                A.SetLocalPermutation(permA);
-                A.ResizeTo(A.Shape());
-                Set(A);
-                DistTensorTest<int>(A, args, g);
-//                PerformTest<int>(A, args, g);
-            }
-        }while(next_permutation(permA.begin(), permA.end()));
-//
-//        if( commRank == 0 )
-//        {
-//            std::cout << "---------------------" << std::endl
-//                      << "Testing with doubles:" << std::endl
-//                      << "---------------------" << std::endl;
-//        }
-//        DistTensorTest<double>( args, g );
-
+        DistTensorTest<int>(args, g);
     }
     catch( std::exception& e ) { ReportException(e); }
 
