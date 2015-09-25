@@ -49,15 +49,12 @@ CreateLGTests(const Unsigned& gridOrder, const TensorDistribution& distA){
     ModeArray gridModes = DefaultPermutation(gridOrder);
     ModeArray usedGridModes;
 
-    for(i = 0; i < order; i++)
+    for(i = 0; i <= order; i++)
     	usedGridModes.insert(usedGridModes.end(), distA[i].begin(), distA[i].end());
     std::sort(usedGridModes.begin(), usedGridModes.end());
 
     ModeArray unusedGridModes;
     std::set_difference(gridModes.begin(), gridModes.end(), usedGridModes.begin(), usedGridModes.end(), back_inserter(unusedGridModes));
-
-    PrintVector(unusedGridModes, "unusedModes");
-    PrintVector(usedGridModes, "usedModes");
 
     std::vector<ModeArray> redistModesGroups;
     for(i = 1; i < order; i++){
@@ -65,7 +62,6 @@ CreateLGTests(const Unsigned& gridOrder, const TensorDistribution& distA){
     	redistModesGroups.insert(redistModesGroups.end(), newRedistModesGroups.begin(), newRedistModesGroups.end());
     }
 
-    printf("redistModesGroups: %d\n", redistModesGroups.size());
     for(i = 0; i < redistModesGroups.size(); i++){
     	ModeArray redistModesGroup = redistModesGroups[i];
     	TensorDistribution resDist = distA;

@@ -121,14 +121,14 @@ PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist,
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
     const Grid& g = A.Grid();
 
-//    if(commRank == 0){
+    if(commRank == 0){
         std::cout << (tmen::TensorDistToString(resDist)).c_str() << " <-- "
         		  << (tmen::TensorDistToString(A.TensorDist())).c_str()
 				  << std::endl;
         PrintVector(A.LocalPermutation(), "input perm");
         PrintVector(outputPerm, "output perm");
 
-//    }
+    }
     DistTensor<T> B(resDist, g);
 
     switch(commType){
@@ -159,8 +159,8 @@ PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist,
     }
 
 
-    Print(A, "input");
-    Print(B, "output");
+//    Print(A, "input");
+//    Print(B, "output");
 
 	switch(commType){
 	case AG:
@@ -221,7 +221,7 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
 
     std::vector<Permutation> inputPerms = CreatePerms(inputOrder);
 
-    std::cout << "test size: " << tests.size() << std::endl;
+//    std::cout << "test size: " << tests.size() << std::endl;
     for(i = 0; i < tests.size(); i++){
 		RedistTest thisTest = tests[i];
 		TensorDistribution resDist = thisTest.first;
@@ -256,16 +256,16 @@ DistTensorTest( const Params& args, const Grid& g )
 
     std::vector<Permutation> perms = CreatePerms(args.tenOrder);
 
-//    PerformRedistTests<T>(AG,      perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(BCast,   perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(Scatter, perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(RTO,     perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(AG,      perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(BCast,   perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Scatter, perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(RTO,     perms, args.tensorShape, args.tensorDist, g);
     PerformRedistTests<T>(AR,      perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(RS,      perms, args.tensorShape, args.tensorDist, g);
-//    PerformRedistTests<T>(GTO,     perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(RS,      perms, args.tensorShape, args.tensorDist, g);
+    PerformRedistTests<T>(GTO,     perms, args.tensorShape, args.tensorDist, g);
 }
 
 template<typename T>
