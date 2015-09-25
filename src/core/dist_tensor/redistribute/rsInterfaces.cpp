@@ -83,6 +83,13 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
         if(ElemwiseLessThanEqualTo(FilterVector(A.Shape(), sortedRModes), FilterVector(A.GridViewShape(), sortedRModes))){
             tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
         }else{
+        	ObjShape tmpShape = A.Shape();
+
+        	for(i = 0; i < sortedRModes.size(); i++)
+        		if(A.Dimension(sortedRModes[i]) > gv.Dimension(sortedRModes[i]))
+        			tmpShape[sortedRModes[i]] = gv.Dimension(sortedRModes[i]);
+        	tmp.ResizeTo(tmpShape);
+        	Zero(tmp);
             LocalReduce(A, tmp, sortedRModes);
         }
     }
