@@ -33,12 +33,11 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
 
     if(!A.Participating())
         return;
-    Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
     const ObjShape commDataShape = A.MaxLocalShape();
-    sendSize = prod(commDataShape);
-    recvSize = sendSize;
+    const Unsigned sendSize = prod(commDataShape);
+    const Unsigned recvSize = sendSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
@@ -59,8 +58,8 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
 
     //Communicate the data
     PROFILE_SECTION("RTOComm");
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
         T* alignSendBuf = &(sendBuf[0]);
         T* alignRecvBuf = &(recvBuf[0]);
@@ -73,18 +72,14 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
     PROFILE_STOP;
 
-    if(!(Participating())){
-        this->auxMemory_.Release();
-        return;
-    }
-
 //    PrintVector(commDataShape, "commDataShape");
 //    ObjShape recvShape = commDataShape;
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RTOUnpack");
-    UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
+    if(Participating())
+    	UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

@@ -35,30 +35,19 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
     const tmen::Grid& g = A.Grid();
-
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
         return;
 
-    Unsigned sendSize, recvSize;
-
-    //For unaligned communications
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const std::vector<Unsigned> alignments = Alignments();
-    const std::vector<Unsigned> alignmentsA = A.Alignments();
-    const TensorDistribution tensorDist = A.TensorDist();
-
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape commDataShape = A.MaxLocalShape();
 
-    sendSize = prod(commDataShape);
-    recvSize = sendSize * nRedistProcs;
+    const Unsigned sendSize = prod(commDataShape);
+    const Unsigned recvSize = sendSize * nRedistProcs;
 
-    T* auxBuf;
-    auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
 
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
@@ -68,7 +57,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Pack the data
     PROFILE_SECTION("AGPack");
-    PROFILE_MEMOPS(prod(commDataShape));
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
@@ -76,9 +64,11 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Communicate the data
     PROFILE_SECTION("AGComm");
-    //If unaligned, realign with send/recv BEFORE Allgather (ensures data arrives in correct place)
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    //Realignment
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
         T* alignSendBuf = &(auxBuf[0]);
         T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
@@ -90,22 +80,14 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //        PrintArray(sendBuf, commDataShape, "postsendBuf");
     }
 
-//    PrintArray(sendBuf, commDataShape, "sendBuf before ag");
     mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
     PROFILE_STOP;
-
-    if(!(Participating())){
-        this->auxMemory_.Release();
-        return;
-    }
 
 //    ObjShape recvShape = commDataShape;
 //    recvShape.insert(recvShape.end(), nRedistProcs);
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
-    //Unpack the data (if participating)
     PROFILE_SECTION("AGUnpack");
-    PROFILE_MEMOPS(prod(MaxLocalShape()));
     UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
 

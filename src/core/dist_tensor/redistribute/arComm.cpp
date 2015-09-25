@@ -25,36 +25,19 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
     const tmen::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
 
     if(!A.Participating())
         return;
-    Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape commDataShape = MaxLocalShape();
-//    PrintVector(commDataShape, "commDataShape");
-//    printf("nRedistProcs\n", nRedistProcs);
-    recvSize = prod(commDataShape);
-    sendSize = recvSize;
-//    printf("sendSize: %d\n", sendSize);
+    const Unsigned sendSize = prod(commDataShape);
+    const Unsigned recvSize = sendSize;
 
-    T* auxBuf;
+    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+	MemZero(&(auxBuf[0]), sendSize + recvSize);
 
-    //TODO: Figure out how to nicely do this alloc for Alignment
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        auxBuf = this->auxMemory_.Require(sendSize + sendSize);
-        MemZero(&(auxBuf[0]), sendSize + sendSize);
-//        printf("required: %d elems\n", sendSize + sendSize);
-    }else{
-        auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-        //First, set all entries of sendBuf to zero so we don't accumulate garbage
-        MemZero(&(auxBuf[0]), sendSize + recvSize);
-    }
     T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
@@ -68,16 +51,17 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
 
 //    ObjShape sendShape = commDataShape;
 //    sendShape.insert(sendShape.end(), nRedistProcs);
-//    PrintVector(sendShape, "sendShape");
 //    PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Communicate the data
     PROFILE_SECTION("ARComm");
+    //Realignment
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-//        printf("aligningAR\n");
-//        PrintData(A, "A");
-//        PrintData(*this, "*this");
         T* alignSendBuf = &(sendBuf[0]);
         T* alignRecvBuf = &(recvBuf[0]);
 
@@ -92,11 +76,6 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
 
 //    ObjShape recvShape = commDataShape;
 //    PrintArray(recvBuf, recvShape, "recvBuf");
-
-    if(!Participating()){
-        this->auxMemory_.Release();
-        return;
-    }
 
     //Unpack the data (if participating)
     PROFILE_SECTION("ARUnpack");

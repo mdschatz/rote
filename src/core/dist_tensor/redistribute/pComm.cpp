@@ -38,8 +38,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const tmen::GridView gvB = GetGridView();
 
     //Ripped from AlignCommBufRedist
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 
     std::vector<Unsigned> alignA = A.Alignments();
     std::vector<Unsigned> alignB = Alignments();
@@ -67,14 +65,10 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     if(!A.Participating())
         return;
 
-    Unsigned sendSize, recvSize;
-
     //Determine buffer sizes for communication
-    //NOTE: Next line is example of clang not detecting dead code/unused var.
-//    const ObjShape gridViewSlice = FilterVector(A.GridViewShape(), A.ModeDist(permuteMode));
     const ObjShape commDataShape = MaxLocalShape();
-    recvSize = prod(commDataShape);
-    sendSize = recvSize;
+    const Unsigned recvSize = prod(commDataShape);
+    const Unsigned sendSize = recvSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     T* sendBuf = &(auxBuf[0]);
@@ -103,45 +97,18 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const Location myFirstElemB = DetermineFirstElem(gvB.ParticipatingLoc());
     const Location ownergvA = A.DetermineOwner(myFirstElemB);
 
-
-//    const Location myGridViewLocA = gvA.ParticipatingLoc();
     const Location sendLoc = GridViewLoc2GridLoc(ownergvB, gvB);
     const Unsigned sendLinLoc = Loc2LinearLoc(FilterVector(sendLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
-//    const Location myGridViewLocB = gvB.ParticipatingLoc();
     const Location recvLoc = GridViewLoc2GridLoc(ownergvA, gvA);
     const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
-    //Make sure we account for alignments
-
-//    PrintData(A, "Adata");
-//    PrintData(*this, "Bdata");
-//
-//    const Location myLoc = g.Loc();
-//    PrintVector(myLoc, "myLoc");
-//    PrintVector(gvA.ParticipatingLoc(), "gvALoc");
-//    PrintVector(gvB.ParticipatingLoc(), "gvBLoc");
-//
-//    PrintVector(myFirstElemA, "myFirstElemA");
-//    PrintVector(ownergvB, "ownergvB");
-//    PrintVector(myFirstElemB, "myFirstElemB");
-//    PrintVector(ownergvA, "ownergvA");
-//
-//    PrintVector(sendLoc, "sendLoc");
-//    PrintVector(recvLoc, "recvLoc");
-//    printf("myRank: %d, sendRank: %d, recvRank: %d\n", mpi::CommRank(sendRecvComm), sendLinLoc, recvLinLoc);
 	mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
 				  recvBuf, recvSize, recvLinLoc, sendRecvComm);
-
     PROFILE_STOP;
 
 //    ObjShape recvShape = commDataShape;
 //    PrintArray(recvBuf, recvShape, "recvBuf");
-
-    if(!(Participating())){
-        this->auxMemory_.Release();
-        return;
-    }
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");

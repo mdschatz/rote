@@ -34,50 +34,37 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
     if(!(Participating()))
         return;
 
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
 
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        const ObjShape commDataShape = A.MaxLocalShape();
-        const Unsigned sendSize = prod(commDataShape);
-        const Unsigned recvSize = prod(commDataShape);
+    const ObjShape commDataShape = A.MaxLocalShape();
+    const Unsigned sendSize = prod(commDataShape);
+    const Unsigned recvSize = sendSize;
 
-        T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+    const T* recvBuf = A.LockedBuffer();
 
-//        printf("aligningRS\n");
-//        PrintData(A, "A");
-//        PrintData(*this, "*this");
-        T* sendBuf = &(auxBuf[0]);
-        T* recvBuf = &(auxBuf[sendSize]);
-
-        PackAGCommSendBuf(A, sendBuf);
 //        PrintArray(sendBuf, commDataShape, "sendBuf");
 
-        AlignCommBufRedist(A, sendBuf, sendSize, recvBuf, sendSize);
+    //Realignment
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
+        T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+        T* sendBuf = &(auxBuf[0]);
+        PackAGCommSendBuf(A, sendBuf);
 
-        DistTensor<T> tmp(A.TensorDist(), A.Grid());
-//        tmp.AlignWith(*this);
-        tmp.SetLocalPermutation(A.LocalPermutation());
-        Location alignBinA = GridLoc2GridViewLoc(firstOwnerB, A.Grid().Shape(), A.TensorDist());
-        tmp.Attach(A.Shape(), alignBinA, recvBuf, Dimensions2Strides(commDataShape), A.Grid());
-//        PrintArray(recvBuf, commDataShape, "recvBuf from SendRecv");
-        //Packing is what is stored in memory
-        PROFILE_SECTION("LocalUnpack");
-        UnpackLocalCommRedist(tmp, tmp.LockedBuffer());
-        PROFILE_STOP;
-        this->auxMemory_.Release();
-    }else{
-        //Packing is what is stored in memory
-        PROFILE_SECTION("LocalUnpack");
-        UnpackLocalCommRedist(A, A.LockedBuffer());
-        PROFILE_STOP;
+    	T* alignSendBuf = &(auxBuf[0]);
+    	T* alignRecvBuf = &(auxBuf[sendSize]);
+        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+
+        recvBuf = &(alignRecvBuf[0]);
     }
+        //Packing is what is stored in memory
+	PROFILE_SECTION("LocalUnpack");
+	UnpackLocalCommRedist(A, recvBuf);
+	PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
 //    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
@@ -91,13 +78,10 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
 {
     Unsigned order = A.Order();
     T* dataBuf = Buffer();
-//    const T* srcBuf = A.LockedBuffer();
 
     //GridView information
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const ObjShape gvAShape = gvA.ParticipatingShape();
-    const ObjShape gvBShape = gvB.ParticipatingShape();
+    const ObjShape gvAShape = A.GetGridView().ParticipatingShape();
+    const ObjShape gvBShape = GetGridView().ParticipatingShape();
 
     //Different striding information
     std::vector<Unsigned> commLCMs = tmen::LCMs(gvAShape, gvBShape);
@@ -105,20 +89,9 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
 
     //Grid information
     const tmen::Grid& g = Grid();
-    const ObjShape gridShape = g.Shape();
-    const Location gridLoc = g.Loc();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
-    Permutation invPermB = DetermineInversePermutation(localPerm_);
-    Permutation invPermA = DetermineInversePermutation(A.localPerm_);
-
-//    PackData unpackData;
-//    unpackData.loopShape = PermuteVector(LocalShape(), invPermB);
-//    unpackData.dstBufStrides = PermuteVector(LocalStrides(), invPermB);
-//    unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), modeStrideFactor), invPermA);
-//    unpackData.loopStarts = zeros;
-//    unpackData.loopIncs = ones;
 
     Permutation in2OutPerm = DeterminePermutation(A.localPerm_, localPerm_);
     PackData unpackData;

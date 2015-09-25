@@ -37,15 +37,13 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 
     if(!A.Participating())
         return;
-    Unsigned sendSize, recvSize;
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
-    const ObjShape maxLocalShapeA = A.MaxLocalShape();
-    sendSize = prod(maxLocalShapeA);
-    recvSize = sendSize;
+    const ObjShape commDataShape = A.MaxLocalShape();
+
+    const Unsigned sendSize = prod(commDataShape);
+    const Unsigned recvSize = sendSize;
 
     T* auxBuf = this->auxMemory_.Require(sendSize + nRedistProcs*recvSize);
     T* sendBuf = &(auxBuf[0]);
@@ -58,12 +56,12 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Communicate the data
     PROFILE_SECTION("GTOComm");
-    //If unaligned, realign with send/recv BEFORE Allgather (ensures data arrives in correct place)
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    //Realignment
+    const tmen::GridView gvA = A.GetGridView();
+    const tmen::GridView gvB = GetGridView();
+    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-//        PrintVector(firstOwnerA, "firstOwnerA");
-//        PrintVector(firstOwnerB, "firstOwnerB");
         T* alignSendBuf = &(auxBuf[0]);
         T* alignRecvBuf = &(auxBuf[sendSize]);
 
@@ -76,14 +74,10 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
     PROFILE_STOP;
 
-    if(!(Participating())){
-        this->auxMemory_.Release();
-        return;
-    }
-
     //Unpack the data (if participating)
     PROFILE_SECTION("GTOUnpack");
-    UnpackA2ACommRecvBuf(recvBuf, commModes, maxLocalShapeA, A);
+    if(Participating())
+    	UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
 
     this->auxMemory_.Release();

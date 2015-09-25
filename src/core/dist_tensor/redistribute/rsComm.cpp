@@ -32,22 +32,19 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 
     if(!A.Participating())
         return;
-    Unsigned sendSize, recvSize;
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape commDataShape = MaxLocalShape();
-//    PrintVector(commDataShape, "commDataShape");
-//    printf("nRedistProcs\n", nRedistProcs);
-    recvSize = prod(commDataShape);
-    sendSize = recvSize * nRedistProcs;
-//    printf("sendSize: %d\n", sendSize);
+
+    const Unsigned recvSize = prod(commDataShape);
+    const Unsigned sendSize = recvSize * nRedistProcs;
 
     T* auxBuf;
 
     //TODO: Figure out how to nicely do this alloc for Alignment
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
+    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
         auxBuf = this->auxMemory_.Require(sendSize + sendSize);
         MemZero(&(auxBuf[0]), sendSize + sendSize);
@@ -76,9 +73,6 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     PROFILE_SECTION("RSComm");
 
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-//        printf("aligningRS\n");
-//        PrintData(A, "A");
-//        PrintData(*this, "*this");
         T* alignSendBuf = &(sendBuf[0]);
         T* alignRecvBuf = &(recvBuf[0]);
 
@@ -93,11 +87,6 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 
 //    ObjShape recvShape = commDataShape;
 //    PrintArray(recvBuf, recvShape, "recvBuf");
-
-    if(!Participating()){
-        this->auxMemory_.Release();
-        return;
-    }
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RSUnpack");
