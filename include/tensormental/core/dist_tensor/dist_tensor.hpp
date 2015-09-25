@@ -308,6 +308,11 @@ public:
     void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes);
 
     //
+    // Reduce Redist routine
+    //
+    void ReduceUpdateRedistFrom(const RedistType& redistType, const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
+
+    //
     // AllReduce workhorse routines
     //
     bool CheckAllReduceCommRedist(const DistTensor<T>& A);

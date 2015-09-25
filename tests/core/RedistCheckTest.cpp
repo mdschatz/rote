@@ -18,13 +18,11 @@
 
 using namespace tmen;
 
-enum CommTypes {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
-
 void Usage(){
     std::cout << "./RedistCheckTest\n";
 }
 
-void RunTest(const Grid& g, const char* outDist, const char* inDist, const CommTypes& redist, ModeArray& modes, bool shouldFail){
+void RunTest(const Grid& g, const char* outDist, const char* inDist, const RedistType& redist, ModeArray& modes, bool shouldFail){
 	mpi::Comm comm = mpi::COMM_WORLD;
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0){
@@ -70,8 +68,7 @@ void CheckAGRedist(const Grid& g){
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0)
 		printf("Performing AllGather tests:\n");
-	CommTypes redist;
-	redist = AG;
+	RedistType redist = AG;
 	ModeArray modes(2);
 	modes[0] = 6;
 	modes[1] = 8;
@@ -97,8 +94,7 @@ void CheckA2ARedist(const Grid& g){
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0)
 		printf("Performing AllToAll tests:\n");
-	CommTypes redist;
-	redist = A2A;
+	RedistType redist = A2A;
 	ModeArray modes(2);
 	modes[0] = 6;
 	modes[1] = 8;
@@ -127,8 +123,7 @@ void CheckLocalRedist(const Grid& g){
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0)
 		printf("Performing Local tests:\n");
-	CommTypes redist;
-	redist = Local;
+	RedistType redist = Local;
 	ModeArray modes(2);
 	modes[0] = 6;
 	modes[1] = 8;
@@ -160,8 +155,7 @@ void CheckPermuteRedist(const Grid& g){
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0)
 		printf("Performing Permutation tests:\n");
-	CommTypes redist;
-	redist = Perm;
+	RedistType redist = Perm;
 	ModeArray modes(3);
 	modes[0] = 0;
 	modes[1] = 1;
@@ -191,8 +185,7 @@ void CheckGatherToOneRedist(const Grid& g){
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0)
 		printf("Performing Gather-to-one tests:\n");
-	CommTypes redist;
-	redist = GTO;
+	RedistType redist = GTO;
 	ModeArray modes(3);
 	modes[0] = 0;
 	modes[1] = 1;

@@ -21,8 +21,6 @@
 
 using namespace tmen;
 
-enum CommTypes {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
-
 void Usage(){
     std::cout << "./DistTensor <gridOrder> <gridDim0> <gridDim1> ... <tenOrder> <tenDim0> <tenDim1> ... \"<tensorDist>\"\n";
     std::cout << "<gridOrder>  : order of the grid ( >0 )\n";
@@ -112,7 +110,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
 //TODO: Fix for reduce tests
 template<typename T>
 void
-PerformSingleTest( const CommTypes& commType, const TensorDistribution& resDist, const DistTensor<T>& A, const Permutation& outputPerm, const ModeArray& commModes){
+PerformSingleTest( const RedistType& commType, const TensorDistribution& resDist, const DistTensor<T>& A, const Permutation& outputPerm, const ModeArray& commModes){
 #ifndef RELEASE
     CallStackEntry entry("PerformSingleTest");
 #endif
@@ -192,7 +190,7 @@ CreatePerms(const Unsigned& order){
 
 template<typename T>
 void
-PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& perms1, const ObjShape& tenShape, const TensorDistribution& inputDist, const Grid& g){
+PerformRedistTests( const RedistType& commType, const std::vector<Permutation>& perms1, const ObjShape& tenShape, const TensorDistribution& inputDist, const Grid& g){
 #ifndef RELEASE
     CallStackEntry entry("PerformRedistTests");
 #endif
@@ -248,7 +246,7 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
 
 template<typename T>
 void
-DistTensorTest( std::vector<CommTypes>& redistsToTest, const Params& args, const Grid& g )
+DistTensorTest( std::vector<RedistType>& redistsToTest, const Params& args, const Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
@@ -336,7 +334,8 @@ main( int argc, char* argv[] )
                       << "------------------" << std::endl;
         }
 
-        std::vector<CommTypes> redistsToTest = {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
+//        std::vector<RedistType> redistsToTest = {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
+        std::vector<RedistType> redistsToTest = {RS, RTO, AR};
         DistTensorTest<int>(redistsToTest, args, g);
     }
     catch( std::exception& e ) { ReportException(e); }

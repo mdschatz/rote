@@ -34,6 +34,9 @@ typedef std::vector<Unsigned> ObjShape;
 typedef std::vector<Unsigned> Location;
 typedef std::vector<Unsigned> Permutation;
 
+//Redistribution enum
+enum RedistType {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
+
 //Pack data structs
 struct PackData
 {
