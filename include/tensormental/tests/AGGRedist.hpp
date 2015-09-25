@@ -24,7 +24,7 @@ CreateAGTestsHelper(const ModeArray& tenModesToRedist, const TensorDistribution&
 		const ModeArray partialCommModes = partialTests[i].second;
 		const ModeDistribution modeDistToRedist = partialDist[tenModeToRedist];
 
-		for(j = 1; j <= modeDistToRedist.size(); j++){
+		for(j = 0; j <= modeDistToRedist.size(); j++){
 			ModeArray newCommModes = partialCommModes;
 			newCommModes.insert(newCommModes.end(), modeDistToRedist.end() - j, modeDistToRedist.end());
 			ModeDistribution newModeDist = modeDistToRedist;

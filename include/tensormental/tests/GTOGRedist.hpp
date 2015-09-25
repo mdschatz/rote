@@ -24,7 +24,7 @@ CreateGTOGTestsHelper(const ModeArray& tenModesToRedist, const TensorDistributio
 		const ModeArray partialCommModes = partialTests[i].second;
 		const ModeDistribution modeDistToRedist = partialDist[tenModeToRedist];
 
-		for(j = 1; j <= modeDistToRedist.size(); j++){
+		for(j = 0; j <= modeDistToRedist.size(); j++){
 			ModeArray thisRedistModes(modeDistToRedist.end() - j, modeDistToRedist.end());
 			ModeArray newCommModes = partialCommModes;
 			newCommModes.insert(newCommModes.end(), thisRedistModes.begin(), thisRedistModes.end());

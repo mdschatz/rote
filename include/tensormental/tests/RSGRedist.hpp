@@ -8,7 +8,7 @@ using namespace tmen;
 void
 CreateRSGTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesGroup, const ModeArray& reduceModes, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
 	Unsigned order = distA.size() - 1;
-	Unsigned i, j;
+	Unsigned i, j, k;
 
 	if(modesToMove.size() == 0){
 //		printf("adding fullTest\n");
@@ -46,33 +46,35 @@ CreateRSGTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 		return;
 	}
 
-	std::vector<RedistTest > newPartialTests;
-	Mode modeToMove = modesToMove[modesToMove.size() - 1];
-	ModeArray newModesToMove = modesToMove;
-	newModesToMove.erase(newModesToMove.end() - 1);
+	for(k = 0; k < modesToMove.size(); k++){
+		std::vector<RedistTest > newPartialTests;
+		Mode modeToMove = modesToMove[k];
+		ModeArray newModesToMove = modesToMove;
+		newModesToMove.erase(newModesToMove.begin() + k);
 
-	for(i = 0; i < partialTests.size(); i++){
-		const TensorDistribution partialDist = partialTests[i].first;
-		const ModeArray partialModes = partialTests[i].second;
+		for(i = 0; i < partialTests.size(); i++){
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialModes = partialTests[i].second;
 
-		for(j = 0; j < sinkModesGroup.size(); j++){
-			Mode modeDistToChange = sinkModesGroup[j];
-			TensorDistribution resDist = partialDist;
-			resDist[modeDistToChange].push_back(modeToMove);
-			RedistTest newTest;
-			newTest.first = resDist;
-			newTest.second = partialModes;
+			for(j = 0; j < sinkModesGroup.size(); j++){
+				Mode modeDistToChange = sinkModesGroup[j];
+				TensorDistribution resDist = partialDist;
+				resDist[modeDistToChange].push_back(modeToMove);
+				RedistTest newTest;
+				newTest.first = resDist;
+				newTest.second = partialModes;
 
-			newPartialTests.push_back(newTest);
+				newPartialTests.push_back(newTest);
+			}
 		}
+	//	printf("newPartialTests\n");
+	//	for(i = 0; i < partialTests.size(); i++){
+	//		PrintVector(partialTests[i].second, "commModes");
+	//		std::cout << TensorDistToString(partialTests[i].first) << std::endl;
+	//	}
+	//	printf("done\n");
+		CreateRSGTestsSinkHelper(newModesToMove, sinkModesGroup, reduceModes, distA, newPartialTests, fullTests);
 	}
-//	printf("newPartialTests\n");
-//	for(i = 0; i < partialTests.size(); i++){
-//		PrintVector(partialTests[i].second, "commModes");
-//		std::cout << TensorDistToString(partialTests[i].first) << std::endl;
-//	}
-//	printf("done\n");
-	CreateRSGTestsSinkHelper(newModesToMove, sinkModesGroup, reduceModes, distA, newPartialTests, fullTests);
 }
 
 std::vector<RedistTest>

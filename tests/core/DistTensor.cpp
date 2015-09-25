@@ -248,24 +248,18 @@ PerformRedistTests( const CommTypes& commType, const std::vector<Permutation>& p
 
 template<typename T>
 void
-DistTensorTest( const Params& args, const Grid& g )
+DistTensorTest( std::vector<CommTypes>& redistsToTest, const Params& args, const Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
 #endif
 
     std::vector<Permutation> perms = CreatePerms(args.tenOrder);
+    Unsigned i;
 
-    PerformRedistTests<T>(AG,      perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(A2A,     perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(BCast,   perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(Scatter, perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(Local,   perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(Perm,    perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(RTO,     perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(AR,      perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(RS,      perms, args.tensorShape, args.tensorDist, g);
-    PerformRedistTests<T>(GTO,     perms, args.tensorShape, args.tensorDist, g);
+    for(i = 0; i < redistsToTest.size(); i++){
+    	PerformRedistTests<T>(redistsToTest[i], perms, args.tensorShape, args.tensorDist, g);
+    }
 }
 
 template<typename T>
@@ -328,19 +322,8 @@ main( int argc, char* argv[] )
         }
 
         if(commRank == 0){
-            printf("Creating ");
-            if(args.gridShape.size() > 0)
-                printf("%d", args.gridShape[0]);
-            for(i = 1; i < args.gridOrder; i++)
-                printf(" x %d", args.gridShape[i]);
-            printf(" grid\n");
-
-            printf("Creating [");
-            if(args.tensorShape.size() > 0)
-                printf("%d", args.tensorShape[0]);
-            for(i = 1; i < args.tenOrder; i++)
-                printf(", %d", args.tensorShape[i]);
-            printf("] tensor\n");
+        	PrintVector(args.gridShape, "Creating grid");
+        	PrintVector(args.tensorShape, "Creating tensor");
         }
 
         const Grid g( comm, args.gridShape );
@@ -353,7 +336,8 @@ main( int argc, char* argv[] )
                       << "------------------" << std::endl;
         }
 
-        DistTensorTest<int>(args, g);
+        std::vector<CommTypes> redistsToTest = {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
+        DistTensorTest<int>(redistsToTest, args, g);
     }
     catch( std::exception& e ) { ReportException(e); }
 

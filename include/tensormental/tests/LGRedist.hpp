@@ -9,34 +9,49 @@ using namespace tmen;
 void
 CreateLGTestsHelper(const ModeArray& modesToMove, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
 	Unsigned order = distA.size() - 1;
-	Unsigned i, j;
+	Unsigned i, j, k;
 
 	if(modesToMove.size() == 0){
-		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
+		for(i = 0; i < partialTests.size(); i++){
+			RedistTest partialTest = partialTests[i];
+			bool exists = false;
+			for(j = 0; j < fullTests.size(); j++){
+				RedistTest check = fullTests[j];
+				if(partialTest.first == check.first){
+					exists = true;
+					break;
+				}
+			}
+			if(!exists)
+				fullTests.push_back(partialTest);
+		}
 		return;
 	}
 
-	std::vector<RedistTest > newPartialTests;
-	ModeArray newModesToMove = modesToMove;
-	newModesToMove.erase(newModesToMove.end() - 1);
+	for(k = 0; k < modesToMove.size(); k++){
+		std::vector<RedistTest > newPartialTests;
+		ModeArray newModesToMove = modesToMove;
+		Mode modeToMove = newModesToMove[k];
+		newModesToMove.erase(newModesToMove.begin() + k);
 
-	for(i = 0; i < partialTests.size(); i++){
-		const TensorDistribution partialDist = partialTests[i].first;
-		const ModeArray partialModes = partialTests[i].second;
+		for(i = 0; i < partialTests.size(); i++){
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialModes = partialTests[i].second;
 
-		for(j = 0; j < order; j++){
-			ModeArray resModes = partialModes;
-			TensorDistribution resDist = partialDist;
-			resDist[j].push_back(modesToMove[modesToMove.size()-1]);
-			resModes.push_back(modesToMove[modesToMove.size()-1]);
-			RedistTest newTest;
-			newTest.first = resDist;
-			newTest.second = resModes;
+			for(j = 0; j < order; j++){
+				ModeArray resModes = partialModes;
+				TensorDistribution resDist = partialDist;
+				resDist[j].push_back(modeToMove);
+				resModes.push_back(modeToMove);
+				RedistTest newTest;
+				newTest.first = resDist;
+				newTest.second = resModes;
 
-			newPartialTests.push_back(newTest);
+				newPartialTests.push_back(newTest);
+			}
 		}
+		CreateLGTestsHelper(newModesToMove, distA, newPartialTests, fullTests);
 	}
-	CreateLGTestsHelper(newModesToMove, distA, newPartialTests, fullTests);
 }
 
 std::vector<RedistTest>

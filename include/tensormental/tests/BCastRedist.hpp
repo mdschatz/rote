@@ -11,7 +11,7 @@ CreateBCastTests(const TensorDistribution& distA){
     std::vector<RedistTest > ret;
     const Unsigned order = distA.size() - 1;
 
-    for(i = 1; i <= distA[order].size(); i++){
+    for(i = 0; i <= distA[order].size(); i++){
     	RedistTest bcastTest;
     	TensorDistribution resDist = distA;
     	ModeArray commModes;

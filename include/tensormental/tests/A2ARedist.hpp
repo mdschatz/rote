@@ -8,7 +8,7 @@ using namespace tmen;
 void
 CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesGroup, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
 	Unsigned order = distA.size() - 1;
-	Unsigned i, j;
+	Unsigned i, j, k;
 
 	if(modesToMove.size() == 0){
 //		printf("adding fullTest\n");
@@ -17,30 +17,46 @@ CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 //			std::cout << TensorDistToString(partialTests[i].first) << std::endl;
 //		}
 //		printf("done\n");
-		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
+		for(i = 0; i < partialTests.size(); i++){
+			RedistTest partialTest = partialTests[i];
+			bool exists = false;
+			for(j = 0; j < fullTests.size(); j++){
+				RedistTest check = fullTests[j];
+				if(partialTest.first == check.first){
+					exists = true;
+					break;
+				}
+			}
+			if(!exists)
+				fullTests.push_back(partialTest);
+		}
+//		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
 
 		return;
 	}
 
-	std::vector<RedistTest > newPartialTests;
-	Mode modeToMove = modesToMove[modesToMove.size() - 1];
-	ModeArray newModesToMove = modesToMove;
-	newModesToMove.erase(newModesToMove.end() - 1);
+	for(k = 0; k < modesToMove.size(); k++){
+		std::vector<RedistTest > newPartialTests;
+		Mode modeToMove = modesToMove[k];
+		ModeArray newModesToMove = modesToMove;
+		newModesToMove.erase(newModesToMove.begin() + k);
 
-	for(i = 0; i < partialTests.size(); i++){
-		const TensorDistribution partialDist = partialTests[i].first;
-		const ModeArray partialModes = partialTests[i].second;
+		for(i = 0; i < partialTests.size(); i++){
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialModes = partialTests[i].second;
 
-		for(j = 0; j < sinkModesGroup.size(); j++){
-			Mode modeDistToChange = sinkModesGroup[j];
-			TensorDistribution resDist = partialDist;
-			resDist[modeDistToChange].push_back(modeToMove);
-			RedistTest newTest;
-			newTest.first = resDist;
-			newTest.second = partialModes;
+			for(j = 0; j < sinkModesGroup.size(); j++){
+				Mode modeDistToChange = sinkModesGroup[j];
+				TensorDistribution resDist = partialDist;
+				resDist[modeDistToChange].push_back(modeToMove);
+				RedistTest newTest;
+				newTest.first = resDist;
+				newTest.second = partialModes;
 
-			newPartialTests.push_back(newTest);
+				newPartialTests.push_back(newTest);
+			}
 		}
+		CreateA2ATestsSinkHelper(newModesToMove, sinkModesGroup, distA, newPartialTests, fullTests);
 	}
 //	printf("newPartialTests\n");
 //	for(i = 0; i < partialTests.size(); i++){
@@ -48,13 +64,13 @@ CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 //		std::cout << TensorDistToString(partialTests[i].first) << std::endl;
 //	}
 //	printf("done\n");
-	CreateA2ATestsSinkHelper(newModesToMove, sinkModesGroup, distA, newPartialTests, fullTests);
+
 }
 
 void
 CreateA2ATestsSrcHelper(const ModeArray& srcModesGroup, const ModeArray& sinkModesGroup, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
 	Unsigned order = distA.size() - 1;
-	Unsigned i, j;
+	Unsigned i, j, k;
 
 	if(srcModesGroup.size() == 0){
 //		printf("calling sink\n");
@@ -85,30 +101,33 @@ CreateA2ATestsSrcHelper(const ModeArray& srcModesGroup, const ModeArray& sinkMod
 		return;
 	}
 
-	std::vector<RedistTest > newPartialTests;
-	Mode tenModeToRedist = srcModesGroup[srcModesGroup.size() - 1];
-	ModeArray newTenModesToRedist(srcModesGroup.begin(), srcModesGroup.end() - 1);
+	for(k = 0; k < srcModesGroup.size(); k++){
+		std::vector<RedistTest > newPartialTests;
+		Mode tenModeToRedist = srcModesGroup[k];
+		ModeArray newTenModesToRedist = srcModesGroup;
+		newTenModesToRedist.erase(newTenModesToRedist.begin() + k);
 
-	for(i = 0; i < partialTests.size(); i++){
-		const TensorDistribution partialDist = partialTests[i].first;
-		const ModeArray partialCommModes = partialTests[i].second;
-		const ModeDistribution modeDistToRedist = partialDist[tenModeToRedist];
+		for(i = 0; i < partialTests.size(); i++){
+			const TensorDistribution partialDist = partialTests[i].first;
+			const ModeArray partialCommModes = partialTests[i].second;
+			const ModeDistribution modeDistToRedist = partialDist[tenModeToRedist];
 
-		for(j = 1; j <= modeDistToRedist.size(); j++){
-			ModeArray newCommModes = partialCommModes;
-			newCommModes.insert(newCommModes.end(), modeDistToRedist.end() - j, modeDistToRedist.end());
-			ModeDistribution newModeDist = modeDistToRedist;
-			newModeDist.erase(newModeDist.end() - j, newModeDist.end());
-			TensorDistribution newTenDist = partialDist;
-			newTenDist[tenModeToRedist] = newModeDist;
-			RedistTest newTest;
-			newTest.first = newTenDist;
-			newTest.second = newCommModes;
+			for(j = 0; j <= modeDistToRedist.size(); j++){
+				ModeArray newCommModes = partialCommModes;
+				newCommModes.insert(newCommModes.end(), modeDistToRedist.end() - j, modeDistToRedist.end());
+				ModeDistribution newModeDist = modeDistToRedist;
+				newModeDist.erase(newModeDist.end() - j, newModeDist.end());
+				TensorDistribution newTenDist = partialDist;
+				newTenDist[tenModeToRedist] = newModeDist;
+				RedistTest newTest;
+				newTest.first = newTenDist;
+				newTest.second = newCommModes;
 
-			newPartialTests.push_back(newTest);
+				newPartialTests.push_back(newTest);
+			}
 		}
+		CreateA2ATestsSrcHelper(newTenModesToRedist, sinkModesGroup, distA, newPartialTests, fullTests);
 	}
-	CreateA2ATestsSrcHelper(newTenModesToRedist, sinkModesGroup, distA, newPartialTests, fullTests);
 }
 
 std::vector<RedistTest>
