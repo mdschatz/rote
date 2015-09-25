@@ -11,7 +11,19 @@ CreateGTOGTestsHelper(const ModeArray& tenModesToRedist, const TensorDistributio
 	Unsigned i, j;
 
 	if(tenModesToRedist.size() == 0){
-		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
+		for(i = 0; i < partialTests.size(); i++){
+			RedistTest partialTest = partialTests[i];
+			bool exists = false;
+			for(j = 0; j < fullTests.size(); j++){
+				RedistTest check = fullTests[j];
+				if(partialTest.first == check.first){
+					exists = true;
+					break;
+				}
+			}
+			if(!exists)
+				fullTests.push_back(partialTest);
+		}
 		return;
 	}
 
