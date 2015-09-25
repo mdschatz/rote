@@ -26,9 +26,6 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
       LogicError("ReduceToOneRedist: Invalid redistribution request");
 
     const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
@@ -58,15 +55,13 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
 
     //Communicate the data
     PROFILE_SECTION("RTOComm");
-    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        T* alignSendBuf = &(sendBuf[0]);
-        T* alignRecvBuf = &(recvBuf[0]);
+    T* alignSendBuf = &(sendBuf[0]);
+    T* alignRecvBuf = &(recvBuf[0]);
 
-        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
-        sendBuf = &(alignRecvBuf[0]);
-        recvBuf = &(alignSendBuf[0]);
+    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+    if(didAlign){
+		sendBuf = &(alignRecvBuf[0]);
+		recvBuf = &(alignSendBuf[0]);
     }
 
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);

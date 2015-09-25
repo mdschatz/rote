@@ -334,8 +334,8 @@ main( int argc, char* argv[] )
                       << "------------------" << std::endl;
         }
 
-//        std::vector<RedistType> redistsToTest = {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
-        std::vector<RedistType> redistsToTest = {RS, RTO, AR};
+        std::vector<RedistType> redistsToTest = {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
+//        std::vector<RedistType> redistsToTest = {Local};
         DistTensorTest<int>(redistsToTest, args, g);
     }
     catch( std::exception& e ) { ReportException(e); }

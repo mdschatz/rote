@@ -40,21 +40,11 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     const Unsigned recvSize = prod(commDataShape);
     const Unsigned sendSize = recvSize * nRedistProcs;
 
-    T* auxBuf;
+    //NOTE: requiring 2*sendSize in case we realign
+	T* auxBuf = this->auxMemory_.Require(sendSize + sendSize);
+	MemZero(&(auxBuf[0]), sendSize + sendSize);
 
-    //TODO: Figure out how to nicely do this alloc for Alignment
-    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        auxBuf = this->auxMemory_.Require(sendSize + sendSize);
-        MemZero(&(auxBuf[0]), sendSize + sendSize);
-//        printf("required: %d elems\n", sendSize + sendSize);
-    }else{
-        auxBuf = this->auxMemory_.Require(sendSize + recvSize);
-        //First, set all entries of sendBuf to zero so we don't accumulate garbage
-        MemZero(&(auxBuf[0]), sendSize + recvSize);
-    }
-    T* sendBuf = &(auxBuf[0]);
+	T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
 //    const T* dataBuf = A.LockedBuffer();
@@ -72,14 +62,13 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     //Communicate the data
     PROFILE_SECTION("RSComm");
 
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        T* alignSendBuf = &(sendBuf[0]);
-        T* alignRecvBuf = &(recvBuf[0]);
+    T* alignSendBuf = &(sendBuf[0]);
+    T* alignRecvBuf = &(recvBuf[0]);
 
-        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
-        sendBuf = &(alignRecvBuf[0]);
-        recvBuf = &(alignSendBuf[0]);
-//        PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+    if(didAlign){
+		sendBuf = &(alignRecvBuf[0]);
+		recvBuf = &(alignSendBuf[0]);
     }
 
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);

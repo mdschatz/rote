@@ -372,7 +372,7 @@ public:
     //
     void ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
 
-    void AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize);
+    bool AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize);
 
     //
     //Unit mode intro/remove routines

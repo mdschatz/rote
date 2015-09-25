@@ -33,7 +33,6 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 		LogicError("ScatterRedist: Invalid redistribution request");
 
 	const tmen::Grid& g = A.Grid();
-
 	const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
 	if(!Participating())
@@ -41,12 +40,7 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 
 	//Determine buffer sizes for communication
 	const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-
-	const ObjShape gvAShape = A.GetGridView().ParticipatingShape();
-	const ObjShape gvBShape = GetGridView().ParticipatingShape();
-
-	std::vector<Unsigned> localPackStrides = ElemwiseDivide(LCMs(gvBShape, gvAShape), gvAShape);
-	ObjShape commDataShape = IntCeils(A.MaxLocalShape(), localPackStrides);
+	const ObjShape commDataShape = MaxLocalShape();
 
 	const Unsigned sendSize = prod(commDataShape);
 	const Unsigned recvSize = sendSize;
@@ -72,18 +66,13 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	//Communicate the data
 	PROFILE_SECTION("ScatterComm");
 	//Realignment
-	const tmen::GridView gvA = A.GetGridView();
-	const tmen::GridView gvB = GetGridView();
-	const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-	const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+	T* alignSendBuf = &(sendBuf[0]);
+	T* alignRecvBuf = &(sendBuf[sendSize * nRedistProcs]);
 
-	if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-		T* alignSendBuf = &(sendBuf[0]);
-		T* alignRecvBuf = &(sendBuf[sendSize * nRedistProcs]);
-		AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+	bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+	if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
 		recvBuf = &(alignSendBuf[0]);
-//		PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
 	}
 
 	mpi::Scatter(sendBuf, sendSize, recvBuf, recvSize, 0, comm);

@@ -72,17 +72,12 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         //Communicate the data
         PROFILE_SECTION("A2AComm");
         //Realignment
-        const tmen::GridView gvA = A.GetGridView();
-        const tmen::GridView gvB = GetGridView();
-        const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-        const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-        if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-            T* alignSendBuf = &(sendBuf[0]);
-            T* alignRecvBuf = &(recvBuf[0]);
-            AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+        T* alignSendBuf = &(sendBuf[0]);
+        T* alignRecvBuf = &(recvBuf[0]);
+        bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+        if(didAlign){
             sendBuf = &(alignRecvBuf[0]);
             recvBuf = &(alignSendBuf[0]);
-//            PrintArray(alignRecvBuf, sendShape, "recvBuf from Realignment");
         }
 
         mpi::AllToAll(sendBuf, sendSize, recvBuf, recvSize, comm);

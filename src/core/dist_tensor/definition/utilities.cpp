@@ -192,15 +192,13 @@ DistTensor<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const st
 }
 
 template<typename T>
-void
+bool
 DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::AlignCommBufRedist");
 #endif
-//    printf("aligning\n");
-//    PrintData(A, "A");
-//    PrintData(*this, "*this");
+
     const tmen::Grid& g = Grid();
     GridView gvA = A.GetGridView();
     GridView gvB = GetGridView();
@@ -208,36 +206,20 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 
-
+    if(!AnyElemwiseNotEqual(firstOwnerA, firstOwnerB))
+    	return false;
 
     std::vector<Unsigned> alignA = A.Alignments();
     std::vector<Unsigned> alignB = Alignments();
 
     std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
-//    std::vector<Unsigned> alignDiff = ElemwiseSubtract(firstOwnerA, firstOwnerB);
-//    PrintVector(alignDiff, "alignDiff");
-//    PrintVector(g.Loc(), "myLoc");
-//    PrintVector(ElemwiseSum(g.Loc(), alignDiff), "alignDiff + myLoc");
+
     Location alignedFirstOwnerA = GridLoc2GridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
     Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
     Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(gvA.ParticipatingLoc(), alignBinA);
 
     Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
     Location recvGridLoc = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
-//    Location sendGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSubtract(g.Loc(), alignDiff), g.Shape()), g.Shape());
-//    Location recvGridLoc = ElemwiseMod(ElemwiseSum(ElemwiseSum(g.Loc(), alignDiff), g.Shape()), g.Shape());
-
-//    PrintVector(firstOwnerA, "firstOwnerA");
-//    PrintVector(firstOwnerB, "firstOwnerB");
-//    PrintVector(alignA, "alignA");
-//    PrintVector(alignB, "alignB");
-//    PrintVector(alignBinA, "alignBinA");
-//    PrintVector(myFirstElemLocA, "myFirstElemLocA");
-//    PrintVector(myFirstElemLocAligned, "myFirstElemLocAligned");
-//    PrintVector(sendGridLoc, "sendGridLoc");
-//    PrintVector(recvGridLoc, "recvGridLoc");
-//    PrintVector(GridLoc2ParticipatingGridViewLoc(sendGridLoc, g.Shape(), A.TensorDist()), "gvASendLoc");
-//    PrintVector(GridLoc2ParticipatingGridViewLoc(recvGridLoc, g.Shape(), A.TensorDist()), "gvARecvLoc");
 
     //Create the communicator to involve all processes we need to fix misalignment
     ModeArray misalignedModes;
@@ -258,18 +240,9 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Unsigned sendLinLoc = Loc2LinearLoc(sendSliceLoc, gridSliceShape);
     Unsigned recvLinLoc = Loc2LinearLoc(recvSliceLoc, gridSliceShape);
 
-
-//            PrintVector(sendGridLoc, "sendLoc");
-//            printf("sendLinloc: %d\n", sendLinLoc);
-//            PrintVector(recvGridLoc, "recvLoc");
-//            printf("recvLinloc: %d\n", recvLinLoc);
-//            printf("sending %d unaligned elems\n", sendSize);
-//            printf("recving %d aligned elems\n", recvSize);
-
-//            PrintArray(alignSendBuf, sendShape, "sendBuf to SendRecv");
     mpi::SendRecv(unalignedSendBuf, sendSize, sendLinLoc,
                   alignedSendBuf, recvSize, recvLinLoc, sendRecvComm);
-
+    return true;
 }
 
 //Creates information for optimizing A2A routines as P2P calls when applicable

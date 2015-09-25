@@ -41,6 +41,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
     const Unsigned sendSize = prod(commDataShape);
     const Unsigned recvSize = sendSize;
 
+    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
     const T* recvBuf = A.LockedBuffer();
 
 //        PrintArray(sendBuf, commDataShape, "sendBuf");
@@ -51,7 +52,6 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
     const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
     const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
     if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
         T* sendBuf = &(auxBuf[0]);
         PackAGCommSendBuf(A, sendBuf);
 
@@ -68,6 +68,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 
 //    const T* myBuf = LockedBuffer();
 //    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+	this->auxMemory_.Release();
 }
 
 

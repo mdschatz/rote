@@ -65,22 +65,16 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     //Communicate the data
     PROFILE_SECTION("AGComm");
     //Realignment
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        T* alignSendBuf = &(auxBuf[0]);
-        T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
+    T* alignSendBuf = &(auxBuf[0]);
+	T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
 
-        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
-
+	bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+	if(didAlign){
         sendBuf = &(alignRecvBuf[0]);
         recvBuf = &(alignSendBuf[0]);
-//        PrintArray(sendBuf, commDataShape, "postsendBuf");
-    }
+	}
 
-    mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
+	mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
     PROFILE_STOP;
 
 //    ObjShape recvShape = commDataShape;

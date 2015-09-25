@@ -56,19 +56,13 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
     //Communicate the data
     PROFILE_SECTION("ARComm");
     //Realignment
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
-    const Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    const Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    T* alignSendBuf = &(sendBuf[0]);
+    T* alignRecvBuf = &(recvBuf[0]);
 
-    if(AnyElemwiseNotEqual(firstOwnerA, firstOwnerB)){
-        T* alignSendBuf = &(sendBuf[0]);
-        T* alignRecvBuf = &(recvBuf[0]);
-
-        AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
-        sendBuf = &(alignRecvBuf[0]);
-        recvBuf = &(alignSendBuf[0]);
-//        PrintArray(alignRecvBuf, sendShape, "recvBuf from SendRecv");
+    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+    if(didAlign){
+		sendBuf = &(alignRecvBuf[0]);
+		recvBuf = &(alignSendBuf[0]);
     }
 
     mpi::AllReduce(sendBuf, recvBuf, recvSize, comm);
