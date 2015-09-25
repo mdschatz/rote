@@ -42,14 +42,14 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
     //Set up tmp2 for holding beta*B
     ObjShape tmp2Shape = Shape();
     TensorDistribution tmp2Dist = TensorDist();
-    std::vector<Unsigned> tmp2Aligns = Alignments();
+//    std::vector<Unsigned> tmp2Aligns = Alignments();
     Permutation tmp2Perm = localPerm_;
     std::vector<Unsigned> tmp2Strides = LocalStrides();
 
     for(i = 0; i < sortedRModes.size(); i++){
         Mode rMode = sortedRModes[i];
         tmp2Dist.insert(tmp2Dist.begin() + rMode, blank);
-        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
+//        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
 
         for(j = 0; j < tmp2Perm.size(); j++)
             if(tmp2Perm[j] >= rMode)
@@ -70,6 +70,9 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
 
     DistTensor<T> tmp2(tmp2Shape, tmen::TensorDistToString(tmp2Dist), g);
     tmp2.SetLocalPermutation(tmp2Perm);
+    std::vector<Unsigned> tmp2Aligns = Alignments();
+    for(i = 0; i < rModes.size(); i++)
+        tmp2Aligns.push_back(0);
 
     tmp2.Attach(tmp2Shape, tmp2Aligns, Buffer(), tmp2Strides, g);
 
@@ -79,13 +82,20 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
         if(ElemwiseLessThanEqualTo(FilterVector(A.Shape(), sortedRModes), FilterVector(A.GridViewShape(), sortedRModes))){
             tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
         }else{
-            LocalReduce(A, tmp, rModes);
+        	ObjShape tmpShape = A.Shape();
+
+        	for(i = 0; i < sortedRModes.size(); i++)
+        		if(A.Dimension(sortedRModes[i]) > gv.Dimension(sortedRModes[i]))
+        			tmpShape[sortedRModes[i]] = gv.Dimension(sortedRModes[i]);
+        	tmp.ResizeTo(tmpShape);
+        	Zero(tmp);
+            LocalReduce(A, tmp, sortedRModes);
         }
     }
 
     ModeArray commModes;
-    for(i = 0; i < rModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(rModes[i]);
+    for(i = 0; i < sortedRModes.size(); i++){
+        ModeDistribution modeDist = A.ModeDist(sortedRModes[i]);
         commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
     }
     std::sort(commModes.begin(), commModes.end());
@@ -94,7 +104,8 @@ DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A
 //    PrintData(tmp2, "tmp2 data");
 //    Print(tmp2, "tmp2 before RTO");
 //    Print(tmp, "tmp before RTO");
-    tmp2.ReduceToOneUpdateCommRedist(alpha, tmp, beta, rModes, commModes);
+
+    tmp2.ReduceToOneUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes);
 
     PROFILE_STOP;
 }

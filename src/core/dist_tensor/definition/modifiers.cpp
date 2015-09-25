@@ -122,7 +122,7 @@ DistTensor<T>::Attach
     if( Participating() )
     {
         ObjShape localShape = Lengths(shape, ModeShifts(), ModeStrides());
-        tensor_.Attach_( localShape, buffer, strides );
+        tensor_.Attach_( PermuteVector(localShape, localPerm_), buffer, strides );
     }
 }
 
@@ -544,7 +544,10 @@ DistTensor<T>::SetDefaultPermutation()
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetDefaultPermutation");
 #endif
-    localPerm_ = DefaultPermutation(Order());
+    Permutation defaultPerm = DefaultPermutation(Order());
+//    Permutation permOldToNew = DeterminePermutation(localPerm_, defaultPerm);
+    localPerm_ = defaultPerm;
+//    tensor_.ResizeTo(PermuteVector(tensor_.Shape(), permOldToNew));
 }
 
 #define FULL(T) \

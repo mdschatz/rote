@@ -723,7 +723,7 @@ void
 Tensor<T>::Empty_()
 {
     std::fill(shape_.begin(), shape_.end(), 0);
-    std::fill(strides_.begin(), strides_.end(), 0);
+    std::fill(strides_.begin(), strides_.end(), 1);
 
     viewType_ = (ViewType)( viewType_ & ~LOCKED_VIEW );
 
@@ -747,33 +747,27 @@ template<typename T>
 void
 Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
-	//TODO: Implement general stride
+	std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
 
-//    std::vector<Unsigned> newStrides = Dimensions2Strides(shape);
-//    bool reallocate = shape.size() == 0 || ((shape[shape.size()-1]*newStrides[shape.size()-1]) > (shape_[shape_.size()-1] * strides_[shape_.size()-1]));
-	if(AnyElemwiseNotEqual(shape_, shape)){
-	    bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_);
+	Unsigned curMaxElem;
+	if(shape_.size() == 0)
+		curMaxElem = 1;
+	else
+		curMaxElem = shape_[shape_.size() - 1] * strides_[strides_.size() - 1];
 
-        shape_ = shape;
-        strides_ = Dimensions2Strides(shape);
+	Unsigned newMaxElem;
+	if(shape.size() == 0)
+		newMaxElem = 1;
+	else
+		newMaxElem = shape[shape.size() - 1] * shapeStrides[shapeStrides.size() - 1];
 
-        if(reallocate){
-            memory_.Require(Max(1,prod(shape)));
-            data_ = memory_.Buffer();
-        }
+	shape_ = shape;
+	strides_ = Dimensions2Strides(shape);
+
+	if(shape.size() == 0 || (curMaxElem < newMaxElem)){
+		memory_.Require(Max(1,newMaxElem));
+		data_ = memory_.Buffer();
 	}
-    //TODO: IMPLEMENT CORRECTLY
-//    bool reallocate = height > ldims_ || width > width_;
-//    height_ = height;
-//    width_ = width;
-//    // Only change the ldim when necessary. Simply 'shrink' our view if 
-//    // possible.
-//    if( reallocate )
-//    {
-//        ldims_ = Max( height, 1 );
-//        memory_.Require( ldims_ * width );
-//        data_ = memory_.Buffer();
-//    }
 }
 
 template<typename T>
@@ -790,6 +784,7 @@ Tensor<T>::ResizeTo( const Tensor<T>& A )
         LogicError("Cannot increase the size of this tensor");
 #endif
     shape_.resize(A.shape_.size(), 0);
+    strides_.resize(A.strides_.size(), 1);
     ResizeTo(A.shape_);
 }
 
@@ -813,25 +808,24 @@ template<typename T>
 void
 Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& strides )
 {
-	//TODO: Implement general stride
-	bool reallocate = shape.size() == 0 || AnyElemwiseGreaterThan(shape, shape_) || AnyElemwiseGreaterThan(strides, strides_);
+	Unsigned curMaxElem;
+	if(shape_.size() == 0)
+		curMaxElem = 1;
+	else
+		curMaxElem = shape_[shape_.size() - 1] * strides_[strides_.size() - 1];
+
+	Unsigned newMaxElem;
+	if(shape.size() == 0)
+		newMaxElem = 1;
+	else
+		newMaxElem = shape[shape.size() - 1] * strides[strides.size() - 1];
 
 	shape_ = shape;
-	if(reallocate){
+	if(shape.size() == 0 || (curMaxElem < newMaxElem)){
 		strides_ = strides;
-		memory_.Require(Max(1,prod(shape)));
+		memory_.Require(Max(1,newMaxElem));
 		data_ = memory_.Buffer();
 	}
-    //TODO: IMPLEMENT CORRECTLY
-//    bool reallocate = height > ldims_ || width > width_ || ldim != ldims_;
-//    height_ = height;
-//    width_ = width;
-//    if( reallocate )
-//    {
-//        ldims_ = ldim;
-//        memory_.Require(ldim*width);
-//        data_ = memory_.Buffer();
-//    }
 }
 
 template<typename T>

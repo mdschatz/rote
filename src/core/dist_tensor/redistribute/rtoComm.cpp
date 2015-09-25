@@ -73,13 +73,14 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
     mpi::Reduce(sendBuf, recvBuf, sendSize, mpi::SUM, 0, comm);
     PROFILE_STOP;
 
-//    ObjShape recvShape = commDataShape;
-//    PrintArray(recvBuf, recvShape, "recvBuf");
-
     if(!(Participating())){
         this->auxMemory_.Release();
         return;
     }
+
+//    PrintVector(commDataShape, "commDataShape");
+//    ObjShape recvShape = commDataShape;
+//    PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RTOUnpack");

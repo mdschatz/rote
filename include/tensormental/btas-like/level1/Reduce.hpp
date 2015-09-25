@@ -134,7 +134,12 @@ void LocalReduceElemSelect_merged(const Unsigned nReduceModes, const ObjShape& r
         return;
     }
 
+//    PrintVector(loopEnd, "loopEnd");
+//    PrintVector(srcStrides, "srcBufStrides");
+//    PrintVector(dstStrides, "dstBufStrides");
     while(!done){
+//    	PrintVector(curLoc, "curLoc");
+//    	printf("dstBufPtr: %d srcBufPtr: %d\n", dstBufPtr, srcBufPtr);
         dstBuf[dstBufPtr] += srcBuf[srcBufPtr];
         //Update
         curLoc[ptr]++;
@@ -182,9 +187,7 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
     Unsigned i;
     Unsigned order = A.Order();
 
-    ModeArray tensorModes(order);
-    for(i = 0; i < order; i++)
-        tensorModes[i] = i;
+    ModeArray tensorModes = DefaultPermutation(order);
     ModeArray nonReduceModes = NegFilterVector(tensorModes, reduceModes);
 
     const ObjShape shapeA = A.Shape();
@@ -243,7 +246,7 @@ void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const ModeArray& redu
         //Account for the local data being permuted
 
         Permutation permBToA = DeterminePermutation(B.LocalPermutation(), A.LocalPermutation());
-        LocalReduce(A.LockedTensor(), B.Tensor(), permBToA, FilterVector(A.LocalPermutation(), reduceModes));
+        LocalReduce(A.LockedTensor(), B.Tensor(), permBToA, FilterVector(DetermineInversePermutation(A.LocalPermutation()), reduceModes));
     }
     PROFILE_STOP;
 }
