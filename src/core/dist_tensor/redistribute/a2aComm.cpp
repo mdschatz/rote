@@ -162,7 +162,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
-    const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
+    const Unsigned nRedistProcsAll = Max(1, prod(FilterVector(gridShape, commModes)));
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
@@ -319,7 +319,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
-    const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
+    const Unsigned nRedistProcsAll = Max(1, prod(FilterVector(gridShape, commModes)));
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
