@@ -221,7 +221,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, A.localPerm_), A.LocalStrides());
 
             PackData packData;
-            packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
+            packData.loopShape = MaxLengths(ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_)), PermuteVector(modeStrideFactor, A.localPerm_));
             packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_));
 
             //Pack into permuted form to minimize striding when unpacking
@@ -236,7 +236,8 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 
             packData.loopStarts = zeros;
             //ModeStrideFactor is global information, we need to permute it to match locally
-            packData.loopIncs = PermuteVector(modeStrideFactor, A.localPerm_);
+//            packData.loopIncs = PermuteVector(modeStrideFactor, A.localPerm_);
+            packData.loopIncs = ones;
 
 //            PrintPackData(packData, "rsPackData");
             PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));

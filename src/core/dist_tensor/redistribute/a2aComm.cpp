@@ -228,7 +228,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //            printf("dataBufPtr: %d\n", dataBufPtr);
 
             PackData packData;
-            packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
+//            packData.loopShape = ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_));
             packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_));
 
             //Pack into permuted form to minimize striding when unpacking
@@ -243,11 +243,12 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
             packData.loopStarts = zeros;
             //ModeStrideFactor is global information, we need to permute it to match locally
-            packData.loopIncs = PermuteVector(modeStrideFactor, A.localPerm_);
+//            packData.loopIncs = PermuteVector(modeStrideFactor, A.localPerm_);
+            packData.loopIncs = ones;
             //Test to fix bug
-            packData.loopShape = MaxLengths(packData.loopShape, packData.loopIncs);
-            for(j = 0; j < packData.loopIncs.size(); j++ )
-                packData.loopIncs[j] = 1;
+            packData.loopShape = MaxLengths(ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_)), PermuteVector(modeStrideFactor, A.localPerm_));
+//            for(j = 0; j < packData.loopIncs.size(); j++ )
+//                packData.loopIncs[j] = 1;
 
 //            PrintPackData(packData, "a2aPackData");
             PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
@@ -398,7 +399,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, localPerm_), LocalStrides());
 
             PackData unpackData;
-            unpackData.loopShape = ElemwiseSubtract(LocalShape(), PermuteVector(localLoc, localPerm_));
+//            unpackData.loopShape = ElemwiseSubtract(LocalShape(), PermuteVector(localLoc, localPerm_));
             unpackData.dstBufStrides = ElemwiseProd(LocalStrides(), PermuteVector(modeStrideFactor, localPerm_));
 
             //Recv data is permuted the same way our local data is permuted
@@ -407,11 +408,12 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
             unpackData.loopStarts = zeros;
             //ModeStrideFactor is global information, we need to permute it to match locally
-            unpackData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
+//            unpackData.loopIncs = PermuteVector(modeStrideFactor, localPerm_);
+			unpackData.loopIncs = ones;
             //Test to fix bug
-            unpackData.loopShape = MaxLengths(unpackData.loopShape, unpackData.loopIncs);
-            for(j = 0; j < unpackData.loopIncs.size(); j++ )
-                unpackData.loopIncs[j] = 1;
+            unpackData.loopShape = MaxLengths(ElemwiseSubtract(LocalShape(), PermuteVector(localLoc, localPerm_)), PermuteVector(modeStrideFactor, localPerm_));
+//            for(j = 0; j < unpackData.loopIncs.size(); j++ )
+//                unpackData.loopIncs[j] = 1;
 
             PackCommHelper(unpackData, order - 1, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
         }
