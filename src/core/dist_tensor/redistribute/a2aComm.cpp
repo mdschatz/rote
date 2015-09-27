@@ -43,8 +43,8 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
         const ObjShape maxLocalShapeA = A.MaxLocalShape();
 
-        const ObjShape gvAShape = A.GetGridView().ParticipatingShape();
-        const ObjShape gvBShape = GetGridView().ParticipatingShape();
+        const ObjShape gvAShape = A.GridViewShape();
+        const ObjShape gvBShape = GridViewShape();
 
         const std::vector<Unsigned> localPackStrides = ElemwiseDivide(LCMs(gvBShape, gvAShape), gvAShape);
         const ObjShape commDataShape = IntCeils(maxLocalShapeA, localPackStrides);

@@ -81,8 +81,8 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
     T* dataBuf = Buffer();
 
     //GridView information
-    const ObjShape gvAShape = A.GetGridView().ParticipatingShape();
-    const ObjShape gvBShape = GetGridView().ParticipatingShape();
+    const ObjShape gvAShape = A.GridViewShape();
+    const ObjShape gvBShape = GridViewShape();
 
     //Different striding information
     std::vector<Unsigned> commLCMs = tmen::LCMs(gvAShape, gvBShape);
