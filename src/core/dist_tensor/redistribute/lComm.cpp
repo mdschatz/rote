@@ -91,16 +91,11 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
     //Grid information
     const tmen::Grid& g = Grid();
 
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
     Permutation in2OutPerm = DeterminePermutation(A.localPerm_, localPerm_);
     PackData unpackData;
     unpackData.loopShape = LocalShape();
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_)), in2OutPerm);
-    unpackData.loopStarts = zeros;
-    unpackData.loopIncs = ones;
 
     const Location myFirstElemLoc = DetermineFirstElem(GetGridView().ParticipatingLoc());
 

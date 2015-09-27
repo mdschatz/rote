@@ -30,10 +30,8 @@ void PackCommHelper_fast(const PackData& packData, T const * const srcBuf, T * c
     const std::vector<Unsigned> loopEnd = packData.loopShape;
     const std::vector<Unsigned> dstBufStrides = packData.dstBufStrides;
     const std::vector<Unsigned> srcBufStrides = packData.srcBufStrides;
-    const std::vector<Unsigned> loopStart = packData.loopStarts;
-    const std::vector<Unsigned> loopIncs = packData.loopIncs;
     Unsigned order = loopEnd.size();
-    Location curLoc = loopStart;
+    Location curLoc(order,0);
     Unsigned dstBufPtr = 0;
     Unsigned srcBufPtr = 0;
     Unsigned ptr = 0;
@@ -108,11 +106,7 @@ void PackCommHelper(const PackData& packData, T const * const srcBuf, T * const 
 #endif
 //    PROFILE_SECTION("Pack");
     PackData modifiedData = packData;
-    modifiedData.loopShape = IntCeils(packData.loopShape, packData.loopIncs);
-    Location ones(packData.loopStarts.size(), 1);
-    Location zeros(packData.loopStarts.size(), 0);
-    modifiedData.loopIncs = ones;
-    modifiedData.loopStarts = zeros;
+    modifiedData.loopShape = packData.loopShape;
 
 
     //Attempt to merge modes
@@ -145,10 +139,6 @@ void PackCommHelper(const PackData& packData, T const * const srcBuf, T * const 
                 mergeMode++;
             }
         }
-        std::vector<Unsigned> newones(newData.loopShape.size(), 1);
-        std::vector<Unsigned> newzeros(newData.loopShape.size(), 0);
-        newData.loopIncs = newones;
-        newData.loopStarts = newzeros;
     }
 
 //    PrintPackData(newData, "packData");
@@ -175,8 +165,6 @@ void Permute(const Tensor<T>& A, Tensor<T>& B, const Permutation& perm){
     data.loopShape = A.Shape();
     data.srcBufStrides = A.Strides();
     data.dstBufStrides = PermuteVector(B.Strides(), invperm);
-    data.loopStarts = zeros;
-    data.loopIncs = ones;
 
     PackCommHelper(data, &(srcBuf[0]), &(dstBuf[0]));
 }

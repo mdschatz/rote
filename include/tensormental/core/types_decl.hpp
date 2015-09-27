@@ -43,8 +43,6 @@ struct PackData
     ObjShape loopShape;
     std::vector<Unsigned> srcBufStrides;
     std::vector<Unsigned> dstBufStrides;
-    std::vector<Unsigned> loopStarts;
-    std::vector<Unsigned> loopIncs;
     Permutation permutation;
 };
 

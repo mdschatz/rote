@@ -97,9 +97,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
 
-  const Location zeros(order, 0);
-  const Location ones(order, 1);
-
   PackData packData;
   packData.loopShape = A.LocalShape();
   packData.srcBufStrides = A.LocalStrides();
@@ -113,9 +110,6 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
 
   //Permute pack strides to match input local permutation (for correct packing)
   packData.dstBufStrides = PermuteVector(finalStrides, out2in);
-
-  packData.loopStarts = zeros;
-  packData.loopIncs = ones;
 
   PackCommHelper(packData, &(dataBuf[0]), &(sendBuf[0]));
 }

@@ -215,8 +215,6 @@ PrintPackData
 ( const PackData& packData, std::string title="", std::ostream& os = std::cout){
     os << title << std::endl;
     PrintVector(packData.loopShape, "  loopShape", os);
-    PrintVector(packData.loopStarts, "  loopStarts", os);
-    PrintVector(packData.loopIncs, "  loopIncs", os);
     PrintVector(packData.srcBufStrides, "  srcBufStrides", os);
     PrintVector(packData.dstBufStrides, "  dstBufStrides", os);
 }

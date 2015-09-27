@@ -718,17 +718,11 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
     const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
 
-    const Location zeros(order, 0);
-    const Location ones(order, 1);
-
     Permutation out2inPerm = DeterminePermutation(dstPerm, srcPerm);
     PackData packData;
     packData.loopShape = A.Shape();
 	packData.srcBufStrides = A.Strides();
     packData.dstBufStrides = PermuteVector(Strides(), out2inPerm);
-
-    packData.loopStarts = zeros;
-    packData.loopIncs = ones;
 
     PackCommHelper(packData, &(srcBuf[0]), &(thisBuf[0]));
 }

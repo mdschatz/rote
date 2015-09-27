@@ -234,11 +234,6 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             //Permute pack strides to match input local permutation (for correct packing)
             packData.dstBufStrides = PermuteVector(finalStrides, out2in);
 
-            packData.loopStarts = zeros;
-            //ModeStrideFactor is global information, we need to permute it to match locally
-//            packData.loopIncs = PermuteVector(modeStrideFactor, A.localPerm_);
-            packData.loopIncs = ones;
-
 //            PrintPackData(packData, "rsPackData");
             PackCommHelper(packData, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
         }
