@@ -607,22 +607,6 @@ void
 Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
 	ResizeTo_(shape, Dimensions2Strides(shape));
-//
-//	Unsigned oldOrder = shape_.size();
-//	Unsigned curMaxElem = (oldOrder == 0) ? 1 : shape_[oldOrder - 1] * strides_[oldOrder - 1];
-//
-//	std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
-//	Unsigned newOrder = shape.size();
-//	Unsigned newMaxElem = (newOrder == 0) ? 1 : shape[newOrder - 1] * shapeStrides[newOrder - 1];
-//
-//	shape_ = shape;
-//	strides_ = shapeStrides;
-//
-//	//Guard has newOrder == 0 in case we resize scalar to scalar (ensures at least one data entry is created)
-//	if(newOrder == 0 || (curMaxElem < newMaxElem)){
-//		memory_.Require(Max(1,newMaxElem));
-//		data_ = memory_.Buffer();
-//	}
 }
 
 template<typename T>
