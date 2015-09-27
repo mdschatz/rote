@@ -251,7 +251,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 //                packData.loopIncs[j] = 1;
 
 //            PrintPackData(packData, "a2aPackData");
-            PackCommHelper(packData, order - 1, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
+            PackCommHelper(packData, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
         }
     }
 }
@@ -415,7 +415,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 //            for(j = 0; j < unpackData.loopIncs.size(); j++ )
 //                unpackData.loopIncs[j] = 1;
 
-            PackCommHelper(unpackData, order - 1, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
+            PackCommHelper(unpackData, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
         }
     }
 }

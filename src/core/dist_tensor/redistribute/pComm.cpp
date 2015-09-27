@@ -138,7 +138,7 @@ void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor
     unpackData.loopIncs = ones;
 
 //    PrintPackData(unpackData, "unpackData");
-    PackCommHelper(unpackData, order - 1, &(recvBuf[0]), &(dataBuf[0]));
+    PackCommHelper(unpackData, &(recvBuf[0]), &(dataBuf[0]));
 }
 
 #define PROTO(T) template class DistTensor<T>

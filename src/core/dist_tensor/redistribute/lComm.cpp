@@ -107,7 +107,7 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
     if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
         const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);
         Unsigned srcBufPtr = Loc2LinearLoc(PermuteVector(firstLocInA, A.localPerm_), A.LocalShape(), A.LocalStrides());
-        PackCommHelper(unpackData, order - 1, &(unpackBuf[srcBufPtr]), &(dataBuf[0]));
+        PackCommHelper(unpackData, &(unpackBuf[srcBufPtr]), &(dataBuf[0]));
     }
 }
 

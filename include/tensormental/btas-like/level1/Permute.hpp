@@ -18,7 +18,7 @@ namespace tmen{
 ////////////////////////////////////
 
 template<typename T>
-void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+void PackCommHelper_fast(const PackData& packData, T const * const srcBuf, T * const dstBuf){
 #ifndef RELEASE
     CallStackEntry cse("PackCommHelper_fast");
 #endif
@@ -102,110 +102,7 @@ void PackCommHelper_fast(const PackData& packData, const Mode packMode, T const 
 }
 
 template<typename T>
-void FastPackCommHelper_fast(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
-#ifndef RELEASE
-    CallStackEntry cse("PackCommHelper_fast");
-#endif
-    if(packData.loopShape.size() == 0){
-        dstBuf[0] = srcBuf[0];
-        return;
-    }
-
-    const std::vector<Unsigned> loopEnd = packData.loopShape;
-    const std::vector<Unsigned> dstBufStrides = packData.dstBufStrides;
-    const std::vector<Unsigned> srcBufStrides = packData.srcBufStrides;
-    const std::vector<Unsigned> loopStart = packData.loopStarts;
-    const std::vector<Unsigned> loopIncs = packData.loopIncs;
-    Unsigned order = loopEnd.size();
-    Location curLoc = loopStart;
-    Unsigned dstBufPtr = 0;
-    Unsigned srcBufPtr = 0;
-
-    if(loopEnd.size() == 0){
-        dstBuf[0] = srcBuf[0];
-        return;
-    }
-
-    Unsigned i;
-    std::vector<Unsigned> modeOrderStrides = dstBufStrides;
-    std::vector<Unsigned> modeOrder(loopEnd.size());
-    //Ensure that we have a unique number
-    Unsigned maxStride = Max(dstBufStrides) + 1;
-
-    for(i = 0; i < modeOrder.size(); i++){
-        //Compute minimum stride
-        Unsigned minIndex = std::min_element(modeOrderStrides.begin(), modeOrderStrides.end()) - modeOrderStrides.begin();
-        modeOrder[i] = minIndex;
-        modeOrderStrides[minIndex] = maxStride;
-    }
-
-    Unsigned modePtr = 0;
-    Unsigned ptr = modeOrder[0];
-
-    bool done = !ElemwiseLessThan(curLoc, loopEnd);
-
-    if (srcBufStrides[ptr] == 1 && dstBufStrides[ptr] == 1) {
-        while (!done) {
-            MemCopy(&(dstBuf[dstBufPtr]), &(srcBuf[srcBufPtr]), loopEnd[ptr]);
-            curLoc[ptr] += loopEnd[ptr];
-            srcBufPtr += srcBufStrides[ptr] * (loopEnd[ptr]);
-            dstBufPtr += dstBufStrides[ptr] * (loopEnd[ptr]);
-
-            while (modePtr < order && curLoc[ptr] >= loopEnd[ptr]) {
-                curLoc[ptr] = 0;
-
-                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
-                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
-                modePtr++;
-                if (modePtr >= order) {
-                    done = true;
-                    break;
-                } else {
-                    ptr = modeOrder[modePtr];
-                    curLoc[ptr]++;
-                    dstBufPtr += dstBufStrides[ptr];
-                    srcBufPtr += srcBufStrides[ptr];
-                }
-            }
-            if (done)
-                break;
-            modePtr = 0;
-            ptr = modeOrder[0];
-        }
-    } else {
-        while (!done) {
-            dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-            //Update
-            curLoc[ptr]++;
-            dstBufPtr += dstBufStrides[ptr];
-            srcBufPtr += srcBufStrides[ptr];
-
-            while (modePtr < order && curLoc[ptr] >= loopEnd[ptr]) {
-                curLoc[ptr] = 0;
-
-                dstBufPtr -= dstBufStrides[ptr] * loopEnd[ptr];
-                srcBufPtr -= srcBufStrides[ptr] * loopEnd[ptr];
-                modePtr++;
-                if (modePtr >= order) {
-                    done = true;
-                    break;
-                } else {
-                    ptr = modeOrder[modePtr];
-                    curLoc[ptr]++;
-                    dstBufPtr += dstBufStrides[ptr];
-                    srcBufPtr += srcBufStrides[ptr];
-                }
-            }
-            if (done)
-                break;
-            modePtr = 0;
-            ptr = modeOrder[0];
-        }
-    }
-}
-
-template<typename T>
-void PackCommHelper(const PackData& packData, const Mode packMode, T const * const srcBuf, T * const dstBuf){
+void PackCommHelper(const PackData& packData, T const * const srcBuf, T * const dstBuf){
 #ifndef RELEASE
     CallStackEntry cse("PackCommHelper");
 #endif
@@ -255,11 +152,7 @@ void PackCommHelper(const PackData& packData, const Mode packMode, T const * con
     }
 
 //    PrintPackData(newData, "packData");
-#ifdef FASTPACK
-    FastPackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
-#else
-    PackCommHelper_fast(newData, packMode, srcBuf, dstBuf);
-#endif
+    PackCommHelper_fast(newData, srcBuf, dstBuf);
 
 //    PROFILE_STOP;
 }
@@ -285,7 +178,7 @@ void Permute(const Tensor<T>& A, Tensor<T>& B, const Permutation& perm){
     data.loopStarts = zeros;
     data.loopIncs = ones;
 
-    PackCommHelper(data, order - 1, &(srcBuf[0]), &(dstBuf[0]));
+    PackCommHelper(data, &(srcBuf[0]), &(dstBuf[0]));
 }
 
 ////////////////////////////////////

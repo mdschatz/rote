@@ -730,7 +730,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
     packData.loopStarts = zeros;
     packData.loopIncs = ones;
 
-    PackCommHelper(packData, order - 1, &(srcBuf[0]), &(thisBuf[0]));
+    PackCommHelper(packData, &(srcBuf[0]), &(thisBuf[0]));
 }
 
 template class Tensor<Int>;

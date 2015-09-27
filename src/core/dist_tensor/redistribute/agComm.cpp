@@ -117,7 +117,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   packData.loopStarts = zeros;
   packData.loopIncs = ones;
 
-  PackCommHelper(packData, order - 1, &(dataBuf[0]), &(sendBuf[0]));
+  PackCommHelper(packData, &(dataBuf[0]), &(sendBuf[0]));
 }
 
 #define PROTO(T) template class DistTensor<T>
