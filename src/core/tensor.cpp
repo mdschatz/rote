@@ -17,21 +17,11 @@ namespace tmen {
 
 template<typename T>
 void
-Tensor<T>::AssertValidDimensions( const ObjShape& shape ) const
-{
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertValidDimensions");
-#endif
-}
-
-template<typename T>
-void
 Tensor<T>::AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& strides ) const
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::AssertValidDimensions");
 #endif
-    AssertValidDimensions( shape );
     if(shape.size() != strides.size())
         LogicError("shape order must match strides order");
     if( !ElemwiseLessThan(shape, strides) )
@@ -55,8 +45,7 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
     {
         Unsigned i;
         std::ostringstream msg;
-        msg << "Out of bounds: "
-            << "(";
+        msg << "Out of bounds: (";
         if(order > 0)
             msg << loc[0];
         for(i = 1; i < loc.size(); i++)
@@ -87,22 +76,6 @@ Tensor<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
     }
 }
 
-template<typename T>
-void
-Tensor<T>::AssertSplittableModes(const ModeArray& oldModes, const std::vector<ObjShape>& newShape) const
-{
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertSplittableIndices");
-#endif
-
-    //NOTE: FIX THIS FOR SCALARS
-//    for(i = 0; i < oldModes.size(); i++){
-//        if(prod(newShape[i]) != Dimension(oldModes[i])){
-//            LogicError("newShape dimensions must be splittable from old mode dimension");
-//        }
-//    }
-}
-
 //
 // Constructors
 //
@@ -129,9 +102,7 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
-    AssertValidDimensions( shape );
 #endif
-    SetStrides(shape_);
     const Unsigned order = Order();
     Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
 
@@ -150,8 +121,6 @@ Tensor<T>::Tensor
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, strides );
 #endif
-    SetStrides(shape);
-    SetStrides(shape_);
     const Unsigned order = Order();
     Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
 
@@ -159,26 +128,6 @@ Tensor<T>::Tensor
     data_ = memory_.Buffer();
 }
 
-//NOTE: THIS IS A DUMMY CONSTRUCTOR. IT WILL BE REMOVED/MERGED
-template<typename T>
-Tensor<T>::Tensor
-( const ObjShape& shape, const std::vector<Unsigned>& strides, Unsigned check, bool fixed )
-: shape_(shape), strides_(strides),
-  viewType_( fixed ? OWNER_FIXED : OWNER )
-{
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor");
-//    AssertValidDimensions( shape, strides );
-#endif
-//    SetStrides(shape_);
-    const Unsigned order = Order();
-    Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
-
-    memory_.Require( numElem );
-    data_ = memory_.Buffer();
-}
-
-//TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
 ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides, bool fixed )
@@ -188,11 +137,10 @@ Tensor<T>::Tensor
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::Tensor");
-    AssertValidDimensions( shape, strides );
 #endif
+    //Nothing left to do
 }
 
-//TODO: Check for valid set of indices
 template<typename T>
 Tensor<T>::Tensor
 ( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides, bool fixed )
@@ -204,6 +152,7 @@ Tensor<T>::Tensor
     CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, strides );
 #endif
+    //Nothing left to do
 }
 
 template<typename T>
@@ -243,22 +192,6 @@ Tensor<T>::~Tensor()
 //
 // Basic information
 //
-
-template<typename T>
-void
-Tensor<T>::SetStrides(const ObjShape& shape)
-{
-  Unsigned i;
-  const Unsigned order = Order();
-  if(shape.size() != order){
-      LogicError("SetStrides requires that shape order matches object order");
-  }
-  if(order > 0){
-    strides_[0] = 1;
-    for(i = 1; i < order; i++)
-      strides_[i] = strides_[i-1]*shape[i-1];
-  }
-}
 
 template<typename T>
 Unsigned
@@ -440,9 +373,7 @@ template<typename T>
 const T&
 Tensor<T>::Get_( const Location& loc ) const
 { 
-    Unsigned linearOffset = LinearLocFromStrides(loc, strides_);
-//    printf("local linear Offset: %d\n", linearOffset);
-    return data_[linearOffset]; 
+    return data_[LinearLocFromStrides(loc, strides_)];
 }
 
 template<typename T>
@@ -451,8 +382,7 @@ Tensor<T>::Set_( const Location& loc )
 {
     // NOTE: This const_cast has been carefully considered and should be safe
     //       since the underlying data should be non-const if this is called.
-    Unsigned linearOffset = LinearLocFromStrides(loc, strides_);
-    return (const_cast<T*>(data_))[linearOffset];
+    return (const_cast<T*>(data_))[LinearLocFromStrides(loc, strides_)];
 }
 
 template<typename T>
@@ -491,70 +421,6 @@ Tensor<T>::Update( const Location& loc, T alpha )
 #endif
     Set_( loc ) += alpha;
 }
-
-//template<typename T>
-//void
-//Tensor<T>::GetDiagonal( Tensor<T>& d, Int offset ) const
-//{ 
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::GetDiagonal");
-//    if( d.Locked() )
-//        LogicError("d must not be a locked view");
-//#endif
-//    const Int diagLength = DiagonalLength(offset);
-//    d.ResizeTo( diagLength, 1 );
-//    if( offset >= 0 )
-//        for( Int j=0; j<diagLength; ++j )
-//            d.Set_( j, 0 ) = Get_(j,j+offset);
-//    else
-//        for( Int j=0; j<diagLength; ++j )
-//            d.Set_( j, 0 ) = Get_(j-offset,j);
-//}
-
-//template<typename T>
-//Tensor<T>
-//Tensor<T>::GetDiagonal( Int offset ) const
-//{ 
-//    Tensor<T> d;
-//    GetDiagonal( d, offset );
-//    return d;
-//}
-
-//template<typename T>
-//void
-//Tensor<T>::SetDiagonal( const Tensor<T>& d, Int offset )
-//{ 
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::SetDiagonal");
-//    if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
-//        LogicError("d is not a column-vector of the right length");
-//#endif
-//    const Int diagLength = DiagonalLength(offset);
-//    if( offset >= 0 )
-//        for( Int j=0; j<diagLength; ++j )
-//            Set_( j, j+offset ) = d.Get_(j,0);
-//    else
-//        for( Int j=0; j<diagLength; ++j )
-//            Set_( j-offset, j ) = d.Get_(j,0);
-//}
-//
-//template<typename T>
-//void
-//Tensor<T>::UpdateDiagonal( const Tensor<T>& d, Int offset )
-//{ 
-//#ifndef RELEASE
-//    CallStackEntry cse("Tensor::UpdateDiagonal");
-//    if( d.Height() != DiagonalLength(offset) || d.Width() != 1 )
-//        LogicError("d is not a column-vector of the right length");
-//#endif
-//    const Int diagLength = DiagonalLength(offset);
-//    if( offset >= 0 )
-//        for( Int j=0; j<diagLength; ++j )
-//            Set_( j, j+offset ) += d.Get(j,0);
-//    else
-//        for( Int j=0; j<diagLength; ++j )
-//            Set_( j-offset, j ) += d.Get(j,0);
-//}
 
 template<typename T>
 void
@@ -705,15 +571,8 @@ Tensor<T>::operator=( const Tensor<T>& A )
 #endif
     if( viewType_ == OWNER )
         ResizeTo( A );
-    //Only copy single element if we know this is a scalar
+
     CopyBuffer(A);
-//    if(Order() == 0){
-//        MemCopy(&(dst[0]), &(src[0]), 1);
-//    }
-//    //Otherwise check if 0 tensor
-//    else{
-//        MemCopy(&(dst[0]), &(src[0]), prod(shape_));
-//    }
 
     return *this;
 }
@@ -747,27 +606,23 @@ template<typename T>
 void
 Tensor<T>::ResizeTo_( const ObjShape& shape )
 {
-	std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
-
-	Unsigned curMaxElem;
-	if(shape_.size() == 0)
-		curMaxElem = 1;
-	else
-		curMaxElem = shape_[shape_.size() - 1] * strides_[strides_.size() - 1];
-
-	Unsigned newMaxElem;
-	if(shape.size() == 0)
-		newMaxElem = 1;
-	else
-		newMaxElem = shape[shape.size() - 1] * shapeStrides[shapeStrides.size() - 1];
-
-	shape_ = shape;
-	strides_ = Dimensions2Strides(shape);
-
-	if(shape.size() == 0 || (curMaxElem < newMaxElem)){
-		memory_.Require(Max(1,newMaxElem));
-		data_ = memory_.Buffer();
-	}
+	ResizeTo_(shape, Dimensions2Strides(shape));
+//
+//	Unsigned oldOrder = shape_.size();
+//	Unsigned curMaxElem = (oldOrder == 0) ? 1 : shape_[oldOrder - 1] * strides_[oldOrder - 1];
+//
+//	std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
+//	Unsigned newOrder = shape.size();
+//	Unsigned newMaxElem = (newOrder == 0) ? 1 : shape[newOrder - 1] * shapeStrides[newOrder - 1];
+//
+//	shape_ = shape;
+//	strides_ = shapeStrides;
+//
+//	//Guard has newOrder == 0 in case we resize scalar to scalar (ensures at least one data entry is created)
+//	if(newOrder == 0 || (curMaxElem < newMaxElem)){
+//		memory_.Require(Max(1,newMaxElem));
+//		data_ = memory_.Buffer();
+//	}
 }
 
 template<typename T>
@@ -776,7 +631,6 @@ Tensor<T>::ResizeTo( const Tensor<T>& A )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::ResizeTo(Tensor)");
-    AssertValidDimensions( A.Shape() );
 
     if ( FixedSize() && AnyElemwiseNotEqual(A.shape_, shape_) )
         LogicError("Cannot change the size of this tensor");
@@ -794,7 +648,6 @@ Tensor<T>::ResizeTo( const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry cse("Tensor::ResizeTo(dimensions)");
-    AssertValidDimensions( shape );
 
     if ( FixedSize() && AnyElemwiseNotEqual(shape, shape_) )
         LogicError("Cannot change the size of this tensor");
@@ -808,21 +661,17 @@ template<typename T>
 void
 Tensor<T>::ResizeTo_( const ObjShape& shape, const std::vector<Unsigned>& strides )
 {
-	Unsigned curMaxElem;
-	if(shape_.size() == 0)
-		curMaxElem = 1;
-	else
-		curMaxElem = shape_[shape_.size() - 1] * strides_[strides_.size() - 1];
+	Unsigned oldOrder = shape_.size();
+	Unsigned curMaxElem = (oldOrder == 0) ? 1 : shape_[oldOrder - 1] * strides_[oldOrder - 1];
 
-	Unsigned newMaxElem;
-	if(shape.size() == 0)
-		newMaxElem = 1;
-	else
-		newMaxElem = shape[shape.size() - 1] * strides[strides.size() - 1];
+	Unsigned newOrder = shape.size();
+	Unsigned newMaxElem = (newOrder == 0) ? 1 : shape[newOrder - 1] * strides[newOrder - 1];
 
 	shape_ = shape;
-	if(shape.size() == 0 || (curMaxElem < newMaxElem)){
-		strides_ = strides;
+	strides_ = strides;
+
+	//Guard has newOrder == 0 in case we resize scalar to scalar (ensures at least one data entry is created)
+	if(newOrder == 0 || (curMaxElem < newMaxElem)){
 		memory_.Require(Max(1,newMaxElem));
 		data_ = memory_.Buffer();
 	}
@@ -843,17 +692,8 @@ Tensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides
         LogicError("Cannot increase the size of this matrix");
 #endif
     shape_.resize(shape.size(), 0);
+    strides_.resize(strides.size(), 1);
     ResizeTo_( shape, strides );
-}
-
-template<typename T>
-Unsigned
-Tensor<T>::NumElem() const
-{
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::NumElem");
-#endif
-    return prod(shape_);
 }
 
 template<typename T>
@@ -881,12 +721,11 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
-    Permutation invPermSrc = DetermineInversePermutation(srcPerm);
-    Permutation invPermDst = DetermineInversePermutation(dstPerm);
+    Permutation out2inPerm = DeterminePermutation(dstPerm, srcPerm);
     PackData packData;
-    packData.loopShape = PermuteVector(A.Shape(), invPermSrc);
-    packData.srcBufStrides = PermuteVector(A.Strides(), invPermSrc);
-    packData.dstBufStrides = PermuteVector(Strides(), invPermDst);
+    packData.loopShape = A.Shape();
+	packData.srcBufStrides = A.Strides();
+    packData.dstBufStrides = PermuteVector(Strides(), out2inPerm);
 
     packData.loopStarts = zeros;
     packData.loopIncs = ones;

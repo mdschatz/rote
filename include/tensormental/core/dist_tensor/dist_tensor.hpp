@@ -219,8 +219,6 @@ public:
 
     void MakeConsistent();
 
-    Unsigned NumElem() const;
-    Unsigned NumLocalElem() const;
     void CopyLocalBuffer(const DistTensor<T>& A);
     //------------------------------------------------------------------------//
     // Overrides of AbstractDistTensor                                        //

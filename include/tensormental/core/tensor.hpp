@@ -26,11 +26,9 @@ public:
     // Assertions
     //
     
-    void AssertValidDimensions( const ObjShape& shape ) const;
     void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& strides ) const;
     void AssertValidEntry( const Location& loc ) const;
     void AssertMergeableModes( const std::vector<ModeArray>& oldModes ) const;
-    void AssertSplittableModes( const ModeArray& oldModes, const std::vector<ObjShape>& newShape) const;
     
     //
     // Constructors
@@ -40,7 +38,6 @@ public:
     Tensor( const Unsigned order, bool fixed = false);
     Tensor( const ObjShape& shape, bool fixed=false );
     Tensor( const ObjShape& shape, const std::vector<Unsigned>& strides, bool fixed=false );
-    Tensor( const ObjShape& shape, const std::vector<Unsigned>& strides, Unsigned check, bool fixed=false );
     Tensor
     ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides, bool fixed=false );
     Tensor( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides, bool fixed=false );
@@ -158,7 +155,6 @@ public:
     void ResizeTo( const ObjShape& shape );
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
-    Unsigned NumElem() const;
     void CopyBuffer(const Tensor& A);
     void CopyBuffer(const Tensor& A, const Permutation& srcPerm, const Permutation& dstPerm);
 
@@ -175,8 +171,6 @@ private:
 
     const T& Get_( const Location& loc ) const;
     T& Set_( const Location& loc );
-
-    void SetStrides(const ObjShape& shape);
 
     // These bypass fixed-size checking and are used by DistTensor
     void Empty_();

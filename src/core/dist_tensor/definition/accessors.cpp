@@ -335,26 +335,6 @@ DistTensor<T>::GetParticipatingComm() const
 { return participatingComm_; }
 
 template<typename T>
-Unsigned
-DistTensor<T>::NumElem() const
-{
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::NumElem");
-#endif
-    return prod(shape_);
-}
-
-template<typename T>
-Unsigned
-DistTensor<T>::NumLocalElem() const
-{
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::NumLocalElem");
-#endif
-    return tensor_.NumElem();
-}
-
-template<typename T>
 Permutation
 DistTensor<T>::LocalPermutation() const
 {
