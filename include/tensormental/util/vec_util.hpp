@@ -18,6 +18,12 @@
 namespace tmen {
 
 template<typename T>
+T sum(const std::vector<T>& a, const Unsigned startIndex = 0);
+
+template<typename T>
+T sum(const std::vector<T>& a, const Unsigned startIndex, const Unsigned nElem);
+
+template<typename T>
 T prod(const std::vector<T>& a, const Unsigned startIndex = 0);
 
 template<typename T>

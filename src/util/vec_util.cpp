@@ -8,6 +8,20 @@
 namespace tmen{
 
 template<typename T>
+T sum(const std::vector<T>& src, const Unsigned startIndex){
+  if (src.size() == 0)
+    return 0;
+  return std::accumulate(src.begin() + startIndex, src.end(), T(0), std::plus<T>());
+}
+
+template<typename T>
+T sum(const std::vector<T>& src, const Unsigned startIndex, const Unsigned nElem){
+  if (src.size() == 0)
+    return 0;
+  return std::accumulate(src.begin() + startIndex, src.begin() + nElem, T(0), std::plus<T>());
+}
+
+template<typename T>
 T prod(const std::vector<T>& src, const Unsigned startIndex){
   if (src.size() == 0)
     return 0;
@@ -345,6 +359,8 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
+	template T sum(const std::vector<T>& src, const Unsigned startIndex); \
+	template T sum(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template T prod(const std::vector<T>& src, const Unsigned startIndex); \
     template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \

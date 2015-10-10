@@ -37,6 +37,25 @@ typedef std::vector<Unsigned> Permutation;
 //Redistribution enum
 enum RedistType {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
 
+//Structs for performing general redistributions
+struct RedistInfo
+{
+	RedistType redistType;
+	TensorDistribution dist;
+	ModeArray modes;
+};
+
+struct GenRedistData
+{
+	ModeArray gridModesAppeared;
+	ModeArray gridModesAppearedSinks;
+	ModeArray gridModesRemoved;
+	ModeArray gridModesRemovedSrcs;
+	ModeArray gridModesMoved;
+	ModeArray gridModesMovedSrcs;
+	ModeArray gridModesMovedSinks;
+};
+
 //Pack data structs
 struct PackData
 {

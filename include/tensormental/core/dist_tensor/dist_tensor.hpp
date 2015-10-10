@@ -234,6 +234,23 @@ public:
     tmen::DistData DistData() const;
 
     //
+    // Redist workhorse routines
+    //
+//    bool CheckAllToAllCommRedist(const DistTensor<T>& A);
+    void CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
+    GenRedistData CreateGenRedistData(const TensorDistribution& startDist, const TensorDistribution& endDist);
+    void CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
+    void CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
+    void CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
+    void CommRedistRemove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
+
+    //
+    // Redist interface routines
+    //
+    void RedistFrom(const DistTensor<T>& A);
+
+
+    //
     // All-to-all workhorse routines
     //
     bool CheckAllToAllCommRedist(const DistTensor<T>& A);
