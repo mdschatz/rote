@@ -27,12 +27,14 @@ void RunTest(const Grid& g, const char* outDist, const char* inDist){
 	ObjShape tenShape(tenOrder);
 
 	for(i = 0; i < tenOrder; i++)
-		tenShape[i] = 4;
+		tenShape[i] = 2;
 
 	DistTensor<double> A(tenShape, inDist, g);
+	MakeUniform(A);
 	DistTensor<double> B(tenShape, outDist, g);
 
 	B.RedistFrom(A);
+
 }
 
 int

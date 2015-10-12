@@ -121,6 +121,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A){
     PROFILE_SECTION("Redist");
     ResizeTo(A);
 
+    const tmen::Grid& g = Grid();
     Unsigned i;
     std::vector<RedistInfo> intermediateDists;
     GenRedistData redistData = CreateGenRedistData(A.TensorDist(), TensorDist());
@@ -143,6 +144,38 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A){
 			PrintVector(redistInfo.modes, "");
 		}
     }
+
+    DistTensor<T> tmp(A.TensorDist(), g);
+    tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
+
+
+    for(i = 0; i < intermediateDists.size() - 1; i++){
+    	RedistInfo intRedist = intermediateDists[i];
+    	DistTensor<T> tmp2(intRedist.dist, g);
+
+    	switch(intRedist.redistType){
+    	case AG: tmp2.AllGatherRedistFrom(tmp, intRedist.modes); break;
+    	case A2A: tmp2.AllToAllRedistFrom(tmp, intRedist.modes); break;
+    	case Perm: tmp2.PermutationRedistFrom(tmp, intRedist.modes); break;
+    	case Local: tmp2.LocalRedistFrom(tmp); break;
+    	default: break;
+    	}
+    	tmp.Empty();
+    	tmp.SetDistribution(tmp2.TensorDist());
+    	tmp = tmp2;
+    }
+
+	RedistInfo lastRedist = intermediateDists[intermediateDists.size() - 1];
+	switch(lastRedist.redistType){
+	case AG: AllGatherRedistFrom(tmp, lastRedist.modes); break;
+	case A2A: AllToAllRedistFrom(tmp, lastRedist.modes); break;
+	case Perm: PermutationRedistFrom(tmp, lastRedist.modes); break;
+	case Local: LocalRedistFrom(tmp); break;
+	default: break;
+	}
+
+	Print(A, "input");
+	Print(*this, "output");
     PROFILE_STOP;
 }
 
