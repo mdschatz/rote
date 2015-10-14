@@ -11,5 +11,6 @@
 #define TMEN_BTAS_LEVELT_HPP
 
 #include "./levelT/Contract.hpp"
+#include "./levelT/GenContract.hpp"
 
 #endif // ifndef TMEN_BTAS_LEVELT_HPP
