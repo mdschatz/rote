@@ -47,6 +47,7 @@ struct RedistInfo
 
 struct GenRedistData
 {
+	ModeArray gridModesReduced;
 	ModeArray gridModesAppeared;
 	ModeArray gridModesAppearedSinks;
 	ModeArray gridModesRemoved;

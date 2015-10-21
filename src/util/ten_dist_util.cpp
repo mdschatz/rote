@@ -190,4 +190,42 @@ bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape){
     return true;
 }
 
+ModeArray GetBoundGridModes(const TensorDistribution& tenDist, const ModeArray& tenModes){
+	Unsigned i;
+	ModeArray ret;
+	for(i = 0; i < tenModes.size(); i++){
+		ModeDistribution modeDist = tenDist[tenModes[i]];
+		ret.insert(ret.end(), modeDist.begin(), modeDist.end());
+	}
+	return ret;
+}
+
+//TODO: Figure out how to get DefaultPermutation
+ModeArray GetBoundGridModes(const TensorDistribution& tenDist){
+	Unsigned i;
+	ModeArray allModes(tenDist.size());
+	for(i = 0; i < tenDist.size(); i++)
+		allModes[i] = i;
+	return GetBoundGridModes(tenDist, allModes);
+}
+
+//TODO: Error checking
+ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist){
+	Unsigned i;
+	ModeArray ret(gridModes.size());
+	for(i = 0; i < gridModes.size(); i++)
+		ret[i] = GetModeDistOfGridMode(gridModes[i], tenDist);
+	return ret;
+}
+
+Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist){
+	Unsigned i;
+	for(i = 0; i < tenDist.size(); i++){
+		ModeDistribution modeDist = tenDist[i];
+		if(std::find(modeDist.begin(), modeDist.end(), mode) != modeDist.end())
+			break;
+	}
+	return i;
+}
+
 }

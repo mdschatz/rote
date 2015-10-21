@@ -89,17 +89,17 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
   PROTO(T);
 
 
-FULL(Int);
+FULL(Int)
 #ifndef DISABLE_FLOAT
-FULL(float);
+FULL(float)
 #endif
-FULL(double);
+FULL(double)
 
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-FULL(std::complex<float>);
+FULL(std::complex<float>)
 #endif
-FULL(std::complex<double>);
+FULL(std::complex<double>)
 #endif
 
 } //namespace tmen

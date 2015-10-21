@@ -33,6 +33,14 @@ bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistributio
 
 bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape);
 
+ModeArray GetBoundGridModes(const TensorDistribution& tenDist, const ModeArray& tenModes);
+
+ModeArray GetBoundGridModes(const TensorDistribution& tenDist);
+
+ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist);
+
+Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_UTIL_TENDISTUTIL_HPP

@@ -356,6 +356,20 @@ Permutation DetermineInversePermutation(const Permutation& perm){
     return DeterminePermutation(perm, basePerm);
 }
 
+template<typename T>
+std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2){
+	Unsigned i;
+	std::vector<T> ret = vec1;
+	for(i = 0; i < vec2.size(); i++)
+		ret.erase(std::remove(ret.begin(), ret.end(), vec2[i]), ret.end());
+	return ret;
+}
+
+template<typename T>
+void SortVector(std::vector<T>& vec1){
+	std::sort(vec1.begin(), vec1.end());
+}
+
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
@@ -392,7 +406,9 @@ Permutation DetermineInversePermutation(const Permutation& perm){
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template T Min(const std::vector<T>& vec); \
 	template T Max(const std::vector<T>& vec); \
-    template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
+    template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec); \
+    template std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template void SortVector(std::vector<T>& vec1);
 
 PROTO(Unsigned)
 PROTO(Int)

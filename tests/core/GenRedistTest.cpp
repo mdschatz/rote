@@ -11,93 +11,30 @@
 
 using namespace tmen;
 
-typedef struct ArgumentsGenRedist{
-  Unsigned nProcs;
-  ObjShape gridShape;
-  Unsigned mdim;
-  Unsigned kdim;
-  Unsigned ndim;
-} ParamsGenRedist;
-
 void Usage(){
-    std::cout << "./GenRedistTest <gridDim0> <gridDim1> <gridDim2> <gridDim3> <\"m\"-dim> <\"k\"-dim> <\"n\"-dim>\n";
-    std::cout << "<gridDimK>   : dimension of mode-K of grid\n";
-    std::cout << "<\"m\"-dim>  : dimension of \"m\" modes of tensor\n";
-    std::cout << "<\"k\"-dim>  : dimension of \"k\" modes of tensor\n";
-    std::cout << "<\"n\"-dim>  : dimension of \"n\" modes of tensor\n";
+    std::cout << "./RedistCheckTest\n";
 }
 
-void ProcessInput(Unsigned argc,  char** const argv, Params& args){
-    Unsigned i;
-    Unsigned argCount = 0;
+void RunTest(const Grid& g, const char* outDist, const char* inDist){
+	mpi::Comm comm = mpi::COMM_WORLD;
+	const Int commRank = mpi::CommRank( comm );
+	if(commRank == 0){
+		std::cout << outDist << " <-- " << inDist
+				  << std::endl;
+	}
+	Unsigned i;
+	Unsigned tenOrder = 4;
+	ObjShape tenShape(tenOrder);
 
-    Unsigned gridOrder = 4;
+	for(i = 0; i < tenOrder; i++)
+		tenShape[i] = 2;
 
-    if(argCount + gridOrder >= argc){
-        std::cerr << "Missing required grid dimensions\n";
-        Usage();
-        throw ArgException();
-    }
+	DistTensor<double> A(tenShape, inDist, g);
+	MakeUniform(A);
+	DistTensor<double> B(tenShape, outDist, g);
 
-    args.gridShape.resize(gridOrder);
-    for(Unsigned i = 0; i < gridOrder; i++){
-        int gridDim = atoi(argv[++argCount]);
-        if(gridDim <= 0){
-            std::cerr << "Grid dim must be greater than 0\n";
-            Usage();
-            throw ArgException();
-        }
-        args.gridShape[i] = gridDim;
-    }
-    args.nProcs = tmen::prod(args.gridShape);
+	B.RedistFrom(A);
 
-    if(argCount + 3 >= argc){
-        std::cerr << "Missing required tensor dimensions\n";
-        Usage();
-        throw ArgException();
-    }
-
-    args.mdim = atoi(argv[++argCount]);
-    args.kdim = atoi(argv[++argCount]);
-    args.ndim = atoi(argv[++argCount]);
-}
-
-template<typename T>
-void
-PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
-
-    Unsigned i;
-    Unsigned order = A.Order();
-
-    const ObjShape shape = A.Shape();
-
-    Permutation defaultPerm = DefaultPermutation(order);
-
-    DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
-
-    for(i = 0; i < order; i++){
-        Mode mode = i;
-        printf("Iterating over mode: %d\n", mode);
-
-        A1.AlignWith(A);
-        PartitionDown(A, AT, AB, mode, 0);
-
-        while(AT.Dimension(mode) < A.Dimension(mode)){
-            RepartitionDown(AT,   A0,
-                                  A1,
-                           /**/  /**/
-                            AB,   A2, mode, 1);
-            /////////////////////////////////
-            A1.SetLocalPermutation(defaultPerm);
-            Print(A1, "A1before");
-            DistTensorTest<T>(A1, args, g);
-            /////////////////////////////////
-            SlidePartitionDown(AT,  A0,
-                                    A1,
-                              /**/ /**/
-                               AB,  A2, mode);
-        }
-    }
 }
 
 int
@@ -111,34 +48,17 @@ main( int argc, char* argv[] )
     printf("My Rank: %d\n", commRank);
     try
     {
-        Params args;
+    	Unsigned gridOrder = 10;
+    	ObjShape gridShape(gridOrder);
+    	gridShape[0] = 3;
+    	gridShape[1] = 2;
+    	gridShape[2] = 2;
+    	gridShape[3] = 3;
+    	for(i = 4; i < gridOrder; i++)
+    		gridShape[i] = 1;
 
-        ProcessInput(argc, argv, args);
-
-        if(commRank == 0 && args.nProcs != ((Unsigned)commSize)){
-            std::cerr << "program not started with correct number of processes\n";
-            Usage();
-            throw ArgException();
-        }
-
-        if(commRank == 0){
-        	PrintVector(args.gridShape, "Creating grid");
-        	PrintVector(args.tensorShape, "Creating tensor");
-        }
-
-        const Grid g( comm, args.gridShape );
-
-        PrintVector(g.Loc(), "gridLoc");
-        if( commRank == 0 )
-        {
-            std::cout << "------------------" << std::endl
-                      << "Testing with ints:" << std::endl
-                      << "------------------" << std::endl;
-        }
-
-        std::vector<RedistType> redistsToTest = {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
-//        std::vector<RedistType> redistsToTest = {Local};
-        DistTensorTest<int>(redistsToTest, args, g);
+    	const Grid g(comm, gridShape);
+        RunTest(g, "[(3),(2,0),(4),(1)]", "[(0),(1,3),(4),(2)]");
     }
     catch( std::exception& e ) { ReportException(e); }
 

@@ -129,6 +129,12 @@ Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>
 
 Permutation DetermineInversePermutation(const Permutation& perm);
 
+template<typename T>
+std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
+void SortVector(std::vector<T>& vec1);
+
 } // namespace tmen
 
 #endif // ifndef TMEN_UTIL_VECUTIL_HPP
