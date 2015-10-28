@@ -15,9 +15,10 @@ template <typename T>
 void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
 	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	Unsigned i, j, k, l;
+	const tmen::Grid& g = C.Grid();
 	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
-	PrintVector(indicesT, "indicesT");
+//	PrintVector(indicesT, "indicesT");
 	ModeArray reduceModes;
 	for(i = 0; i < contractIndices.size(); i++){
 		reduceModes.push_back(C.Order() + i);
@@ -48,57 +49,78 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 
 	//Setup temp distT
 	for(i = 0; i < indicesT.size(); i++){
-		Index indexToFind = indicesT[i];
-		for(j = 0; j < indicesA.size(); j++){
-			if(indicesA[j] == indexToFind){
-				distT[i] = distA[j];
-				break;
-			}
-		}
-		if(j == indicesA.size()){
-			distT[i] = blank;
-		}
+		int index = IndexOf(indicesA, indicesT[i]);
+		distT[i] = (index >= 0) ? distA[index] : blank;
 	}
 	distT[indicesC.size() + contractIndices.size()] = distA[A.Order()];
 
+	ObjShape shapeT = C.Shape();
+	for(i = indicesC.size(); i < indicesT.size(); i++){
+		shapeT.push_back(prod(FilterVector(g.Shape(), distT[i])));
+	}
+
 	//Setup temp distIntC
-	TensorDistribution distIntC(distT.begin(), distT.end() - contractIndices.size());
+	const tmen::GridView gvC = C.GetGridView();
+	TensorDistribution distIntC(distC.size());
+	for(i = 0; i < C.Order(); i++)
+		distIntC[i] = distT[i];
+//	std::cout << "initDistC: " << tmen::TensorDistToString(distIntC) << std::endl;
+	ModeArray commModes;
 	for(i = 0; i < contractIndices.size(); i++){
-		ModeDistribution reduceModeDist = distT[distT.size() - 1 - i];
-
-		for(j = 0; j < reduceModeDist.size(); j++){
-			Mode reduceMode = reduceModeDist[j];
-
-			for(k = 0; k < distC.size(); k++){
-				ModeDistribution distCModeDist = distC[k];
-				for(l = 0; l < distCModeDist.size(); l++){
-					if(distCModeDist[l] == reduceMode){
-						distIntC[k].push_back(reduceMode);
-					}
-				}
+		commModes = ConcatenateVectors(commModes, distT[C.Order() + i]);
+	}
+	ModeArray unboundModes = DiffVector(commModes, gvC.BoundModes());
+	ModeArray boundModes = DiffVector(commModes, unboundModes);
+//	PrintVector(commModes, "commModes");
+//	PrintVector(unboundModes, "unboundModes");
+//	PrintVector(boundModes, "boundModes");
+	for(i = 0; i < boundModes.size(); i++){
+		Mode boundMode = boundModes[i];
+		for(j = 0; j < distC.size(); j++){
+			if(Contains(distC[j], boundMode)){
+				distIntC[j].push_back(boundMode);
+				break;
 			}
 		}
 	}
-
+//	std::cout << "after bound: " << tmen::TensorDistToString(distIntC) << std::endl;
+	distIntC[C.Order() - 1] = ConcatenateVectors(distIntC[C.Order() - 1], unboundModes);
+//	std::cout << "after unbound: " << tmen::TensorDistToString(distIntC) << std::endl;
 	distIntC[C.Order()] = distA[A.Order()];
-
-	if(commRank == 0){
-		std::cout << "intB: " << TensorDistToString(distIntB) << std::endl;
-		std::cout << "intT: " << TensorDistToString(distT) << std::endl;
-		std::cout << "intC: " << TensorDistToString(distIntC) << std::endl;
-	}
 
 	//Perform the computation
 	DistTensor<T> intB(distIntB, B.Grid());
-	DistTensor<T> intT(distT, C.Grid());
-	DistTensor<T> intC(distIntC, C.Grid());
+	DistTensor<T> intT(shapeT, distT, C.Grid());
+	DistTensor<T> intC(C.Shape(), distIntC, C.Grid());
 
 	intB.RedistFrom(B);
-	Print(intT, "intTbefore");
-	LocalContract(alpha, A.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, beta, intT.Tensor(), indicesC);
+//	PrintVector(indicesA, "indicesA");
+	mpi::Barrier(MPI_COMM_WORLD);
+//	if(commRank == 0)
+		PrintData(A, "Abefore");
+	Print(A, "Adata");
+//	PrintVector(indicesB, "indicesB");
+//	if(commRank == 0)
+		PrintData(intB, "intBbefore");
+	Print(B, "Bdata");
+//	PrintVector(indicesT, "indicesT");
+//	if(commRank == 0)
+		PrintData(intT, "intTbefore");
+	Print(intT, "intTdata");
+	Print(A.LockedTensor(), "localA");
+	Print(intB.LockedTensor(), "localB");
+	Print(intT.LockedTensor(), "localT");
+
+	LocalContract(alpha, A.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, T(0), intT.Tensor(), indicesT);
 	Print(intT, "intTafter");
 
+	std::cout << "intTDist: " << tmen::TensorDistToString(intT.TensorDist()) << std::endl;
+	std::cout << "intCDist: " << tmen::TensorDistToString(intC.TensorDist()) << std::endl;
+	std::cout << "CDist: " << tmen::TensorDistToString(C.TensorDist()) << std::endl;
+
+//	PrintVector(reduceModes, "reduceModes");
 	intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, reduceModes);
+	Print(intC, "intC");
 	C.RedistFrom(intC);
 }
 
@@ -146,19 +168,19 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	}
 	distIntB[B.Order()] = distC[C.Order()];
 
-	if(commRank == 0){
-		std::cout << "intA: " << TensorDistToString(distIntA) << std::endl;
-		std::cout << "intB: " << TensorDistToString(distIntB) << std::endl;
-	}
+//	if(commRank == 0){
+//		std::cout << "intA: " << TensorDistToString(distIntA) << std::endl;
+//		std::cout << "intB: " << TensorDistToString(distIntB) << std::endl;
+//	}
 	//Perform the computation
 	DistTensor<T> intA(distIntA, A.Grid());
 	DistTensor<T> intB(distIntB, B.Grid());
 
 	intA.RedistFrom(A);
 	intB.RedistFrom(B);
-	Print(C, "Cbefore");
+//	Print(C, "Cbefore");
 	LocalContractAndLocalEliminate(alpha, intA.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, beta, C.Tensor(), indicesC);
-	Print(C, "After");
+//	Print(C, "After");
 }
 
 //TODO: Handle updates
@@ -171,13 +193,13 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
 
     if(numElemA > numElemB && numElemA > numElemC){
     	//Stationary A variant
-    	printf("StatA\n");
+//    	printf("StatA\n");
     	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }else if(numElemB > numElemA && numElemB > numElemC){
     	//Stationary B variant
     	//ContractStatB(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }else{
-    	printf("StatC\n");
+//    	printf("StatC\n");
     	//Stationary C variant
     	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }

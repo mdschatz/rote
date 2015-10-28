@@ -107,7 +107,13 @@ template<typename T>
 bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+std::vector<T> GetSuffix_(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
 std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
+std::vector<T> Unique(const std::vector<T>& vec);
 
 template<typename T>
 bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2);

@@ -312,10 +312,19 @@ int IndexOf(const std::vector<T>& vec, const T& val){
 	for(i = 0; i < vec.size(); i++)
 		if(vec[i] == val)
 			return i;
+	return ret;
 }
 
 template<typename T>
-std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2){
+std::vector<T> Unique(const std::vector<T>& vec){
+	std::vector<T> ret = vec;
+	SortVector(ret);
+	ret.erase(std::unique(ret.begin(), ret.end()), ret.end());
+	return ret;
+}
+
+template<typename T>
+std::vector<T> GetSuffix_(const std::vector<T>& vec1, const std::vector<T>& vec2){
 	Unsigned i = 0;
     std::vector<T> ret;
     if(vec1.size() != 0){
@@ -326,6 +335,13 @@ std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2)
     ret.insert(ret.end(), vec2.begin() + i, vec2.end());
 
     return ret;
+}
+
+template<typename T>
+std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2){
+	if(vec1.size() <= vec2.size())
+		return GetSuffix_(vec1, vec2);
+	return GetSuffix(vec2, vec1);
 }
 
 template<typename T>
@@ -418,6 +434,8 @@ void SortVector(std::vector<T>& vec1){
 	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template int  IndexOf(const std::vector<T>& vec, const T& val); \
 	template bool Contains(const std::vector<T>& vec, const T& val); \
+	template std::vector<T> Unique(const std::vector<T>& vec); \
+	template std::vector<T> GetSuffix_(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template T Min(const std::vector<T>& vec); \

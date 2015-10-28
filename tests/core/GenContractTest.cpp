@@ -254,9 +254,9 @@ void RunTest(const Grid& g, const Params& args){
 	Set(B);
 	Set(C);
 
-	Print(C, "Cstart");
+//	Print(C, "Cstart");
 	GenContract(1.0, A, args.indicesA, B, args.indicesB, 1.0, C, args.indicesC);
-	Print(C, "Cdone");
+//	Print(C, "Cdone");
 
 	TensorDistribution distFinalC = args.distC;
 	for(i = 0; i < C.Order(); i++){
@@ -266,7 +266,7 @@ void RunTest(const Grid& g, const Params& args){
 	DistTensor<double> finalC(shapeC, distFinalC, g);
 	finalC.RedistFrom(C);
 
-	Print(finalC, "final");
+//	Print(finalC, "final");
 	if(commRank == 0){
 		Tensor<double> checkA(shapeA);
 		Tensor<double> checkB(shapeB);
@@ -301,9 +301,9 @@ main( int argc, char* argv[] )
     	Unsigned gridOrder = 10;
     	ObjShape gridShape(gridOrder);
     	gridShape[0] = 1;
-    	gridShape[1] = 1;
+    	gridShape[1] = 2;
     	gridShape[2] = 1;
-    	gridShape[3] = 1;
+    	gridShape[3] = 2;
     	for(i = 4; i < gridOrder; i++)
     		gridShape[i] = 1;
 

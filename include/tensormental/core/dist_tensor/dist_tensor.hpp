@@ -239,7 +239,7 @@ public:
 //    bool CheckAllToAllCommRedist(const DistTensor<T>& A);
     void CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
     GenRedistData CreateGenRedistData(const TensorDistribution& startDist, const TensorDistribution& endDist, const ModeArray& reduceModes = ModeArray());
-    void CommRedistRS(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
+    void CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
     void CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
     void CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
     void CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
