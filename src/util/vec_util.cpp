@@ -301,6 +301,20 @@ bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2){
 }
 
 template<typename T>
+bool Contains(const std::vector<T>& vec, const T& val){
+	return std::find(vec.begin(), vec.end(), val) != vec.end();
+}
+
+template<typename T>
+int IndexOf(const std::vector<T>& vec, const T& val){
+	Unsigned i;
+	int ret = -1;
+	for(i = 0; i < vec.size(); i++)
+		if(vec[i] == val)
+			return i;
+}
+
+template<typename T>
 std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2){
 	Unsigned i = 0;
     std::vector<T> ret;
@@ -402,6 +416,8 @@ void SortVector(std::vector<T>& vec1){
 	template bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+	template int  IndexOf(const std::vector<T>& vec, const T& val); \
+	template bool Contains(const std::vector<T>& vec, const T& val); \
 	template std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template T Min(const std::vector<T>& vec); \

@@ -116,6 +116,12 @@ template<typename T>
 bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
+bool Contains(const std::vector<T>& vec, const T& val);
+
+template<typename T>
+int IndexOf(const std::vector<T>& vec, const T& val);
+
+template<typename T>
 T Min(const std::vector<T>& vec);
 
 template<typename T>
