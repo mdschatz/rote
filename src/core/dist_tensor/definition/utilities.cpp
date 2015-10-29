@@ -7,7 +7,6 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "tensormental.hpp"
-#include "tensormental/util/graph_util.hpp"
 namespace tmen {
 
 template<typename T>
