@@ -26,11 +26,9 @@ void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArra
     TensorDistribution distA = A.TensorDist();
     TensorDistribution distB = TensorDist();
     for(i = 0; i < A.Order(); i++){
-    	PrintVector(GetSuffix(distA[i], distB[i]), "new suffix");
     	commModes = ConcatenateVectors(commModes, GetSuffix(distA[i], distB[i]));
-    	PrintVector(commModes, "new commModes");
     }
-//    ModeArray commModes = redistModes;
+
     commModes = Unique(commModes);
     PermutationCommRedist(A, commModes);
     PROFILE_STOP;

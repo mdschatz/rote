@@ -211,11 +211,11 @@ void RunTest(const Grid& g, const Params& args){
 	mpi::Comm comm = mpi::COMM_WORLD;
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0){
-		std::cout << tmen::TensorDistToString(args.distA) << " ";
+		std::cout << "A" << tmen::TensorDistToString(args.distA) << " ";
 		PrintVector(args.indicesA);
-		std::cout << tmen::TensorDistToString(args.distB) << " ";
+		std::cout << "B" << tmen::TensorDistToString(args.distB) << " ";
 		PrintVector(args.indicesB);
-		std::cout << tmen::TensorDistToString(args.distC) << " ";
+		std::cout << "C" << tmen::TensorDistToString(args.distC) << " ";
 		PrintVector(args.indicesC);
 	}
 
@@ -247,16 +247,12 @@ void RunTest(const Grid& g, const Params& args){
 	DistTensor<double> A(shapeA, args.distA, g);
 	DistTensor<double> B(shapeB, args.distB, g);
 	DistTensor<double> C(shapeC, args.distC, g);
-	PrintData(A, "AData");
-	PrintData(B, "BData");
-	PrintData(C, "CData");
+
 	Set(A);
 	Set(B);
 	Set(C);
 
-//	Print(C, "Cstart");
 	GenContract(1.0, A, args.indicesA, B, args.indicesB, 1.0, C, args.indicesC);
-//	Print(C, "Cdone");
 
 	TensorDistribution distFinalC = args.distC;
 	for(i = 0; i < C.Order(); i++){
@@ -266,7 +262,6 @@ void RunTest(const Grid& g, const Params& args){
 	DistTensor<double> finalC(shapeC, distFinalC, g);
 	finalC.RedistFrom(C);
 
-//	Print(finalC, "final");
 	if(commRank == 0){
 		Tensor<double> checkA(shapeA);
 		Tensor<double> checkB(shapeB);
@@ -276,7 +271,6 @@ void RunTest(const Grid& g, const Params& args){
 		Set(checkC);
 
 		LocalContractAndLocalEliminate((double)(1.0), checkA, args.indicesA, checkB, args.indicesB, (double)(1.0), checkC, args.indicesC);
-		Print(checkC, "check");
 		double norm;
 		Tensor<double> diff;
 		Diff(finalC.Tensor(), checkC, diff);
@@ -300,9 +294,9 @@ main( int argc, char* argv[] )
     {
     	Unsigned gridOrder = 10;
     	ObjShape gridShape(gridOrder);
-    	gridShape[0] = 1;
+    	gridShape[0] = 3;
     	gridShape[1] = 2;
-    	gridShape[2] = 1;
+    	gridShape[2] = 3;
     	gridShape[3] = 2;
     	for(i = 4; i < gridOrder; i++)
     		gridShape[i] = 1;

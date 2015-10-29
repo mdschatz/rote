@@ -72,7 +72,7 @@ GenRedistData DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenDi
 
 template <typename T>
 void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
+//	int commRank = mpi::CommRank(MPI_COMM_WORLD);
     PROFILE_SECTION("Redist");
     ResizeTo(A);
 
@@ -83,41 +83,32 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 
     CommRedist(TensorDist(), A.TensorDist(), redistData, intermediateDists);
 
-    if(commRank == 0){
-		printf("plan created\n");
-		std::cout << "start dist: " << TensorDistToString(A.TensorDist()) << std::endl;
-		for(i = 0; i < intermediateDists.size(); i++){
-			RedistInfo redistInfo = intermediateDists[i];
-			std::cout << "int dist: (";
-			switch(redistInfo.redistType){
-			case AG: std::cout << "AG"; break;
-			case A2A: std::cout << "A2A"; break;
-			case Perm: std::cout << "P2P"; break;
-			case Local: std::cout << "Local"; break;
-			default: break;
-			}
-			std::cout << ") " << TensorDistToString(redistInfo.dist) << " ";
-			PrintVector(redistInfo.modes, "");
-		}
-		std::cout << "final dist: " << TensorDistToString(TensorDist()) << std::endl;
-    }
+//    if(commRank == 0){
+//		printf("plan created\n");
+//		std::cout << "start dist: " << TensorDistToString(A.TensorDist()) << std::endl;
+//		for(i = 0; i < intermediateDists.size(); i++){
+//			RedistInfo redistInfo = intermediateDists[i];
+//			std::cout << "int dist: (";
+//			switch(redistInfo.redistType){
+//			case AG: std::cout << "AG"; break;
+//			case A2A: std::cout << "A2A"; break;
+//			case Perm: std::cout << "P2P"; break;
+//			case Local: std::cout << "Local"; break;
+//			default: break;
+//			}
+//			std::cout << ") " << TensorDistToString(redistInfo.dist) << " ";
+//			PrintVector(redistInfo.modes, "");
+//		}
+//		std::cout << "final dist: " << TensorDistToString(TensorDist()) << std::endl;
+//    }
 
     DistTensor<T> tmp(A.TensorDist(), g);
     tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
-
-	Print(A, "input");
-	Print(A.LockedTensor(), "inputlocal");
 
     for(i = 0; i < intermediateDists.size() - 1; i++){
     	RedistInfo intRedist = intermediateDists[i];
     	DistTensor<T> tmp2(intRedist.dist, g);
 
-    	if(i == 2){
-			printf("iter\n");
-			PrintData(tmp, "tmpData");
-			Print(tmp, "tmp");
-			Print(tmp.LockedTensor(), "tmpLocal");
-    	}
     	switch(intRedist.redistType){
     	case AG: tmp2.AllGatherRedistFrom(tmp, intRedist.modes); break;
     	case A2A: tmp2.AllToAllRedistFrom(tmp, intRedist.modes); break;
@@ -125,11 +116,6 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	case Local: tmp2.LocalRedistFrom(tmp); break;
 //    	case RS: tmp2.ReduceScatterUpdateRedistFrom(tmp, lastRedist.reduceModes); break;
     	default: break;
-    	}
-    	if(i == 2){
-			PrintData(tmp2, "tmp2Data");
-			Print(tmp2, "tmp2");
-			Print(tmp2.LockedTensor(), "tmp2Local");
     	}
     	tmp.Empty();
     	tmp.SetDistribution(tmp2.TensorDist());
@@ -146,9 +132,6 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 	default: break;
 	}
 
-
-	Print(*this, "output");
-	Print(Tensor(), "outputlocal");
     PROFILE_STOP;
 }
 

@@ -33,7 +33,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     if(!CheckPermutationCommRedist(A))
 		LogicError("PermutationRedist: Invalid redistribution request");
 
-    PrintVector(commModes, "commModes");
     const tmen::Grid& g = A.Grid();
     const tmen::GridView gvA = A.GetGridView();
     const tmen::GridView gvB = GetGridView();
@@ -59,7 +58,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     }
     std::sort(actualCommModes.begin(), actualCommModes.end());
 
-//    PrintVector(actualCommModes, "actualCommModes");
     mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
 
     //Skip if we aren't participating
@@ -83,8 +81,8 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
-    ObjShape sendShape = commDataShape;
-    PrintArray(sendBuf, sendShape, "sendBuf");
+//    ObjShape sendShape = commDataShape;
+//    PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Determine who I send+recv data from
     PROFILE_SECTION("PermutationComm");
@@ -104,21 +102,20 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const Location recvLoc = GridViewLoc2GridLoc(ownergvA, gvA);
     const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
-    printf("sendLinLoc: %d, recvLinLoc: %d\n", sendLinLoc, recvLinLoc);
 	mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
 				  recvBuf, recvSize, recvLinLoc, sendRecvComm);
     PROFILE_STOP;
 
-    ObjShape recvShape = commDataShape;
-    PrintArray(recvBuf, recvShape, "recvBuf");
+//    ObjShape recvShape = commDataShape;
+//    PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");
     UnpackPCommRecvBuf(recvBuf, A);
     PROFILE_STOP;
 
-    const T* myBuf = LockedBuffer();
-    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+//    const T* myBuf = LockedBuffer();
+//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
 
     this->auxMemory_.Release();
 }
