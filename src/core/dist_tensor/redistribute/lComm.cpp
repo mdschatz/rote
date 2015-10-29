@@ -77,7 +77,6 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 template <typename T>
 void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpackBuf)
 {
-    Unsigned order = A.Order();
     T* dataBuf = Buffer();
 
     //GridView information
@@ -87,9 +86,6 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
     //Different striding information
     std::vector<Unsigned> commLCMs = tmen::LCMs(gvAShape, gvBShape);
     std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
-
-    //Grid information
-    const tmen::Grid& g = Grid();
 
     Permutation in2OutPerm = DeterminePermutation(A.localPerm_, localPerm_);
     PackData unpackData;

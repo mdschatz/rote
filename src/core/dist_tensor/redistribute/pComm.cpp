@@ -123,7 +123,6 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 template <typename T>
 void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)
 {
-    const Unsigned order = Order();
     T* dataBuf = Buffer();
 
     PackData unpackData;

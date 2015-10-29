@@ -52,6 +52,7 @@ void RunTest(const Grid& g, const char* outDist, const char* inDist, const Redis
 //			case RS:      B.ReduceScatterRedistFrom(A, modes); break;
 //			case RTO:     B.ReduceToOneRedistFrom(A, modes); break;
 //			case AR:      B.AllReduceRedistFrom(A, modes); break;
+			default: break;
 		}
 		if(commRank == 0)
 			std::cout << (shouldFail ? "Failure" : "Success") << std::endl;
@@ -211,7 +212,6 @@ main( int argc, char* argv[] )
     Unsigned i;
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
-    const Int commSize = mpi::CommSize( comm );
     printf("My Rank: %d\n", commRank);
     try
     {

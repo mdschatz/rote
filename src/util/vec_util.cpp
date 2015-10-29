@@ -367,8 +367,6 @@ Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>
     if(ref.size() != vec.size())
         LogicError("reference vector and permuted vector are of different sizes");
     Permutation ret(ref.size());
-    typename std::vector<T>::const_iterator begin = ref.begin();
-    typename std::vector<T>::const_iterator end = ref.end();
 
     Unsigned i;
     for(i = 0; i < vec.size(); i++){

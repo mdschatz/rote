@@ -25,8 +25,6 @@ void DistTensor<T>::ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& c
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
 
-    int commRank = mpi::CommRank(MPI_COMM_WORLD);
-
 	ScatterCommRedist(A, sortedCommModes);
 
     PROFILE_STOP;

@@ -57,7 +57,6 @@ typedef struct Arguments {
 } Params;
 
 void ProcessInput(int argc, char** const argv, Params& args) {
-    Unsigned i;
     Unsigned argCount = 0;
     if (argCount + 1 >= argc) {
         std::cerr << "Missing required gridOrder argument\n";
@@ -96,7 +95,6 @@ void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
 #ifndef RELEASE
     CallStackEntry entry("DistTensorTest");
 #endif
-    Unsigned i;
     const Int commRank = mpi::CommRank(mpi::COMM_WORLD);
 
 //START_DECL
@@ -8167,7 +8165,6 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 
 int main(int argc, char* argv[]) {
     Initialize(argc, argv);
-    Unsigned i;
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank(comm);
     const Int commSize = mpi::CommSize(comm);

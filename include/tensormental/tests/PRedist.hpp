@@ -66,7 +66,6 @@ CreatePTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesG
 
 void
 CreatePTestsSrcHelper(const ModeArray& srcModesGroup, const ModeArray& sinkModesGroup, const Grid& g, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
-	Unsigned order = distA.size() - 1;
 	Unsigned i, j;
 
 	if(srcModesGroup.size() == 0){

@@ -7,7 +7,6 @@ using namespace tmen;
 
 void
 CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesGroup, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
-	Unsigned order = distA.size() - 1;
 	Unsigned i, j, k;
 
 	if(modesToMove.size() == 0){

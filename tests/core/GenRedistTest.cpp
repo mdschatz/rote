@@ -44,7 +44,6 @@ main( int argc, char* argv[] )
     Unsigned i;
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
-    const Int commSize = mpi::CommSize( comm );
     printf("My Rank: %d\n", commRank);
     try
     {

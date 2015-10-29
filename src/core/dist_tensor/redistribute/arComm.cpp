@@ -30,7 +30,6 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
         return;
 
     //Determine buffer sizes for communication
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
     const ObjShape commDataShape = MaxLocalShape();
     const Unsigned sendSize = prod(commDataShape);
     const Unsigned recvSize = sendSize;

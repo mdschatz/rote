@@ -131,7 +131,6 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     SortVector(sortedCommModes);
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
-    int tid;
     //For each process we send to, we need to determine the first element we need to send them
     PARALLEL_FOR
     for(Unsigned i = 0; i < nRedistProcsAll; i++){

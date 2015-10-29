@@ -13,8 +13,7 @@ namespace tmen{
 
 template <typename T>
 void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
-	Unsigned i, j, k, l;
+	Unsigned i, j;
 	const tmen::Grid& g = C.Grid();
 	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
@@ -98,7 +97,6 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 
 template <typename T>
 void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	Unsigned i, j;
 
 	TensorDistribution distA = A.TensorDist();

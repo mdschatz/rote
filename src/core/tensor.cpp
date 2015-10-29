@@ -698,7 +698,6 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");
 #endif
-    const Unsigned order = A.Order();
     const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
 

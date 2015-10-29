@@ -184,7 +184,6 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
         if(reduceModes[i] >= A.Order())
             LogicError("LocalReduce: Supplied mode is out of range");
 #endif
-    Unsigned i;
     Unsigned order = A.Order();
 
     ModeArray tensorModes = DefaultPermutation(order);

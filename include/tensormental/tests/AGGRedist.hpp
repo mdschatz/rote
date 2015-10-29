@@ -7,7 +7,6 @@ using namespace tmen;
 
 void
 CreateAGTestsHelper(const ModeArray& tenModesToRedist, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){
-	Unsigned order = distA.size() - 1;
 	Unsigned i, j;
 
 	if(tenModesToRedist.size() == 0){

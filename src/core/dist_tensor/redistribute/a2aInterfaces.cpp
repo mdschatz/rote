@@ -28,7 +28,6 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     //BEGIN A2A code
     A2AP2PData optData = DetermineA2AP2POptData(A, commModes);
 
-    int commRank = mpi::CommRank(MPI_COMM_WORLD);
 //    if(commRank == 0){
 //        PrintA2AOptData(optData, "optData");
 //    }

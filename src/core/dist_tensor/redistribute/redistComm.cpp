@@ -18,7 +18,6 @@ namespace tmen{
 template<typename T>
 void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
 	Unsigned i;
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	TensorDistribution intDist = startDist;
 
 	ModeArray reduceModes = redistData.tenModesReduced;
@@ -51,9 +50,8 @@ void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const 
 
 template <typename T>
 void DistTensor<T>::CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
-	Unsigned i, j;
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
-	Unsigned order = startDist.size() - 1;
+	Unsigned i;
+
 	//Get the prefix tensor distribution
 	TensorDistribution intDist = startDist;
 	for(i = 0; i < redistData.gridModesAppeared.size(); i++){
@@ -80,7 +78,6 @@ template <typename T>
 void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
 	Unsigned i, j;
 	Unsigned order = startDist.size() - 1;
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	//Get the prefix tensor distribution
 	TensorDistribution intDist = startDist;
 	for(i = 0; i < redistData.gridModesRemoved.size(); i++){
@@ -124,8 +121,6 @@ void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const 
 template <typename T>
 void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
 	Unsigned i, j;
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
-	Unsigned order = startDist.size() - 1;
 
 	//Pick the grid modes to move in this pass
 	//Greedy approach
@@ -202,9 +197,8 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 
 template <typename T>
 void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
-	Unsigned i, j;
+	Unsigned i;
 	Unsigned order = startDist.size() - 1;
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	const tmen::Grid& g = Grid();
 
 	ModeArray movedModes = redistData.gridModesMoved;

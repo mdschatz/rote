@@ -21,9 +21,7 @@ namespace tmen{
 
 template<typename T>
 GenRedistData DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenDistA, const TensorDistribution& tenDistB, const ModeArray& reduceModes){
-	 Unsigned i, j, k;
-	 Unsigned commRank = mpi::CommRank(MPI_COMM_WORLD);
-	 Unsigned order = tenDistA.size() - 1;
+//	 Unsigned commRank = mpi::CommRank(MPI_COMM_WORLD);
 	 GenRedistData redistData;
 
 	 //Determine the set of grid modes in A;

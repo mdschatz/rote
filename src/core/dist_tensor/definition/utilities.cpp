@@ -260,7 +260,6 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
     SortVector(sortedCommModes);
 
     Unsigned i, j;
-    Unsigned order = A.Order();
     TensorDistribution distA = A.TensorDist();
     TensorDistribution distB = TensorDist();
 
@@ -311,7 +310,6 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
         tensorModeFromTo[i] = newPair;
     }
 
-    int commRank = mpi::CommRank(MPI_COMM_WORLD);
 //    for(i = 0; i < symGridModes.size(); i++){
 //        printf("[%d] ", i);
 //        PrintVector(symGridModes[i], "symGroup");
@@ -380,7 +378,6 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
         ret.doOpt = false;
     }
     return ret;
-
 }
 
 #define PROTO(T) template class DistTensor<T>

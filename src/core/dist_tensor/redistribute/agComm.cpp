@@ -94,7 +94,6 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 template <typename T>
 void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
 {
-  const Unsigned order = A.Order();
   const T* dataBuf = A.LockedBuffer();
 
   PackData packData;
