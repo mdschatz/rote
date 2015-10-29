@@ -215,11 +215,11 @@ bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec
 
     Unsigned i;
     for(i = 0; i < vec1.size(); i++){
-        if(std::find(vec2.begin(), vec2.end(), vec1[i]) == vec2.end())
+        if(!Contains(vec2, vec1[i]))
             LogicError("EqualUnderPermutation: element in vec1 not found in vec2");
     }
     for(i = 0; i < vec2.size(); i++){
-        if(std::find(vec1.begin(), vec1.end(), vec2[i]) == vec1.end())
+        if(!Contains(vec1, vec2[i]))
             LogicError("EqualUnderPermutation: element in vec2 not found in vec1");
     }
     return true;
@@ -372,7 +372,7 @@ Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>
 
     Unsigned i;
     for(i = 0; i < vec.size(); i++){
-        ret[i] = std::find(begin, end, vec[i]) - begin;
+        ret[i] = IndexOf(ref, vec[i]);
     }
 
     return ret;

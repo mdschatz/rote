@@ -106,7 +106,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     //TODO: I know I made a method to get this
     ModeArray nonRModes;
     for(Unsigned i = 0; i < order; i++){
-        if(std::find(rModes.begin(), rModes.end(), i) == rModes.end())
+        if(!Contains(rModes, i))
             nonRModes.insert(nonRModes.end(), i);
     }
 

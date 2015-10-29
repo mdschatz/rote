@@ -222,7 +222,7 @@ Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist){
 	Unsigned i;
 	for(i = 0; i < tenDist.size(); i++){
 		ModeDistribution modeDist = tenDist[i];
-		if(std::find(modeDist.begin(), modeDist.end(), mode) != modeDist.end())
+		if(Contains(modeDist, mode))
 			break;
 	}
 	return i;

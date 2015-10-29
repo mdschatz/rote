@@ -60,10 +60,8 @@ GridView::SetGridModeTypes(const ModeArray& unusedModes)
     unusedModes_ = unusedModes;
 
     for(i = 0; i < gridOrder; i++){
-        if(std::find(boundModes_.begin(), boundModes_.end(), i) == boundModes_.end()){
-            if(std::find(unusedModes_.begin(), unusedModes_.end(), i) == unusedModes_.end()){
-                freeModes_.push_back(i);
-            }
+        if(!Contains(boundModes_, i) && !Contains(unusedModes_, i)){
+			freeModes_.push_back(i);
         }
     }
 }
@@ -250,17 +248,17 @@ GridView::UnusedModes() const
 inline
 bool
 GridView::IsBound(Mode mode) const
-{ return std::find(boundModes_.begin(), boundModes_.end(), mode) != boundModes_.end(); }
+{ return Contains(boundModes_, mode); }
 
 inline
 bool
 GridView::IsFree(Mode mode) const
-{ return std::find(freeModes_.begin(), freeModes_.end(), mode) != freeModes_.end(); }
+{ return Contains(freeModes_, mode); }
 
 inline
 bool
 GridView::IsUnused(Mode mode) const
-{ return std::find(unusedModes_.begin(), unusedModes_.end(), mode) != unusedModes_.end(); }
+{ return Contains(unusedModes_, mode); }
 
 inline
 void

@@ -224,21 +224,21 @@ void RunTest(const Grid& g, const Params& args){
 	ObjShape shapeC(args.indicesC.size());
 	for(i = 0; i < args.indicesA.size(); i++){
 		Index index = args.indicesA[i];
-		if(std::find(args.indicesB.begin(), args.indicesB.end(), index) != args.indicesB.end())
+		if(Contains(args.indicesB, index))
 			shapeA[i] = args.k_dim;
 		else
 			shapeA[i] = args.m_dim;
 	}
 	for(i = 0; i < args.indicesB.size(); i++){
 		Index index = args.indicesB[i];
-		if(std::find(args.indicesA.begin(), args.indicesA.end(), index) != args.indicesA.end())
+		if(Contains(args.indicesA, index))
 			shapeB[i] = args.k_dim;
 		else
 			shapeB[i] = args.n_dim;
 	}
 	for(i = 0; i < args.indicesC.size(); i++){
 		Index index = args.indicesC[i];
-		if(std::find(args.indicesA.begin(), args.indicesA.end(), index) != args.indicesA.end())
+		if(Contains(args.indicesA, index))
 			shapeC[i] = args.m_dim;
 		else
 			shapeC[i] = args.n_dim;

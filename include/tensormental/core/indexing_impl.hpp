@@ -509,7 +509,7 @@ GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridV
         const Location modeSliceLoc = LinearLoc2Loc(gridViewLoc[i], modeSliceShape);
 
         for(j = 0; j < modeDist.size(); j++){
-            int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
+            int indexOfMode = IndexOf(participatingComms, modeDist[j]);
             participatingGridLoc[indexOfMode] = modeSliceLoc[j];
         }
     }

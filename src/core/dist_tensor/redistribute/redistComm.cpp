@@ -135,8 +135,8 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 	ModeArray excludeModes;
 
 	for(i = 0; i < redistData.gridModesMoved.size(); i++){
-		if(std::find(excludeModes.begin(), excludeModes.end(), redistData.gridModesMovedSrcs[i]) == excludeModes.end() &&
-		   std::find(excludeModes.begin(), excludeModes.end(), redistData.gridModesMovedSinks[i]) == excludeModes.end()){
+		if(!Contains(excludeModes, redistData.gridModesMovedSrcs[i]) &&
+		   !Contains(excludeModes, redistData.gridModesMovedSinks[i])){
 			gridModesToMove.push_back(redistData.gridModesMoved[i]);
 			gridModesToMoveSrcs.push_back(redistData.gridModesMovedSrcs[i]);
 			gridModesToMoveSinks.push_back(redistData.gridModesMovedSinks[i]);
@@ -270,8 +270,8 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 			Unsigned index = numMoved - 1 - i;
 			if(maxLoc[index]){
 				//Erase from the source mode dist
-				ModeDistribution::iterator foundPos = std::find(intDist[movedModesSrcs[index]].begin(), intDist[movedModesSrcs[index]].end(), movedModes[index]);
-				intDist[movedModesSrcs[index]].erase(foundPos);
+				int foundPos = IndexOf(intDist[movedModesSrcs[index]], movedModes[index]);
+				intDist[movedModesSrcs[index]].erase(intDist[movedModesSrcs[index]].begin() + foundPos);
 				intDist[movedModesSinks[index]].push_back(movedModes[index]);
 
 				//Update GenRedistData object

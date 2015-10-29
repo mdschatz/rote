@@ -291,14 +291,14 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
         Mode commMode = commModes[i];
         for(j = 0; j < distA.size(); j++){
             ModeDistribution modeDist = distA[j];
-            if(std::find(modeDist.begin(), modeDist.end(), commMode) != modeDist.end()){
+            if(Contains(modeDist, commMode)){
                 tenModesFrom[commMode] = j;
                 break;
             }
         }
         for(j = 0; j < distB.size(); j++){
             ModeDistribution modeDist = distB[j];
-            if(std::find(modeDist.begin(), modeDist.end(), commMode) != modeDist.end()){
+            if(Contains(modeDist, commMode)){
                 tenModesTo[commMode] = j;
                 break;
             }
@@ -345,7 +345,7 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
         //a2aModes are those that weren't added to p2pModes by the DetermineSCC function
         for(j = 0; j < symGroup.size(); j++){
             Mode commMode = symGroup[j];
-            if(std::find(p2pCommModes.begin(), p2pCommModes.end(), commMode) == p2pCommModes.end())
+            if(!Contains(p2pCommModes, commMode))
                 a2aCommModes.push_back(commMode);
         }
     }

@@ -52,7 +52,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     ModeArray actualCommModes = misalignedModes;
     for(Unsigned i = 0; i < commModes.size(); i++){
-        if(std::find(actualCommModes.begin(), actualCommModes.end(), commModes[i]) == actualCommModes.end()){
+        if(!Contains(actualCommModes, commModes[i])){
             actualCommModes.insert(actualCommModes.end(), commModes[i]);
         }
     }
