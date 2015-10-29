@@ -25,7 +25,7 @@ DistTensor<T>::BroadcastRedistFrom(const DistTensor<T>& A, const ModeArray& comm
     ResizeTo(A);
 
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
     BroadcastCommRedist(A, sortedCommModes);
     PROFILE_STOP;
 }

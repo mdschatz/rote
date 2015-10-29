@@ -268,7 +268,7 @@ GridView::RemoveUnitModes(const ModeArray& unitModes)
 {
     Unsigned i;
     ModeArray sorted = unitModes;
-    std::sort(sorted.begin(), sorted.end());
+    SortVector(sorted);
     for(i = sorted.size() - 1; i < sorted.size(); i--){
         shape_.erase(shape_.begin() + sorted[i]);
         loc_.erase(loc_.begin() + sorted[i]);
@@ -282,7 +282,7 @@ GridView::IntroduceUnitModes(const ModeArray& unitModes)
 {
     Unsigned i, j;
     ModeArray sorted = unitModes;
-    std::sort(sorted.begin(), sorted.end());
+    SortVector(sorted);
     ModeArray blank(0);
     for(i = 0; i < sorted.size(); i++){
         shape_.insert(shape_.begin() + sorted[i], 1);

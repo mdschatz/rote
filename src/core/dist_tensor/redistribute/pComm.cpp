@@ -56,7 +56,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
             actualCommModes.insert(actualCommModes.end(), commModes[i]);
         }
     }
-    std::sort(actualCommModes.begin(), actualCommModes.end());
+    SortVector(actualCommModes);
 
     mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
 
@@ -88,7 +88,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     PROFILE_SECTION("PermutationComm");
 
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
 
     const Location myFirstElemA = A.DetermineFirstElem(gvA.ParticipatingLoc());
     const Location ownergvB = DetermineOwner(myFirstElemA);

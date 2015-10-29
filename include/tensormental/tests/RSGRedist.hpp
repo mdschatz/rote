@@ -22,7 +22,7 @@ CreateRSGTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 			TensorDistribution resDist = partialTest.first;
 
 			ModeArray sortedReduceModes = reduceModes;
-			std::sort(sortedReduceModes.begin(), sortedReduceModes.end());
+			SortVector(sortedReduceModes);
 
 			for(j = sortedReduceModes.size() - 1; j < sortedReduceModes.size(); j--){
 				resDist.erase(resDist.begin() + sortedReduceModes[j]);
@@ -96,7 +96,7 @@ CreateRSGTests(const TensorDistribution& distA){
     	ModeArray sinkModesGroup;
     	std::set_difference(tensorModes.begin(), tensorModes.end(), redistModesGroup.begin(), redistModesGroup.end(), back_inserter(sinkModesGroup));
 
-    	std::sort(redistModesGroup.begin(), redistModesGroup.end());
+    	SortVector(redistModesGroup);
 
     	ModeArray commModes;
     	for(j = redistModesGroup.size() - 1; j < redistModesGroup.size(); j--){

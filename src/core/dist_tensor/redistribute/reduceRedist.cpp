@@ -32,7 +32,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
 
     //Sort the rModes just in case
     ModeArray sortedRModes = rModes;
-    std::sort(sortedRModes.begin(), sortedRModes.end());
+    SortVector(sortedRModes);
 
     //Set up tmp for holding alpha*A
     DistTensor<T> tmp(A.TensorDist(), g);
@@ -97,7 +97,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
         ModeDistribution modeDist = A.ModeDist(sortedRModes[i]);
         commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
     }
-    std::sort(commModes.begin(), commModes.end());
+    SortVector(commModes);
 
 //    PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");

@@ -22,7 +22,7 @@ void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArra
     PROFILE_SECTION("GTORedist");
     ResizeTo(A);
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
     GatherToOneCommRedist(A, sortedCommModes);
     PROFILE_STOP;
 }

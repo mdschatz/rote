@@ -248,7 +248,7 @@ std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsi
     Unsigned i;
     std::vector<T> ret;
     std::vector<Unsigned> sortedFilter = filter;
-    std::sort(sortedFilter.begin(), sortedFilter.end());
+    SortVector(sortedFilter);
     Unsigned whichFilter = 0;
     for(i = 0; i < vec.size(); i++){
         if(whichFilter >= sortedFilter.size() || i != sortedFilter[whichFilter])

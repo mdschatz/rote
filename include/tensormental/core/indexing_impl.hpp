@@ -496,7 +496,7 @@ GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridV
     const tmen::Grid* g = gridView.Grid();
     const Unsigned participatingOrder = gridView.ParticipatingOrder();
     ModeArray participatingComms = ConcatenateVectors(gridView.FreeModes(), gridView.BoundModes());
-    std::sort(participatingComms.begin(), participatingComms.end());
+    SortVector(participatingComms);
 
     const Location gvParticipatingLoc = gridView.ParticipatingLoc();
 
@@ -533,7 +533,7 @@ GridViewLoc2ParticipatingLinearLoc_(const Location& gridViewLoc, const GridView&
     const tmen::Grid* g = gridView.Grid();
     const Unsigned participatingOrder = gridView.ParticipatingOrder();
     ModeArray participatingComms = ConcatenateVectors(gridView.FreeModes(), gridView.BoundModes());
-    std::sort(participatingComms.begin(), participatingComms.end());
+    SortVector(participatingComms);
 
     const Location gvParticipatingLoc = gridView.ParticipatingLoc();
 

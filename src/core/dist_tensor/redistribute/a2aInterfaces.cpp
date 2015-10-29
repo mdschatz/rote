@@ -23,7 +23,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
     PROFILE_SECTION("A2ARedist");
     ResizeTo(A);
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
 
     //BEGIN A2A code
     A2AP2PData optData = DetermineA2AP2POptData(A, commModes);
@@ -37,7 +37,7 @@ void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& 
 //        const tmen::Grid& g = A.Grid();
 //        ModeArray p2pModes = optData.p2pModes;
 //        ModeArray a2aModes = optData.a2aModes;
-//        std::sort(a2aModes.begin(), a2aModes.end());
+//        SortVector(a2aModes);
 //        ModeArray a2ap2pModes = ConcatenateVectors(a2aModes, p2pModes);
 //
 ////        DistTensor<T> temp1(optData.opt1Dist, g);

@@ -54,7 +54,7 @@ IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray
     for(i = 0; i < indicesA.size(); i++)
         if(std::find(indicesB.begin(), indicesB.end(), indicesA[i]) != indicesB.end())
             contractIndices.push_back(indicesA[i]);
-    std::sort(contractIndices.begin(), contractIndices.end());
+    SortVector(contractIndices);
     return contractIndices;
 }
 }

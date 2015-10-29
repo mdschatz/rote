@@ -342,7 +342,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
     }
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
     mpi::Comm comm = A.GetCommunicatorForModes(sortedCommModes, A.Grid());
 
     //Perform the read

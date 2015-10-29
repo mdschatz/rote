@@ -22,7 +22,7 @@ CreateRTOGTests(const TensorDistribution& distA){
     	ModeArray redistModesGroup = redistModesGroups[i];
     	TensorDistribution resDist = distA;
 
-    	std::sort(redistModesGroup.begin(), redistModesGroup.end());
+    	SortVector(redistModesGroup);
     	for(j = redistModesGroup.size() - 1; j < redistModesGroup.size(); j--){
     		Mode redistTenMode = redistModesGroup[j];
     		ModeDistribution redistModeDist = resDist[redistTenMode];

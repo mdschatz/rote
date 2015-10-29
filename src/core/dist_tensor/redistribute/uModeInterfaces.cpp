@@ -18,7 +18,7 @@ template<typename T>
 void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
     Unsigned i, j;
     ModeArray sorted = unitModes;
-    std::sort(sorted.begin(), sorted.end());
+    SortVector(sorted);
 
     Permutation invPerm = DetermineInversePermutation(localPerm_);
     for(i = sorted.size() - 1; i < sorted.size(); i--){
@@ -53,7 +53,7 @@ void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitMo
     Unsigned i, j;
     ModeArray sorted = unitModes;
     ModeArray blank(0);
-    std::sort(sorted.begin(), sorted.end());
+    SortVector(sorted);
     shape_.reserve(shape_.size() + sorted.size());
     dist_.reserve(dist_.size() + sorted.size());
     constrainedModeAlignments_.reserve(constrainedModeAlignments_.size() + sorted.size());

@@ -77,7 +77,7 @@ mpi::Comm
 DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::Grid& grid)
 {
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
 
     if(commMap_->count(sortedCommModes) == 0){
         mpi::Comm comm;
@@ -110,7 +110,7 @@ DistTensor<T>::SetParticipatingComm()
     CallStackEntry cse("DistTensor::GetParticipatingComm");
 #endif
     ModeArray commModes = ConcatenateVectors(gridView_.FreeModes(), gridView_.BoundModes());
-    std::sort(commModes.begin(), commModes.end());
+    SortVector(commModes);
 
     const tmen::Grid& grid = Grid();
     participatingComm_ = GetCommunicatorForModes(commModes, grid);
@@ -229,7 +229,7 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
             misalignedModes.insert(misalignedModes.end(), modeDist.begin(), modeDist.end());
         }
     }
-    std::sort(misalignedModes.begin(), misalignedModes.end());
+    SortVector(misalignedModes);
 //    PrintVector(misalignedModes, "misalignedModes");
     mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
 
@@ -257,7 +257,7 @@ DistTensor<T>::DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& c
 {
     const tmen::Grid& g = A.Grid();
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
 
     Unsigned i, j;
     Unsigned order = A.Order();

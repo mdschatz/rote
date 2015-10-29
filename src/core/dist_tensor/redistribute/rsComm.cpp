@@ -128,7 +128,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
 //    PrintData(A, "AData");

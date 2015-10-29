@@ -128,7 +128,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     int tid;
@@ -279,7 +279,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;
-    std::sort(sortedCommModes.begin(), sortedCommModes.end());
+    SortVector(sortedCommModes);
     const ObjShape commShape = FilterVector(gridShape, sortedCommModes);
 
     //For each process we recv from, we need to determine the first element we get from them

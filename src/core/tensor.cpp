@@ -327,7 +327,7 @@ Tensor<T>::RemoveUnitModes(const ModeArray& modes){
 #endif
     Unsigned i;
     ModeArray sorted = modes;
-    std::sort(sorted.begin(), sorted.end());
+    SortVector(sorted);
 
     for(i = sorted.size() - 1; i < sorted.size(); i--){
         shape_.erase(shape_.begin() + sorted[i]);
@@ -344,7 +344,7 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
 #endif
     Unsigned i;
     ModeArray sorted = modes;
-    std::sort(sorted.begin(), sorted.end());
+    SortVector(sorted);
     shape_.reserve(shape_.size() + sorted.size());
     strides_.reserve(strides_.size() + sorted.size());
     for(i = 0; i < sorted.size(); i++){

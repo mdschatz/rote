@@ -66,7 +66,7 @@ CreateLGTests(const Unsigned& gridOrder, const TensorDistribution& distA){
 
     for(i = 0; i <= order; i++)
     	usedGridModes.insert(usedGridModes.end(), distA[i].begin(), distA[i].end());
-    std::sort(usedGridModes.begin(), usedGridModes.end());
+    SortVector(usedGridModes);
 
     ModeArray unusedGridModes;
     std::set_difference(gridModes.begin(), gridModes.end(), usedGridModes.begin(), usedGridModes.end(), back_inserter(unusedGridModes));

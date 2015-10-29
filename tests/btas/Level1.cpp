@@ -142,7 +142,7 @@ TestYAxpPx(const DistTensor<T>& A)
 
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
 
-    std::sort(perm.begin(), perm.end());
+    SortVector(perm);
     do{
 
         MakeZeros(B);

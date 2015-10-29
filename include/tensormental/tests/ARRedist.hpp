@@ -22,7 +22,7 @@ CreateARTests(const TensorDistribution& distA){
     	ModeArray redistModesGroup = redistModesGroups[i];
     	TensorDistribution resDist = distA;
 
-    	std::sort(redistModesGroup.begin(), redistModesGroup.end());
+    	SortVector(redistModesGroup);
     	for(j = redistModesGroup.size() - 1; j < redistModesGroup.size(); j--){
     		resDist.erase(resDist.begin() + redistModesGroup[j]);
     	}
