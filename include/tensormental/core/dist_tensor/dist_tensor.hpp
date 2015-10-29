@@ -257,7 +257,6 @@ public:
     //
     bool CheckAllToAllCommRedist(const DistTensor<T>& A);
     void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
-    A2AP2PData DetermineA2AP2POptData(const DistTensor<T>& A, const ModeArray& commModes);
     void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
     void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
 

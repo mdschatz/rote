@@ -220,23 +220,6 @@ PrintPackData
 }
 
 inline void
-PrintA2AOptData
-( const A2AP2PData& optData, std::string title="", std::ostream& os = std::cout){
-    os << title << std::endl;
-    if(optData.doOpt){
-        printf("can do opt\n");
-        printf("opt1Dist: %s\n", TensorDistToString(optData.opt1Dist).c_str());
-        printf("opt2Dist: %s\n", TensorDistToString(optData.opt2Dist).c_str());
-        printf("opt3Dist: %s\n", TensorDistToString(optData.opt3Dist).c_str());
-        printf("opt4Dist: %s\n", TensorDistToString(optData.opt4Dist).c_str());
-        PrintVector(optData.p2pModes, "p2pModes");
-        PrintVector(optData.a2aModes, "a2aModes");
-    }else{
-        printf("cannot do opt\n");
-    }
-}
-
-inline void
 PrintElemSelectData
 ( const ElemSelectData& elemData, std::string title="", std::ostream& os = std::cout){
     os << title << std::endl;
