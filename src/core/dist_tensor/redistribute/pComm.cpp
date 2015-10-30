@@ -22,7 +22,6 @@ bool DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
 	bool ret = true;
 	ret &= CheckOrder(Order(), A.Order());
 	ret &= CheckSameGridViewShape(GridViewShape(), A.GridViewShape());
-	ret &= CheckSameCommModes(outDist, inDist);
 	ret &= CheckSameNonDist(outDist, inDist);
 
     return ret;
