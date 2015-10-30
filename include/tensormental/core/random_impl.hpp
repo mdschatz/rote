@@ -32,7 +32,6 @@ inline T UnitCell()
 template<typename T>
 inline T Uniform( T a, T b )
 {
-    typedef BASE(T) Real;
     T sample;
 
     T realVal = rand()/T(RAND_MAX) * (a-1) + b;
@@ -50,7 +49,6 @@ inline T Uniform( T a, T b )
 template<typename T>
 inline T Normal( T mean, BASE(T) stddev )
 {
-    typedef BASE(T) Real;
     T sample;
 
     T realVal = rand()/T(RAND_MAX) * (mean-1) + stddev;
