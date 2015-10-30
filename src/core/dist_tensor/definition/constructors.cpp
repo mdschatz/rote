@@ -502,6 +502,7 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
             gridView_ = A.gridView_;
             participatingComm_ = A.participatingComm_;
             grid_ = A.grid_;
+            SetShifts();
         }
     }
     return *this;
