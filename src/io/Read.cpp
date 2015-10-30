@@ -582,21 +582,25 @@ void Read
 
 }
 
-#define PROTO(T) \
+#define FULL(T) \
   template void Read \
   ( Tensor<T>& A, const std::string filename, FileFormat format ); \
   template void Read \
   ( DistTensor<T>& A, const std::string filename, \
     FileFormat format, bool sequential );
 
-#define FULL(T) \
-  PROTO(T);
-
-FULL(Int);
+FULL(Int)
 #ifndef DISABLE_FLOAT
-FULL(float);
+FULL(float)
 #endif
-FULL(double);
+FULL(double)
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULL(std::complex<float>)
+#endif
+FULL(std::complex<double>)
+#endif
 
 
 } // namespace tmen

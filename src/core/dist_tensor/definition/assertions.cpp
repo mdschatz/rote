@@ -151,35 +151,35 @@ AssertConforming2x1
 #define FULL(T) \
     template class DistTensor<T>;
 
-FULL(Int);
+FULL(Int)
 #ifndef DISABLE_FLOAT
-FULL(float);
+FULL(float)
 #endif
-FULL(double);
+FULL(double)
 
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-FULL(std::complex<float>);
+FULL(std::complex<float>)
 #endif
-FULL(std::complex<double>);
+FULL(std::complex<double>)
 #endif
 
 
 #ifndef RELEASE
 
 #define CONFORMING(T) \
-  template void AssertConforming2x1( const DistTensor<T>& AT, const DistTensor<T>& AB, Mode mode ); \
+  template void AssertConforming2x1( const DistTensor<T>& AT, const DistTensor<T>& AB, Mode mode );
 
-CONFORMING(Int);
+CONFORMING(Int)
 #ifndef DISABLE_FLOAT
-CONFORMING(float);
+CONFORMING(float)
 #endif // ifndef DISABLE_FLOAT
-CONFORMING(double);
+CONFORMING(double)
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-CONFORMING(std::complex<float>);
+CONFORMING(std::complex<float>)
 #endif // ifndef DISABLE_FLOAT
-CONFORMING(std::complex<double>);
+CONFORMING(std::complex<double>)
 #endif // ifndef DISABLE_COMPLEX
 
 #endif

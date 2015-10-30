@@ -81,12 +81,8 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
     this->auxMemory_.Release();
 }
 
-#define PROTO(T) template class DistTensor<T>
-#define COPY(T) \
-  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
 #define FULL(T) \
-  PROTO(T);
-
+    template class DistTensor<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT

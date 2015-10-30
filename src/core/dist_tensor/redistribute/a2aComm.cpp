@@ -406,24 +406,20 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     }
 }
 
-#define PROTO(T) template class DistTensor<T>
-#define COPY(T) \
-  template DistTensor<T>::DistTensor( const DistTensor<T>& A )
 #define FULL(T) \
-  PROTO(T);
+    template class DistTensor<T>;
 
-
-FULL(Int);
+FULL(Int)
 #ifndef DISABLE_FLOAT
-FULL(float);
+FULL(float)
 #endif
-FULL(double);
+FULL(double)
 
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
-FULL(std::complex<float>);
+FULL(std::complex<float>)
 #endif
-FULL(std::complex<double>);
+FULL(std::complex<double>)
 #endif
 
 } //namespace tmen
