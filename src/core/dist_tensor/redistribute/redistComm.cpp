@@ -96,12 +96,14 @@ void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const 
 		Mode srcMode = redistData.gridModesRemovedSrcs[i];
 		prepDist[srcMode].push_back(removedMode);
 	}
-	//Add the intermediate distribution to the list
-	RedistInfo prepRedistInfo;
-	prepRedistInfo.redistType = Perm;
-	prepRedistInfo.dist = prepDist;
-	prepRedistInfo.modes = DefaultPermutation(Grid().Order());
-	intDists.push_back(prepRedistInfo);
+	//Add the intermediate distribution to the list (if needed)
+	if(prepDist != intDist && prepDist != startDist){
+		RedistInfo prepRedistInfo;
+		prepRedistInfo.redistType = Perm;
+		prepRedistInfo.dist = prepDist;
+		prepRedistInfo.modes = DefaultPermutation(Grid().Order());
+		intDists.push_back(prepRedistInfo);
+	}
 
 	//Now remove the modes
 	RedistInfo newRedistInfo;
