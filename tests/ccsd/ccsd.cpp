@@ -49,7 +49,7 @@ void Usage() {
 
 typedef struct Arguments {
     ObjShape gridShape;
-    Unsigned nProcs;
+    int nProcs;
     Unsigned n_o;
     Unsigned n_v;
     Unsigned blkSize;
@@ -57,7 +57,7 @@ typedef struct Arguments {
 } Params;
 
 void ProcessInput(int argc, char** const argv, Params& args) {
-    Unsigned argCount = 0;
+    int argCount = 0;
     if (argCount + 1 >= argc) {
         std::cerr << "Missing required gridOrder argument\n";
         Usage();

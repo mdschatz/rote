@@ -28,7 +28,7 @@ Interval Interval::time()
     return Interval(conv*(double)nsec/1e9, 0, 0);
     #else
     struct timeval end;
-    int ret = gettimeofday(&end, NULL);
+    gettimeofday(&end, NULL);
 //    int ret = MPI_Wtime();
 //    if (ret != 0) ERROR("clock_gettime");
 //    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0);
@@ -55,10 +55,10 @@ Interval Interval::cputime()
     long long unsigned nsec = mach_absolute_time();
     return Interval(conv*(double)nsec/1e9, 0, 0);
     #else
-    timespec ts;
+//    timespec ts;
 //    int ret = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
     struct timeval end;
-    int ret = gettimeofday(&end, NULL);
+    gettimeofday(&end, NULL);
 //    if (ret != 0) ERROR("clock_gettime");
 //    return Interval((double)ts.tv_sec+(double)ts.tv_nsec/1e9, 0, 0);
     return Interval((double)end.tv_sec + (double)end.tv_usec/1e6, 0, 0);
