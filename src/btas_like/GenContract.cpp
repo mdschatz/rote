@@ -11,134 +11,186 @@
 
 namespace tmen{
 
+void SetTensorDistToMatch(const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i;
+	ModeArray blank;
+	for(i = 0; i < indicesToMatch.size(); i++){
+		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
+		if(index >= 0)
+			toMatch[i] = matchAgainst[index];
+	}
+	toMatch[toMatch.size() - 1] = matchAgainst[matchAgainst.size() - 1];
+}
+
+
+void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i;
+	for(i = 0; i < indicesToMatch.size(); i++){
+		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
+		if(index >= 0)
+			toMatch[i] = matchAgainst[index];
+	}
+}
+
+void SetTempShapeToMatch(const tmen::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i;
+	for(i = 0; i < indicesToMatch.size(); i++){
+		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
+		if(index >= 0)
+			toMatch[i] = gvMatchAgainst.Dimension(index);
+	}
+}
+
+void AppendTensorDistToMatch(const ModeArray& modes, const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i, j;
+	ModeArray modesFound;
+
+	for(i = 0; i < modes.size(); i++){
+		Mode modeToMove = modes[i];
+		for(j = 0; j < indicesMatchAgainst.size(); j++){
+			Index indexMatchAgainst = indicesMatchAgainst[j];
+			ModeDistribution modeDistToCheck = matchAgainst[j];
+			if(Contains(modeDistToCheck, modeToMove)){
+				int index = IndexOf(indicesToMatch, indexMatchAgainst);
+				if(index >= 0){
+					toMatch[index].push_back(modeToMove);
+					modesFound.push_back(modeToMove);
+					break;
+				}
+			}
+		}
+	}
+
+	//Deal with the modes that disappeared
+	ModeArray modesNotFound = DiffVector(modes, modesFound);
+	toMatch[indicesToMatch.size() - 1] = ConcatenateVectors(toMatch[indicesToMatch.size() - 1], modesNotFound);
+}
+
 template <typename T>
 void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	Unsigned i, j;
-	const tmen::Grid& g = C.Grid();
+	Unsigned i;
+	const tmen::GridView gvA = A.GetGridView();
 	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
-
-	ModeArray reduceModes;
-	for(i = 0; i < contractIndices.size(); i++){
-		reduceModes.push_back(C.Order() + i);
-	}
 
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
 
-	TensorDistribution distT(indicesT.size() + 1);
-	TensorDistribution distIntB(indicesB.size() + 1);
+	ObjShape shapeC = C.Shape();
+
+	ModeDistribution blank;
+	TensorDistribution distT(indicesT.size() + 1, blank);
+	TensorDistribution distIntB(indicesB.size() + 1, blank);
+	TensorDistribution distIntC(indicesC.size() + 1, blank);
+
+	ModeArray reduceTenModes;
+	for(i = 0; i < contractIndices.size(); i++){
+		reduceTenModes.push_back(C.Order() + i);
+	}
+	ModeArray reduceGridModes;
+	for(i = 0; i < contractIndices.size(); i++){
+		int index = IndexOf(indicesA, contractIndices[i]);
+		if(index >= 0)
+			reduceGridModes = ConcatenateVectors(reduceGridModes, distA[index]);
+	}
 
 	//Setup temp distB
-	ModeArray blank;
-	for(i = 0; i < indicesB.size(); i++){
-		Index indexToFind = indicesB[i];
-		for(j = 0; j < indicesA.size(); j++){
-			if(indicesA[j] == indexToFind){
-				distIntB[i] = distA[j];
-				break;
-			}
-		}
-		if(j == indicesA.size()){
-			distIntB[i] = blank;
-		}
-	}
-	distIntB[B.Order()] = distA[A.Order()];
+	SetTensorDistToMatch(distA, indicesA, distIntB, indicesB);
 
 	//Setup temp distT
-	for(i = 0; i < indicesT.size(); i++){
-		int index = IndexOf(indicesA, indicesT[i]);
-		distT[i] = (index >= 0) ? distA[index] : blank;
-	}
-	distT[indicesC.size() + contractIndices.size()] = distA[A.Order()];
-
-	ObjShape shapeT = C.Shape();
-	for(i = indicesC.size(); i < indicesT.size(); i++){
-		shapeT.push_back(prod(FilterVector(g.Shape(), distT[i])));
-	}
+	ObjShape shapeT(indicesT.size());
+	SetTensorDistToMatch(distA, indicesA, distT, indicesT);
+	SetTensorShapeToMatch(shapeC, indicesC, shapeT, indicesT);
+	SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT);
 
 	//Setup temp distIntC
 	const tmen::GridView gvC = C.GetGridView();
-	TensorDistribution distIntC(distC.size());
-	for(i = 0; i < C.Order(); i++)
-		distIntC[i] = distT[i];
+	SetTensorDistToMatch(distT, indicesT, distIntC, indicesC);
+	AppendTensorDistToMatch(reduceGridModes, distC, indicesC, distIntC, indicesC);
 
-	ModeArray commModes;
-	for(i = 0; i < contractIndices.size(); i++){
-		commModes = ConcatenateVectors(commModes, distT[C.Order() + i]);
-	}
-	ModeArray unboundModes = DiffVector(commModes, gvC.BoundModes());
-	ModeArray boundModes = DiffVector(commModes, unboundModes);
-	for(i = 0; i < boundModes.size(); i++){
-		Mode boundMode = boundModes[i];
-		for(j = 0; j < distC.size(); j++){
-			if(Contains(distC[j], boundMode)){
-				distIntC[j].push_back(boundMode);
-				break;
-			}
-		}
-	}
-	distIntC[C.Order() - 1] = ConcatenateVectors(distIntC[C.Order() - 1], unboundModes);
-	distIntC[C.Order()] = distA[A.Order()];
-
-	//Perform the computation
+	//Perform the distributed computation
 	DistTensor<T> intB(distIntB, B.Grid());
 	DistTensor<T> intT(shapeT, distT, C.Grid());
 	DistTensor<T> intC(C.Shape(), distIntC, C.Grid());
 
 	intB.RedistFrom(B);
-
 	LocalContract(alpha, A.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, T(0), intT.Tensor(), indicesT);
-
-	intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, reduceModes);
+	intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, reduceTenModes);
 	C.RedistFrom(intC);
 }
 
 template <typename T>
-void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	Unsigned i, j;
+void ContractStatB(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+	Unsigned i;
+	const tmen::GridView gvB = B.GetGridView();
+	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
 
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
 
-	TensorDistribution distIntA(distA.size());
-	TensorDistribution distIntB(distB.size());
+	ObjShape shapeC = C.Shape();
+
+	ModeDistribution blank;
+	TensorDistribution distT(indicesT.size() + 1, blank);
+	TensorDistribution distIntA(indicesA.size() + 1, blank);
+	TensorDistribution distIntC(indicesC.size() + 1, blank);
+
+	ModeArray reduceTenModes;
+	for(i = 0; i < contractIndices.size(); i++){
+		reduceTenModes.push_back(C.Order() + i);
+	}
+	ModeArray reduceGridModes;
+	for(i = 0; i < contractIndices.size(); i++){
+		int index = IndexOf(indicesB, contractIndices[i]);
+		if(index >= 0)
+			reduceGridModes = ConcatenateVectors(reduceGridModes, distB[index]);
+	}
+
+	//Setup temp distA
+	SetTensorDistToMatch(distB, indicesB, distIntA, indicesA);
+
+	//Setup temp distT
+	ObjShape shapeT(indicesT.size());
+	SetTensorDistToMatch(distB, indicesB, distT, indicesT);
+	SetTensorShapeToMatch(shapeC, indicesC, shapeT, indicesT);
+	SetTempShapeToMatch(gvB, indicesB, shapeT, indicesT);
+
+	//Setup temp distIntC
+	const tmen::GridView gvC = C.GetGridView();
+	SetTensorDistToMatch(distT, indicesT, distIntC, indicesC);
+	AppendTensorDistToMatch(reduceGridModes, distC, indicesC, distIntC, indicesC);
+
+	//Perform the distributed computation
+	DistTensor<T> intA(distIntA, A.Grid());
+	DistTensor<T> intT(shapeT, distT, C.Grid());
+	DistTensor<T> intC(C.Shape(), distIntC, C.Grid());
+
+	intA.RedistFrom(A);
+	LocalContract(alpha, intA.LockedTensor(), indicesA, B.LockedTensor(), indicesB, T(0), intT.Tensor(), indicesT);
+	intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, reduceTenModes);
+	C.RedistFrom(intC);
+}
+
+template <typename T>
+void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+	TensorDistribution distA = A.TensorDist();
+	TensorDistribution distB = B.TensorDist();
+	TensorDistribution distC = C.TensorDist();
 
 	ModeArray blank;
+	TensorDistribution distIntA(distA.size(), blank);
+	TensorDistribution distIntB(distB.size(), blank);
 
 	//Setup temp dist A
-	for(i = 0; i < indicesA.size(); i++){
-		Index indexToFind = indicesA[i];
-		for(j = 0; j < indicesC.size(); j++){
-			if(indicesC[j] == indexToFind){
-				distIntA[i] = distC[j];
-				break;
-			}
-		}
-		if(j == indicesC.size()){
-			distIntA[i] = blank;
-		}
-	}
-	distIntA[A.Order()] = distC[C.Order()];
+	SetTensorDistToMatch(distC, indicesC, distIntA, indicesA);
 
 	//Setup temp dist B
-	for(i = 0; i < indicesB.size(); i++){
-		Index indexToFind = indicesB[i];
-		for(j = 0; j < indicesC.size(); j++){
-			if(indicesC[j] == indexToFind){
-				distIntB[i] = distC[j];
-				break;
-			}
-		}
-		if(j == indicesC.size()){
-			distIntB[i] = blank;
-		}
-	}
-	distIntB[B.Order()] = distC[C.Order()];
+	SetTensorDistToMatch(distC, indicesC, distIntB, indicesB);
 
-	//Perform the computation
+	//Perform the distributed computation
 	DistTensor<T> intA(distIntA, A.Grid());
 	DistTensor<T> intB(distIntB, B.Grid());
 
@@ -162,10 +214,11 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }else if(numElemB > numElemA && numElemB > numElemC){
     	//Stationary B variant
-    	//ContractStatB(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+//    	printf("StatB\n");
+    	ContractStatB(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }else{
-//    	printf("StatC\n");
     	//Stationary C variant
+//    	printf("StatC\n");
     	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }
 }
