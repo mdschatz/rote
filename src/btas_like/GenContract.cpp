@@ -121,61 +121,137 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 }
 
 template <typename T>
-void ContractStatB(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+void RecurContractStatC(Unsigned depth, const BlkContractStatCInfo& contractInfo, T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+	int commRank = mpi::CommRank(MPI_COMM_WORLD);
+	if(depth == contractInfo.partModesA.size()){
+//		if(commRank == 0){
+//			printf("depth: 0\n");
+//		}
+//		printf("depth: %d\n", depth);
+		DistTensor<T> intA(contractInfo.distIntA, A.Grid());
+		intA.AlignModesWith(contractInfo.alignModesA, C, contractInfo.alignModesATo);
+//		if(commRank == 0){
+//			PrintData(A, "A");
+//			PrintData(intA, "intA");
+//		}
+		intA.RedistFrom(A);
+
+//		if(commRank == 0)
+//			printf("made A\n");
+
+		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
+		intB.AlignModesWith(contractInfo.alignModesB, C, contractInfo.alignModesBTo);
+//		if(commRank == 0){
+//			PrintData(B, "B");
+//			PrintData(intB, "intB");
+//		}
+		intB.RedistFrom(B);
+
+//		if(commRank == 0)
+//			printf("made B\n");
+
+		LocalContractAndLocalEliminate(alpha, intA.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, beta, C.Tensor(), indicesC);
+//		if(commRank == 0)
+//			printf("returning\n");
+		return;
+	}
+	//Must partition and recur
+	//Note: pull logic out
+	Unsigned blkSize = 1;
+	Mode partModeA = contractInfo.partModesA[depth];
+	Mode partModeB = contractInfo.partModesB[depth];
+	DistTensor<T> A_T(A.TensorDist(), A.Grid());
+	DistTensor<T> A_B(A.TensorDist(), A.Grid());
+	DistTensor<T> A_0(A.TensorDist(), A.Grid());
+	DistTensor<T> A_1(A.TensorDist(), A.Grid());
+	DistTensor<T> A_2(A.TensorDist(), A.Grid());
+
+	DistTensor<T> B_T(B.TensorDist(), B.Grid());
+	DistTensor<T> B_B(B.TensorDist(), B.Grid());
+	DistTensor<T> B_0(B.TensorDist(), B.Grid());
+	DistTensor<T> B_1(B.TensorDist(), B.Grid());
+	DistTensor<T> B_2(B.TensorDist(), B.Grid());
+
+	//Do the partitioning and looping
+	int count = 0;
+	LockedPartitionDown(A, A_T, A_B, partModeA, 0);
+	LockedPartitionDown(B, B_T, B_B, partModeB, 0);
+	while(A_T.Dimension(partModeA) < A.Dimension(partModeA)){
+		LockedRepartitionDown(A_T, A_0,
+				        /**/ /**/
+				             A_1,
+				        A_B, A_2, partModeA, blkSize);
+		LockedRepartitionDown(B_T, B_0,
+						/**/ /**/
+							 B_1,
+						B_B, B_2, partModeB, blkSize);
+
+		/*----------------------------------------------------------------*/
+//		if(commRank == 0){
+//			printf("depth: %d, iter: %d\n", depth, count);
+//			PrintData(A_1, "A_1");
+//			PrintData(B_1, "B_1");
+//		}
+		RecurContractStatC(depth+1, contractInfo, alpha, A_1, indicesA, B_1, indicesB, beta, C, indicesC);
+		count++;
+		/*----------------------------------------------------------------*/
+		SlideLockedPartitionDown(A_T, A_0,
+				                A_1,
+						   /**/ /**/
+						   A_B, A_2, partModeA);
+		SlideLockedPartitionDown(B_T, B_0,
+				                B_1,
+						   /**/ /**/
+						   B_B, B_2, partModeB);
+	}
+}
+
+void SetBlkContractStatCInfo(const ObjShape& shapeA, const TensorDistribution& distIntA, const IndexArray& indicesA,
+		                     const ObjShape& shapeB, const TensorDistribution& distIntB, const IndexArray& indicesB,
+							 const ObjShape& shapeC, const IndexArray& indicesC,
+							 BlkContractStatCInfo& contractInfo){
 	Unsigned i;
-	const tmen::GridView gvB = B.GetGridView();
-	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
-	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
+	IndexArray indicesAB = DiffVector(indicesB, indicesC);
+	IndexArray indicesAC = DiffVector(indicesA, indicesB);
+	IndexArray indicesBC = DiffVector(indicesB, indicesA);
 
-	TensorDistribution distA = A.TensorDist();
-	TensorDistribution distB = B.TensorDist();
-	TensorDistribution distC = C.TensorDist();
+	//Set the intermediate dists
+	contractInfo.distIntA = distIntA;
+	contractInfo.distIntB = distIntB;
 
-	ObjShape shapeC = C.Shape();
-
-	ModeDistribution blank;
-	TensorDistribution distT(indicesT.size() + 1, blank);
-	TensorDistribution distIntA(indicesA.size() + 1, blank);
-	TensorDistribution distIntC(indicesC.size() + 1, blank);
-
-	ModeArray reduceTenModes;
-	for(i = 0; i < contractIndices.size(); i++){
-		reduceTenModes.push_back(C.Order() + i);
-	}
-	ModeArray reduceGridModes;
-	for(i = 0; i < contractIndices.size(); i++){
-		int index = IndexOf(indicesB, contractIndices[i]);
-		if(index >= 0)
-			reduceGridModes = ConcatenateVectors(reduceGridModes, distB[index]);
+	//Determine the modes to partition
+	contractInfo.partModesA.resize(indicesAB.size());
+	contractInfo.partModesB.resize(indicesAB.size());
+	for(i = 0; i < indicesAB.size(); i++){
+		contractInfo.partModesA[i] = IndexOf(indicesA, indicesAB[i]);
+		contractInfo.partModesB[i] = IndexOf(indicesB, indicesAB[i]);
 	}
 
-	//Setup temp distA
-	SetTensorDistToMatch(distB, indicesB, distIntA, indicesA);
+	//Determine the final alignments needed
+	contractInfo.alignModesA.resize(indicesAC.size());
+	contractInfo.alignModesATo.resize(indicesAC.size());
+	for(i = 0; i < indicesAC.size(); i++){
+		contractInfo.alignModesA[i] = IndexOf(indicesA, indicesAC[i]);
+		contractInfo.alignModesATo[i] = IndexOf(indicesC, indicesAC[i]);
+	}
+	contractInfo.alignModesB.resize(indicesBC.size());
+	contractInfo.alignModesBTo.resize(indicesBC.size());
+	for(i = 0; i < indicesBC.size(); i++){
+		contractInfo.alignModesB[i] = IndexOf(indicesB, indicesBC[i]);
+		contractInfo.alignModesBTo[i] = IndexOf(indicesC, indicesBC[i]);
+	}
 
-	//Setup temp distT
-	ObjShape shapeT(indicesT.size());
-	SetTensorDistToMatch(distB, indicesB, distT, indicesT);
-	SetTensorShapeToMatch(shapeC, indicesC, shapeT, indicesT);
-	SetTempShapeToMatch(gvB, indicesB, shapeT, indicesT);
-
-	//Setup temp distIntC
-	const tmen::GridView gvC = C.GetGridView();
-	SetTensorDistToMatch(distT, indicesT, distIntC, indicesC);
-	AppendTensorDistToMatch(reduceGridModes, distC, indicesC, distIntC, indicesC);
-
-	//Perform the distributed computation
-	DistTensor<T> intA(distIntA, A.Grid());
-	DistTensor<T> intT(shapeT, distT, C.Grid());
-	DistTensor<T> intC(C.Shape(), distIntC, C.Grid());
-
-	intA.RedistFrom(A);
-	LocalContract(alpha, intA.LockedTensor(), indicesA, B.LockedTensor(), indicesB, T(0), intT.Tensor(), indicesT);
-	intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, reduceTenModes);
-	C.RedistFrom(intC);
+	//Set the Block-size info
+	//TODO: Needs to be updated correctly!!!!!!
+	contractInfo.blkSizes.resize(indicesAB.size());
+	for(i = 0; i < indicesAB.size(); i++)
+		contractInfo.blkSizes[i] = 1;
 }
 
 template <typename T>
 void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+	int commRank = mpi::CommRank(MPI_COMM_WORLD);
+	Unsigned i;
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
@@ -190,20 +266,26 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	//Setup temp dist B
 	SetTensorDistToMatch(distC, indicesC, distIntB, indicesB);
 
-	//Perform the distributed computation
-	DistTensor<T> intA(distIntA, A.Grid());
-	DistTensor<T> intB(distIntB, B.Grid());
+	//Determine how to partition
+	BlkContractStatCInfo contractInfo;
+	SetBlkContractStatCInfo(A.Shape(), distIntA, indicesA, B.Shape(), distIntB, indicesB, C.Shape(), indicesC, contractInfo);
 
-	intA.RedistFrom(A);
-	intB.RedistFrom(B);
-	LocalContractAndLocalEliminate(alpha, intA.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, beta, C.Tensor(), indicesC);
+	RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
 
+//	//Perform the distributed computation
+//	DistTensor<T> intA(distIntA, A.Grid());
+//	DistTensor<T> intB(distIntB, B.Grid());
+//
+//	intA.RedistFrom(A);
+//	intB.RedistFrom(B);
+//	LocalContractAndLocalEliminate(alpha, intA.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, beta, C.Tensor(), indicesC);
 }
 
 //TODO: Handle updates
+//Note: StatA equivalent to StatB with rearranging operands
 template <typename T>
 void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-    //Determine Stationary variant.
+	//Determine Stationary variant.
     const Unsigned numElemA = prod(A.Shape());
     const Unsigned numElemB = prod(B.Shape());
     const Unsigned numElemC = prod(C.Shape());
@@ -215,7 +297,7 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     }else if(numElemB > numElemA && numElemB > numElemC){
     	//Stationary B variant
 //    	printf("StatB\n");
-    	ContractStatB(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+    	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC);
     }else{
     	//Stationary C variant
 //    	printf("StatC\n");
