@@ -107,6 +107,10 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	RedistInfo intRedist = intermediateDists[i];
     	DistTensor<T> tmp2(intRedist.dist, g);
 
+//    	if(commRank == 0){
+//    		std::cout << "from: " << TensorDistToString(tmp.TensorDist()) << std::endl;
+//    		std::cout << "to: " << TensorDistToString(tmp2.TensorDist()) << std::endl;
+//    	}
     	switch(intRedist.redistType){
     	case AG: tmp2.AllGatherRedistFrom(tmp, intRedist.modes); break;
     	case A2A: tmp2.AllToAllRedistFrom(tmp, intRedist.modes); break;
@@ -115,6 +119,9 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 //    	case RS: tmp2.ReduceScatterUpdateRedistFrom(tmp, lastRedist.reduceModes); break;
     	default: break;
     	}
+//    	if(commRank == 0){
+//			printf("done redist\n");
+//		}
     	tmp.Empty();
     	tmp.SetDistribution(tmp2.TensorDist());
     	tmp = tmp2;
