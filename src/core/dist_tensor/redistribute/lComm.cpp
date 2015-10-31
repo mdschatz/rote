@@ -61,6 +61,9 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A){
 
         recvBuf = &(alignRecvBuf[0]);
     }
+
+//    PrintArray(recvBuf, commDataShape, "recvBuf");
+
         //Packing is what is stored in memory
 	PROFILE_SECTION("LocalUnpack");
 	UnpackLocalCommRedist(A, recvBuf);
@@ -93,10 +96,49 @@ void DistTensor<T>::UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpac
     unpackData.dstBufStrides = LocalStrides();
     unpackData.srcBufStrides = PermuteVector(ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_)), in2OutPerm);
 
+//    PrintPackData(unpackData, "unpackData");
     const Location myFirstElemLoc = DetermineFirstElem(GetGridView().ParticipatingLoc());
 
-    if(ElemwiseLessThan(myFirstElemLoc, A.Shape())){
-        const Location firstLocInA = A.Global2LocalIndex(myFirstElemLoc);
+    Location myFirstLoc = DetermineFirstElem(GetGridView().ParticipatingLoc());
+
+    const tmen::Grid& g = Grid();
+    const ObjShape gridShape = g.Shape();
+    const GridView gvA = A.GetGridView();
+    const GridView gvB = GetGridView();
+
+    const Location myGridLoc = g.Loc();
+    Location procGridLoc = myGridLoc;
+    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
+    std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+	Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
+	Location procLocBeforeRealign = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
+    Location procFirstLoc = A.DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procLocBeforeRealign, gridShape, A.TensorDist()));
+
+    Location firstRecvLoc(Order(),-1);
+
+    bool found = true;
+    for(Unsigned j = 0; j < myFirstLoc.size(); j++){
+        Unsigned myFirstIndex = myFirstLoc[j];
+        Unsigned recvFirstIndex = procFirstLoc[j];
+        Unsigned myModeStride = ModeStride(j);
+        Unsigned recvProcModeStride = A.ModeStride(j);
+
+        while(myFirstIndex != recvFirstIndex && myFirstIndex < Dimension(j)){
+            if(myFirstIndex < recvFirstIndex)
+                myFirstIndex += myModeStride;
+            else
+                recvFirstIndex += recvProcModeStride;
+        }
+        if(myFirstIndex >= Dimension(j)){
+            found &= false;
+            break;
+        }
+        firstRecvLoc[j] = myFirstIndex;
+    }
+
+    if(found && ElemwiseLessThan(firstRecvLoc, Shape())){
+        const Location firstLocInA = Global2LocalIndex(firstRecvLoc);
         Unsigned srcBufPtr = Loc2LinearLoc(PermuteVector(firstLocInA, A.localPerm_), A.LocalShape(), A.LocalStrides());
         PackCommHelper(unpackData, &(unpackBuf[srcBufPtr]), &(dataBuf[0]));
     }
