@@ -304,7 +304,7 @@ public:
     //
     bool CheckLocalCommRedist(const DistTensor<T>& A);
     void LocalCommRedist(const DistTensor<T>& A);
-    void UnpackLocalCommRedist(const DistTensor<T>& A, const T* unpackBuf);
+    void UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* unpackBuf);
 
     //
     // Local redist interface routines

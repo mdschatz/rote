@@ -70,7 +70,7 @@ GenRedistData DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenDi
 
 template <typename T>
 void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes){
-//	int commRank = mpi::CommRank(MPI_COMM_WORLD);
+	int commRank = mpi::CommRank(MPI_COMM_WORLD);
     PROFILE_SECTION("Redist");
     ResizeTo(A);
 
@@ -111,6 +111,8 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 //    		std::cout << "from: " << TensorDistToString(tmp.TensorDist()) << std::endl;
 //    		std::cout << "to: " << TensorDistToString(tmp2.TensorDist()) << std::endl;
 //    	}
+//    	PrintData(tmp, "tmp");
+//    	Print(tmp, "tmp");
     	switch(intRedist.redistType){
     	case AG: tmp2.AllGatherRedistFrom(tmp, intRedist.modes); break;
     	case A2A: tmp2.AllToAllRedistFrom(tmp, intRedist.modes); break;
@@ -121,7 +123,10 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	}
 //    	if(commRank == 0){
 //			printf("done redist\n");
+//
 //		}
+//    	PrintData(tmp2, "tmp2");
+//    	Print(tmp2, "tmp2");
     	tmp.Empty();
     	tmp.SetDistribution(tmp2.TensorDist());
     	tmp = tmp2;

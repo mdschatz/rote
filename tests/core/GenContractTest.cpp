@@ -252,7 +252,9 @@ void RunTest(const Grid& g, const Params& args){
 	Set(B);
 	Set(C);
 
-	GenContract(1.0, A, args.indicesA, B, args.indicesB, 1.0, C, args.indicesC);
+	double alpha = 1.0;
+	double beta = 0.0;
+	GenContract(alpha, A, args.indicesA, B, args.indicesB, beta, C, args.indicesC);
 
 	TensorDistribution distFinalC = args.distC;
 	for(i = 0; i < C.Order(); i++){
@@ -261,6 +263,7 @@ void RunTest(const Grid& g, const Params& args){
 	}
 	DistTensor<double> finalC(shapeC, distFinalC, g);
 	finalC.RedistFrom(C);
+	Print(finalC, "final");
 
 	if(commRank == 0){
 		Tensor<double> checkA(shapeA);
@@ -270,9 +273,9 @@ void RunTest(const Grid& g, const Params& args){
 		Set(checkB);
 		Set(checkC);
 
-		LocalContractAndLocalEliminate((double)(1.0), checkA, args.indicesA, checkB, args.indicesB, (double)(1.0), checkC, args.indicesC);
+		LocalContractAndLocalEliminate(alpha, checkA, args.indicesA, checkB, args.indicesB, beta, checkC, args.indicesC);
 		double norm;
-		Tensor<double> diff;
+		Tensor<double> diff(finalC.Tensor().Shape());
 		Diff(finalC.Tensor(), checkC, diff);
 		norm = Norm(diff);
 		std::cout << "Norm: " << norm << std::endl;

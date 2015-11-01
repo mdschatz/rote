@@ -45,6 +45,23 @@ struct RedistInfo
 	ModeArray modes;
 };
 
+struct 	BlkContractStatAInfo
+{
+	ModeArray reduceTensorModes;
+	ObjShape shapeT;
+	IndexArray indicesT;
+	TensorDistribution distT;
+	ModeArray alignModesT;
+	ModeArray alignModesTTo;
+	ModeArray partModesB;
+	TensorDistribution distIntB;
+	ModeArray alignModesB;
+	ModeArray alignModesBTo;
+	ModeArray partModesC;
+	TensorDistribution distIntC;
+	std::vector<Unsigned> blkSizes;
+};
+
 struct 	BlkContractStatCInfo
 {
 	ModeArray partModesA;
@@ -56,6 +73,7 @@ struct 	BlkContractStatCInfo
 	ModeArray alignModesB;
 	ModeArray alignModesBTo;
 	std::vector<Unsigned> blkSizes;
+	bool firstIter;
 };
 
 struct GenRedistData
