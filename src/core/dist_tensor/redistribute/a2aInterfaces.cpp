@@ -19,13 +19,13 @@ namespace tmen{
 
 //TODO: MAKE SURE ALL REDISTS WORK WITH blank commModes (size=0)
 template <typename T>
-void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes){
+void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
     PROFILE_SECTION("A2ARedist");
     ResizeTo(A);
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
 
-    AllToAllCommRedist(A, sortedCommModes);
+    AllToAllCommRedist(A, sortedCommModes, alpha);
 
     PROFILE_STOP;
 }

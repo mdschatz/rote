@@ -29,7 +29,7 @@ bool DistTensor<T>::CheckAllToAllCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
+void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
         if(!CheckAllToAllCommRedist(A))
             LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
@@ -89,7 +89,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         //Unpack the data (if participating)
         PROFILE_SECTION("A2AUnpack");
-        UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
+        UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
         PROFILE_STOP;
 
 //        const T* myBuf = LockedBuffer();
@@ -249,7 +249,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 }
 
 template<typename T>
-void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A){
+void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A, const T alpha){
 
     const Unsigned order = A.Order();
     T* dataBuf = Buffer();
@@ -401,7 +401,15 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             //Test to fix bug
             unpackData.loopShape = MaxLengths(ElemwiseSubtract(LocalShape(), PermuteVector(localLoc, localPerm_)), PermuteVector(modeStrideFactor, localPerm_));
 
-            PackCommHelper(unpackData, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
+            if(alpha == T(0))
+            	PackCommHelper(unpackData, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]));
+            else{
+            	YAxpByData data;
+            	data.loopShape = unpackData.loopShape;
+            	data.dstStrides = unpackData.dstBufStrides;
+            	data.srcStrides = unpackData.srcBufStrides;
+            	YAxpBy_fast(T(1), alpha, &(recvBuf[0]), &(dataBuf[0]), data);
+            }
         }
     }
 }

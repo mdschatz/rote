@@ -28,7 +28,7 @@ bool DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
+void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
     if(!CheckPermutationCommRedist(A))
 		LogicError("PermutationRedist: Invalid redistribution request");
 
@@ -110,7 +110,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");
-    UnpackPCommRecvBuf(recvBuf, A);
+    UnpackPCommRecvBuf(recvBuf, A, alpha);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -120,7 +120,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 }
 
 template <typename T>
-void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A)
+void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A, const T alpha)
 {
     T* dataBuf = Buffer();
 
@@ -130,7 +130,15 @@ void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor
     unpackData.srcBufStrides = Dimensions2Strides(PermuteVector(MaxLocalShape(), localPerm_));
 
 //    PrintPackData(unpackData, "unpackData");
-    PackCommHelper(unpackData, &(recvBuf[0]), &(dataBuf[0]));
+    if(alpha == T(0))
+    	PackCommHelper(unpackData, &(recvBuf[0]), &(dataBuf[0]));
+    else{
+    	YAxpByData data;
+    	data.loopShape = unpackData.loopShape;
+    	data.dstStrides = unpackData.dstBufStrides;
+    	data.srcStrides = unpackData.srcBufStrides;
+    	YAxpBy_fast(T(1), alpha, &(recvBuf[0]), &(dataBuf[0]), data);
+    }
 }
 
 #define FULL(T) \

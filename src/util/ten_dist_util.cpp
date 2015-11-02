@@ -223,9 +223,9 @@ Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist){
 	for(i = 0; i < tenDist.size(); i++){
 		ModeDistribution modeDist = tenDist[i];
 		if(Contains(modeDist, mode))
-			break;
+			return i;
 	}
-	return i;
+	return tenDist.size();
 }
 
 }

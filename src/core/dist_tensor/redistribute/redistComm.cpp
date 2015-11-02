@@ -29,21 +29,31 @@ void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const 
 		intDist.erase(intDist.begin() + reduceMode);
 	}
 
+	std::cout << TensorDistToString(intDist) << "before adding reductions\n";
+	printf("ping1\n");
 	ModeArray sinkTenModes = GetModeDistOfGridMode(gridModesReduced, finalDist);
-
+	printf("ping1\n");
+	PrintVector(sinkTenModes, "sinkTenModes");
 	for(i = 0; i < sinkTenModes.size(); i++){
 		Mode sinkTenMode = sinkTenModes[i];
 		//Check that this mode didn't disappear
-		if(sinkTenMode != intDist.size() + 1){
+		//and place it in the final mode distribution
+		//Otherwise, by default append to mode dist 0
+		if(sinkTenMode != finalDist.size()){
 			intDist[sinkTenMode].push_back(gridModesReduced[i]);
+		}else{
+			intDist[0].push_back(gridModesReduced[i]);
 		}
 	}
-
+	std::cout << TensorDistToString(intDist) << "after adding reductions\n";
+	printf("ping1\n");
 	RedistInfo newRedistInfo;
 	newRedistInfo.redistType = RS;
 	newRedistInfo.dist = intDist;
 	newRedistInfo.modes = reduceModes;
 	intDists.push_back(newRedistInfo);
+
+	redistData.tenModesReduced.clear();
 
 	CommRedist(finalDist, intDist, redistData, intDists);
 }
@@ -131,6 +141,9 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 	ModeArray gridModesToMoveSinks;
 	ModeArray excludeModes;
 
+	redistData.gridModesMovedSrcs = GetModeDistOfGridMode(redistData.gridModesMoved, startDist);
+	redistData.gridModesMovedSinks = GetModeDistOfGridMode(redistData.gridModesMoved, finalDist);
+
 	for(i = 0; i < redistData.gridModesMoved.size(); i++){
 		if(!Contains(excludeModes, redistData.gridModesMovedSrcs[i]) &&
 		   !Contains(excludeModes, redistData.gridModesMovedSinks[i])){
@@ -186,8 +199,8 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 		for(j = 0; j < redistData.gridModesMoved.size(); j++){
 			if(redistData.gridModesMoved[j] == modeToFind){
 				redistData.gridModesMoved.erase(redistData.gridModesMoved.begin() + j);
-				redistData.gridModesMovedSrcs.erase(redistData.gridModesMovedSrcs.begin() + j);
-				redistData.gridModesMovedSinks.erase(redistData.gridModesMovedSinks.begin() + j);
+//				redistData.gridModesMovedSrcs.erase(redistData.gridModesMovedSrcs.begin() + j);
+//				redistData.gridModesMovedSinks.erase(redistData.gridModesMovedSinks.begin() + j);
 				break;
 			}
 		}
@@ -204,9 +217,13 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 	const tmen::Grid& g = Grid();
 
 	ModeArray movedModes = redistData.gridModesMoved;
-	ModeArray movedModesSrcs = redistData.gridModesMovedSrcs;
-	ModeArray movedModesSinks = redistData.gridModesMovedSinks;
+//	ModeArray movedModesSrcs = redistData.gridModesMovedSrcs;
+//	ModeArray movedModesSinks = redistData.gridModesMovedSinks;
+	ModeArray movedModesSrcs = GetModeDistOfGridMode(redistData.gridModesMoved, startDist);
+	ModeArray movedModesSinks = GetModeDistOfGridMode(redistData.gridModesMoved, finalDist);
 
+	PrintVector(movedModesSrcs, "srcs");
+	PrintVector(movedModesSinks, "sinks");
 	ObjShape startShape(order, 1);
 	Unsigned numMoved = redistData.gridModesMoved.size();
 
@@ -227,6 +244,7 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
     Location maxLoc = curLoc;
     bool done = numMoved == 0 || !ElemwiseLessThan(curLoc, end);
 
+    printf("ping1\n");
     while(!done){
     	curShape = startShape;
     	for(i = 0; i < numMoved; i++){
@@ -259,6 +277,7 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
         ptr = 0;
     }
 
+    printf("ping2\n");
     if(AnyElemwiseNotEqual(maxLoc, startLoc)){
 		//Form the base distribution
 		TensorDistribution intDist = startDist;
@@ -272,8 +291,8 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 
 				//Update GenRedistData object
 				redistData.gridModesMoved.erase(redistData.gridModesMoved.begin() + index);
-				redistData.gridModesMovedSrcs.erase(redistData.gridModesMovedSrcs.begin() + index);
-				redistData.gridModesMovedSinks.erase(redistData.gridModesMovedSinks.begin() + index);
+//				redistData.gridModesMovedSrcs.erase(redistData.gridModesMovedSrcs.begin() + index);
+//				redistData.gridModesMovedSinks.erase(redistData.gridModesMovedSinks.begin() + index);
 			}
 		}
 
@@ -294,38 +313,38 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 
 template <typename T>
 void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
-//	int commRank = mpi::CommRank(MPI_COMM_WORLD);
+	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	//Add any grid modes to reduce communicated data
 	if(finalDist == startDist){
 		return;
 	}
 	else if(redistData.tenModesReduced.size() > 0){
-//		if(commRank == 0)
-//			std::cout << "Add: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		if(commRank == 0)
+			std::cout << "Reduce: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistReduce(finalDist, startDist, redistData, intDists);
 	}
 	else if(redistData.gridModesAppeared.size() > 0){
-//		if(commRank == 0)
-//		std::cout << "Add: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		if(commRank == 0)
+			std::cout << "Add: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistAdd(finalDist, startDist, redistData, intDists);
 	}
 	//Move any grid modes with Perm + A2A
 	//Try the Perm first
 	else if(redistData.gridModesMoved.size() > 0){
-//		if(commRank == 0)
-//		std::cout << "P2P: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		if(commRank == 0)
+			std::cout << "P2P: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistP2P(finalDist, startDist, redistData, intDists);
 	}
 	//Finally, perform the necessary replication
 	else if(redistData.gridModesRemoved.size() > 0){
-//		if(commRank == 0)
-//		std::cout << "Rmv: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		if(commRank == 0)
+			std::cout << "Rmv: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistRemove(finalDist, startDist, redistData, intDists);
 	}
 	//All thats left is a shuffle
 	else{
-//		if(commRank == 0)
-//		std::cout << "Final: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		if(commRank == 0)
+			std::cout << "Final: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		//Add the final redistribution
 		//NOTE: modes is clearly a hack until interface changes
 		RedistInfo redistInfo;

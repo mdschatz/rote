@@ -18,7 +18,7 @@ namespace tmen{
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes){
+void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha){
     PROFILE_SECTION("PermuteRedist");
     Unsigned i;
     ResizeTo(A);
@@ -30,7 +30,7 @@ void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArra
     }
 
     commModes = Unique(commModes);
-    PermutationCommRedist(A, commModes);
+    PermutationCommRedist(A, commModes, alpha);
     PROFILE_STOP;
 }
 

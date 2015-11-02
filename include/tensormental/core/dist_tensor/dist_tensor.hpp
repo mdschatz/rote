@@ -248,7 +248,7 @@ public:
     //
     // Redist interface routines
     //
-    void RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
+    void RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha=T(1), const T beta=T(0));
     void RedistFrom(const DistTensor<T>& A);
 
 
@@ -256,14 +256,14 @@ public:
     // All-to-all workhorse routines
     //
     bool CheckAllToAllCommRedist(const DistTensor<T>& A);
-    void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
+    void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
     void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
-    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A);
+    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A, const T alpha=T(0));
 
     //
     // All-to-all interface routines
     //
-    void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
+    void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
 
     //
     // Allgather workhorse routines
@@ -303,25 +303,25 @@ public:
     // Local redist workhorse routines
     //
     bool CheckLocalCommRedist(const DistTensor<T>& A);
-    void LocalCommRedist(const DistTensor<T>& A);
-    void UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* unpackBuf);
+    void LocalCommRedist(const DistTensor<T>& A, const T alpha=T(0));
+    void UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* unpackBuf, const T alpha=T(0));
 
     //
     // Local redist interface routines
     //
-    void LocalRedistFrom(const DistTensor<T>& A);
+    void LocalRedistFrom(const DistTensor<T>& A, const T alpha=T(0));
 
     //
     // Point-to-point workhorse routines
     //
     bool CheckPermutationCommRedist(const DistTensor<T>& A);
-    void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes);
-    void UnpackPCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A);
+    void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha=T(0));
+    void UnpackPCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A, const T alpha=T(0));
 
     //
     // Point-to-point interface routines
     //
-    void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes);
+    void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha=T(0));
 
     //
     // Reduce Redist routine

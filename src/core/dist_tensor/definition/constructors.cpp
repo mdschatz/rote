@@ -491,12 +491,22 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
 #endif
     if( Grid() == A.Grid() )
     {
+        if(A.Order() != Order()){
+        	shape_.resize(A.Order());
+
+            constrainedModeAlignments_.resize(shape_.size());
+            modeAlignments_.resize(shape_.size());
+            modeShifts_.resize(shape_.size());
+            gridView_ = A.gridView_;
+            localPerm_.resize(shape_.size());
+        }
         ResizeTo(A);
         if( !Participating() && !A.Participating() )
             return *this;
+
         if( !AnyElemwiseNotEqual(Alignments(), A.Alignments()) )
         {
-            //dist_ = A.TensorDist();
+            dist_ = A.TensorDist();
             tensor_ = A.LockedTensor();
             localPerm_ = A.localPerm_;
             gridView_ = A.gridView_;
