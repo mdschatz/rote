@@ -47,6 +47,20 @@ void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode r
     ReduceScatterRedistFrom(A, reduceModes);
 }
 
+template <typename T>
+void DistTensor<T>::ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& A, const ModeArray& rModes){
+    ObjShape newShape = NegFilterVector(A.Shape(), rModes);
+    ResizeTo(newShape);
+    ReduceScatterUpdateRedistFrom(alpha, A, T(0), rModes);
+}
+
+template <typename T>
+void DistTensor<T>::ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& A, const Mode reduceMode){
+    ModeArray reduceModes(1);
+    reduceModes[0] = reduceMode;
+    ReduceScatterRedistFrom(alpha, A, reduceModes);
+}
+
 ////////////////////////////////
 // Update Wrappers
 ////////////////////////////////

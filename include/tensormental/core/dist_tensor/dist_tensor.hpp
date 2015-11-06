@@ -358,7 +358,9 @@ public:
     //
     void ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
     void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
+    void ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& A, const Mode reduceMode);
     void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode);
+    void ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& A, const ModeArray& reduceModes);
     void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
     void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
 
