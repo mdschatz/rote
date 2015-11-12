@@ -147,7 +147,7 @@ On \*nix machines with `BLAS <http://www.netlib.org/blas/>`__, and
 `MPI <http://en.wikipedia.org/wiki/Message_Passing_Interface>`__ installed in 
 standard locations, building |projectName| can be as simple as::
 
-    cd tensormental
+    cd rote
     mkdir build
     cd build
     cmake ..
@@ -221,19 +221,19 @@ project folder that builds off of the following snippet::
     project(Foo)
 
     add_subdirectory(external/elemental)
-    include_directories("${PROJECT_BINARY_DIR}/external/tensormental/include")
+    include_directories("${PROJECT_BINARY_DIR}/external/rote/include")
     include_directories(${MPI_CXX_INCLUDE_PATH})
 
     # Build your project here
     # e.g., 
     #   add_library(foo ${LIBRARY_TYPE} ${FOO_SRC})
-    #   target_link_libraries(foo tensormental)
+    #   target_link_libraries(foo rote)
 
 Troubleshooting
 ===============
 If you run into build problems, please email 
 `martin.schatz@utexas.edu <mailto:martin.schatz@utexas.edu>`_ 
-and make sure to attach the file ``include/tensormental/config.h``, which should 
+and make sure to attach the file ``include/rote/config.h``, which should 
 be generated within your build directory. 
 Please only direct usage questions to 
 `martin.schatz@utexas.edu <mailto:martin.schatz@utexas.edu>`_, 

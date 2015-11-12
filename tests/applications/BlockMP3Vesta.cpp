@@ -18,8 +18,8 @@
   You should have received a copy of the GNU General Public License
   along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
 using namespace rote;
 using namespace std;
 
@@ -668,7 +668,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //******************************
 
 //  double startLoadTime = mpi::Time();
-//  DistTensor<T> epsilonA( tmen::StringToTensorDist("[(0)]|()"), g);
+//  DistTensor<T> epsilonA( rote::StringToTensorDist("[(0)]|()"), g);
 //  ObjShape epsilonAShape;
 //  epsilonAShape.push_back(tenDimFiftyThree);
 //  epsilonA.ResizeTo(epsilonAShape);
@@ -677,7 +677,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //  Load_Tensor(epsilonA, epsilonAFilename);
 //  //Print(epsilonA, "eps_a");
 //
-//  DistTensor<T> epsilonB( tmen::StringToTensorDist("[(0)]|()"), g);
+//  DistTensor<T> epsilonB( rote::StringToTensorDist("[(0)]|()"), g);
 //  ObjShape epsilonBShape;
 //  epsilonBShape.push_back(tenDimFive);
 //  epsilonB.ResizeTo(epsilonBShape);
@@ -686,7 +686,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //  Load_Tensor(epsilonB, epsilonBFilename);
 //  //Print(epsilonB, "eps_b");
 //
-//  DistTensor<T> D_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
+//  DistTensor<T> D_abij( rote::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
 //  ObjShape D_abijShape;
 //  D_abijShape.push_back(tenDimFiftyThree);
 //  D_abijShape.push_back(tenDimFiftyThree);
@@ -694,7 +694,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //  D_abijShape.push_back(tenDimFive);
 //  D_abij.ResizeTo(D_abijShape);
 //
-//  DistTensor<T> V_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
+//  DistTensor<T> V_abij( rote::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
 //  V_abij.ResizeTo(D_abijShape);
 //  std::string v_abijFilename = "data/abij";
 //  printf("loading V_abij\n");
@@ -726,7 +726,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //
 //  printf("elemScaling\n");
 //  Form_D_abij(epsilonA, epsilonB, D_abij);
-//  tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
+//  rote::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
 //  //Print(t_efmn__D_0__D_1__D_2__D_3, "t_efmn");
 //
 //  printf("zeroing\n");

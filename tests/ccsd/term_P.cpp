@@ -18,8 +18,8 @@
  You should have received a copy of the GNU General Public License
  along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
  */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
 
 #ifdef PROFILE
 #ifdef BGQ

@@ -6,8 +6,8 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
 using namespace rote;
 
 void Usage(){
@@ -161,7 +161,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
 //    }
 //
 //    std::string tensorDist(argv[++argCount]);
-//    args.tensorDist = tmen::StringToTensorDist(tensorDist);
+//    args.tensorDist = rote::StringToTensorDist(tensorDist);
 //
 //
 //    if(args.tensorDist.size() != args.tensorShape.size()){

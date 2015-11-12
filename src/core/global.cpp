@@ -7,15 +7,15 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
 namespace {
 
 rote::Int numElemInits = 0;
-bool tmenInitializedMpi = false;
+bool roteInitializedMpi = false;
 #ifdef HAVE_QT5
-bool tmenInitializedQt = false;
-bool tmenOpenedWindow = false;
+bool roteInitializedQt = false;
+bool roteOpenedWindow = false;
 QCoreApplication* coreApp;
 bool haveMinRealWindowVal=false, haveMaxRealWindowVal=false,
      haveMinImagWindowVal=false, haveMaxImagWindowVal=false;
@@ -36,20 +36,20 @@ std::stack<std::string> callStack;
 #endif
 
 // Tuning parameters for basic routines
-//tmen::Int localSymvFloatBlocksize = 64;
-//tmen::Int localSymvDoubleBlocksize = 64;
-//tmen::Int localSymvComplexFloatBlocksize = 64;
-//tmen::Int localSymvComplexDoubleBlocksize = 64;
+//rote::Int localSymvFloatBlocksize = 64;
+//rote::Int localSymvDoubleBlocksize = 64;
+//rote::Int localSymvComplexFloatBlocksize = 64;
+//rote::Int localSymvComplexDoubleBlocksize = 64;
 
-//tmen::Int localTrr2kFloatBlocksize = 64;
-//tmen::Int localTrr2kDoubleBlocksize = 64;
-//tmen::Int localTrr2kComplexFloatBlocksize = 64;
-//tmen::Int localTrr2kComplexDoubleBlocksize = 64;
+//rote::Int localTrr2kFloatBlocksize = 64;
+//rote::Int localTrr2kDoubleBlocksize = 64;
+//rote::Int localTrr2kComplexFloatBlocksize = 64;
+//rote::Int localTrr2kComplexDoubleBlocksize = 64;
 
-//tmen::Int localTrrkFloatBlocksize = 64;
-//tmen::Int localTrrkDoubleBlocksize = 64;
-//tmen::Int localTrrkComplexFloatBlocksize = 64;
-//tmen::Int localTrrkComplexDoubleBlocksize = 64;
+//rote::Int localTrrkFloatBlocksize = 64;
+//rote::Int localTrrkDoubleBlocksize = 64;
+//rote::Int localTrrkComplexFloatBlocksize = 64;
+//rote::Int localTrrkComplexDoubleBlocksize = 64;
 
 // Tuning parameters for advanced routines
 using namespace rote;
@@ -100,7 +100,7 @@ void Initialize( int& argc, char**& argv )
         if( mpi::Finalized() )
         {
             LogicError
-            ("Cannot initialize tensormental after finalizing MPI");
+            ("Cannot initialize rote after finalizing MPI");
         }
 #ifdef HAVE_OPENMP
         const Int provided = 
@@ -115,7 +115,7 @@ void Initialize( int& argc, char**& argv )
 #else
         mpi::Initialize( argc, argv );
 #endif
-        ::tmenInitializedMpi = true;
+        ::roteInitializedMpi = true;
     }
     else
     {
@@ -184,7 +184,7 @@ void Finalize()
         delete ::args;
         ::args = 0;
 
-        if( ::tmenInitializedMpi )
+        if( ::roteInitializedMpi )
         {
             // Destroy the types and ops needed for ValueInt
             mpi::DestroyValueIntType<Int>();
@@ -309,4 +309,4 @@ void DumpCallStack( std::ostream& os )
 }
 #endif // RELEASE
 
-} // namespace tmen
+} // namespace rote

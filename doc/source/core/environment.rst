@@ -71,12 +71,12 @@ Set up and clean up
 
    .. code-block:: cpp
 
-      #include "tensormental.hpp"
+      #include "rote.hpp"
       int main( int argc, char* argv[] )
       {
-          tmen::Initialize( argc, argv );
+          rote::Initialize( argc, argv );
           // ...
-          tmen::Finalize();
+          rote::Finalize();
           return 0;
       }
 
@@ -94,14 +94,14 @@ Set up and clean up
 
    .. code-block:: cpp
 
-      #include "tensormental.hpp"
+      #include "rote.hpp"
       int main( int argc, char* argv[] )
       {
-          tmen::Initialize( argc, argv );
+          rote::Initialize( argc, argv );
           try {
               // ...
           } catch( std::exception& e ) { ReportException(e); }
-          tmen::Finalize();
+          rote::Finalize();
           return 0;
       }
 
@@ -146,7 +146,7 @@ Default process grid
       shape[0] = 10;
       shape[1] = 10;
       shape[2] = 10;
-      tmen::DistMatrix<T,MC,MR> A( shape );
+      rote::DistMatrix<T,MC,MR> A( shape );
 
 Call stack manipulation
 -----------------------

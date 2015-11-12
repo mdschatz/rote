@@ -6,7 +6,7 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
 namespace rote {
 
@@ -62,4 +62,4 @@ std::ifstream::pos_type FileSize( std::ifstream& file )
     return numBytes;
 }
 
-} // namespace tmen
+} // namespace rote

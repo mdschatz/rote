@@ -5,7 +5,7 @@ This class is responsible for representing the logical process grid based on the
 
 .. cpp:type:: class GridView
 
-   .. cpp:function:: GridView( const tmen::Grid* g, const TensorDistribution& dist)
+   .. cpp:function:: GridView( const rote::Grid* g, const TensorDistribution& dist)
 
       Construct a view of the grid `g` under the distribution `dist`.
 
@@ -47,7 +47,7 @@ This class is responsible for representing the logical process grid based on the
 
       Return the tensor distribution used to create this grid view.
 
-   .. cpp:function:: const tmen::Grid* Grid() const
+   .. cpp:function:: const rote::Grid* Grid() const
 
       Return the underlying Grid object.
 

@@ -8,7 +8,7 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
 namespace {
 
@@ -2855,4 +2855,4 @@ template void ReduceScatter( const std::complex<float>* sbuf, std::complex<float
 template void ReduceScatter( const std::complex<double>* sbuf, std::complex<double>* rbuf, const int* rcs, Comm comm );
 
 } // namespace mpi
-} // namespace tmen
+} // namespace rote

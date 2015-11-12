@@ -6,7 +6,7 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
 //#include "./Read/Ascii.hpp"
 //#include "./Read/AsciiMatlab.hpp"
@@ -603,4 +603,4 @@ FULL(std::complex<double>)
 #endif
 
 
-} // namespace tmen
+} // namespace rote

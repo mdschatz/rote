@@ -1,6 +1,6 @@
 
-#include "tensormental/util/vec_util.hpp"
-#include "tensormental/core/error_decl.hpp"
+#include "rote/util/vec_util.hpp"
+#include "rote/core/error_decl.hpp"
 #include <algorithm>
 #include <numeric>
 #include <functional>

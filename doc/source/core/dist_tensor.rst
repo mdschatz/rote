@@ -131,11 +131,11 @@ class maintains meta-data about how the underlying local tensor is permuted when
       Return the number of entries of type `T` that we have locally allocated
       space for.
 
-   .. cpp:function:: const tmen::Grid& Grid() const
+   .. cpp:function:: const rote::Grid& Grid() const
 
       Return the grid that this distributed tensor is distributed over.
 
-   .. cpp:function:: const tmen::GridView GetGridView() const
+   .. cpp:function:: const rote::GridView GetGridView() const
 
       Return the logical grid (GridView) that this distributed tensor is distributed over.
 

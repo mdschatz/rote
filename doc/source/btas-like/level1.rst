@@ -2,8 +2,8 @@ Level 1
 =======
 
 The prototypes for the following routines can be found at 
-`include/tensormental/btas-like_decl.hpp`, while the
-implementations are in `include/tensormental/btas-like/level1/`.
+`include/rote/btas-like_decl.hpp`, while the
+implementations are in `include/rote/btas-like/level1/`.
 
 Diff
 ----

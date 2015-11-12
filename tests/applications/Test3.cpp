@@ -18,8 +18,8 @@
   You should have received a copy of the GNU General Public License
   along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
 using namespace rote;
 using namespace std;
 
@@ -366,25 +366,25 @@ DistTensorTest( const Grid& g )
 
   // T[D0,D1,*,D3] <- T[D0,D1,D2,D3]
   T__D_0__D_1__S__D_3.AllGatherRedistFrom( T__D_0__D_1__D_2__D_3, 2, modes_2 );
-  //Print(T__D_0__D_1__S__D_3, tmen::TensorDistToString(T__D_0__D_1__S__D_3.TensorDist()));
+  //Print(T__D_0__D_1__S__D_3, rote::TensorDistToString(T__D_0__D_1__S__D_3.TensorDist()));
   // T[*,D1,*,D3] <- T[D0,D1,*,D3]
   T__S__D_1__S__D_3.AllGatherRedistFrom( T__D_0__D_1__S__D_3, 0, modes_0 );
-  //Print(T__S__D_1__S__D_3, tmen::TensorDistToString(T__S__D_1__S__D_3.TensorDist()));
+  //Print(T__S__D_1__S__D_3, rote::TensorDistToString(T__S__D_1__S__D_3.TensorDist()));
   // T[D02,D1,*,D3] <- T[D0,D1,*,D3]
   T__D_0_2__D_1__S__D_3.LocalRedistFrom( T__D_0__D_1__S__D_3, 0, modes_2 );
-  //Print(T__D_0_2__D_1__S__D_3, tmen::TensorDistToString(T__D_0_2__D_1__S__D_3.TensorDist()));
+  //Print(T__D_0_2__D_1__S__D_3, rote::TensorDistToString(T__D_0_2__D_1__S__D_3.TensorDist()));
   // T[D20,D1,*,D3] <- T[D02,D1,*,D3]
   T__D_2_0__D_1__S__D_3.PermutationRedistFrom( T__D_0_2__D_1__S__D_3, 0, modes_0_2 );
-  //Print(T__D_2_0__D_1__S__D_3, tmen::TensorDistToString(T__D_2_0__D_1__S__D_3.TensorDist()));
+  //Print(T__D_2_0__D_1__S__D_3, rote::TensorDistToString(T__D_2_0__D_1__S__D_3.TensorDist()));
   // T[D2,D1,*,D3] <- T[D20,D1,*,D3]
   T__D_2__D_1__S__D_3.AllGatherRedistFrom( T__D_2_0__D_1__S__D_3, 0, modes_0 );
-  //Print(T__D_2__D_1__S__D_3, tmen::TensorDistToString(T__D_2__D_1__S__D_3.TensorDist()));
+  //Print(T__D_2__D_1__S__D_3, rote::TensorDistToString(T__D_2__D_1__S__D_3.TensorDist()));
   // T[D2,D3,*,D1] <- T[D2,D1,*,D3]
   T__D_2__D_3__S__D_1.AllToAllDoubleModeRedistFrom( T__D_2__D_1__S__D_3, indexPair_1_3, modeArray_1__3 );
-  //Print(T__D_2__D_3__S__D_1, tmen::TensorDistToString(T__D_2__D_3__S__D_1.TensorDist()));
+  //Print(T__D_2__D_3__S__D_1, rote::TensorDistToString(T__D_2__D_3__S__D_1.TensorDist()));
   // T[D2,D3,*,*] <- T[D2,D3,*,D1]
   T__D_2__D_3__S__S.AllGatherRedistFrom( T__D_2__D_3__S__D_1, 3, modes_1 );
-  //Print(T__D_2__D_3__S__S, tmen::TensorDistToString(T__D_2__D_3__S__S.TensorDist()));
+  //Print(T__D_2__D_3__S__S, rote::TensorDistToString(T__D_2__D_3__S__S.TensorDist()));
 
   //------------------------------------//
 

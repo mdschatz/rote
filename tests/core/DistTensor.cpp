@@ -6,18 +6,18 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
-#include "tensormental/tests/LGRedist.hpp"
-#include "tensormental/tests/GTOGRedist.hpp"
-#include "tensormental/tests/AGGRedist.hpp"
-#include "tensormental/tests/RTOGRedist.hpp"
-#include "tensormental/tests/RSGRedist.hpp"
-#include "tensormental/tests/PRedist.hpp"
-#include "tensormental/tests/A2ARedist.hpp"
-#include "tensormental/tests/ARRedist.hpp"
-#include "tensormental/tests/BCastRedist.hpp"
-#include "tensormental/tests/ScatterRedist.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
+#include "rote/tests/LGRedist.hpp"
+#include "rote/tests/GTOGRedist.hpp"
+#include "rote/tests/AGGRedist.hpp"
+#include "rote/tests/RTOGRedist.hpp"
+#include "rote/tests/RSGRedist.hpp"
+#include "rote/tests/PRedist.hpp"
+#include "rote/tests/A2ARedist.hpp"
+#include "rote/tests/ARRedist.hpp"
+#include "rote/tests/BCastRedist.hpp"
+#include "rote/tests/ScatterRedist.hpp"
 
 using namespace rote;
 

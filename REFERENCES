@@ -65,7 +65,7 @@ NOTE: This list is new will hopefully grow rapidly. I would like to move towards
           corresponding LAPACK implementation of dgeqpf.f
 
 [ ] Gene H. Golub, Virginia Klema, and G. W. Stewart, "Rank degeneracy and least
-    squares problems", Tech. Report STAN-CS-76-559, Computer Science Department,
+    squares problems", Tech. Report STAN-CS-76-559, Computer Science Deparrotet,
     Stanford University, 1976.
     ftp://reports.stanford.edu/pub/cstr/reports/cs/tr/76/559/CS-TR-76-559.pdf
 

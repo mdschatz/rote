@@ -6,7 +6,7 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
 namespace {
 rote::mpi::Datatype typeIntInt;
@@ -359,4 +359,4 @@ template void
 MaxLocPairFunc<double>( void* in, void* out, int* length, Datatype* datatype );
 
 } // namespace mpi
-} // namespace tmen
+} // namespace rote

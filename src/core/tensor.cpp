@@ -6,8 +6,8 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
-#include "tensormental/util/vec_util.hpp"
+#include "rote.hpp"
+#include "rote/util/vec_util.hpp"
 
 namespace rote {
 
@@ -722,4 +722,4 @@ template class Tensor<std::complex<float> >;
 template class Tensor<std::complex<double> >;
 #endif // ifndef DISABLE_COMPLEX
 
-} // namespace tmen
+} // namespace rote
