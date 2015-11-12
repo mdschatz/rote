@@ -87,6 +87,16 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T bet
     ReduceScatterUpdateRedistFrom(A, beta, reduceModes);
 }
 
+template<typename T>
+void
+DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes)
+{
+#ifndef RELEASE
+    CallStackEntry cse("DistTensor::ReduceScatterUpdateRedistFrom");
+#endif
+    ReduceScatterUpdateRedistFrom(A, T(1), reduceModes);
+}
+
 #define FULL(T) \
     template class DistTensor<T>;
 
