@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////
 // Workhorse interface
@@ -25,8 +25,8 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     CallStackEntry cse("DistTensor::ReduceUpdateRedistFrom");
 #endif
     Unsigned i, j;
-    const tmen::GridView gv = A.GetGridView();
-    const tmen::Grid& g = A.Grid();
+    const rote::GridView gv = A.GetGridView();
+    const rote::Grid& g = A.Grid();
     TensorDistribution dist = A.TensorDist();
     ModeDistribution blank(0);
 
@@ -67,7 +67,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
         tmp2Shape.insert(tmp2Shape.begin() + rMode, Min(1, A.Dimension(rMode)));
     }
 
-    DistTensor<T> tmp2(tmp2Shape, tmen::TensorDistToString(tmp2Dist), g);
+    DistTensor<T> tmp2(tmp2Shape, rote::TensorDistToString(tmp2Dist), g);
     tmp2.SetLocalPermutation(tmp2Perm);
     std::vector<Unsigned> tmp2Aligns = Alignments();
     for(i = 0; i < rModes.size(); i++)

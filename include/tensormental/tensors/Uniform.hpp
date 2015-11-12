@@ -10,7 +10,7 @@
 #ifndef TMEN_TENSORS_UNIFORM_HPP
 #define TMEN_TENSORS_UNIFORM_HPP
 
-namespace tmen {
+namespace rote {
 
 // Draw each entry from a uniform PDF over a closed ball.
 template<typename T>

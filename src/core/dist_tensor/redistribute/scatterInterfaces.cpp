@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////
 // Workhorse interface

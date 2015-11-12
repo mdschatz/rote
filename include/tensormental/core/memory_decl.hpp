@@ -13,7 +13,7 @@
 #include <iostream>
 #include "tensormental/core/imports/mpi.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename G>
 class Memory

@@ -16,7 +16,7 @@
 #include "tensormental/core/grid_decl.hpp"
 #include "tensormental/util/vec_util.hpp"
 
-namespace tmen {
+namespace rote {
 
 inline
 void
@@ -67,7 +67,7 @@ GridView::SetGridModeTypes(const ModeArray& unusedModes)
 }
 
 inline
-GridView::GridView( const tmen::Grid* grid, const TensorDistribution& distribution )
+GridView::GridView( const rote::Grid* grid, const TensorDistribution& distribution )
 : dist_(distribution),
   shape_(distribution.size()),
   loc_(distribution.size()),
@@ -206,7 +206,7 @@ GridView::Distribution() const
 }
 
 inline
-const tmen::Grid*
+const rote::Grid*
 GridView::Grid() const
 {
 	return grid_;

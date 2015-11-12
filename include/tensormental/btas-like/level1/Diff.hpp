@@ -15,7 +15,7 @@
 #include "tensormental/core/view_decl.hpp"
 #include "tensormental/core/tensor_forward_decl.hpp"
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////////
 // Workhorse routines

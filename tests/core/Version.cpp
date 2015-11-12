@@ -8,7 +8,7 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-using namespace tmen;
+using namespace rote;
 
 int 
 main( int argc, char* argv[] )

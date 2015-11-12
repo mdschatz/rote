@@ -11,7 +11,7 @@
 
 #include "tensormental/core/complex_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename Real>
 std::ostream& operator<<( std::ostream& os, std::complex<Real> alpha )

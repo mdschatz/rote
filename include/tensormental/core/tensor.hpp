@@ -15,7 +15,7 @@
 #include <set>
 #include "tensormental/core/view_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 // Tensor base for arbitrary rings
 template<typename T>

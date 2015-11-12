@@ -15,7 +15,7 @@
 #include "tensormental/core/view_decl.hpp"
 #include "tensormental/io/Print.hpp"
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////////
 // Workhorse routines

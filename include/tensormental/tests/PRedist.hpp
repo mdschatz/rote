@@ -3,7 +3,7 @@
 #define TMEN_TESTS_PREDIST_HPP
 
 #include "tensormental/tests/AllRedists.hpp"
-using namespace tmen;
+using namespace rote;
 
 void
 CreatePTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesGroup, const Grid& g, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){

@@ -14,7 +14,7 @@
 #include "tensormental/core/grid_decl.hpp"
 #include "tensormental/util/vec_util.hpp"
 
-namespace tmen {
+namespace rote {
 
 inline void
 Grid::SetMyGridLoc( )

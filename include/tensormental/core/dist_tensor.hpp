@@ -12,7 +12,7 @@
 
 #include "tensormental/core/types_decl.hpp"
 
-namespace tmen {
+namespace rote {
 struct DistData
 {
     TensorDistribution distribution;

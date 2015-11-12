@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
@@ -24,11 +24,11 @@ template <typename T>
 void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
     if(!CheckReduceScatterCommRedist(A))
       LogicError("ReduceScatterRedist: Invalid redistribution request");
-    const tmen::Grid& g = A.Grid();
+    const rote::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const rote::GridView gvA = A.GetGridView();
+    const rote::GridView gvB = GetGridView();
 
     if(!A.Participating())
         return;
@@ -98,8 +98,8 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     const Location ones(order, 1);
 
     //GridView information
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const rote::GridView gvA = A.GetGridView();
+    const rote::GridView gvB = GetGridView();
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 
@@ -120,7 +120,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     const Unsigned nElemsPerProc = prod(sendShape);
 
     //Grid information
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 

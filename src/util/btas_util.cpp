@@ -1,7 +1,7 @@
 #include "tensormental/util/btas_util.hpp"
 
 
-namespace tmen{
+namespace rote{
 
 std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC){
     Unsigned i;

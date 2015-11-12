@@ -3,7 +3,7 @@
 #define TMEN_TESTS_RTOGREDIST_HPP
 
 #include "tensormental/tests/AllRedists.hpp"
-using namespace tmen;
+using namespace rote;
 
 std::vector<RedistTest >
 CreateRTOGTests(const TensorDistribution& distA){

@@ -16,7 +16,7 @@
 #include "tensormental/tests/PRedist.hpp"
 #include "tensormental/tests/A2ARedist.hpp"
 
-using namespace tmen;
+using namespace rote;
 
 void Usage(){
     std::cout << "./RedistCheckTest\n";

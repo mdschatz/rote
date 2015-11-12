@@ -2,7 +2,7 @@
 #ifndef TMEN_TESTS_ALLREDISTS_HPP
 #define TMEN_TESTS_ALLREDISTS_HPP
 
-using namespace tmen;
+using namespace rote;
 
 typedef struct Arguments{
   Unsigned gridOrder;

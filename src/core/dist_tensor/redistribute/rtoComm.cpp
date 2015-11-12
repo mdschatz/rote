@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 //TODO: Properly Check indices and distributions match between input and output
 //TODO: FLESH OUT THIS CHECK
@@ -25,7 +25,7 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
     if(!CheckReduceToOneCommRedist(A))
       LogicError("ReduceToOneRedist: Invalid redistribution request");
 
-    const tmen::Grid& g = A.Grid();
+    const rote::Grid& g = A.Grid();
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())

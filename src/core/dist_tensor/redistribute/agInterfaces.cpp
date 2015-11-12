@@ -12,7 +12,7 @@
 //#include "/tensormental/mc_mr.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////
 // Workhorse interface

@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_VIEW_IMPL_HPP
 #define TMEN_CORE_VIEW_IMPL_HPP
 
-namespace tmen {
+namespace rote {
 
 //NOTE: FIX PROBLEM WITH HIGHER/LOWER ORDER VIEWS ERASING DATA (A.memory_.Empty())
 //////////////////////////////////////
@@ -121,7 +121,7 @@ inline void ViewHelper
 
     Unsigned i;
     const Unsigned order = B.Order();
-    const tmen::Grid& g = B.Grid();
+    const rote::Grid& g = B.Grid();
     const std::vector<Unsigned> modeShifts = B.ModeShifts();
     const std::vector<Unsigned> modeWrapStrides = B.GridViewShape();
 

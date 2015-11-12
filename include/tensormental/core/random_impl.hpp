@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_RANDOM_IMPL_HPP
 #define TMEN_CORE_RANDOM_IMPL_HPP
 
-namespace tmen {
+namespace rote {
 
 inline bool BooleanCoinFlip()
 { return Uniform<double>(0,1) >= 0.5; }

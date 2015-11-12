@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 #include "tensormental/core/tensor.hpp"
-namespace tmen{
+namespace rote{
 
 //TODO: Check that allToAllIndices and commGroups are valid
 template <typename T>
@@ -33,7 +33,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
         if(!CheckAllToAllCommRedist(A))
             LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
-        const tmen::Grid& g = A.Grid();
+        const rote::Grid& g = A.Grid();
         const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
         if(!A.Participating())
@@ -108,8 +108,8 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     const Location ones(order, 1);
 
     //GridView information
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const rote::GridView gvA = A.GetGridView();
+    const rote::GridView gvB = GetGridView();
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 
@@ -120,7 +120,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
     const Unsigned nElemsPerProc = prod(sendShape);
 
     //Grid information
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
@@ -258,19 +258,19 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
     const Location ones(order, 1);
 
     //GridView information
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const rote::GridView gvA = A.GetGridView();
+    const rote::GridView gvB = GetGridView();
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 
     //Different striding information
-    std::vector<Unsigned> commLCMs = tmen::LCMs(gvAShape, gvBShape);
+    std::vector<Unsigned> commLCMs = rote::LCMs(gvAShape, gvBShape);
     std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvBShape);
 
     const Unsigned nElemsPerProc = prod(recvShape);
 
     //Grid information
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 

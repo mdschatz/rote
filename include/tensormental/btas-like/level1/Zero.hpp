@@ -10,7 +10,7 @@
 #ifndef TMEN_BTAS_ZERO_HPP
 #define TMEN_BTAS_ZERO_HPP
 
-namespace tmen {
+namespace rote {
 
 ////////////////////////////////////
 // Workhorse routines

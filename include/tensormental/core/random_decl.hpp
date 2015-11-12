@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_RANDOM_DECL_HPP
 #define TMEN_CORE_RANDOM_DECL_HPP
 
-namespace tmen {
+namespace rote {
 
 const double Pi = 3.141592653589793;
 

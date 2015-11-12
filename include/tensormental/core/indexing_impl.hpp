@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_INDEXING_IMPL_HPP
 #define TMEN_CORE_INDEXING_IMPL_HPP
 
-namespace tmen {
+namespace rote {
 
 inline
 Unsigned
@@ -424,7 +424,7 @@ GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView
 	const Unsigned gvOrder = gridView.ParticipatingOrder();
 	const TensorDistribution tensorDist = gridView.Distribution();
 
-	const tmen::Grid* grid = gridView.Grid();
+	const rote::Grid* grid = gridView.Grid();
 	const Unsigned gridOrder = grid->Order();
 	const ObjShape gridShape = grid->Shape();
 	Unsigned i, j;
@@ -460,7 +460,7 @@ GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
     const Unsigned gvOrder = gridView.ParticipatingOrder();
     const TensorDistribution tensorDist = gridView.Distribution();
 
-    const tmen::Grid* grid = gridView.Grid();
+    const rote::Grid* grid = gridView.Grid();
     const Unsigned gridOrder = grid->Order();
     const ObjShape gridShape = grid->Shape();
     Unsigned i, j;
@@ -493,7 +493,7 @@ GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridV
 {
     Unsigned i, j;
     const TensorDistribution dist = gridView.Distribution();
-    const tmen::Grid* g = gridView.Grid();
+    const rote::Grid* g = gridView.Grid();
     const Unsigned participatingOrder = gridView.ParticipatingOrder();
     ModeArray participatingComms = ConcatenateVectors(gridView.FreeModes(), gridView.BoundModes());
     SortVector(participatingComms);
@@ -530,7 +530,7 @@ GridViewLoc2ParticipatingLinearLoc_(const Location& gridViewLoc, const GridView&
     Unsigned i, j;
     int ownerLinearLoc = 0;
     const TensorDistribution dist = gridView.Distribution();
-    const tmen::Grid* g = gridView.Grid();
+    const rote::Grid* g = gridView.Grid();
     const Unsigned participatingOrder = gridView.ParticipatingOrder();
     ModeArray participatingComms = ConcatenateVectors(gridView.FreeModes(), gridView.BoundModes());
     SortVector(participatingComms);

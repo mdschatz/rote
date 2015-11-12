@@ -8,7 +8,7 @@
 */
 #include "tensormental.hpp"
 
-namespace tmen {
+namespace rote {
 
 ///////////////////////////////
 // DistTensor information
@@ -122,12 +122,12 @@ DistTensor<T>::Locked() const
 ///////////////////////////////
 
 template<typename T>
-const tmen::Grid&
+const rote::Grid&
 DistTensor<T>::Grid() const
 { return *grid_; }
 
 template<typename T>
-const tmen::GridView
+const rote::GridView
 DistTensor<T>::GetGridView() const
 {
     return gridView_;
@@ -238,12 +238,12 @@ DistTensor<T>::LockedBuffer( ) const
 { return tensor_.LockedBuffer(); }
 
 template<typename T>
-tmen::Tensor<T>&
+rote::Tensor<T>&
 DistTensor<T>::Tensor()
 { return tensor_; }
 
 template<typename T>
-const tmen::Tensor<T>&
+const rote::Tensor<T>&
 DistTensor<T>::LockedTensor() const
 { return tensor_; }
 
@@ -259,10 +259,10 @@ DistTensor<T>::Get( const Location& loc ) const
     CallStackEntry entry("[MC,MR]::Get");
     AssertValidEntry( loc );
 #endif
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     const Location owningProc = DetermineOwner(loc);
 
-    const tmen::GridView& gv = GetGridView();
+    const rote::GridView& gv = GetGridView();
     T u = T(0);
     if(Participating()){
         const Location ownerGridLoc = GridViewLoc2GridLoc(owningProc, gv);

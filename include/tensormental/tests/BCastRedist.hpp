@@ -3,7 +3,7 @@
 #define TMEN_TESTS_BCASTREDIST_HPP
 
 #include "tensormental/tests/AllRedists.hpp"
-using namespace tmen;
+using namespace rote;
 
 std::vector<RedistTest >
 CreateBCastTests(const TensorDistribution& distA){

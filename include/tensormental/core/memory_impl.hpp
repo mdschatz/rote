@@ -12,7 +12,7 @@
 
 #include "tensormental/core/memory_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename G>
 inline 

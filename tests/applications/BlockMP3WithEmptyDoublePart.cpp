@@ -20,7 +20,7 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-using namespace tmen;
+using namespace rote;
 using namespace std;
 
 #define GRIDORDER 4
@@ -262,15 +262,15 @@ DistTensorTest( const Grid& g, Unsigned tenDimFive, Unsigned tenDimFiftyThree, U
 
 
   ObjShape tempShape;
-  TensorDistribution dist____N_D_0_1_2_3 = tmen::StringToTensorDist("[]|(0,1,2,3)");
-  TensorDistribution dist__S__S__D_2__D_3 = tmen::StringToTensorDist("[(),(),(2),(3)]");
-  TensorDistribution dist__S__D_0__S__D_2 = tmen::StringToTensorDist("[(),(0),(),(2)]");
-  TensorDistribution dist__S__D_1__S__D_3 = tmen::StringToTensorDist("[(),(1),(),(3)]");
-  TensorDistribution dist__S__D_1__D_3__S = tmen::StringToTensorDist("[(),(1),(3),()]");
-  TensorDistribution dist__D_0__D_1__S__S = tmen::StringToTensorDist("[(0),(1),(),()]");
-  TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
-  TensorDistribution dist__D_0__D_1__D_3__D_2 = tmen::StringToTensorDist("[(0),(1),(3),(2)]");
-  TensorDistribution dist__D_1__D_0__D_3__D_2 = tmen::StringToTensorDist("[(1),(0),(3),(2)]");
+  TensorDistribution dist____N_D_0_1_2_3 = rote::StringToTensorDist("[]|(0,1,2,3)");
+  TensorDistribution dist__S__S__D_2__D_3 = rote::StringToTensorDist("[(),(),(2),(3)]");
+  TensorDistribution dist__S__D_0__S__D_2 = rote::StringToTensorDist("[(),(0),(),(2)]");
+  TensorDistribution dist__S__D_1__S__D_3 = rote::StringToTensorDist("[(),(1),(),(3)]");
+  TensorDistribution dist__S__D_1__D_3__S = rote::StringToTensorDist("[(),(1),(3),()]");
+  TensorDistribution dist__D_0__D_1__S__S = rote::StringToTensorDist("[(0),(1),(),()]");
+  TensorDistribution dist__D_0__D_1__D_2__D_3 = rote::StringToTensorDist("[(0),(1),(2),(3)]");
+  TensorDistribution dist__D_0__D_1__D_3__D_2 = rote::StringToTensorDist("[(0),(1),(3),(2)]");
+  TensorDistribution dist__D_1__D_0__D_3__D_2 = rote::StringToTensorDist("[(1),(0),(3),(2)]");
   Permutation perm;
   Permutation perm_0_1_2_3;
   perm_0_1_2_3.push_back(0);
@@ -752,7 +752,7 @@ t_efmn__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 t_efmn__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 t_efmn__D_0__D_1__D_2__D_3.ResizeTo( t_efmn__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( t_efmn__D_0__D_1__D_2__D_3 );
-DistTensor<T> t_efmn_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> t_efmn_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( t_efmn__D_0__D_1__D_2__D_3, t_efmn_local );
 // axppx2_temp has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -763,7 +763,7 @@ axppx2_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 axppx2_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 //axppx2_temp__D_0__D_1__D_2__D_3.ResizeTo( axppx2_temp__D_0__D_1__D_2__D_3_tempShape );
 //MakeUniform( axppx2_temp__D_0__D_1__D_2__D_3 );
-DistTensor<T> axppx2_temp_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> axppx2_temp_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( axppx2_temp__D_0__D_1__D_2__D_3, axppx2_temp_local );
 // v_opmn has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -774,7 +774,7 @@ v_opmn__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 v_opmn__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 v_opmn__D_0__D_1__D_2__D_3.ResizeTo( v_opmn__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( v_opmn__D_0__D_1__D_2__D_3 );
-DistTensor<T> v_opmn_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> v_opmn_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( v_opmn__D_0__D_1__D_2__D_3, v_opmn_local );
 // v_efgh has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -785,7 +785,7 @@ v_efgh__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFiftyThree);
 v_efgh__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFiftyThree);
 v_efgh__D_0__D_1__D_2__D_3.ResizeTo( v_efgh__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( v_efgh__D_0__D_1__D_2__D_3 );
-DistTensor<T> v_efgh_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> v_efgh_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( v_efgh__D_0__D_1__D_2__D_3, v_efgh_local );
 // v_oegm has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -796,7 +796,7 @@ v_oegm__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFiftyThree);
 v_oegm__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 v_oegm__D_0__D_1__D_2__D_3.ResizeTo( v_oegm__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( v_oegm__D_0__D_1__D_2__D_3 );
-DistTensor<T> v_oegm_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> v_oegm_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( v_oegm__D_0__D_1__D_2__D_3, v_oegm_local );
 // v2_oegm has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -807,7 +807,7 @@ v2_oegm__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFiftyThree);
 v2_oegm__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 v2_oegm__D_0__D_1__D_2__D_3.ResizeTo( v2_oegm__D_0__D_1__D_2__D_3_tempShape );
 MakeUniform( v2_oegm__D_0__D_1__D_2__D_3 );
-DistTensor<T> v2_oegm_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> v2_oegm_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( v2_oegm__D_0__D_1__D_2__D_3, v2_oegm_local );
 // axppx3_temp has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -818,7 +818,7 @@ axppx3_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFiftyThree);
 axppx3_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 //axppx3_temp__D_0__D_1__D_2__D_3.ResizeTo( axppx3_temp__D_0__D_1__D_2__D_3_tempShape );
 //MakeUniform( axppx3_temp__D_0__D_1__D_2__D_3 );
-DistTensor<T> axppx3_temp_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> axppx3_temp_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( axppx3_temp__D_0__D_1__D_2__D_3, axppx3_temp_local );
 // cont1_temp has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -829,7 +829,7 @@ cont1_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 cont1_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 //cont1_temp__D_0__D_1__D_2__D_3.ResizeTo( cont1_temp__D_0__D_1__D_2__D_3_tempShape );
 //MakeUniform( cont1_temp__D_0__D_1__D_2__D_3 );
-DistTensor<T> cont1_temp_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> cont1_temp_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( cont1_temp__D_0__D_1__D_2__D_3, cont1_temp_local );
 // accum_temp has 4 dims
 //  Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -840,14 +840,14 @@ accum_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 accum_temp__D_0__D_1__D_2__D_3_tempShape.push_back(tenDimFive);
 //accum_temp__D_0__D_1__D_2__D_3.ResizeTo( accum_temp__D_0__D_1__D_2__D_3_tempShape );
 //MakeUniform( accum_temp__D_0__D_1__D_2__D_3 );
-DistTensor<T> accum_temp_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+DistTensor<T> accum_temp_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
 //GatherAllModes( accum_temp__D_0__D_1__D_2__D_3, accum_temp_local );
 // scalar input has 0 dims
 //  Starting distribution: [] | {0,1,2,3} or ___N_D_0_1_2_3
 ObjShape E_MP3____N_D_0_1_2_3_tempShape;
 E_MP3____N_D_0_1_2_3.ResizeTo( E_MP3____N_D_0_1_2_3_tempShape );
 MakeUniform( E_MP3____N_D_0_1_2_3 );
-DistTensor<T> E_MP3_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
+DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
 
 /////////////////////////////////////////////

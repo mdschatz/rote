@@ -10,7 +10,7 @@
 #ifndef TMEN_BTAS_ZAXPBY_HPP
 #define TMEN_BTAS_ZAXPBY_HPP
 
-namespace tmen {
+namespace rote {
 
 ////////////////////////////////////
 // Workhorse routines

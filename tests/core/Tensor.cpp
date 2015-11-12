@@ -8,7 +8,7 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-using namespace tmen;
+using namespace rote;
 
 template<typename T> 
 void TestTensor( Int m, Int n, Int ldim )

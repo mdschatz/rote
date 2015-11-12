@@ -16,7 +16,7 @@
 #include <iostream>
 #include <algorithm>
 
-namespace tmen {
+namespace rote {
 
 class ArgException : public std::logic_error
 {

@@ -9,7 +9,7 @@
 */
 #include "tensormental.hpp"
 
-namespace tmen{
+namespace rote{
 
 void SetTensorDistToMatch(const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch){
 	Unsigned i;
@@ -32,7 +32,7 @@ void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indic
 	}
 }
 
-void SetTempShapeToMatch(const tmen::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch){
+void SetTempShapeToMatch(const rote::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch){
 	Unsigned i;
 	for(i = 0; i < indicesToMatch.size(); i++){
 		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
@@ -200,7 +200,7 @@ void SetBlkContractStatAInfo(const ObjShape& shapeT, const TensorDistribution& d
 template <typename T>
 void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
 	Unsigned i;
-	const tmen::GridView gvA = A.GetGridView();
+	const rote::GridView gvA = A.GetGridView();
 	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
 
@@ -236,7 +236,7 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT);
 
 	//Setup temp distIntC
-	const tmen::GridView gvC = C.GetGridView();
+	const rote::GridView gvC = C.GetGridView();
 	SetTensorDistToMatch(distT, indicesT, distIntC, indicesC);
 	AppendTensorDistToMatch(reduceGridModes, distC, indicesC, distIntC, indicesC);
 

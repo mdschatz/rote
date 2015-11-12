@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_DISTTENSOR_FORWARD_DECL_HPP
 #define TMEN_CORE_DISTTENSOR_FORWARD_DECL_HPP
 
-namespace tmen {
+namespace rote {
 
 template<typename T>
 class AbstractDistTensor;

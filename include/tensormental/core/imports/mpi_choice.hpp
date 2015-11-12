@@ -14,7 +14,7 @@
 
 #include "tensormental/core/imports/choice.hpp"
 
-namespace tmen {
+namespace rote {
 namespace choice {
 
 class MpiArgs

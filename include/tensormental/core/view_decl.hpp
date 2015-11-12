@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_VIEW_DECL_HPP
 #define TMEN_CORE_VIEW_DECL_HPP
 
-namespace tmen {
+namespace rote {
 
 //
 // Viewing a full tensor

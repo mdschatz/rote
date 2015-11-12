@@ -21,14 +21,14 @@ void BLAS(daxpy)
                                            double* y, const int* incy );
 void BLAS(caxpy)
 ( const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* x, const int* incx,
-        tmen::scomplex* y, const int* incy );
+  const rote::scomplex* alpha,
+  const rote::scomplex* x, const int* incx,
+        rote::scomplex* y, const int* incy );
 void BLAS(zaxpy)
 ( const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* x, const int* incx,
-        tmen::dcomplex* y, const int* incy );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* x, const int* incx,
+        rote::dcomplex* y, const int* incy );
 
 void BLAS(scopy)
 ( const int* n, const float* x, const int* incx,
@@ -37,11 +37,11 @@ void BLAS(dcopy)
 ( const int* n, const double* x, const int* incx,
                       double* y, const int* incy );
 void BLAS(ccopy)
-( const int* n, const tmen::scomplex* x, const int* incx,
-                      tmen::scomplex* y, const int* incy );
+( const int* n, const rote::scomplex* x, const int* incx,
+                      rote::scomplex* y, const int* incy );
 void BLAS(zcopy)
-( const int* n, const tmen::dcomplex* x, const int* incx,
-                      tmen::dcomplex* y, const int* incy );
+( const int* n, const rote::dcomplex* x, const int* incx,
+                      rote::dcomplex* y, const int* incy );
 
 float BLAS(sdot)
 ( const int* n, const float* x, const int* incx,
@@ -55,19 +55,19 @@ float BLAS(snrm2)
 double BLAS(dnrm2)
 ( const int* n, const double* x, const int* incx );
 float BLAS(scnrm2)
-( const int* n, const tmen::scomplex* x, const int* incx );
+( const int* n, const rote::scomplex* x, const int* incx );
 double BLAS(dznrm2)
-( const int* n, const tmen::dcomplex* x, const int* incx );
+( const int* n, const rote::dcomplex* x, const int* incx );
 
 void BLAS(sscal)
 ( const int* n, const float* alpha, float* x, const int* incx );
 void BLAS(dscal)
 ( const int* n, const double* alpha, double* x, const int* incx );
 void BLAS(cscal)
-( const int* n, const tmen::scomplex* alpha, tmen::scomplex* x,
+( const int* n, const rote::scomplex* alpha, rote::scomplex* x,
   const int* incx );
 void BLAS(zscal)
-( const int* n, const tmen::dcomplex* alpha, tmen::dcomplex* x,
+( const int* n, const rote::dcomplex* alpha, rote::dcomplex* x,
   const int* incx );
 
 //------------------------------------------------------------------------//
@@ -85,18 +85,18 @@ void BLAS(dgemv)
   const double* beta,        double* y, const int* incy );
 void BLAS(cgemv)
 ( const char* trans, const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* x, const int* incx,
-  const tmen::scomplex* beta,
-        tmen::scomplex* y, const int* incy );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* x, const int* incx,
+  const rote::scomplex* beta,
+        rote::scomplex* y, const int* incy );
 void BLAS(zgemv)
 ( const char* trans, const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* x, const int* incx,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* y, const int* incy );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* x, const int* incx,
+  const rote::dcomplex* beta,
+        rote::dcomplex* y, const int* incy );
 
 void BLAS(sger)
 ( const int* m, const int* n,
@@ -110,68 +110,68 @@ void BLAS(dger)
                              double* A, const int* lda  );
 void BLAS(cgerc)
 ( const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* x, const int* incx,
-  const tmen::scomplex* y, const int* incy,
-        tmen::scomplex* A, const int* lda  );
+  const rote::scomplex* alpha,
+  const rote::scomplex* x, const int* incx,
+  const rote::scomplex* y, const int* incy,
+        rote::scomplex* A, const int* lda  );
 void BLAS(zgerc)
 ( const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* x, const int* incx,
-  const tmen::dcomplex* y, const int* incy,
-        tmen::dcomplex* A, const int* lda  );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* x, const int* incx,
+  const rote::dcomplex* y, const int* incy,
+        rote::dcomplex* A, const int* lda  );
 
 void BLAS(cgeru)
 ( const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* x, const int* incx,
-  const tmen::scomplex* y, const int* incy,
-        tmen::scomplex* A, const int* lda  );
+  const rote::scomplex* alpha,
+  const rote::scomplex* x, const int* incx,
+  const rote::scomplex* y, const int* incy,
+        rote::scomplex* A, const int* lda  );
 void BLAS(zgeru)
 ( const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* x, const int* incx,
-  const tmen::dcomplex* y, const int* incy,
-        tmen::dcomplex* A, const int* lda  );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* x, const int* incx,
+  const rote::dcomplex* y, const int* incy,
+        rote::dcomplex* A, const int* lda  );
 
 void BLAS(chemv)
 ( const char* uplo, const int* m,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* x, const int* incx,
-  const tmen::scomplex* beta,
-        tmen::scomplex* y, const int* incy );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* x, const int* incx,
+  const rote::scomplex* beta,
+        rote::scomplex* y, const int* incy );
 void BLAS(zhemv)
 ( const char* uplo, const int* m,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* x, const int* incx,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* y, const int* incy );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* x, const int* incx,
+  const rote::dcomplex* beta,
+        rote::dcomplex* y, const int* incy );
 
 void BLAS(cher)
 ( const char* uplo, const int* m,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* x, const int* incx,
-        tmen::scomplex* A, const int* lda  );
+  const rote::scomplex* alpha,
+  const rote::scomplex* x, const int* incx,
+        rote::scomplex* A, const int* lda  );
 void BLAS(zher)
 ( const char* uplo, const int* m,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* x, const int* incx,
-        tmen::dcomplex* A, const int* lda  );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* x, const int* incx,
+        rote::dcomplex* A, const int* lda  );
 
 void BLAS(cher2)
 ( const char* uplo, const int* m,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* x, const int* incx,
-  const tmen::scomplex* y, const int* incy,
-        tmen::scomplex* A, const int* lda  );
+  const rote::scomplex* alpha,
+  const rote::scomplex* x, const int* incx,
+  const rote::scomplex* y, const int* incy,
+        rote::scomplex* A, const int* lda  );
 void BLAS(zher2)
 ( const char* uplo, const int* m,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* x, const int* incx,
-  const tmen::dcomplex* y, const int* incy,
-        tmen::dcomplex* A, const int* lda  );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* x, const int* incx,
+  const rote::dcomplex* y, const int* incy,
+        rote::dcomplex* A, const int* lda  );
 
 void BLAS(ssymv)
 ( const char* uplo, const int* m,
@@ -212,12 +212,12 @@ void BLAS(dtrmv)
   const double* A, const int* lda, double* x, const int* incx );
 void BLAS(ctrmv)
 ( const char* uplo, const char* trans, const char* diag, const int* m,
-  const tmen::scomplex* A, const int* lda,
-        tmen::scomplex* x, const int* incx );
+  const rote::scomplex* A, const int* lda,
+        rote::scomplex* x, const int* incx );
 void BLAS(ztrmv)
 ( const char* uplo, const char* trans, const char* diag, const int* m,
-  const tmen::dcomplex* A, const int* lda,
-        tmen::dcomplex* x, const int* incx );
+  const rote::dcomplex* A, const int* lda,
+        rote::dcomplex* x, const int* incx );
 
 void BLAS(strsv)
 ( const char* uplo, const char* trans, const char* diag, const int* m,
@@ -227,12 +227,12 @@ void BLAS(dtrsv)
   const double* A, const int* lda, double* x, const int* incx );
 void BLAS(ctrsv)
 ( const char* uplo, const char* trans, const char* diag, const int* m,
-  const tmen::scomplex* A, const int* lda,
-        tmen::scomplex* x, const int* incx );
+  const rote::scomplex* A, const int* lda,
+        rote::scomplex* x, const int* incx );
 void BLAS(ztrsv)
 ( const char* uplo, const char* trans, const char* diag, const int* m,
-  const tmen::dcomplex* A, const int* lda,
-        tmen::dcomplex* x, const int* incx );
+  const rote::dcomplex* A, const int* lda,
+        rote::dcomplex* x, const int* incx );
 
 //------------------------------------------------------------------------//
 // Level 3 BLAS                                                           //
@@ -252,68 +252,68 @@ void BLAS(dgemm)
 void BLAS(cgemm)
 ( const char* transA, const char* transB,
   const int* m, const int* n, const int* k,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* B, const int* ldb,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* B, const int* ldb,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zgemm)
 ( const char* transA, const char* transB,
   const int* m, const int* n, const int* k,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* B, const int* ldb,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* B, const int* ldb,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(chemm)
 ( const char* side, const char* uplo,
   const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* B, const int* ldb,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* B, const int* ldb,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zhemm)
 ( const char* side, const char* uplo,
   const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* B, const int* ldb,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* B, const int* ldb,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(cher2k)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* B, const int* ldb,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* B, const int* ldb,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zher2k)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* B, const int* ldb,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* B, const int* ldb,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(cherk)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zherk)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(ssymm)
 ( const char* side, const char* uplo,
@@ -330,19 +330,19 @@ void BLAS(dsymm)
 void BLAS(csymm)
 ( const char* side, const char* uplo,
   const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* B, const int* ldb,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* B, const int* ldb,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zsymm)
 ( const char* side, const char* uplo,
   const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* B, const int* ldb,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* B, const int* ldb,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(ssyr2k)
 ( const char* uplo, const char* trans,
@@ -359,19 +359,19 @@ void BLAS(dsyr2k)
 void BLAS(csyr2k)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* B, const int* ldb,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* B, const int* ldb,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zsyr2k)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* B, const int* ldb,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* B, const int* ldb,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(ssyrk)
 ( const char* uplo, const char* trans,
@@ -386,17 +386,17 @@ void BLAS(dsyrk)
 void BLAS(csyrk)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-  const tmen::scomplex* beta,
-        tmen::scomplex* C, const int* ldc );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+  const rote::scomplex* beta,
+        rote::scomplex* C, const int* ldc );
 void BLAS(zsyrk)
 ( const char* uplo, const char* trans,
   const int* n, const int* k,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-  const tmen::dcomplex* beta,
-        tmen::dcomplex* C, const int* ldc );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+  const rote::dcomplex* beta,
+        rote::dcomplex* C, const int* ldc );
 
 void BLAS(strmm)
 ( const char* side, const char* uplo, const char* trans, const char* diag,
@@ -411,15 +411,15 @@ void BLAS(dtrmm)
 void BLAS(ctrmm)
 ( const char* side, const char* uplo, const char* trans, const char* diag,
   const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-        tmen::scomplex* B, const int* ldb );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+        rote::scomplex* B, const int* ldb );
 void BLAS(ztrmm)
 ( const char* side, const char* uplo, const char* trans, const char* diag,
   const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-        tmen::dcomplex* B, const int* ldb );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+        rote::dcomplex* B, const int* ldb );
 
 void BLAS(strsm)
 ( const char* side, const char* uplo, const char* transA, const char* diag,
@@ -434,19 +434,19 @@ void BLAS(dtrsm)
 void BLAS(ctrsm)
 ( const char* side, const char* uplo, const char* transA, const char* diag,
   const int* m, const int* n,
-  const tmen::scomplex* alpha,
-  const tmen::scomplex* A, const int* lda,
-        tmen::scomplex* B, const int* ldb );
+  const rote::scomplex* alpha,
+  const rote::scomplex* A, const int* lda,
+        rote::scomplex* B, const int* ldb );
 void BLAS(ztrsm)
 ( const char* side, const char* uplo, const char* transA, const char* diag,
   const int* m, const int* n,
-  const tmen::dcomplex* alpha,
-  const tmen::dcomplex* A, const int* lda,
-        tmen::dcomplex* B, const int* ldb );
+  const rote::dcomplex* alpha,
+  const rote::dcomplex* A, const int* lda,
+        rote::dcomplex* B, const int* ldb );
 
 } // extern "C"
 
-namespace tmen {
+namespace rote {
 namespace blas {
 
 //----------------------------------------------------------------------------//

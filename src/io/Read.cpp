@@ -13,7 +13,7 @@
 //#include "./Read/Binary.hpp"
 //#include "./Read/BinaryFlat.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename T>
 void Read( Tensor<T>& A, const std::string filename, FileFormat format )
@@ -291,7 +291,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
 
     Unsigned i;
     Unsigned order = A.Order();
-    const tmen::GridView& gvA = A.GetGridView();
+    const rote::GridView& gvA = A.GetGridView();
 
     //Determine the max shape we can pack with available memory
     //Figure out the first mode that a packet does not fully pack
@@ -463,7 +463,7 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
     }
     Unsigned i;
     Unsigned order = A.Order();
-    const tmen::GridView& gvA = A.GetGridView();
+    const rote::GridView& gvA = A.GetGridView();
 
     ObjShape shapeA = A.Shape();
     Location myLoc = gvA.ParticipatingLoc();

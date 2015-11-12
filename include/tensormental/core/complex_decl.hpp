@@ -16,7 +16,7 @@
 #include "tensormental/core/error_decl.hpp"
 #include "tensormental/core/environment_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename Real>
 std::ostream& operator<<( std::ostream& os, std::complex<Real> alpha );

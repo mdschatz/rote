@@ -16,7 +16,7 @@
 #include "tensormental/core/environment_decl.hpp"
 #include "tensormental/core/types_decl.hpp"
 
-namespace tmen{
+namespace rote{
 
 std::ifstream::pos_type FileSize( std::ifstream& file );
 FileFormat DetectFormat( const std::string filename );

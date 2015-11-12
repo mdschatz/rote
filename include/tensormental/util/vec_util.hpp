@@ -15,7 +15,7 @@
 #include "tensormental/core/error_decl.hpp"
 #include "tensormental/core/types_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename T>
 T sum(const std::vector<T>& a, const Unsigned startIndex = 0);

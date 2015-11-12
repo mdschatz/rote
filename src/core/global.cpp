@@ -11,7 +11,7 @@
 
 namespace {
 
-tmen::Int numElemInits = 0;
+rote::Int numElemInits = 0;
 bool tmenInitializedMpi = false;
 #ifdef HAVE_QT5
 bool tmenInitializedQt = false;
@@ -22,10 +22,10 @@ bool haveMinRealWindowVal=false, haveMaxRealWindowVal=false,
 double minRealWindowVal, maxRealWindowVal,
        minImagWindowVal, maxImagWindowVal;
 #endif
-std::stack<tmen::Int> blocksizeStack;
-tmen::Grid* defaultGrid = 0;
-tmen::mpi::CommMap* defaultCommMap = 0;
-tmen::Args* args = 0;
+std::stack<rote::Int> blocksizeStack;
+rote::Grid* defaultGrid = 0;
+rote::mpi::CommMap* defaultCommMap = 0;
+rote::Args* args = 0;
 
 // A common Mersenne twister configuration
 //std::mt19937 generator;
@@ -52,12 +52,12 @@ std::stack<std::string> callStack;
 //tmen::Int localTrrkComplexDoubleBlocksize = 64;
 
 // Tuning parameters for advanced routines
-using namespace tmen;
+using namespace rote;
 //HermitianTridiagApproach tridiagApproach = HERMITIAN_TRIDIAG_DEFAULT;
 //GridOrder gridOrder = ROW_MAJOR;
 }
 
-namespace tmen {
+namespace rote {
 
 void PrintVersion( std::ostream& os )
 {

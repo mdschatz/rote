@@ -27,7 +27,7 @@
 #endif
 #endif
 
-using namespace tmen;
+using namespace rote;
 using namespace std;
 
 #define GRIDORDER 4
@@ -101,17 +101,17 @@ void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
 
 //START_DECL
 ObjShape tempShape;
-TensorDistribution dist__S__S__D_2__D_3__D_0__D_1 = tmen::StringToTensorDist("[(),(),(2),(3),(0),(1)]");
-TensorDistribution dist__D_0__D_1__S__S = tmen::StringToTensorDist("[(0),(1),(),()]");
-TensorDistribution dist__D_0__D_1__D_2__S__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(),(3)]");
-TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
-TensorDistribution dist__D_1__D_0__D_2__D_3 = tmen::StringToTensorDist("[(1),(0),(2),(3)]");
-TensorDistribution dist__D_1__D_0__D_3__D_2 = tmen::StringToTensorDist("[(1),(0),(3),(2)]");
-TensorDistribution dist__D_0_1_3__D_2 = tmen::StringToTensorDist("[(0,1,3),(2)]");
-TensorDistribution dist__D_3__S = tmen::StringToTensorDist("[(3),()]");
-TensorDistribution dist__D_0_1__D_2_3 = tmen::StringToTensorDist("[(0,1),(2,3)]");
-TensorDistribution dist__D_0_1__D_2 = tmen::StringToTensorDist("[(0,1),(2)]");
-TensorDistribution dist__D_3_0_1__D_2 = tmen::StringToTensorDist("[(3,0,1),(2)]");
+TensorDistribution dist__S__S__D_2__D_3__D_0__D_1 = rote::StringToTensorDist("[(),(),(2),(3),(0),(1)]");
+TensorDistribution dist__D_0__D_1__S__S = rote::StringToTensorDist("[(0),(1),(),()]");
+TensorDistribution dist__D_0__D_1__D_2__S__D_3 = rote::StringToTensorDist("[(0),(1),(2),(),(3)]");
+TensorDistribution dist__D_0__D_1__D_2__D_3 = rote::StringToTensorDist("[(0),(1),(2),(3)]");
+TensorDistribution dist__D_1__D_0__D_2__D_3 = rote::StringToTensorDist("[(1),(0),(2),(3)]");
+TensorDistribution dist__D_1__D_0__D_3__D_2 = rote::StringToTensorDist("[(1),(0),(3),(2)]");
+TensorDistribution dist__D_0_1_3__D_2 = rote::StringToTensorDist("[(0,1,3),(2)]");
+TensorDistribution dist__D_3__S = rote::StringToTensorDist("[(3),()]");
+TensorDistribution dist__D_0_1__D_2_3 = rote::StringToTensorDist("[(0,1),(2,3)]");
+TensorDistribution dist__D_0_1__D_2 = rote::StringToTensorDist("[(0,1),(2)]");
+TensorDistribution dist__D_3_0_1__D_2 = rote::StringToTensorDist("[(3,0,1),(2)]");
 Permutation perm_0_1( 2 );
 perm_0_1[0] = 0;
 perm_0_1[1] = 1;

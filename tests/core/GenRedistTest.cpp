@@ -9,7 +9,7 @@
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
 
-using namespace tmen;
+using namespace rote;
 
 void Usage(){
     std::cout << "./RedistCheckTest\n";

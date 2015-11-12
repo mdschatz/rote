@@ -11,7 +11,7 @@
 #define TMEN_CORE_DISTTENSOR_DECL_HPP
 
 #include<vector>
-namespace tmen {
+namespace rote {
 
 #ifndef RELEASE
     template<typename T>
@@ -29,7 +29,7 @@ public:
     void AssertValidEntry( const Location& loc ) const;
     void AssertValidSubtensor
     ( const Location& loc, const ObjShape& shape ) const;
-    void AssertSameGrid( const tmen::Grid& grid ) const;
+    void AssertSameGrid( const rote::Grid& grid ) const;
     void AssertSameSize( const ObjShape& shape ) const;
     //TODO: REMOVE THIS
     void AssertMergeableModes(const std::vector<ModeArray>& oldModes) const;
@@ -40,66 +40,66 @@ public:
     void ClearCommMap();
     Unsigned CommMapSize();
     // Create a 0 distributed tensor
-    DistTensor( const tmen::Grid& g=DefaultGrid() );
+    DistTensor( const rote::Grid& g=DefaultGrid() );
 
     // Create a 0 distributed tensor
-    DistTensor( const Unsigned order, const tmen::Grid& g=DefaultGrid() );
+    DistTensor( const Unsigned order, const rote::Grid& g=DefaultGrid() );
 
     // Create a distributed tensor based on a supplied distribution
-    DistTensor( const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
+    DistTensor( const TensorDistribution& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const tmen::Grid& g=DefaultGrid() );
+    ( const ObjShape& shape, const TensorDistribution& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor with specified alignments
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const rote::Grid& g );
 
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const tmen::Grid& g );
+    ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a constant distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
-      const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
+      const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a mutable distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
-      T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
+      T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     //////////////////////////////////
     /// String distribution versions
     //////////////////////////////////
 
     // Create a distributed tensor based on a supplied distribution
-    DistTensor( const std::string& dist, const tmen::Grid& g=DefaultGrid() );
+    DistTensor( const std::string& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor
     DistTensor
-    ( const ObjShape& shape, const std::string& dist, const tmen::Grid& g=DefaultGrid() );
+    ( const ObjShape& shape, const std::string& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor with specified alignments
     DistTensor
-    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const tmen::Grid& g );
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const rote::Grid& g );
 
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
     DistTensor
-    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const tmen::Grid& g );
+    ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a constant distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
-      const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
+      const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a mutable distributed tensor's buffer
     DistTensor
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
-      T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g );
+      T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // Create a copy of distributed matrix A
     DistTensor( const DistTensor<T>& A );
@@ -135,8 +135,8 @@ public:
 
     size_t AllocatedMemory() const;
 
-    const tmen::Grid& Grid() const;
-    const tmen::GridView GetGridView() const;
+    const rote::Grid& Grid() const;
+    const rote::GridView GetGridView() const;
 
           T* Buffer();
           T* Buffer( const Location& loc );
@@ -144,8 +144,8 @@ public:
     const T* LockedBuffer( const Location& loc ) const;
 
 
-          tmen::Tensor<T>& Tensor();
-    const tmen::Tensor<T>& LockedTensor() const;
+          rote::Tensor<T>& Tensor();
+    const rote::Tensor<T>& LockedTensor() const;
 
     //
     // Entry manipulation
@@ -206,12 +206,12 @@ public:
     //
     Location GridViewLoc() const;
     ObjShape GridViewShape() const;
-    mpi::Comm GetCommunicatorForModes(const ModeArray& modes, const tmen::Grid& grid);
+    mpi::Comm GetCommunicatorForModes(const ModeArray& modes, const rote::Grid& grid);
     void SetParticipatingComm();
     mpi::Comm GetParticipatingComm() const;
     void Empty();
     void EmptyData();
-    void SetGrid( const tmen::Grid& grid );
+    void SetGrid( const rote::Grid& grid );
 
     void Swap( DistTensor<T>& A );
 
@@ -231,7 +231,7 @@ public:
     Unsigned ModeStride(Mode mode) const;
     std::vector<Unsigned> ModeStrides() const;
     Unsigned ModeRank(Mode mode) const;
-    tmen::DistData DistData() const;
+    rote::DistData DistData() const;
 
     //
     // Redist workhorse routines
@@ -414,9 +414,9 @@ public:
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
     // Distribution alignment
-    void AlignWith( const tmen::DistData& data );
+    void AlignWith( const rote::DistData& data );
     void AlignWith( const DistTensor<T>& A );
-    void AlignModeWith( Mode mode, const tmen::DistData& data );
+    void AlignModeWith( Mode mode, const rote::DistData& data );
     void AlignModeWith( Mode mode, const DistTensor<T>& A );
     void AlignModeWith( Mode mode, const DistTensor<T>& A, Mode modeA );
     void AlignModesWith( const ModeArray& modes, const DistTensor<T>& A, const ModeArray& modesA );
@@ -449,13 +449,13 @@ public:
     // (Immutable) view of a distributed matrix's buffer
     void Attach
     ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
-      T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
+      T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& grid );
     void LockedAttach
     ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
-      const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
+      const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& grid );
     void LockedAttach
         ( const ObjShape& shape, const std::vector<Unsigned>& modeAligns,
-          const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const tmen::Grid& grid );
+          const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const rote::Grid& grid );
 
     //
     // Though the following routines are meant for complex data, all
@@ -486,13 +486,13 @@ protected:
     std::vector<Unsigned> modeShifts_;
 
     //Local information
-    tmen::Tensor<T> tensor_;
+    rote::Tensor<T> tensor_;
     Permutation localPerm_;
 
     //Grid information
-    const tmen::Grid* grid_;
-    tmen::mpi::CommMap* commMap_;
-    tmen::GridView gridView_;
+    const rote::Grid* grid_;
+    rote::mpi::CommMap* commMap_;
+    rote::GridView gridView_;
     mpi::Comm participatingComm_;
 
     ViewType viewType_;

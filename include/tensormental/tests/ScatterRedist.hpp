@@ -3,7 +3,7 @@
 #define TMEN_TESTS_SCATTERREDIST_HPP
 
 #include "tensormental/tests/AllRedists.hpp"
-using namespace tmen;
+using namespace rote;
 
 void
 CreateScatterTestsHelper(const ModeArray& modesToMove, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){

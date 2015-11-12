@@ -8,7 +8,7 @@
 */
 #include "tensormental.hpp"
 
-namespace tmen {
+namespace rote {
 
 #ifndef RELEASE
 template<typename T>
@@ -92,7 +92,7 @@ DistTensor<T>::AssertValidSubtensor
 
 template<typename T>
 void
-DistTensor<T>::AssertSameGrid( const tmen::Grid& grid ) const
+DistTensor<T>::AssertSameGrid( const rote::Grid& grid ) const
 {
     if( Grid() != grid )
         LogicError("Assertion that grids match failed");

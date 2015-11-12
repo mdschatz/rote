@@ -18,12 +18,12 @@
 #include "tensormental/core/grid_decl.hpp"
 #include "tensormental/core/types_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 class GridView
 {
 public:
-    explicit GridView( const tmen::Grid* g, const TensorDistribution& dist );
+    explicit GridView( const rote::Grid* g, const TensorDistribution& dist );
     ~GridView();
 
     // Simple interface (simpler version of distributed-based interface)
@@ -37,7 +37,7 @@ public:
     std::vector<Unsigned> ParticipatingModeWrapStrides() const;
     std::vector<Unsigned> ModeWrapStrides() const;
     TensorDistribution Distribution() const;
-    const tmen::Grid* Grid() const;
+    const rote::Grid* Grid() const;
 
     ModeArray BoundModes() const;
     ModeArray FreeModes() const;
@@ -64,7 +64,7 @@ private:
     ObjShape shape_;
     Location loc_;
 
-    const tmen::Grid* grid_;
+    const rote::Grid* grid_;
 
     void SetupGridView(const ModeArray& unusedModes = ModeArray());
     void SetGridModeTypes(const ModeArray& unusedModes = ModeArray());

@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_PARTITION_IMPL_HPP
 #define TMEN_CORE_PARTITION_IMPL_HPP
 
-namespace tmen {
+namespace rote {
 
 // To make our life easier. Undef'd at the bottom of the header
 #define TEN  Tensor<T>

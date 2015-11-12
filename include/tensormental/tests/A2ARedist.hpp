@@ -3,7 +3,7 @@
 #define TMEN_TESTS_A2AREDIST_HPP
 
 #include "tensormental/tests/AllRedists.hpp"
-using namespace tmen;
+using namespace rote;
 
 void
 CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkModesGroup, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){

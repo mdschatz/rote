@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 
 
@@ -101,7 +101,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     PROFILE_SECTION("Redist");
 //    ResizeTo(A);
 
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     Unsigned i;
     std::vector<RedistInfo> intermediateDists;
     GenRedistData redistData = CreateGenRedistData(A.TensorDist(), TensorDist(), reduceModes);

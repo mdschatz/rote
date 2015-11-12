@@ -4,7 +4,7 @@
 
 #include "tensormental/tests/AllRedists.hpp"
 
-using namespace tmen;
+using namespace rote;
 
 void
 CreateLGTestsHelper(const ModeArray& modesToMove, const TensorDistribution& distA, const std::vector<RedistTest>& partialTests, std::vector<RedistTest>& fullTests){

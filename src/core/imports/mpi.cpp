@@ -21,14 +21,14 @@ SafeMpi( int mpiError )
         char errorString[200];
         int lengthOfErrorString;
         MPI_Error_string( mpiError, errorString, &lengthOfErrorString );
-        tmen::RuntimeError( std::string(errorString) );
+        rote::RuntimeError( std::string(errorString) );
     }
 #endif
 }
 
 } // anonymous namespace
 
-namespace tmen {
+namespace rote {
 namespace mpi {
 
 //----------------------------//

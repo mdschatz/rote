@@ -11,7 +11,7 @@
 #define TMEN_CORE_ERROR_DECL_HPP
 #include <stdexcept>
 
-namespace tmen{
+namespace rote{
 
 inline void LogicError( std::string msg="LogicError" )
 {

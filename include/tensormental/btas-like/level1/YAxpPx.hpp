@@ -11,7 +11,7 @@
 #define TMEN_BTAS_YAXPPX_HPP
 
 #include "tensormental/io/Print.hpp"
-namespace tmen {
+namespace rote {
 
 ////////////////////////////////////
 // Workhorse routines

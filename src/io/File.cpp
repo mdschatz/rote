@@ -8,7 +8,7 @@
 */
 #include "tensormental.hpp"
 
-namespace tmen {
+namespace rote {
 
 std::string FileExtension( FileFormat format )
 {

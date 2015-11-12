@@ -10,7 +10,7 @@
 #ifndef TMEN_BTAS_SCAL_HPP
 #define TMEN_BTAS_SCAL_HPP
 
-namespace tmen {
+namespace rote {
 
 ////////////////////////////////////
 // Workhorse routines

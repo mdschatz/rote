@@ -12,7 +12,7 @@
 
 #include "tensormental/core/tensor_forward_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename T>
 inline void

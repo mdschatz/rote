@@ -16,7 +16,7 @@
 #include "tensormental/core/tensor_forward_decl.hpp"
 #include "tensormental/core/environment_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename T>
 inline void
@@ -148,7 +148,7 @@ PrintData
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
-        os << "Distribution: " << tmen::TensorDistToString(A.TensorDist()) << std::endl;
+        os << "Distribution: " << rote::TensorDistToString(A.TensorDist()) << std::endl;
         PrintVector(A.Alignments(), "alignments", os);
         PrintVector(A.ModeShifts(), "shifts", os);
         PrintVector(A.LocalPermutation(), "local permutation", os);

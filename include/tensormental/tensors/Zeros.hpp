@@ -12,7 +12,7 @@
 
 #include "tensormental/btas-like/level1/Zero.hpp"
 
-namespace tmen {
+namespace rote {
 
 template<typename T> 
 inline void

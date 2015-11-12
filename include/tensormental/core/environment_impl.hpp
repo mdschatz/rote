@@ -12,7 +12,7 @@
 
 #include "tensormental/core/environment_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 inline void Args::HandleVersion( std::ostream& os ) const
 {

@@ -3,7 +3,7 @@
 #define TMEN_TESTS_ARREDIST_HPP
 
 #include "tensormental/tests/AllRedists.hpp"
-using namespace tmen;
+using namespace rote;
 
 std::vector<RedistTest >
 CreateARTests(const TensorDistribution& distA){

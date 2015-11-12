@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 //NOTE: Assuming everything is correct, this is just a straight memcopy
 template<typename T>

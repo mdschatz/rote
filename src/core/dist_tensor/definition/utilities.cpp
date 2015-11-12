@@ -7,7 +7,7 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "tensormental.hpp"
-namespace tmen {
+namespace rote {
 
 template<typename T>
 void
@@ -27,7 +27,7 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
 //    AssertValidEntry( loc );
 #endif
     Unsigned i;
-    const tmen::GridView gv = GetGridView();
+    const rote::GridView gv = GetGridView();
     Location ownerLoc = Alignments();
 
     for(i = 0; i < gv.ParticipatingOrder(); i++){
@@ -45,7 +45,7 @@ DistTensor<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsig
 //    AssertValidEntry( loc );
 #endif
     Unsigned i;
-    const tmen::GridView gv = GetGridView();
+    const rote::GridView gv = GetGridView();
     Location ownerLoc = Alignments();
 
     for(i = 0; i < gv.ParticipatingOrder(); i++){
@@ -73,7 +73,7 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
 
 template<typename T>
 mpi::Comm
-DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const tmen::Grid& grid)
+DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const rote::Grid& grid)
 {
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
@@ -111,7 +111,7 @@ DistTensor<T>::SetParticipatingComm()
     ModeArray commModes = ConcatenateVectors(gridView_.FreeModes(), gridView_.BoundModes());
     SortVector(commModes);
 
-    const tmen::Grid& grid = Grid();
+    const rote::Grid& grid = Grid();
     participatingComm_ = GetCommunicatorForModes(commModes, grid);
 }
 
@@ -132,7 +132,7 @@ DistTensor<T>::ClearCommMap()
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ClearCommMap");
 #endif
-    tmen::mpi::CommMap::iterator it;
+    rote::mpi::CommMap::iterator it;
     for(it = commMap_->begin(); it != commMap_->end(); it++){
         mpi::CommFree(it->second);
     }
@@ -198,7 +198,7 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     CallStackEntry cse("DistTensor::AlignCommBufRedist");
 #endif
 
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     GridView gvA = A.GetGridView();
     GridView gvB = GetGridView();
 

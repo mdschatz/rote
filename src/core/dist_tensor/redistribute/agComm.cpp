@@ -11,7 +11,7 @@ x   Copyright (c) 2009-2013, Jack Poulson
 #include "tensormental.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 template<typename T>
 bool DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
@@ -34,7 +34,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     if(!CheckAllGatherCommRedist(A))
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
-    const tmen::Grid& g = A.Grid();
+    const rote::Grid& g = A.Grid();
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())

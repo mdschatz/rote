@@ -14,7 +14,7 @@
 #include "tensormental/util/btas_util.hpp"
 #include "tensormental/core/view_decl.hpp"
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////////
 // Workhorse routines

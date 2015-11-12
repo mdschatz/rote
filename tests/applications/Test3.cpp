@@ -20,7 +20,7 @@
 */
 // NOTE: It is possible to simply include "tensormental.hpp" instead
 #include "tensormental.hpp"
-using namespace tmen;
+using namespace rote;
 using namespace std;
 
 #define GRIDORDER 4
@@ -133,23 +133,23 @@ DistTensorTest( const Grid& g )
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   const Unsigned gridOrder = 4;
   ObjShape tempShape;
-  TensorDistribution dist____N_D_0_1_2_3 = tmen::StringToTensorDist("[]|(0,1,2,3)");
-  TensorDistribution dist__S__S__D_2__D_3 = tmen::StringToTensorDist("[(),(),(2),(3)]");
-  TensorDistribution dist__S__D_1__S__D_3 = tmen::StringToTensorDist("[(),(1),(),(3)]");
-  TensorDistribution dist__S__D_1__D_2__D_3 = tmen::StringToTensorDist("[(),(1),(2),(3)]");
-  TensorDistribution dist__D_0__S__D_2__S__D_1__D_3 = tmen::StringToTensorDist("[(0),(),(2),(),(1),(3)]");
-  TensorDistribution dist__D_0__D_1__S__S__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(),(),(2),(3)]");
-  TensorDistribution dist__D_0__D_1__S__D_3 = tmen::StringToTensorDist("[(0),(1),(),(3)]");
-  TensorDistribution dist__D_0__D_1__D_2__S__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(),(3)]");
-  TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
-  TensorDistribution dist__D_2_0__D_1__S__D_3 = tmen::StringToTensorDist("[(2,0),(1),(),(3)]");
-  TensorDistribution dist__D_1__D_2__D_3__N_D_0 = tmen::StringToTensorDist("[(1),(2),(3)]|(0)");
-  TensorDistribution dist__D_2__D_1__S__D_3 = tmen::StringToTensorDist("[(2),(1),(),(3)]");
-  TensorDistribution dist__D_2__D_3__S__S = tmen::StringToTensorDist("[(2),(3),(),()]");
-  TensorDistribution dist__D_2__D_3__S__D_1 = tmen::StringToTensorDist("[(2),(3),(),(1)]");
-  TensorDistribution dist__D_2__D_3__N_D_0_1 = tmen::StringToTensorDist("[(2),(3)]|(0,1)");
-  TensorDistribution dist__D_3__N_D_0_1_2 = tmen::StringToTensorDist("[(3)]|(0,1,2)");
-  TensorDistribution dist__D_0_2__D_1__S__D_3 = tmen::StringToTensorDist("[(0,2),(1),(),(3)]");
+  TensorDistribution dist____N_D_0_1_2_3 = rote::StringToTensorDist("[]|(0,1,2,3)");
+  TensorDistribution dist__S__S__D_2__D_3 = rote::StringToTensorDist("[(),(),(2),(3)]");
+  TensorDistribution dist__S__D_1__S__D_3 = rote::StringToTensorDist("[(),(1),(),(3)]");
+  TensorDistribution dist__S__D_1__D_2__D_3 = rote::StringToTensorDist("[(),(1),(2),(3)]");
+  TensorDistribution dist__D_0__S__D_2__S__D_1__D_3 = rote::StringToTensorDist("[(0),(),(2),(),(1),(3)]");
+  TensorDistribution dist__D_0__D_1__S__S__D_2__D_3 = rote::StringToTensorDist("[(0),(1),(),(),(2),(3)]");
+  TensorDistribution dist__D_0__D_1__S__D_3 = rote::StringToTensorDist("[(0),(1),(),(3)]");
+  TensorDistribution dist__D_0__D_1__D_2__S__D_3 = rote::StringToTensorDist("[(0),(1),(2),(),(3)]");
+  TensorDistribution dist__D_0__D_1__D_2__D_3 = rote::StringToTensorDist("[(0),(1),(2),(3)]");
+  TensorDistribution dist__D_2_0__D_1__S__D_3 = rote::StringToTensorDist("[(2,0),(1),(),(3)]");
+  TensorDistribution dist__D_1__D_2__D_3__N_D_0 = rote::StringToTensorDist("[(1),(2),(3)]|(0)");
+  TensorDistribution dist__D_2__D_1__S__D_3 = rote::StringToTensorDist("[(2),(1),(),(3)]");
+  TensorDistribution dist__D_2__D_3__S__S = rote::StringToTensorDist("[(2),(3),(),()]");
+  TensorDistribution dist__D_2__D_3__S__D_1 = rote::StringToTensorDist("[(2),(3),(),(1)]");
+  TensorDistribution dist__D_2__D_3__N_D_0_1 = rote::StringToTensorDist("[(2),(3)]|(0,1)");
+  TensorDistribution dist__D_3__N_D_0_1_2 = rote::StringToTensorDist("[(3)]|(0,1,2)");
+  TensorDistribution dist__D_0_2__D_1__S__D_3 = rote::StringToTensorDist("[(0,2),(1),(),(3)]");
   //Accum[D0,D1,D2,D3]
   DistTensor<double> Accum__D_0__D_1__D_2__D_3( dist__D_0__D_1__D_2__D_3, g );
   //Accum[D0,D1,D2,*,D3]
@@ -274,7 +274,7 @@ DistTensorTest( const Grid& g )
   T__D_0__D_1__D_2__D_3_tempShape.push_back( ten );
   T__D_0__D_1__D_2__D_3.ResizeTo( T__D_0__D_1__D_2__D_3_tempShape );
   MakeUniform( T__D_0__D_1__D_2__D_3 );
-  DistTensor<T> T_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+  DistTensor<T> T_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
   GatherAllModes( T__D_0__D_1__D_2__D_3, T_local );
   // W input has 4 dims
   //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -285,7 +285,7 @@ DistTensorTest( const Grid& g )
   W__D_0__D_1__D_2__D_3_tempShape.push_back( ten );
   W__D_0__D_1__D_2__D_3.ResizeTo( W__D_0__D_1__D_2__D_3_tempShape );
   MakeUniform( W__D_0__D_1__D_2__D_3 );
-  DistTensor<T> W_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+  DistTensor<T> W_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
   GatherAllModes( W__D_0__D_1__D_2__D_3, W_local );
   // V input has 4 dims
   //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -296,7 +296,7 @@ DistTensorTest( const Grid& g )
   V__D_0__D_1__D_2__D_3_tempShape.push_back( ten );
   V__D_0__D_1__D_2__D_3.ResizeTo( V__D_0__D_1__D_2__D_3_tempShape );
   MakeUniform( V__D_0__D_1__D_2__D_3 );
-  DistTensor<T> V_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+  DistTensor<T> V_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
   GatherAllModes( V__D_0__D_1__D_2__D_3, V_local );
   // U input has 4 dims
   //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -307,7 +307,7 @@ DistTensorTest( const Grid& g )
   U__D_0__D_1__D_2__D_3_tempShape.push_back( twenty );
   U__D_0__D_1__D_2__D_3.ResizeTo( U__D_0__D_1__D_2__D_3_tempShape );
   MakeUniform( U__D_0__D_1__D_2__D_3 );
-  DistTensor<T> U_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+  DistTensor<T> U_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
   GatherAllModes( U__D_0__D_1__D_2__D_3, U_local );
   // Temp input has 4 dims
   //	Starting distribution: [D0,D1,D2,D3] or _D_0__D_1__D_2__D_3
@@ -318,14 +318,14 @@ DistTensorTest( const Grid& g )
   Accum__D_0__D_1__D_2__D_3_tempShape.push_back( ten );
   Accum__D_0__D_1__D_2__D_3.ResizeTo( Accum__D_0__D_1__D_2__D_3_tempShape );
   MakeUniform( Accum__D_0__D_1__D_2__D_3 );
-  DistTensor<T> Accum_local( tmen::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
+  DistTensor<T> Accum_local( rote::StringToTensorDist("[(),(),(),()]|(0,1,2,3)"), g );
   GatherAllModes( Accum__D_0__D_1__D_2__D_3, Accum_local );
   // ep input has 0 dims
   //	Starting distribution: [] | {0,1,2,3} or ___N_D_0_1_2_3
   ObjShape epsilon____N_D_0_1_2_3_tempShape;
   epsilon____N_D_0_1_2_3.ResizeTo( epsilon____N_D_0_1_2_3_tempShape );
   MakeUniform( epsilon____N_D_0_1_2_3 );
-  DistTensor<T> epsilon_local( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );
+  DistTensor<T> epsilon_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
   GatherAllModes( epsilon____N_D_0_1_2_3, epsilon_local );
 
   double gflops;
@@ -564,10 +564,10 @@ DistTensorTest( const Grid& g )
 				 Accum_local.LockedTensor(), indices_abij,
 				 0.0, epsilon_local.Tensor(), blank_indices);
 
-  DistTensor<T> epsilon_local_comparison( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );    
+  DistTensor<T> epsilon_local_comparison( rote::StringToTensorDist("[]|(0,1,2,3)"), g );    
   GatherAllModes(epsilon____N_D_0_1_2_3, epsilon_local_comparison);
 
-  DistTensor<T> diffTensor( tmen::StringToTensorDist("[]|(0,1,2,3)"), g );    
+  DistTensor<T> diffTensor( rote::StringToTensorDist("[]|(0,1,2,3)"), g );    
   diffTensor.ResizeTo(epsilon_local_comparison);
   Diff( epsilon_local_comparison.LockedTensor(), epsilon_local.LockedTensor(), diffTensor.Tensor() );
 

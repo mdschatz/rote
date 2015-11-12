@@ -13,7 +13,7 @@
 #include <numeric>
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 template<typename T>
 void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
@@ -214,7 +214,7 @@ template <typename T>
 void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
 	Unsigned i;
 	Unsigned order = startDist.size() - 1;
-	const tmen::Grid& g = Grid();
+	const rote::Grid& g = Grid();
 
 	ModeArray movedModes = redistData.gridModesMoved;
 //	ModeArray movedModesSrcs = redistData.gridModesMovedSrcs;

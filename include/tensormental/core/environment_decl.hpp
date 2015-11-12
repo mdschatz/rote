@@ -16,7 +16,7 @@
 //#include <random>
 #include <stdlib.h>
 
-namespace tmen {
+namespace rote {
 
 void PrintVersion( std::ostream& os=std::cout );
 void PrintConfig( std::ostream& os=std::cout );

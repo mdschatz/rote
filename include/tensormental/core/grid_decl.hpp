@@ -16,7 +16,7 @@
 #include "tensormental/core/imports/mpi.hpp"
 #include "tensormental/core/environment_decl.hpp"
 
-namespace tmen {
+namespace rote {
 
 class Grid
 {

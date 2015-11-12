@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_INDEXING_DECL_HPP
 #define TMEN_CORE_INDEXING_DECL_HPP
 
-namespace tmen {
+namespace rote {
 
 Unsigned GCD( Unsigned a, Unsigned b );
 Unsigned GCD_( Unsigned a, Unsigned b );

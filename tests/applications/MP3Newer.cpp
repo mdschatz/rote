@@ -27,7 +27,7 @@
 #endif
 #endif
 
-using namespace tmen;
+using namespace rote;
 using namespace std;
 
 #define GRIDORDER 4
@@ -266,16 +266,16 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
   Unsigned i;
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   ObjShape tempShape;
-  TensorDistribution dist____N_D_0_1_2_3 = tmen::StringToTensorDist("[]|(0,1,2,3)");
-  TensorDistribution dist__S__S__D_2__D_3 = tmen::StringToTensorDist("[(),(),(2),(3)]");
-  TensorDistribution dist__S__D_0__S__D_2 = tmen::StringToTensorDist("[(),(0),(),(2)]");
-  TensorDistribution dist__S__D_1__S__D_3 = tmen::StringToTensorDist("[(),(1),(),(3)]");
-  TensorDistribution dist__S__D_1__D_3__S = tmen::StringToTensorDist("[(),(1),(3),()]");
-  TensorDistribution dist__D_0__D_1__S__S = tmen::StringToTensorDist("[(0),(1),(),()]");
-  TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
-  TensorDistribution dist__D_0__D_1__D_3__D_2 = tmen::StringToTensorDist("[(0),(1),(3),(2)]");
-  TensorDistribution dist__D_1__D_0__D_2__D_3 = tmen::StringToTensorDist("[(1),(0),(2),(3)]");
-  TensorDistribution dist__D_1__D_0__D_3__D_2 = tmen::StringToTensorDist("[(1),(0),(3),(2)]");
+  TensorDistribution dist____N_D_0_1_2_3 = rote::StringToTensorDist("[]|(0,1,2,3)");
+  TensorDistribution dist__S__S__D_2__D_3 = rote::StringToTensorDist("[(),(),(2),(3)]");
+  TensorDistribution dist__S__D_0__S__D_2 = rote::StringToTensorDist("[(),(0),(),(2)]");
+  TensorDistribution dist__S__D_1__S__D_3 = rote::StringToTensorDist("[(),(1),(),(3)]");
+  TensorDistribution dist__S__D_1__D_3__S = rote::StringToTensorDist("[(),(1),(3),()]");
+  TensorDistribution dist__D_0__D_1__S__S = rote::StringToTensorDist("[(0),(1),(),()]");
+  TensorDistribution dist__D_0__D_1__D_2__D_3 = rote::StringToTensorDist("[(0),(1),(2),(3)]");
+  TensorDistribution dist__D_0__D_1__D_3__D_2 = rote::StringToTensorDist("[(0),(1),(3),(2)]");
+  TensorDistribution dist__D_1__D_0__D_2__D_3 = rote::StringToTensorDist("[(1),(0),(2),(3)]");
+  TensorDistribution dist__D_1__D_0__D_3__D_2 = rote::StringToTensorDist("[(1),(0),(3),(2)]");
   Permutation perm;
   Permutation perm_0_1_2_3;
   perm_0_1_2_3.push_back(0);
@@ -745,7 +745,7 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
 //Performance testing
 ////////////////////////////////
 #ifdef CORRECTNESS
-  DistTensor<T> epsilonA( tmen::StringToTensorDist("[(0)]|()"), g);
+  DistTensor<T> epsilonA( rote::StringToTensorDist("[(0)]|()"), g);
   ObjShape epsilonAShape;
   epsilonAShape.push_back(n_v);
   epsilonA.ResizeTo(epsilonAShape);
@@ -754,7 +754,7 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
   Load_Tensor(epsilonA, epsilonAFilename);
   //Print(epsilonA, "eps_a");
 
-  DistTensor<T> epsilonB( tmen::StringToTensorDist("[(0)]|()"), g);
+  DistTensor<T> epsilonB( rote::StringToTensorDist("[(0)]|()"), g);
   ObjShape epsilonBShape;
   epsilonBShape.push_back(n_o);
   epsilonB.ResizeTo(epsilonBShape);
@@ -763,7 +763,7 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
   Load_Tensor(epsilonB, epsilonBFilename);
   //Print(epsilonB, "eps_b");
 
-  DistTensor<T> D_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
+  DistTensor<T> D_abij( rote::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
   ObjShape D_abijShape;
   D_abijShape.push_back(n_v);
   D_abijShape.push_back(n_v);
@@ -771,7 +771,7 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
   D_abijShape.push_back(n_o);
   D_abij.ResizeTo(D_abijShape);
 
-  DistTensor<T> V_abij( tmen::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
+  DistTensor<T> V_abij( rote::StringToTensorDist("[(0),(1),(2),(3)]|()"), g);
   V_abij.ResizeTo(D_abijShape);
   std::string v_abijFilename = "data/abij";
   printf("loading V_abij\n");
@@ -803,7 +803,7 @@ DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
 
   printf("elemScaling\n");
   Form_D_abij(epsilonA, epsilonB, D_abij);
-  tmen::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
+  rote::ElemScal(V_abij, D_abij, t_efmn__D_0__D_1__D_2__D_3);
 //  Print(t_efmn__D_0__D_1__D_2__D_3, "t_efmn");
 #endif
 //******************************

@@ -11,7 +11,7 @@
 #include "tensormental.hpp"
 #include <algorithm>
 #include "tensormental/core/tensor.hpp"
-namespace tmen{
+namespace rote{
 
 template <typename T>
 bool DistTensor<T>::CheckScatterCommRedist(const DistTensor<T>& A){
@@ -32,7 +32,7 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	if(!CheckScatterCommRedist(A))
 		LogicError("ScatterRedist: Invalid redistribution request");
 
-	const tmen::Grid& g = A.Grid();
+	const rote::Grid& g = A.Grid();
 	const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
 	if(!Participating())

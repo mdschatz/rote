@@ -10,7 +10,7 @@
 #ifndef TMEN_CORE_BLAS_HPP
 #define TMEN_CORE_BLAS_HPP
 
-namespace tmen {
+namespace rote {
 namespace blas {
 
 //
@@ -518,7 +518,7 @@ void Trsm
 // Templated wrappers
 //
 
-namespace tmen {
+namespace rote {
 namespace blas {
 
 //
