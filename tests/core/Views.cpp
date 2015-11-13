@@ -6,9 +6,9 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
-using namespace tmen;
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
+using namespace rote;
 
 void Usage(){
     std::cout << "./DistTensor <gridOrder> <gridDim0> <gridDim1> ... <tenOrder> <tenDim0> <tenDim1> ... \"<tensorDist>\"\n";
@@ -61,7 +61,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
         }
         args.gridShape[i] = gridDim;
     }
-    args.nProcs = tmen::prod(args.gridShape);
+    args.nProcs = rote::prod(args.gridShape);
 
     if(argCount + 1 >= argc){
         std::cerr << "Missing required tenOrder argument\n";
@@ -95,7 +95,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     }
 
     std::string tensorDist(argv[++argCount]);
-    args.tensorDist = tmen::StringToTensorDist(tensorDist);
+    args.tensorDist = rote::StringToTensorDist(tensorDist);
 
     if(args.tensorDist.size() != args.tensorShape.size() + 1){
         std::cerr << "Tensor distribution must be of same order as tensor\n";
@@ -150,7 +150,7 @@ TestConstViews(DistTensor<T>& A){
 #ifndef RELEASE
     CallStackEntry entry("TestConstViews");
 #endif
-    const tmen::Grid& g = A.Grid();
+    const rote::Grid& g = A.Grid();
     Unsigned i;
     const Unsigned order = A.Order();
     Location start(order, 0);
@@ -243,7 +243,7 @@ TestNonConstViews(DistTensor<T>& A){
 #ifndef RELEASE
     CallStackEntry entry("TestNonConstViews");
 #endif
-    const tmen::Grid& g = A.Grid();
+    const rote::Grid& g = A.Grid();
     Unsigned i;
     const Unsigned order = A.Order();
     Location start(order, 0);

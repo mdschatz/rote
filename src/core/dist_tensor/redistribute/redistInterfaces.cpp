@@ -8,10 +8,10 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 
 
@@ -101,7 +101,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     PROFILE_SECTION("Redist");
 //    ResizeTo(A);
 
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     Unsigned i;
     std::vector<RedistInfo> intermediateDists;
     GenRedistData redistData = CreateGenRedistData(A.TensorDist(), TensorDist(), reduceModes);
@@ -194,4 +194,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

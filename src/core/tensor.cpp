@@ -6,10 +6,10 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
-#include "tensormental/util/vec_util.hpp"
+#include "rote.hpp"
+#include "rote/util/vec_util.hpp"
 
-namespace tmen {
+namespace rote {
 
 //
 // Assertions
@@ -438,7 +438,7 @@ Tensor<T>::GetRealPart( const Location& loc ) const
     CallStackEntry cse("Tensor::GetRealPart");
     AssertValidEntry( loc );
 #endif
-    return tmen::RealPart( Get_( loc ) );
+    return rote::RealPart( Get_( loc ) );
 }
 
 template<typename T>
@@ -449,7 +449,7 @@ Tensor<T>::GetImagPart( const Location& loc ) const
     CallStackEntry cse("Tensor::GetImagPart");
     AssertValidEntry( loc );
 #endif
-    return tmen::ImagPart( Get_( loc ) );
+    return rote::ImagPart( Get_( loc ) );
 }
 
 template<typename T>
@@ -462,7 +462,7 @@ Tensor<T>::SetRealPart( const Location& loc, BASE(T) alpha )
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
 #endif
-    tmen::SetRealPart( Set_( loc ), alpha );
+    rote::SetRealPart( Set_( loc ), alpha );
 }
 
 template<typename T>
@@ -476,7 +476,7 @@ Tensor<T>::SetImagPart( const Location& loc, BASE(T) alpha )
         LogicError("Cannot modify data of locked matrices");
 #endif
     ComplainIfReal();
-    tmen::SetImagPart( Set_( loc ), alpha );
+    rote::SetImagPart( Set_( loc ), alpha );
 }
 
 template<typename T>
@@ -489,7 +489,7 @@ Tensor<T>::UpdateRealPart( const Location& loc, BASE(T) alpha )
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
 #endif
-    tmen::UpdateRealPart( Set_( loc ), alpha );
+    rote::UpdateRealPart( Set_( loc ), alpha );
 }
 
 template<typename T>
@@ -503,7 +503,7 @@ Tensor<T>::UpdateImagPart( const Location& loc, BASE(T) alpha )
         LogicError("Cannot modify data of locked matrices");
 #endif
     ComplainIfReal();
-    tmen::UpdateImagPart( Set_( loc ), alpha );
+    rote::UpdateImagPart( Set_( loc ), alpha );
 }
 
 template<typename T>
@@ -722,4 +722,4 @@ template class Tensor<std::complex<float> >;
 template class Tensor<std::complex<double> >;
 #endif // ifndef DISABLE_COMPLEX
 
-} // namespace tmen
+} // namespace rote

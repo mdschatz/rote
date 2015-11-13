@@ -6,9 +6,9 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
-namespace tmen {
+namespace rote {
 
 
 //TODO: Check if this should retain order of object
@@ -50,7 +50,7 @@ DistTensor<T>::AlignWith( const DistTensor<T>& A )
 {
     Unsigned i;
     Unsigned order = A.Order();
-    const tmen::Grid& grid = A.Grid();
+    const rote::Grid& grid = A.Grid();
     SetGrid( grid );
 
     for(i = 0; i < order; i++){
@@ -107,7 +107,7 @@ template<typename T>
 void
 DistTensor<T>::Attach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
-  T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g )
+  T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Attach");
@@ -130,7 +130,7 @@ template<typename T>
 void
 DistTensor<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
-  const T* buffer, const std::vector<Unsigned>& strides, const tmen::Grid& g )
+  const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::LockedAttach");
@@ -149,7 +149,7 @@ template<typename T>
 void
 DistTensor<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
-  const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const tmen::Grid& g )
+  const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::LockedAttach");
@@ -369,7 +369,7 @@ DistTensor<T>::MakeConsistent()
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::MakeConsistent");
 #endif
-    const tmen::Grid& g = Grid();
+    const rote::Grid& g = Grid();
     const Int root = g.VCToViewingMap(0);
     Int message[7];
     if( g.ViewingRank() == root )
@@ -480,7 +480,7 @@ DistTensor<T>::SetModeShift(Mode mode)
 
 template<typename T>
 void
-DistTensor<T>::SetGrid( const tmen::Grid& grid )
+DistTensor<T>::SetGrid( const rote::Grid& grid )
 {
     Empty();
     grid_ = &grid;

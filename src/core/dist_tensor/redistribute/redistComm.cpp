@@ -8,12 +8,12 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 #include <functional>
 #include <numeric>
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 template<typename T>
 void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
@@ -214,7 +214,7 @@ template <typename T>
 void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
 	Unsigned i;
 	Unsigned order = startDist.size() - 1;
-	const tmen::Grid& g = Grid();
+	const rote::Grid& g = Grid();
 
 	ModeArray movedModes = redistData.gridModesMoved;
 //	ModeArray movedModesSrcs = redistData.gridModesMovedSrcs;
@@ -371,4 +371,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

@@ -18,8 +18,8 @@
  You should have received a copy of the GNU General Public License
  along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
  */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
 
 #ifdef PROFILE
 #ifdef BGQ
@@ -27,7 +27,7 @@
 #endif
 #endif
 
-using namespace tmen;
+using namespace rote;
 using namespace std;
 
 #define GRIDORDER 4
@@ -101,12 +101,12 @@ void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
 
 //START_DECL
 ObjShape tempShape;
-TensorDistribution dist__D_0__S = tmen::StringToTensorDist("[(0),()]");
-TensorDistribution dist__D_0__D_1__D_2__D_3 = tmen::StringToTensorDist("[(0),(1),(2),(3)]");
-TensorDistribution dist__D_2_0__D_1__S__D_3 = tmen::StringToTensorDist("[(2,0),(1),(),(3)]");
-TensorDistribution dist__D_2_0__D_3__S__D_1 = tmen::StringToTensorDist("[(2,0),(3),(),(1)]");
-TensorDistribution dist__D_2__D_3__S__D_1__D_0 = tmen::StringToTensorDist("[(2),(3),(),(1),(0)]");
-TensorDistribution dist__D_0_1__D_2_3 = tmen::StringToTensorDist("[(0,1),(2,3)]");
+TensorDistribution dist__D_0__S = rote::StringToTensorDist("[(0),()]");
+TensorDistribution dist__D_0__D_1__D_2__D_3 = rote::StringToTensorDist("[(0),(1),(2),(3)]");
+TensorDistribution dist__D_2_0__D_1__S__D_3 = rote::StringToTensorDist("[(2,0),(1),(),(3)]");
+TensorDistribution dist__D_2_0__D_3__S__D_1 = rote::StringToTensorDist("[(2,0),(3),(),(1)]");
+TensorDistribution dist__D_2__D_3__S__D_1__D_0 = rote::StringToTensorDist("[(2),(3),(),(1),(0)]");
+TensorDistribution dist__D_0_1__D_2_3 = rote::StringToTensorDist("[(0,1),(2,3)]");
 Permutation perm_0_1( 2 );
 perm_0_1[0] = 0;
 perm_0_1[1] = 1;

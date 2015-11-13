@@ -8,10 +8,10 @@ x   Copyright (c) 2009-2013, Jack Poulson
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 template<typename T>
 bool DistTensor<T>::CheckBroadcastCommRedist(const DistTensor<T>& A){
@@ -34,7 +34,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
     if(!CheckBroadcastCommRedist(A))
         LogicError("BroadcastRedist: Invalid redistribution request");
 #endif
-    const tmen::Grid& g = A.Grid();
+    const rote::Grid& g = A.Grid();
 
     const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
@@ -109,4 +109,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

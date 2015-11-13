@@ -5,7 +5,7 @@ Interface (MPI). As with BLAS, a thin inerface wrapper is built to accomodate th
 
 This section has been lifted from the documentation for the Elemental library by Jack Poulson `<>`_.
 The prototypes can be found in
-`include/tensormental/core/imports/mpi.hpp <>`_,
+`include/rote/core/imports/mpi.hpp <>`_,
 while the implementations are in
 `src/imports/mpi.cpp <>`_.
 

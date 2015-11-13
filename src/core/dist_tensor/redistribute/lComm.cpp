@@ -8,10 +8,10 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 template<typename T>
 bool DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
@@ -88,9 +88,9 @@ void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recv
 	const Location myFirstLocB = DetermineFirstElem(GetGridView().ParticipatingLoc());
 	const Location myFirstLocA = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
 
-	const tmen::Grid& g = Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView& gvB = GetGridView();
+	const rote::Grid& g = Grid();
+    const rote::GridView gvA = A.GetGridView();
+    const rote::GridView& gvB = GetGridView();
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 	const Location myGridLoc = g.Loc();
@@ -144,4 +144,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

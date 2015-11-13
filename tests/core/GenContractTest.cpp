@@ -6,10 +6,10 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
 
-using namespace tmen;
+using namespace rote;
 
 void Usage(){
     std::cout << "./GenContractTest <distA> <indicesA> <distB> <indicesB> <distC> <indicesC> <m-dim> <k-dim> <n-dim>\n";
@@ -135,7 +135,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
         Usage();
         throw ArgException();
     }
-    args.distA = tmen::StringToTensorDist(argv[++argCount]);
+    args.distA = rote::StringToTensorDist(argv[++argCount]);
 
     if(argCount + 1 >= argc){
         std::cerr << "Missing required indicesA argument\n";
@@ -153,7 +153,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
         Usage();
         throw ArgException();
     }
-    args.distB = tmen::StringToTensorDist(argv[++argCount]);
+    args.distB = rote::StringToTensorDist(argv[++argCount]);
 
     if(argCount + 1 >= argc){
         std::cerr << "Missing required indicesB argument\n";
@@ -171,7 +171,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
         Usage();
         throw ArgException();
     }
-    args.distC = tmen::StringToTensorDist(argv[++argCount]);
+    args.distC = rote::StringToTensorDist(argv[++argCount]);
 
     if(argCount + 1 >= argc){
         std::cerr << "Missing required indicesC argument\n";
@@ -211,11 +211,11 @@ void RunTest(const Grid& g, const Params& args){
 	mpi::Comm comm = mpi::COMM_WORLD;
 	const Int commRank = mpi::CommRank( comm );
 	if(commRank == 0){
-		std::cout << "A" << tmen::TensorDistToString(args.distA) << " ";
+		std::cout << "A" << rote::TensorDistToString(args.distA) << " ";
 		PrintVector(args.indicesA);
-		std::cout << "B" << tmen::TensorDistToString(args.distB) << " ";
+		std::cout << "B" << rote::TensorDistToString(args.distB) << " ";
 		PrintVector(args.indicesB);
-		std::cout << "C" << tmen::TensorDistToString(args.distC) << " ";
+		std::cout << "C" << rote::TensorDistToString(args.distC) << " ";
 		PrintVector(args.indicesC);
 	}
 

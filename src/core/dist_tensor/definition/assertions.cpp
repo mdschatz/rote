@@ -6,9 +6,9 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
-namespace tmen {
+namespace rote {
 
 #ifndef RELEASE
 template<typename T>
@@ -92,7 +92,7 @@ DistTensor<T>::AssertValidSubtensor
 
 template<typename T>
 void
-DistTensor<T>::AssertSameGrid( const tmen::Grid& grid ) const
+DistTensor<T>::AssertSameGrid( const rote::Grid& grid ) const
 {
     if( Grid() != grid )
         LogicError("Assertion that grids match failed");

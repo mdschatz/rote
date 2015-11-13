@@ -1,12 +1,12 @@
 
-#include "tensormental/util/vec_util.hpp"
-#include "tensormental/util/ten_dist_util.hpp"
-#include "tensormental/core/error_decl.hpp"
+#include "rote/util/vec_util.hpp"
+#include "rote/util/ten_dist_util.hpp"
+#include "rote/core/error_decl.hpp"
 #include <algorithm>
 #include <numeric>
 #include <functional>
 
-namespace tmen{
+namespace rote{
 
 bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder){
 	if(outOrder != inOrder){
@@ -20,9 +20,9 @@ bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDist
 	if(!IsPrefix(outDist[nonDistMode], inDist[nonDistMode])){
     	std::stringstream msg;
 		msg << "Invalid redistribution\n"
-			<< tmen::TensorDistToString(outDist)
+			<< rote::TensorDistToString(outDist)
 			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
+			<< rote::TensorDistToString(inDist)
 			<< std::endl
 			<< "Output Non-distributed mode distribution must be prefix"
 			<< std::endl;
@@ -36,9 +36,9 @@ bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistr
 	if(!IsPrefix(inDist[nonDistMode], outDist[nonDistMode])){
     	std::stringstream msg;
 		msg << "Invalid redistribution\n"
-			<< tmen::TensorDistToString(outDist)
+			<< rote::TensorDistToString(outDist)
 			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
+			<< rote::TensorDistToString(inDist)
 			<< std::endl
 			<< "Input Non-distributed mode distribution must be prefix"
 			<< std::endl;
@@ -52,9 +52,9 @@ bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistributio
 	if(outDist[nonDistMode].size() != inDist[nonDistMode].size() || !EqualUnderPermutation(outDist[nonDistMode], inDist[nonDistMode])){
     	std::stringstream msg;
 		msg << "Invalid redistribution\n"
-			<< tmen::TensorDistToString(outDist)
+			<< rote::TensorDistToString(outDist)
 			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
+			<< rote::TensorDistToString(inDist)
 			<< std::endl
 			<< "Output Non-distributed mode distribution must be same"
 			<< std::endl;
@@ -81,9 +81,9 @@ bool CheckSameCommModes(const TensorDistribution& outDist, const TensorDistribut
     if(commModesOut.size() != commModesIn.size() || !EqualUnderPermutation(commModesOut, commModesIn)){
     	std::stringstream msg;
     	msg << "Invalid redistribution\n"
-			<< tmen::TensorDistToString(outDist)
+			<< rote::TensorDistToString(outDist)
 			<< " <-- "
-			<< tmen::TensorDistToString(inDist)
+			<< rote::TensorDistToString(inDist)
 			<< std::endl
 			<< "Cannot determine modes communicated over"
 			<< std::endl;
@@ -110,9 +110,9 @@ bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution&
     	}else if(!IsSame(inDist[i], outDist[i])){
 			std::stringstream msg;
 			msg << "Invalid redistribution\n"
-				<< tmen::TensorDistToString(outDist)
+				<< rote::TensorDistToString(outDist)
 				<< " <-- "
-				<< tmen::TensorDistToString(inDist)
+				<< rote::TensorDistToString(inDist)
 				<< std::endl
 				<< "Cannot form partition"
 				<< std::endl;
@@ -124,9 +124,9 @@ bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution&
     	if(sourceModes[i] == sinkModes[j]){
         	std::stringstream msg;
     		msg << "Invalid redistribution\n"
-    			<< tmen::TensorDistToString(outDist)
+    			<< rote::TensorDistToString(outDist)
     			<< " <-- "
-    			<< tmen::TensorDistToString(inDist)
+    			<< rote::TensorDistToString(inDist)
     			<< std::endl
     			<< "Cannot form partition"
     			<< std::endl;
@@ -149,9 +149,9 @@ bool CheckInIsPrefix(const TensorDistribution& outDist, const TensorDistribution
     	if(!(IsPrefix(inDist[i], outDist[i]))){
     		std::stringstream msg;
     		msg << "Invalid redistribution:\n"
-    		    << tmen::TensorDistToString(outDist)
+    		    << rote::TensorDistToString(outDist)
     		    << " <-- "
-    		    << tmen::TensorDistToString(inDist)
+    		    << rote::TensorDistToString(inDist)
     		    << std::endl
     		    << "Input mode-" << i << " mode distribution must be prefix of output mode distribution"
     			<< std::endl;
@@ -168,9 +168,9 @@ bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistributio
     	if(!(IsPrefix(outDist[i], inDist[i]))){
     		std::stringstream msg;
     		msg << "Invalid redistribution\n"
-    		    << tmen::TensorDistToString(outDist)
+    		    << rote::TensorDistToString(outDist)
     		    << " <-- "
-    		    << tmen::TensorDistToString(inDist)
+    		    << rote::TensorDistToString(inDist)
     		    << std::endl
     		    << "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
     			<< std::endl;

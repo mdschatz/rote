@@ -1,11 +1,11 @@
 
-#include "tensormental/util/vec_util.hpp"
-#include "tensormental/core/error_decl.hpp"
+#include "rote/util/vec_util.hpp"
+#include "rote/core/error_decl.hpp"
 #include <algorithm>
 #include <numeric>
 #include <functional>
 
-namespace tmen{
+namespace rote{
 
 template<typename T>
 T sum(const std::vector<T>& src, const Unsigned startIndex){
@@ -134,7 +134,7 @@ bool AnyNegativeElem(const std::vector<T>& vec){
 template<typename T>
 bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-    tmen::LogicError("Vector element-wise comparison must have matching sizes");
+    rote::LogicError("Vector element-wise comparison must have matching sizes");
 
   Unsigned i;
   for(i = 0; i < vec1.size(); i++)
@@ -146,7 +146,7 @@ bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
 template<typename T>
 bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-    tmen::LogicError("Vector element-wise comparison must have matching sizes");
+    rote::LogicError("Vector element-wise comparison must have matching sizes");
 
   Unsigned i;
   for(i = 0; i < vec1.size(); i++)
@@ -158,7 +158,7 @@ bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& v
 template<typename T>
 bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
 	if(vec1.size() != vec2.size())
-		tmen::LogicError("Vector element-wise comparison must have matching sizes");
+		rote::LogicError("Vector element-wise comparison must have matching sizes");
 
 	Unsigned i;
 	for(i = 0; i < vec1.size(); i++)
@@ -170,7 +170,7 @@ bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& ve
 template<typename T>
 bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2){
     if(vec1.size() != vec2.size())
-        tmen::LogicError("Vector element-wise comparison must have matching sizes");
+        rote::LogicError("Vector element-wise comparison must have matching sizes");
 
     Unsigned i;
     for(i = 0; i < vec1.size(); i++)
@@ -199,7 +199,7 @@ bool AnyFalseElem(const std::vector<bool>& vec){
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-	tmen::LogicError("Vector element-wise comparison must have matching sizes");
+	rote::LogicError("Vector element-wise comparison must have matching sizes");
 
   Unsigned i;
   for(i = 0; i < vec1.size(); i++)
@@ -211,7 +211,7 @@ bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2)
 template<typename T>
 bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2){
     if(vec1.size() != vec2.size())
-        tmen::LogicError("Vector Permutation check must have same sized vectors");
+        rote::LogicError("Vector Permutation check must have same sized vectors");
 
     Unsigned i;
     for(i = 0; i < vec1.size(); i++){

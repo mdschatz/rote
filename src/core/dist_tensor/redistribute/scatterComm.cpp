@@ -8,10 +8,10 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 #include <algorithm>
-#include "tensormental/core/tensor.hpp"
-namespace tmen{
+#include "rote/core/tensor.hpp"
+namespace rote{
 
 template <typename T>
 bool DistTensor<T>::CheckScatterCommRedist(const DistTensor<T>& A){
@@ -32,7 +32,7 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	if(!CheckScatterCommRedist(A))
 		LogicError("ScatterRedist: Invalid redistribution request");
 
-	const tmen::Grid& g = A.Grid();
+	const rote::Grid& g = A.Grid();
 	const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
 
 	if(!Participating())
@@ -109,4 +109,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

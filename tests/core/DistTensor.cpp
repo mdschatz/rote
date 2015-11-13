@@ -6,20 +6,20 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
-#include "tensormental/tests/LGRedist.hpp"
-#include "tensormental/tests/GTOGRedist.hpp"
-#include "tensormental/tests/AGGRedist.hpp"
-#include "tensormental/tests/RTOGRedist.hpp"
-#include "tensormental/tests/RSGRedist.hpp"
-#include "tensormental/tests/PRedist.hpp"
-#include "tensormental/tests/A2ARedist.hpp"
-#include "tensormental/tests/ARRedist.hpp"
-#include "tensormental/tests/BCastRedist.hpp"
-#include "tensormental/tests/ScatterRedist.hpp"
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
+#include "rote/tests/LGRedist.hpp"
+#include "rote/tests/GTOGRedist.hpp"
+#include "rote/tests/AGGRedist.hpp"
+#include "rote/tests/RTOGRedist.hpp"
+#include "rote/tests/RSGRedist.hpp"
+#include "rote/tests/PRedist.hpp"
+#include "rote/tests/A2ARedist.hpp"
+#include "rote/tests/ARRedist.hpp"
+#include "rote/tests/BCastRedist.hpp"
+#include "rote/tests/ScatterRedist.hpp"
 
-using namespace tmen;
+using namespace rote;
 
 void Usage(){
     std::cout << "./DistTensor <gridOrder> <gridDim0> <gridDim1> ... <tenOrder> <tenDim0> <tenDim1> ... \"<tensorDist>\"\n";
@@ -63,7 +63,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
         }
         args.gridShape[i] = gridDim;
     }
-    args.nProcs = tmen::prod(args.gridShape);
+    args.nProcs = rote::prod(args.gridShape);
 
     if(argCount + 1 >= argc){
         std::cerr << "Missing required tenOrder argument\n";
@@ -97,7 +97,7 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     }
 
     std::string tensorDist(argv[++argCount]);
-    args.tensorDist = tmen::StringToTensorDist(tensorDist);
+    args.tensorDist = rote::StringToTensorDist(tensorDist);
 
 
     if(args.tensorDist.size() != args.tensorShape.size() + 1){
@@ -120,8 +120,8 @@ PerformSingleTest( const RedistType& commType, const TensorDistribution& resDist
     const Grid& g = A.Grid();
 
     if(commRank == 0){
-        std::cout << (tmen::TensorDistToString(resDist)).c_str() << " <-- "
-        		  << (tmen::TensorDistToString(A.TensorDist())).c_str()
+        std::cout << (rote::TensorDistToString(resDist)).c_str() << " <-- "
+        		  << (rote::TensorDistToString(A.TensorDist())).c_str()
 				  << std::endl;
         PrintVector(A.LocalPermutation(), "input perm");
         PrintVector(outputPerm, "output perm");

@@ -8,11 +8,11 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
-//#include "/tensormental/mc_mr.hpp"
+#include "rote.hpp"
+//#include "/rote/mc_mr.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 ////////////////////////////////
 // Workhorse interface
@@ -46,4 +46,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

@@ -6,27 +6,27 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 
 namespace {
-tmen::mpi::Datatype typeIntInt;
-tmen::mpi::Datatype typeFloatInt;
-tmen::mpi::Datatype typeDoubleInt;
+rote::mpi::Datatype typeIntInt;
+rote::mpi::Datatype typeFloatInt;
+rote::mpi::Datatype typeDoubleInt;
 
-tmen::mpi::Op maxLocIntOp;
-tmen::mpi::Op maxLocFloatOp;
-tmen::mpi::Op maxLocDoubleOp;
+rote::mpi::Op maxLocIntOp;
+rote::mpi::Op maxLocFloatOp;
+rote::mpi::Op maxLocDoubleOp;
 
-tmen::mpi::Datatype typeIntIntPair;
-tmen::mpi::Datatype typeFloatIntPair;
-tmen::mpi::Datatype typeDoubleIntPair;
+rote::mpi::Datatype typeIntIntPair;
+rote::mpi::Datatype typeFloatIntPair;
+rote::mpi::Datatype typeDoubleIntPair;
 
-tmen::mpi::Op maxLocPairIntOp;
-tmen::mpi::Op maxLocPairFloatOp;
-tmen::mpi::Op maxLocPairDoubleOp;
+rote::mpi::Op maxLocPairIntOp;
+rote::mpi::Op maxLocPairFloatOp;
+rote::mpi::Op maxLocPairDoubleOp;
 } // anonymouse namespace   
 
-namespace tmen {
+namespace rote {
 namespace mpi {
 
 template<typename T>
@@ -359,4 +359,4 @@ template void
 MaxLocPairFunc<double>( void* in, void* out, int* length, Datatype* datatype );
 
 } // namespace mpi
-} // namespace tmen
+} // namespace rote

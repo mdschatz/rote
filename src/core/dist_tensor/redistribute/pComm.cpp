@@ -8,10 +8,10 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#include "tensormental.hpp"
+#include "rote.hpp"
 #include <algorithm>
 
-namespace tmen{
+namespace rote{
 
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
@@ -32,9 +32,9 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     if(!CheckPermutationCommRedist(A))
 		LogicError("PermutationRedist: Invalid redistribution request");
 
-    const tmen::Grid& g = A.Grid();
-    const tmen::GridView gvA = A.GetGridView();
-    const tmen::GridView gvB = GetGridView();
+    const rote::Grid& g = A.Grid();
+    const rote::GridView gvA = A.GetGridView();
+    const rote::GridView gvB = GetGridView();
 
     //Ripped from AlignCommBufRedist
 
@@ -157,4 +157,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace tmen
+} //namespace rote

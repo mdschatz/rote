@@ -5,7 +5,7 @@ The Basic Linear Algebra Subprograms (BLAS) are heavily exploited within
 to accommodate the type-dependent naming scheme of various BLAS libraries. 
 
 The prototypes can be found in 
-`include/tensormental/core/imports/blas.hpp <>`_,
+`include/rote/core/imports/blas.hpp <>`_,
 while the implementations are in 
 `src/imports/blas.cpp <>`_.
 

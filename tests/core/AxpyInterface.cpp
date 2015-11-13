@@ -7,10 +7,10 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "tensormental.hpp" instead
-#include "tensormental.hpp"
-#include "tensormental/matrices/Zeros.hpp"
-using namespace tmen;
+// NOTE: It is possible to simply include "rote.hpp" instead
+#include "rote.hpp"
+#include "rote/matrices/Zeros.hpp"
+using namespace rote;
 
 int
 main( int argc, char* argv[] )

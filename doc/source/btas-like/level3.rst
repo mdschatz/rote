@@ -2,9 +2,9 @@ Level 3
 =======
 
 The prototypes for the following routines can be found at          
-`include/tensormental/btas-like_decl.hpp <>`_, while the
+`include/rote/btas-like_decl.hpp <>`_, while the
 implementations are in 
-`include/tensormental/btas-like/level3/ <>`_.
+`include/rote/btas-like/level3/ <>`_.
 
 
 Gemm

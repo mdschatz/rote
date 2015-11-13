@@ -12,8 +12,8 @@ numbers where the :math:`(i,j)` entry is equal to :math:`i-j` would be:
 
   .. code-block:: cpp
 
-     #include "tensormental.hpp"
-     using namespace tmen;
+     #include "rote.hpp"
+     using namespace rote;
      ...
      ObjShape shape(2);
      shape[0] = m;
@@ -40,8 +40,8 @@ of the first code sample as follows:
 
   .. code-block:: cpp
      
-     #include "tensormental.hpp"
-     using namespace tmen;
+     #include "rote.hpp"
+     using namespace rote;
      ...
      ObjShape shape(2);
      shape[0] = m;
@@ -71,7 +71,7 @@ to view the bottom-right :math:`6 \times 7` subtensor using
 
   .. code-block:: cpp
 
-     #include "tensormental.hpp"
+     #include "rote.hpp"
      ...
      ObjShape shape(2);
      shape[0] = 6;

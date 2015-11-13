@@ -4,7 +4,7 @@
 #
 
 #For bug mentioned http://public.kitware.com/pipermail/cmake/2014-November/059154.html
-list(APPEND CMAKE_MODULE_PATH "/global/homes/s/schatz/tensormental/cmake/MyCMakeModules")
+list(APPEND CMAKE_MODULE_PATH "/global/homes/s/schatz/rote/cmake/MyCMakeModules")
 set(CMAKE_SYSTEM_NAME "Edison-Intel")
 
 # The Cray wrappers

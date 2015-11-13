@@ -12,15 +12,15 @@ set(Tensormental_VERSION_MINOR 0-dev)
 option(SHARED_LIBRARIES "Switch to shared libraries" OFF)
 
 # Whether or not to build a collection of simple example drivers.
-option(TMEN_EXAMPLES "A collection of simple examples" OFF)
+option(ROTE_EXAMPLES "A collection of simple examples" OFF)
 
 # Whether or not to build a collection of performance and correctness tests
-option(TMEN_TESTS "A collection of performance and correctness tests" ON)
+option(ROTE_TESTS "A collection of performance and correctness tests" ON)
 
 # Whether or not to build current 'experimental' code, such as:
 # 1) prototype C and F90 interfaces
 # 2) Martin's 3D Gemm code
-option(TMEN_EXPERIMENTAL "Build experimental code" OFF)
+option(ROTE_EXPERIMENTAL "Build experimental code" OFF)
 
 ################################################################################
 # Advanced build options                                                       #
@@ -370,9 +370,9 @@ endif()
 
 # Create the Tensormental configuration header
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.cmake
-               ${PROJECT_BINARY_DIR}/include/tensormental/config.h)
-install(FILES ${PROJECT_BINARY_DIR}/include/tensormental/config.h 
-        DESTINATION include/tensormental)
+               ${PROJECT_BINARY_DIR}/include/rote/config.h)
+install(FILES ${PROJECT_BINARY_DIR}/include/rote/config.h 
+        DESTINATION include/rote)
 
 # Create a file which can be included in Makefile's.
 # This is meant to be analogous to PETSc's 'conf/petscvariables' file
@@ -392,22 +392,22 @@ set(LAPACK_ADDONS_STRING)
 foreach(LIB ${LAPACK_ADDONS_LIBS})
   set(LAPACK_ADDONS_STRING "${LAPACK_ADDONS_STRING} ${LIB}")
 endforeach()
-configure_file(${PROJECT_SOURCE_DIR}/cmake/tmenvariables.cmake
-               ${PROJECT_BINARY_DIR}/conf/tmenvariables @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/conf/tmenvariables DESTINATION conf)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/rotevariables.cmake
+               ${PROJECT_BINARY_DIR}/conf/rotevariables @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/conf/rotevariables DESTINATION conf)
 
 # Grab all of the .c, .cpp, .h, and .hpp Tensormental files
-file(GLOB_RECURSE TMEN_CPP RELATIVE ${PROJECT_SOURCE_DIR} "src/*.c" "src/*.cpp")
-file(GLOB_RECURSE TMEN_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} 
+file(GLOB_RECURSE ROTE_CPP RELATIVE ${PROJECT_SOURCE_DIR} "src/*.c" "src/*.cpp")
+file(GLOB_RECURSE ROTE_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} 
   "include/*.h" "include/*.hpp")
-if(TMEN_EXPERIMENTAL)
+if(ROTE_EXPERIMENTAL)
   if(NOT MPI_C_FOUND)
     message(FATAL_ERROR "Could not build C interface without C MPI")
   endif()
   include_directories(${MPI_C_INCLUDE_PATH})
   set(CMAKE_C_FLAGS_${UPPER_BUILD_TYPE} "${MPI_C_COMPILE_FLAGS}")
-  set(TMEN_CPP "${TMEN_CPP};experimental/c/interface.cpp")
-  set(TMEN_HEADERS "${TMEN_HEADERS};experimental/c/elemental.h")
+  set(ROTE_CPP "${ROTE_CPP};experimental/c/interface.cpp")
+  set(ROTE_HEADERS "${ROTE_HEADERS};experimental/c/elemental.h")
 
 #  if(HAVE_F90_INTERFACE)
 #    if(NOT MPI_Fortran_FOUND)
@@ -432,23 +432,23 @@ if(TMEN_EXPERIMENTAL)
 #    endif()
 #    include_directories(${MPI_Fortran_INCLUDE_PATH})
 #    set(CMAKE_Fortran_FLAGS_${UPPER_BUILD_TYPE} "${MPI_Fortran_COMPILE_FLAGS}")
-#    set(TMEN_CPP "${TMEN_CPP};experimental/f90/interface.cpp")
+#    set(ROTE_CPP "${ROTE_CPP};experimental/f90/interface.cpp")
 #  endif()
 endif()
-set(TMEN_SRC "${TMEN_CPP};${TMEN_HEADERS};${TMEN_MOC_SRC}")
+set(ROTE_SRC "${ROTE_CPP};${ROTE_HEADERS};${ROTE_MOC_SRC}")
 
 # The main library
 set(LINK_LIBS ${MATH_LIBS} ${MPI_CXX_LIBRARIES})
-add_library(tensormental ${LIBRARY_TYPE} ${TMEN_SRC})
-target_link_libraries(tensormental ${LINK_LIBS})
+add_library(rote ${LIBRARY_TYPE} ${ROTE_SRC})
+target_link_libraries(rote ${LINK_LIBS})
 if(MPI_CXX_LINK_FLAGS)
   set(MPI_LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
 endif()
-install(TARGETS tensormental DESTINATION lib)
+install(TARGETS rote DESTINATION lib)
 
 # Define the header-file preparation rules
 set(PREPARED_HEADERS)
-foreach(HEADER ${TMEN_HEADERS})
+foreach(HEADER ${ROTE_HEADERS})
   add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/${HEADER}
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/${HEADER}
             ${PROJECT_BINARY_DIR}/${HEADER}
@@ -458,14 +458,14 @@ foreach(HEADER ${TMEN_HEADERS})
   get_filename_component(HEADER_PATH ${HEADER} PATH)
   install(FILES ${PROJECT_BINARY_DIR}/${HEADER} DESTINATION ${HEADER_PATH})
 endforeach()
-add_custom_target(prepare_tensormental_headers DEPENDS ${PREPARED_HEADERS})
-add_dependencies(tensormental prepare_tensormental_headers)
+add_custom_target(prepare_rote_headers DEPENDS ${PREPARED_HEADERS})
+add_dependencies(rote prepare_rote_headers)
 
 # Make sure the Tensormental headers can be found
 include_directories("${PROJECT_BINARY_DIR}/include")
 
 # Build the test drivers if necessary
-if(TMEN_TESTS)
+if(ROTE_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
 #  set(TEST_TYPES core btas applications ccsd)
   set(TEST_TYPES core ccsd)
@@ -479,7 +479,7 @@ if(TMEN_TESTS)
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")
     foreach(TEST ${${TYPE}_TESTS})
       add_executable(tests-${TYPE}-${TEST} ${TEST_DIR}/${TYPE}/${TEST}.cpp)
-      target_link_libraries(tests-${TYPE}-${TEST} tensormental)
+      target_link_libraries(tests-${TYPE}-${TEST} rote)
       set_target_properties(tests-${TYPE}-${TEST} PROPERTIES
         OUTPUT_NAME ${TEST} RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
       if(MPI_LINK_FLAGS)
@@ -492,7 +492,7 @@ if(TMEN_TESTS)
 endif()
 
 # Build the example drivers if necessary
-if(TMEN_EXAMPLES)
+if(ROTE_EXAMPLES)
   set(EXAMPLE_DIR ${PROJECT_SOURCE_DIR}/examples)
   set(EXAMPLE_TYPES core compute tensors)
 
@@ -505,7 +505,7 @@ if(TMEN_EXAMPLES)
     foreach(EXAMPLE ${${TYPE}_EXAMPLES})
       add_executable(examples-${TYPE}-${EXAMPLE} 
         ${EXAMPLE_DIR}/${TYPE}/${EXAMPLE}.cpp)
-      target_link_libraries(examples-${TYPE}-${EXAMPLE} tensormental)
+      target_link_libraries(examples-${TYPE}-${EXAMPLE} rote)
       set_target_properties(examples-${TYPE}-${EXAMPLE} PROPERTIES 
         OUTPUT_NAME ${EXAMPLE} RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
       if(MPI_LINK_FLAGS)
@@ -519,7 +519,7 @@ if(TMEN_EXAMPLES)
 endif()
 
 # Build experimental drivers that do not require an eigensolver
-if(TMEN_EXPERIMENTAL)
+if(ROTE_EXPERIMENTAL)
   set(EXPERIMENTAL_DIR ${PROJECT_SOURCE_DIR}/experimental)
   #set(G3D_EXPERS G3DGemm)
 
@@ -541,5 +541,5 @@ endif()
 
 # If Tensormental is a subproject, then pass some variables to the parent
 if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  include(./cmake/tensormental_sub.cmake)
+  include(./cmake/rote_sub.cmake)
 endif()
