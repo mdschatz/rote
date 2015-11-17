@@ -269,13 +269,13 @@ public:
     // Allgather workhorse routines
     //
     bool CheckAllGatherCommRedist(const DistTensor<T>& A);
-    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
+    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
     void PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
 
     //
     // Allgather interface routines
     //
-    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
+    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
 
     //
     // Broadcast workhorse routines

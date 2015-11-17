@@ -149,23 +149,17 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	case RS: tmp2.ReduceScatterRedistFrom(alpha, tmp, reduceModes); break;
     	default: break;
     	}
-//    	if(commRank == 0){
-//			printf("done redist\n");
-//
-//		}
-//    	PrintData(tmp2, "tmp2");
-//    	Print(tmp2, "tmp2");
     	tmp.Empty();
     	tmp = tmp2;
     }
 
 	RedistInfo lastRedist = intermediateDists[intermediateDists.size() - 1];
 	switch(lastRedist.redistType){
-	case AG: AllGatherRedistFrom(tmp, lastRedist.modes); break;
+	case AG: AllGatherRedistFrom(tmp, lastRedist.modes, beta); break;
 	case A2A: AllToAllRedistFrom(tmp, lastRedist.modes, beta); break;
 	case Local: LocalRedistFrom(tmp); break;
 	case Perm: PermutationRedistFrom(tmp, lastRedist.modes, beta); break;
-	case RS: ReduceScatterUpdateRedistFrom(tmp, reduceModes); break;
+	case RS: ReduceScatterUpdateRedistFrom(tmp, beta, reduceModes); break;
 	default: break;
 	}
 

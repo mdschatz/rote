@@ -28,7 +28,7 @@ bool DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
 
 template<typename T>
 void
-DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
+DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AllGatherCommRedist");
     if(!CheckAllGatherCommRedist(A))
@@ -82,7 +82,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
     PROFILE_SECTION("AGUnpack");
-    UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
+    UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
