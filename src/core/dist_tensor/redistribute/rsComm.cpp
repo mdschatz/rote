@@ -26,16 +26,16 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
       LogicError("ReduceScatterRedist: Invalid redistribution request");
     const rote::Grid& g = A.Grid();
 
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
     const rote::GridView gvA = A.GetGridView();
-    const rote::GridView gvB = GetGridView();
+    const rote::GridView gvB = this->GetGridView();
 
     if(!A.Participating())
         return;
 
     //Determine buffer sizes for communication
     const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape commDataShape = MaxLocalShape();
+    const ObjShape commDataShape = this->MaxLocalShape();
 
     const Unsigned recvSize = prod(commDataShape);
     const Unsigned sendSize = recvSize * nRedistProcs;
@@ -99,7 +99,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 
     //GridView information
     const rote::GridView gvA = A.GetGridView();
-    const rote::GridView gvB = GetGridView();
+    const rote::GridView gvB = this->GetGridView();
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 
@@ -116,11 +116,11 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     for(Unsigned i = 0; i < rModes.size(); i++)
         modeStrideFactor[rModes[i]] = 1;
 
-    const ObjShape sendShape = MaxLocalShape();
+    const ObjShape sendShape = this->MaxLocalShape();
     const Unsigned nElemsPerProc = prod(sendShape);
 
     //Grid information
-    const rote::Grid& g = Grid();
+    const rote::Grid& g = this->Grid();
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
@@ -141,7 +141,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
 //        Location procGridLoc = myGridLoc;
         Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
-        Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+        Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
         std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
         Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
         Location procGridLoc = sendGridLoc;
@@ -166,7 +166,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //        Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 //        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
 //        Location procLocAfterRealign = ElemwiseMod(ElemwiseSum(ElemwiseSum(procGridLoc, alignDiff), g.Shape()), g.Shape());
-        Location procFirstLoc = DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, TensorDist()));
+        Location procFirstLoc = this->DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, this->TensorDist()));
 
         //Determine the first element I need to send to p_i
         //The first element I own is
@@ -185,15 +185,15 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             Unsigned sendFirstIndex = procFirstLoc[nonRMode];
 //            Unsigned sendFirstIndex = adjustedProcFirstElemLoc[nonRMode];
             Unsigned myModeStride = A.ModeStride(nonRMode);
-            Unsigned sendProcModeStride = ModeStride(nonRMode);
+            Unsigned sendProcModeStride = this->ModeStride(nonRMode);
 
-            while(myFirstIndex != sendFirstIndex && myFirstIndex < Dimension(nonRMode)){
+            while(myFirstIndex != sendFirstIndex && myFirstIndex < this->Dimension(nonRMode)){
                 if(myFirstIndex < sendFirstIndex)
                     myFirstIndex += myModeStride;
                 else
                     sendFirstIndex += sendProcModeStride;
             }
-            if(myFirstIndex >= Dimension(nonRMode)){
+            if(myFirstIndex >= this->Dimension(nonRMode)){
                 found &= false;
                 break;
             }
@@ -214,7 +214,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             firstRecvLoc[rModes[j]] = 0;
 
         //Pack the data if we need to send data to p_i
-        if(found && ElemwiseLessThan(firstRecvLoc, Shape()) && ElemwiseLessThan(firstSendLoc, A.Shape())){
+        if(found && ElemwiseLessThan(firstRecvLoc, this->Shape()) && ElemwiseLessThan(firstSendLoc, A.Shape())){
             //Determine where the initial piece of data is located.
             const Location localLoc = A.Global2LocalIndex(firstSendLoc);
 //            PrintVector(localLoc, "localLoc");
@@ -225,11 +225,11 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_));
 
             //Pack into permuted form to minimize striding when unpacking
-            ObjShape finalShape = PermuteVector(sendShape, localPerm_);
+            ObjShape finalShape = PermuteVector(sendShape, this->localPerm_);
             std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
 
             //Determine permutation from local output to local input
-            Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, localPerm_));
+            Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, this->localPerm_));
 
             //Permute pack strides to match input local permutation (for correct packing)
             packData.dstBufStrides = PermuteVector(finalStrides, out2in);
@@ -243,16 +243,16 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 template <typename T>
 void DistTensor<T>::UnpackRSUCommRecvBuf(const T * const recvBuf, const T alpha, const DistTensor<T>& A, const T beta)
 {
-    const Unsigned order = Order();
-    T* dataBuf = Buffer();
+    const Unsigned order = this->Order();
+    T* dataBuf = this->Buffer();
 
     const Location zeros(order, 0);
     const Location ones(order, 1);
 
     YAxpByData data;
-    data.loopShape = LocalShape();
-    data.srcStrides = Dimensions2Strides(PermuteVector(MaxLocalShape(), localPerm_));
-    data.dstStrides = LocalStrides();
+    data.loopShape = this->LocalShape();
+    data.srcStrides = Dimensions2Strides(PermuteVector(this->MaxLocalShape(), this->localPerm_));
+    data.dstStrides = this->LocalStrides();
 
     YAxpBy_fast(alpha, beta, &(recvBuf[0]), &(dataBuf[0]), data);
 }
