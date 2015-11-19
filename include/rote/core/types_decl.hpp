@@ -38,12 +38,26 @@ typedef std::vector<Unsigned> Permutation;
 enum RedistType {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
 
 //Structs for performing general redistributions
-struct RedistInfo
+struct RedistPlanInfo
+{
+	ModeArray tenModesReduced;
+	ModeArray gridModesAppeared;
+	ModeArray gridModesAppearedSinks;
+	ModeArray gridModesRemoved;
+	ModeArray gridModesRemovedSrcs;
+	ModeArray gridModesMoved;
+	ModeArray gridModesMovedSrcs;
+	ModeArray gridModesMovedSinks;
+};
+
+struct Redist
 {
 	RedistType redistType;
 	TensorDistribution dist;
 	ModeArray modes;
 };
+
+typedef std::vector<Redist> RedistPlan;
 
 struct 	BlkContractStatAInfo
 {
@@ -74,18 +88,6 @@ struct 	BlkContractStatCInfo
 	ModeArray alignModesBTo;
 	std::vector<Unsigned> blkSizes;
 	bool firstIter;
-};
-
-struct GenRedistData
-{
-	ModeArray tenModesReduced;
-	ModeArray gridModesAppeared;
-	ModeArray gridModesAppearedSinks;
-	ModeArray gridModesRemoved;
-	ModeArray gridModesRemovedSrcs;
-	ModeArray gridModesMoved;
-	ModeArray gridModesMovedSrcs;
-	ModeArray gridModesMovedSinks;
 };
 
 //Pack data structs

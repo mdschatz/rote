@@ -16,27 +16,27 @@ namespace rote {
 
 template<typename T>
 Unsigned
-DistTensor<T>::Order() const
+DistTensorBase<T>::Order() const
 { return shape_.size(); }
 
 template<typename T>
 Unsigned
-DistTensor<T>::Dimension(Mode mode) const
+DistTensorBase<T>::Dimension(Mode mode) const
 { return shape_[mode]; }
 
 template<typename T>
 ObjShape
-DistTensor<T>::Shape() const
+DistTensorBase<T>::Shape() const
 { return shape_; }
 
 template<typename T>
 ObjShape
-DistTensor<T>::MaxLocalShape() const
+DistTensorBase<T>::MaxLocalShape() const
 { return MaxLengths(Shape(), gridView_.ParticipatingShape()); }
 
 template<typename T>
 ModeDistribution
-DistTensor<T>::ModeDist(Mode mode) const
+DistTensorBase<T>::ModeDist(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ModeDist");
@@ -48,7 +48,7 @@ DistTensor<T>::ModeDist(Mode mode) const
 
 template<typename T>
 TensorDistribution
-DistTensor<T>::TensorDist() const
+DistTensorBase<T>::TensorDist() const
 {
     TensorDistribution dist = dist_;
     return dist;
@@ -56,7 +56,7 @@ DistTensor<T>::TensorDist() const
 
 template<typename T>
 bool
-DistTensor<T>::ConstrainedModeAlignment(Mode mode) const
+DistTensorBase<T>::ConstrainedModeAlignment(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ConstrainedModeAlignment");
@@ -69,7 +69,7 @@ DistTensor<T>::ConstrainedModeAlignment(Mode mode) const
 
 template<typename T>
 Unsigned
-DistTensor<T>::ModeAlignment(Mode mode) const
+DistTensorBase<T>::ModeAlignment(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ModeAlignment");
@@ -82,14 +82,14 @@ DistTensor<T>::ModeAlignment(Mode mode) const
 
 template<typename T>
 std::vector<Unsigned>
-DistTensor<T>::Alignments() const
+DistTensorBase<T>::Alignments() const
 {
     return modeAlignments_;
 }
 
 template<typename T>
 Unsigned
-DistTensor<T>::ModeShift(Mode mode) const
+DistTensorBase<T>::ModeShift(Mode mode) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ModeShift");
@@ -102,19 +102,19 @@ DistTensor<T>::ModeShift(Mode mode) const
 
 template<typename T>
 std::vector<Unsigned>
-DistTensor<T>::ModeShifts() const
+DistTensorBase<T>::ModeShifts() const
 {
     return modeShifts_;
 }
 
 template<typename T>
 bool
-DistTensor<T>::Viewing() const
+DistTensorBase<T>::Viewing() const
 { return !IsOwner( viewType_ ); }
 
 template<typename T>
 bool
-DistTensor<T>::Locked() const
+DistTensorBase<T>::Locked() const
 { return IsLocked( viewType_ ); }
 
 ///////////////////////////////
@@ -123,12 +123,12 @@ DistTensor<T>::Locked() const
 
 template<typename T>
 const rote::Grid&
-DistTensor<T>::Grid() const
+DistTensorBase<T>::Grid() const
 { return *grid_; }
 
 template<typename T>
 const rote::GridView
-DistTensor<T>::GetGridView() const
+DistTensorBase<T>::GetGridView() const
 {
     return gridView_;
 }
@@ -136,7 +136,7 @@ DistTensor<T>::GetGridView() const
 //NOTE: This refers to the stride within grid mode.  NOT the stride through index of elements of tensor
 template<typename T>
 Unsigned
-DistTensor<T>::ModeStride(Mode mode) const
+DistTensorBase<T>::ModeStride(Mode mode) const
 {
     return gridView_.ModeWrapStride(mode);
 }
@@ -144,27 +144,27 @@ DistTensor<T>::ModeStride(Mode mode) const
 //NOTE: This refers to the stride within grid mode.  NOT the stride through index of elements of tensor
 template<typename T>
 std::vector<Unsigned>
-DistTensor<T>::ModeStrides() const
+DistTensorBase<T>::ModeStrides() const
 {
     return gridView_.ParticipatingModeWrapStrides();
 }
 
 template<typename T>
 Unsigned
-DistTensor<T>::ModeRank(Mode mode) const
+DistTensorBase<T>::ModeRank(Mode mode) const
 { return gridView_.ModeLoc(mode); }
 
 template<typename T>
-Location DistTensor<T>::GridViewLoc() const
+Location DistTensorBase<T>::GridViewLoc() const
 { return gridView_.ParticipatingLoc(); }
 
 template<typename T>
-ObjShape DistTensor<T>::GridViewShape() const
+ObjShape DistTensorBase<T>::GridViewShape() const
 { return gridView_.ParticipatingShape(); }
 
 template<typename T>
 bool
-DistTensor<T>::Participating() const
+DistTensorBase<T>::Participating() const
 { return gridView_.Participating(); }
 
 ///////////////////////////////
@@ -173,42 +173,42 @@ DistTensor<T>::Participating() const
 
 template<typename T>
 size_t
-DistTensor<T>::AllocatedMemory() const
+DistTensorBase<T>::AllocatedMemory() const
 { return tensor_.MemorySize(); }
 
 template<typename T>
 Unsigned
-DistTensor<T>::LocalDimension(Mode mode) const
+DistTensorBase<T>::LocalDimension(Mode mode) const
 { return tensor_.Dimension(mode); }
 
 template<typename T>
 ObjShape
-DistTensor<T>::LocalShape() const
+DistTensorBase<T>::LocalShape() const
 { return tensor_.Shape(); }
 
 template<typename T>
 std::vector<Unsigned>
-DistTensor<T>::LocalStrides() const
+DistTensorBase<T>::LocalStrides() const
 { return tensor_.Strides(); }
 
 template<typename T>
 Unsigned
-DistTensor<T>::LocalModeStride(Mode mode) const
+DistTensorBase<T>::LocalModeStride(Mode mode) const
 { return tensor_.Stride(mode); }
 
 template<typename T>
 Unsigned
-DistTensor<T>::Stride(Mode mode) const
+DistTensorBase<T>::Stride(Mode mode) const
 { return tensor_.Stride(mode); }
 
 template<typename T>
 std::vector<Unsigned>
-DistTensor<T>::Strides() const
+DistTensorBase<T>::Strides() const
 { return tensor_.Strides(); }
 
 template<typename T>
 T
-DistTensor<T>::GetLocal( const Location& loc ) const
+DistTensorBase<T>::GetLocal( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::GetLocal");
@@ -219,32 +219,32 @@ DistTensor<T>::GetLocal( const Location& loc ) const
 
 template<typename T>
 T*
-DistTensor<T>::Buffer( const Location& loc )
+DistTensorBase<T>::Buffer( const Location& loc )
 { return tensor_.Buffer(loc); }
 
 template<typename T>
 T*
-DistTensor<T>::Buffer()
+DistTensorBase<T>::Buffer()
 { return tensor_.Buffer(); }
 
 template<typename T>
 const T*
-DistTensor<T>::LockedBuffer( const Location& loc ) const
+DistTensorBase<T>::LockedBuffer( const Location& loc ) const
 { return tensor_.LockedBuffer(loc); }
 
 template<typename T>
 const T*
-DistTensor<T>::LockedBuffer( ) const
+DistTensorBase<T>::LockedBuffer( ) const
 { return tensor_.LockedBuffer(); }
 
 template<typename T>
 rote::Tensor<T>&
-DistTensor<T>::Tensor()
+DistTensorBase<T>::Tensor()
 { return tensor_; }
 
 template<typename T>
 const rote::Tensor<T>&
-DistTensor<T>::LockedTensor() const
+DistTensorBase<T>::LockedTensor() const
 { return tensor_; }
 
 ///////////////////////////////
@@ -253,7 +253,7 @@ DistTensor<T>::LockedTensor() const
 
 template<typename T>
 T
-DistTensor<T>::Get( const Location& loc ) const
+DistTensorBase<T>::Get( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::Get");
@@ -281,62 +281,62 @@ DistTensor<T>::Get( const Location& loc ) const
 
 template<typename T>
 void
-DistTensor<T>::GetDiagonal
-( DistTensor<T>& d, Int offset ) const
+DistTensorBase<T>::GetDiagonal
+( DistTensorBase<T>& d, Int offset ) const
 {
 }
 
 template<typename T>
-DistTensor<T>
-DistTensor<T>::GetDiagonal( Int offset ) const
+DistTensorBase<T>
+DistTensorBase<T>::GetDiagonal( Int offset ) const
 {
-    DistTensor<T> d( Grid() );
+    DistTensorBase<T> d( Grid() );
     GetDiagonal( d, offset );
     return d;
 }
 
 template<typename T>
 void
-DistTensor<T>::GetRealPartOfDiagonal
+DistTensorBase<T>::GetRealPartOfDiagonal
 ( DistTensor<BASE(T)>& d, Int offset ) const
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::GetImagPartOfDiagonal
+DistTensorBase<T>::GetImagPartOfDiagonal
 ( DistTensor<BASE(T)>& d, Int offset ) const
 {
 }
 
 template<typename T>
 BASE(T)
-DistTensor<T>::GetRealPart( const Location& loc ) const
+DistTensorBase<T>::GetRealPart( const Location& loc ) const
 { return RealPart(Get(loc)); }
 
 template<typename T>
 BASE(T)
-DistTensor<T>::GetImagPart( const Location& loc ) const
+DistTensorBase<T>::GetImagPart( const Location& loc ) const
 { return ImagPart(Get(loc)); }
 
 template<typename T>
 BASE(T)
-DistTensor<T>::GetLocalRealPart( const Location& loc ) const
+DistTensorBase<T>::GetLocalRealPart( const Location& loc ) const
 { return tensor_.GetRealPart(loc); }
 
 template<typename T>
 BASE(T)
-DistTensor<T>::GetLocalImagPart( const Location& loc ) const
+DistTensorBase<T>::GetLocalImagPart( const Location& loc ) const
 { return tensor_.GetImagPart(loc); }
 
 template<typename T>
 mpi::Comm
-DistTensor<T>::GetParticipatingComm() const
+DistTensorBase<T>::GetParticipatingComm() const
 { return participatingComm_; }
 
 template<typename T>
 Permutation
-DistTensor<T>::LocalPermutation() const
+DistTensorBase<T>::LocalPermutation() const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::LocalPermutation");
@@ -345,7 +345,7 @@ DistTensor<T>::LocalPermutation() const
 }
 
 #define FULL(T) \
-    template class DistTensor<T>;
+    template class DistTensorBase<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT

@@ -25,5 +25,6 @@ struct DistData
 } // namespace rote
 
 #include "rote/core/dist_tensor/dist_tensor.hpp"
+#include "rote/core/dist_tensor/redist_tensor.hpp"
 
 #endif // ifndef ROTE_CORE_DISTTENSOR_HPP

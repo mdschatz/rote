@@ -7,19 +7,14 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_DISTTENSOR_DECL_HPP
-#define ROTE_CORE_DISTTENSOR_DECL_HPP
+#ifndef ROTE_CORE_DISTTENSORBASE_DECL_HPP
+#define ROTE_CORE_DISTTENSORBASE_DECL_HPP
 
 #include<vector>
 namespace rote {
 
-#ifndef RELEASE
-    template<typename T>
-    void AssertConforming2x1( const DistTensor<T>& AT, const DistTensor<T>& AB, Mode mode);
-#endif
-
 template<typename T>
-class DistTensor
+class DistTensorBase
 {
 public:
 
@@ -39,35 +34,36 @@ public:
 
     void ClearCommMap();
     Unsigned CommMapSize();
-    // Create a 0 distributed tensor
-    DistTensor( const rote::Grid& g=DefaultGrid() );
 
     // Create a 0 distributed tensor
-    DistTensor( const Unsigned order, const rote::Grid& g=DefaultGrid() );
+    DistTensorBase( const rote::Grid& g=DefaultGrid() );
+
+    // Create a 0 distributed tensor
+    DistTensorBase( const Unsigned order, const rote::Grid& g=DefaultGrid() );
 
     // Create a distributed tensor based on a supplied distribution
-    DistTensor( const TensorDistribution& dist, const rote::Grid& g=DefaultGrid() );
+    DistTensorBase( const TensorDistribution& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const TensorDistribution& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor with specified alignments
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const rote::Grid& g );
 
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a constant distributed tensor's buffer
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
       const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a mutable distributed tensor's buffer
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAligns,
       T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
@@ -76,35 +72,35 @@ public:
     //////////////////////////////////
 
     // Create a distributed tensor based on a supplied distribution
-    DistTensor( const std::string& dist, const rote::Grid& g=DefaultGrid() );
+    DistTensorBase( const std::string& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const std::string& dist, const rote::Grid& g=DefaultGrid() );
 
     // Create a "shape" distributed tensor with specified alignments
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const rote::Grid& g );
 
     // Create a "shape" distributed tensor with specified alignments
     // and leading dimension
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a constant distributed tensor's buffer
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
       const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // View a mutable distributed tensor's buffer
-    DistTensor
+    DistTensorBase
     ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAligns,
       T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // Create a copy of distributed matrix A
-    DistTensor( const DistTensor<T>& A );
+    DistTensorBase( const DistTensorBase<T>& A );
 
-    ~DistTensor();
+    virtual ~DistTensorBase();
 
 #ifndef SWIG
     // Move constructor
@@ -113,7 +109,7 @@ public:
     //DistTensor<T>& operator=( DistTensor<T>&& A );
 #endif
 
-    const DistTensor<T>& operator=( const DistTensor<T>& A );
+    const DistTensorBase<T>& operator=( const DistTensorBase<T>& A );
     
 
     Unsigned Order() const;
@@ -213,13 +209,13 @@ public:
     void EmptyData();
     void SetGrid( const rote::Grid& grid );
 
-    void Swap( DistTensor<T>& A );
+    void Swap( DistTensorBase<T>& A );
 
     bool Participating() const;
 
     void MakeConsistent();
 
-    void CopyLocalBuffer(const DistTensor<T>& A);
+    void CopyLocalBuffer(const DistTensorBase<T>& A);
     //------------------------------------------------------------------------//
     // Overrides of AbstractDistTensor                                        //
     //------------------------------------------------------------------------//
@@ -234,192 +230,23 @@ public:
     rote::DistData DistData() const;
 
     //
-    // Redist workhorse routines
-    //
-//    bool CheckAllToAllCommRedist(const DistTensor<T>& A);
-    void CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
-    GenRedistData CreateGenRedistData(const TensorDistribution& startDist, const TensorDistribution& endDist, const ModeArray& reduceModes = ModeArray());
-    void CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
-    void CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
-    void CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
-    void CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
-    void CommRedistRemove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists);
-
-    //
-    // Redist interface routines
-    //
-    void RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha=T(1), const T beta=T(0));
-    void RedistFrom(const DistTensor<T>& A);
-
-
-    //
-    // All-to-all workhorse routines
-    //
-    bool CheckAllToAllCommRedist(const DistTensor<T>& A);
-    void AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
-    void PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& commModes, const ObjShape& sendShape, T * const sendBuf);
-    void UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& sendShape, const DistTensor<T>& A, const T alpha=T(0));
-
-    //
-    // All-to-all interface routines
-    //
-    void AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
-
-    //
-    // Allgather workhorse routines
-    //
-    bool CheckAllGatherCommRedist(const DistTensor<T>& A);
-    void AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
-    void PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf);
-
-    //
-    // Allgather interface routines
-    //
-    void AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
-
-    //
-    // Broadcast workhorse routines
-    //
-    bool CheckBroadcastCommRedist(const DistTensor<T>& A);
-    void BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
-
-    //
-    // Broadcast interface routines
-    //
-    void BroadcastRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
-
-    //
-    // Gather-to-one workhorse routines
-    //
-    bool CheckGatherToOneCommRedist(const DistTensor<T>& A);
-    void GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
-
-    //
-    // Gather-to-one interface routines
-    //
-    void GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
-
-    //
-    // Local redist workhorse routines
-    //
-    bool CheckLocalCommRedist(const DistTensor<T>& A);
-    void LocalCommRedist(const DistTensor<T>& A, const T alpha=T(0));
-    void UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* unpackBuf, const T alpha=T(0));
-
-    //
-    // Local redist interface routines
-    //
-    void LocalRedistFrom(const DistTensor<T>& A, const T alpha=T(0));
-
-    //
-    // Point-to-point workhorse routines
-    //
-    bool CheckPermutationCommRedist(const DistTensor<T>& A);
-    void PermutationCommRedist(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha=T(0));
-    void UnpackPCommRecvBuf(const T* const recvBuf, const DistTensor<T>& A, const T alpha=T(0));
-
-    //
-    // Point-to-point interface routines
-    //
-    void PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha=T(0));
-
-    //
-    // Reduce Redist routine
-    //
-    void ReduceUpdateRedistFrom(const RedistType& redistType, const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
-
-    //
-    // AllReduce workhorse routines
-    //
-    bool CheckAllReduceCommRedist(const DistTensor<T>& A);
-    void AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
-    void PackARCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
-    void UnpackARUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
-
-    //
-    // AllReduce interface routines
-    //
-    void AllReduceUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
-    void AllReduceRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
-    void AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode);
-    void AllReduceRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
-    void AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
-
-    //
-    // Reduce-scatter workhorse routines
-    //
-    bool CheckReduceScatterCommRedist(const DistTensor<T>& A);
-    void ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes);
-    void PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& reduceModes, const ModeArray& commModes, T * const sendBuf);
-    void UnpackRSUCommRecvBuf(const T* const recvBuf, const T alpha, const DistTensor<T>& A, const T beta);
-
-    //
-    // Reduce-scatter interface routines
-    //
-    void ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
-    void ReduceScatterRedistFrom(const DistTensor<T>& A, const Mode reduceMode);
-    void ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& A, const Mode reduceMode);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode);
-    void ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& A, const ModeArray& reduceModes);
-    void ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes);
-    void ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes);
-
-    //
-    // Reduce-to-one workhorse routines
-    //
-    bool CheckReduceToOneCommRedist(const DistTensor<T>& A);
-    void ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes, const ModeArray& commModes);
-
-    //
-    // Reduce-to-one interface routines
-    //
-    void ReduceToOneUpdateRedistFrom(T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes);
-    void ReduceToOneRedistFrom(const DistTensor<T>& A, const ModeArray& rModes);
-    void ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMode);
-    void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& rModes);
-    void ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode rMode);
-
-    //
-    // Scatter workhorse routines
-    //
-    bool CheckScatterCommRedist(const DistTensor<T>& A);
-    void ScatterCommRedist(const DistTensor<T>& A, const ModeArray& commModes);
-
-    //
-    // Scatter interface routines
-    //
-    void ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& commModes);
-
-    bool AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize);
-
-    //
-    //Unit mode intro/remove routines
-    //
-    void RemoveUnitModesRedist(const ModeArray& unitModes);
-    void RemoveUnitModeRedist(const Mode& unitMode);
-    void IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions);
-    void IntroduceUnitModeRedist(const Unsigned& newModePosition);
-
-
-    //
     // Routines needed for indexing
     //
     T Get( const Location& loc ) const;
     void Set( const Location& loc, T alpha );
     void Update( const Location& loc, T alpha );
 
-    void ResizeTo( const DistTensor<T>& A);
+    void ResizeTo( const DistTensorBase<T>& A);
     void ResizeTo( const ObjShape& shape );
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
     // Distribution alignment
     void AlignWith( const rote::DistData& data );
-    void AlignWith( const DistTensor<T>& A );
+    void AlignWith( const DistTensorBase<T>& A );
     void AlignModeWith( Mode mode, const rote::DistData& data );
-    void AlignModeWith( Mode mode, const DistTensor<T>& A );
-    void AlignModeWith( Mode mode, const DistTensor<T>& A, Mode modeA );
-    void AlignModesWith( const ModeArray& modes, const DistTensor<T>& A, const ModeArray& modesA );
+    void AlignModeWith( Mode mode, const DistTensorBase<T>& A );
+    void AlignModeWith( Mode mode, const DistTensorBase<T>& A, Mode modeA );
+    void AlignModesWith( const ModeArray& modes, const DistTensorBase<T>& A, const ModeArray& modesA );
 
     //
     // Though the following routines are meant for complex data, all but two
@@ -441,10 +268,10 @@ public:
     // Collective routines
     //
    
-    void GetDiagonal( DistTensor<T>& d, Int offset=0 ) const;
-    DistTensor<T> GetDiagonal( Int offset=0 ) const;
+    void GetDiagonal( DistTensorBase<T>& d, Int offset=0 ) const;
+    DistTensorBase<T> GetDiagonal( Int offset=0 ) const;
 
-    void SetDiagonal( const DistTensor<T>& d, Int offset=0 );
+    void SetDiagonal( const DistTensorBase<T>& d, Int offset=0 );
 
     // (Immutable) view of a distributed matrix's buffer
     void Attach
@@ -499,7 +326,7 @@ protected:
     Memory<T> auxMemory_;
 
 private:
-    void CopyFromDifferentGrid( const DistTensor<T>& A );
+    void CopyFromDifferentGrid( const DistTensorBase<T>& A );
 
     void SetShifts();
     void SetDefaultPermutation();
@@ -543,4 +370,4 @@ Permutation DefaultPermutation(Unsigned order);
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_DISTTENSOR_DECL_HPP
+#endif // ifndef ROTE_CORE_DISTTENSORBASE_DECL_HPP

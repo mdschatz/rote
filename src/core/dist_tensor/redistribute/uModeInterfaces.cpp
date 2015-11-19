@@ -20,21 +20,21 @@ void DistTensor<T>::RemoveUnitModesRedist(const ModeArray& unitModes){
     ModeArray sorted = unitModes;
     SortVector(sorted);
 
-    Permutation invPerm = DetermineInversePermutation(localPerm_);
+    Permutation invPerm = DetermineInversePermutation(this->localPerm_);
     for(i = sorted.size() - 1; i < sorted.size(); i--){
-        shape_.erase(shape_.begin() + sorted[i]);
-        dist_.erase(dist_.begin() + sorted[i]);
-        constrainedModeAlignments_.erase(constrainedModeAlignments_.begin() + sorted[i]);
-        modeAlignments_.erase(modeAlignments_.begin() + sorted[i]);
-        modeShifts_.erase(modeShifts_.begin() + sorted[i]);
-        for(j = 0; j < localPerm_.size(); j++)
-            if(localPerm_[j] > localPerm_[sorted[i]])
-                localPerm_[j] -= 1;
-        localPerm_.erase(localPerm_.begin() + sorted[i]);
+        this->shape_.erase(this->shape_.begin() + sorted[i]);
+        this->dist_.erase(this->dist_.begin() + sorted[i]);
+        this->constrainedModeAlignments_.erase(this->constrainedModeAlignments_.begin() + sorted[i]);
+        this->modeAlignments_.erase(this->modeAlignments_.begin() + sorted[i]);
+        this->modeShifts_.erase(this->modeShifts_.begin() + sorted[i]);
+        for(j = 0; j < this->localPerm_.size(); j++)
+            if(this->localPerm_[j] > this->localPerm_[sorted[i]])
+            	this->localPerm_[j] -= 1;
+        this->localPerm_.erase(this->localPerm_.begin() + sorted[i]);
     }
-    tensor_.RemoveUnitModes(FilterVector(invPerm, unitModes));
-    gridView_.RemoveUnitModes(unitModes);
-    ResizeTo(Shape());
+    this->tensor_.RemoveUnitModes(FilterVector(invPerm, unitModes));
+    this->gridView_.RemoveUnitModes(unitModes);
+    this->ResizeTo(this->Shape());
 }
 
 template<typename T>
@@ -54,27 +54,27 @@ void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitMo
     ModeArray sorted = unitModes;
     ModeArray blank(0);
     SortVector(sorted);
-    shape_.reserve(shape_.size() + sorted.size());
-    dist_.reserve(dist_.size() + sorted.size());
-    constrainedModeAlignments_.reserve(constrainedModeAlignments_.size() + sorted.size());
-    modeAlignments_.reserve(modeAlignments_.size() + sorted.size());
-    modeShifts_.reserve(modeShifts_.size() + sorted.size());
-    localPerm_.reserve(localPerm_.size() + sorted.size());
-    Permutation invPerm = DetermineInversePermutation(localPerm_);
+    this->shape_.reserve(this->shape_.size() + sorted.size());
+    this->dist_.reserve(this->dist_.size() + sorted.size());
+    this->constrainedModeAlignments_.reserve(this->constrainedModeAlignments_.size() + sorted.size());
+    this->modeAlignments_.reserve(this->modeAlignments_.size() + sorted.size());
+    this->modeShifts_.reserve(this->modeShifts_.size() + sorted.size());
+    this->localPerm_.reserve(this->localPerm_.size() + sorted.size());
+    Permutation invPerm = DetermineInversePermutation(this->localPerm_);
     for(i = 0; i < sorted.size(); i++){
-        shape_.insert(shape_.begin() + sorted[i], 1);
-        dist_.insert(dist_.begin() + sorted[i], blank);
-        constrainedModeAlignments_.insert(constrainedModeAlignments_.begin() + sorted[i], false);
-        modeAlignments_.insert(modeAlignments_.begin() + sorted[i], 0);
-        modeShifts_.insert(modeShifts_.begin() + sorted[i], 0);
-        for(j = 0; j < localPerm_.size(); j++)
-            if(localPerm_[j] >= localPerm_[sorted[i]])
-                localPerm_[j] += 1;
-        localPerm_.insert(localPerm_.begin() + sorted[i], sorted[i]);
+    	this->shape_.insert(this->shape_.begin() + sorted[i], 1);
+    	this->dist_.insert(this->dist_.begin() + sorted[i], blank);
+    	this->constrainedModeAlignments_.insert(this->constrainedModeAlignments_.begin() + sorted[i], false);
+    	this->modeAlignments_.insert(this->modeAlignments_.begin() + sorted[i], 0);
+    	this->modeShifts_.insert(this->modeShifts_.begin() + sorted[i], 0);
+        for(j = 0; j < this->localPerm_.size(); j++)
+            if(this->localPerm_[j] >= this->localPerm_[sorted[i]])
+            	this->localPerm_[j] += 1;
+        this->localPerm_.insert(this->localPerm_.begin() + sorted[i], sorted[i]);
     }
-    tensor_.IntroduceUnitModes(FilterVector(invPerm, unitModes));
-    gridView_.IntroduceUnitModes(unitModes);
-    ResizeTo(Shape());
+    this->tensor_.IntroduceUnitModes(FilterVector(invPerm, unitModes));
+    this->gridView_.IntroduceUnitModes(unitModes);
+    this->ResizeTo(this->Shape());
 }
 
 template<typename T>

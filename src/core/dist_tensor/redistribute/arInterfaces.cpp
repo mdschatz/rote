@@ -36,7 +36,7 @@ DistTensor<T>::AllReduceUpdateRedistFrom(const T alpha, const DistTensor<T>& A, 
 template <typename T>
 void DistTensor<T>::AllReduceRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
     ObjShape newShape = NegFilterVector(A.Shape(), rModes);
-    ResizeTo(newShape);
+    this->ResizeTo(newShape);
     AllReduceUpdateRedistFrom(T(1), A, T(0), rModes);
 }
 

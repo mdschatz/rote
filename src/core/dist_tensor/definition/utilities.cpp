@@ -11,7 +11,7 @@ namespace rote {
 
 template<typename T>
 void
-DistTensor<T>::ComplainIfReal() const
+DistTensorBase<T>::ComplainIfReal() const
 {
     if( !IsComplex<T>::val )
         LogicError("Called complex-only routine with real data");
@@ -20,7 +20,7 @@ DistTensor<T>::ComplainIfReal() const
 //TODO: FIX THIS CHECK
 template<typename T>
 Location
-DistTensor<T>::DetermineOwner(const Location& loc) const
+DistTensorBase<T>::DetermineOwner(const Location& loc) const
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::DetermineOwner");
@@ -38,7 +38,7 @@ DistTensor<T>::DetermineOwner(const Location& loc) const
 
 template<typename T>
 Location
-DistTensor<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsigned>& newAlignment) const
+DistTensorBase<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsigned>& newAlignment) const
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::DetermineOwnerNewAlignment");
@@ -57,7 +57,7 @@ DistTensor<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsig
 //TODO: Change Global2LocalIndex to incorporate localPerm_ info
 template<typename T>
 Location
-DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
+DistTensorBase<T>::Global2LocalIndex(const Location& globalLoc) const
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Global2LocalIndex");
@@ -73,7 +73,7 @@ DistTensor<T>::Global2LocalIndex(const Location& globalLoc) const
 
 template<typename T>
 mpi::Comm
-DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const rote::Grid& grid)
+DistTensorBase<T>::GetCommunicatorForModes(const ModeArray& commModes, const rote::Grid& grid)
 {
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
@@ -103,7 +103,7 @@ DistTensor<T>::GetCommunicatorForModes(const ModeArray& commModes, const rote::G
 
 template<typename T>
 void
-DistTensor<T>::SetParticipatingComm()
+DistTensorBase<T>::SetParticipatingComm()
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::GetParticipatingComm");
@@ -117,7 +117,7 @@ DistTensor<T>::SetParticipatingComm()
 
 template<typename T>
 void
-DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
+DistTensorBase<T>::CopyLocalBuffer(const DistTensorBase<T>& A)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::CopyBuffer");
@@ -127,7 +127,7 @@ DistTensor<T>::CopyLocalBuffer(const DistTensor<T>& A)
 
 template<typename T>
 void
-DistTensor<T>::ClearCommMap()
+DistTensorBase<T>::ClearCommMap()
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ClearCommMap");
@@ -141,7 +141,7 @@ DistTensor<T>::ClearCommMap()
 
 template<typename T>
 Unsigned
-DistTensor<T>::CommMapSize()
+DistTensorBase<T>::CommMapSize()
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::ClearCommMap");
@@ -151,7 +151,7 @@ DistTensor<T>::CommMapSize()
 
 template<typename T>
 Location
-DistTensor<T>::DetermineFirstElem(const Location& gridViewLoc) const
+DistTensorBase<T>::DetermineFirstElem(const Location& gridViewLoc) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::DetermineFirstElem");
@@ -177,7 +177,7 @@ DistTensor<T>::DetermineFirstElem(const Location& gridViewLoc) const
 
 template<typename T>
 Location
-DistTensor<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const std::vector<Unsigned>& alignmentDiff) const
+DistTensorBase<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const std::vector<Unsigned>& alignmentDiff) const
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::DetermineFirstUnalignedElem");
@@ -198,18 +198,18 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     CallStackEntry cse("DistTensor::AlignCommBufRedist");
 #endif
 
-    const rote::Grid& g = Grid();
+    const rote::Grid& g = this->Grid();
     GridView gvA = A.GetGridView();
-    GridView gvB = GetGridView();
+    GridView gvB = this->GetGridView();
 
     Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+    Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
 
     if(!AnyElemwiseNotEqual(firstOwnerA, firstOwnerB))
     	return false;
 
     std::vector<Unsigned> alignA = A.Alignments();
-    std::vector<Unsigned> alignB = Alignments();
+    std::vector<Unsigned> alignB = this->Alignments();
 
     std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
 
@@ -230,7 +230,7 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     }
     SortVector(misalignedModes);
 //    PrintVector(misalignedModes, "misalignedModes");
-    mpi::Comm sendRecvComm = GetCommunicatorForModes(misalignedModes, g);
+    mpi::Comm sendRecvComm = this->GetCommunicatorForModes(misalignedModes, g);
 
     Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);
     Location recvSliceLoc = FilterVector(recvGridLoc, misalignedModes);
@@ -244,12 +244,30 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     return true;
 }
 
+#define PROTOBASE(T) template class DistTensorBase<T>
+#define COPYBASE(T) \
+  template DistTensorBase<T>::DistTensorBase( const DistTensorBase<T>& A )
+#define FULLBASE(T) \
+  PROTOBASE(T);
+
 #define PROTO(T) template class DistTensor<T>
 #define COPY(T) \
   template DistTensor<T>::DistTensor( const DistTensor<T>& A )
 #define FULL(T) \
   PROTO(T);
 
+FULLBASE(Int)
+#ifndef DISABLE_FLOAT
+FULLBASE(float)
+#endif
+FULLBASE(double)
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+FULLBASE(std::complex<float>)
+#endif
+FULLBASE(std::complex<double>)
+#endif
 
 FULL(Int)
 #ifndef DISABLE_FLOAT

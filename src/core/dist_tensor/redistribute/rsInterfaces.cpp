@@ -36,7 +36,7 @@ DistTensor<T>::ReduceScatterUpdateRedistFrom(const T alpha, const DistTensor<T>&
 template <typename T>
 void DistTensor<T>::ReduceScatterRedistFrom(const DistTensor<T>& A, const ModeArray& rModes){
     ObjShape newShape = NegFilterVector(A.Shape(), rModes);
-    ResizeTo(newShape);
+    this->ResizeTo(newShape);
     ReduceScatterUpdateRedistFrom(T(1), A, T(0), rModes);
 }
 

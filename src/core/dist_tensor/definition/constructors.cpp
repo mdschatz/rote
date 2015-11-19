@@ -11,7 +11,7 @@
 namespace rote {
 
 template<typename T>
-DistTensor<T>::DistTensor( const rote::Grid& grid )
+DistTensorBase<T>::DistTensorBase( const rote::Grid& grid )
 : dist_(),
   shape_(),
 
@@ -32,7 +32,7 @@ DistTensor<T>::DistTensor( const rote::Grid& grid )
 { SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
-DistTensor<T>::DistTensor( const Unsigned order, const rote::Grid& grid )
+DistTensorBase<T>::DistTensorBase( const Unsigned order, const rote::Grid& grid )
 : dist_(order+1),
   shape_(order, 0),
 
@@ -53,7 +53,7 @@ DistTensor<T>::DistTensor( const Unsigned order, const rote::Grid& grid )
 { SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
-DistTensor<T>::DistTensor( const TensorDistribution& dist, const rote::Grid& grid )
+DistTensorBase<T>::DistTensorBase( const TensorDistribution& dist, const rote::Grid& grid )
 : dist_(dist),
   shape_(dist_.size()-1, 0),
 
@@ -74,7 +74,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const rote::Grid& gri
 { SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const TensorDistribution& dist, const rote::Grid& grid )
 : dist_(dist),
   shape_(shape),
@@ -104,7 +104,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const rote::Grid& g )
 : dist_(dist),
@@ -135,7 +135,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const std::vector<Unsigned>& strides, const rote::Grid& g )
 : dist_(dist),
@@ -165,7 +165,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 : dist_(dist),
@@ -196,7 +196,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const TensorDistribution& dist, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 : dist_(dist),
@@ -231,7 +231,7 @@ DistTensor<T>::DistTensor
 //////////////////////////////////
 
 template<typename T>
-DistTensor<T>::DistTensor( const std::string& dist, const rote::Grid& grid )
+DistTensorBase<T>::DistTensorBase( const std::string& dist, const rote::Grid& grid )
 : dist_(StringToTensorDist(dist)),
   shape_(dist_.size()-1, 0),
 
@@ -252,7 +252,7 @@ DistTensor<T>::DistTensor( const std::string& dist, const rote::Grid& grid )
 { SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const std::string& dist, const rote::Grid& grid )
 : dist_(StringToTensorDist(dist)),
   shape_(shape),
@@ -282,7 +282,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
   const rote::Grid& g )
 : dist_(StringToTensorDist(dist)),
@@ -312,7 +312,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
   const std::vector<Unsigned>& strides, const rote::Grid& g )
 : dist_(StringToTensorDist(dist)),
@@ -342,7 +342,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 : dist_(StringToTensorDist(dist)),
@@ -373,7 +373,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor
+DistTensorBase<T>::DistTensorBase
 ( const ObjShape& shape, const std::string& dist, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 : dist_(StringToTensorDist(dist)),
@@ -404,7 +404,7 @@ DistTensor<T>::DistTensor
 }
 
 template<typename T>
-DistTensor<T>::DistTensor( const DistTensor<T>& A )
+DistTensorBase<T>::DistTensorBase( const DistTensorBase<T>& A )
 : dist_(),
   shape_(),
 
@@ -436,12 +436,12 @@ DistTensor<T>::DistTensor( const DistTensor<T>& A )
 }
 
 template<typename T>
-DistTensor<T>::~DistTensor()
+DistTensorBase<T>::~DistTensorBase()
 { }
 
 template<typename T>
 void
-DistTensor<T>::Swap( DistTensor<T>& A )
+DistTensorBase<T>::Swap( DistTensorBase<T>& A )
 {
     std::swap( shape_ , A.shape_ );
     std::swap( dist_, A.dist_ );
@@ -462,7 +462,7 @@ DistTensor<T>::Swap( DistTensor<T>& A )
 
 template<typename T>
 rote::DistData
-DistTensor<T>::DistData() const
+DistTensorBase<T>::DistData() const
 {
     rote::DistData data;
     //data.colDist = MC;
@@ -482,8 +482,8 @@ DistTensor<T>::DistData() const
 //NOTE: Generalize alignments mismatched case
 //NOTE: Generalize CopyFromDifferentGrid case
 template<typename T>
-const DistTensor<T>&
-DistTensor<T>::operator=( const DistTensor<T>& A )
+const DistTensorBase<T>&
+DistTensorBase<T>::operator=( const DistTensorBase<T>& A )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor = DistTensor");
@@ -519,7 +519,7 @@ DistTensor<T>::operator=( const DistTensor<T>& A )
 }
 
 #define FULL(T) \
-    template class DistTensor<T>;
+    template class DistTensorBase<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT

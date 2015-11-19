@@ -13,7 +13,7 @@ namespace rote {
 #ifndef RELEASE
 template<typename T>
 void
-DistTensor<T>::AssertNotLocked() const
+DistTensorBase<T>::AssertNotLocked() const
 {
     if( Locked() )
         LogicError("Assertion that tensor not be a locked view failed");
@@ -21,7 +21,7 @@ DistTensor<T>::AssertNotLocked() const
 
 template<typename T>
 void
-DistTensor<T>::AssertNotStoringData() const
+DistTensorBase<T>::AssertNotStoringData() const
 {
     if( tensor_.MemorySize() > 0 )
         LogicError("Assertion that tensor not be storing data failed");
@@ -29,7 +29,7 @@ DistTensor<T>::AssertNotStoringData() const
 
 template<typename T>
 void
-DistTensor<T>::AssertValidEntry( const Location& loc ) const
+DistTensorBase<T>::AssertValidEntry( const Location& loc ) const
 {
 #ifndef RELEASE
     CallStackEntry entry("[MC,MR]::AssertValidEntry");
@@ -58,7 +58,7 @@ DistTensor<T>::AssertValidEntry( const Location& loc ) const
 //TODO: FIX ASSERTIONS
 template<typename T>
 void
-DistTensor<T>::AssertValidSubtensor
+DistTensorBase<T>::AssertValidSubtensor
 ( const Location& loc, const ObjShape& shape ) const
 {
     const Unsigned order = Order();
@@ -92,7 +92,7 @@ DistTensor<T>::AssertValidSubtensor
 
 template<typename T>
 void
-DistTensor<T>::AssertSameGrid( const rote::Grid& grid ) const
+DistTensorBase<T>::AssertSameGrid( const rote::Grid& grid ) const
 {
     if( Grid() != grid )
         LogicError("Assertion that grids match failed");
@@ -100,7 +100,7 @@ DistTensor<T>::AssertSameGrid( const rote::Grid& grid ) const
 
 template<typename T>
 void
-DistTensor<T>::AssertSameSize( const ObjShape& shape ) const
+DistTensorBase<T>::AssertSameSize( const ObjShape& shape ) const
 {
     const Unsigned order = Order();
     if( shape.size() != order)
@@ -111,7 +111,7 @@ DistTensor<T>::AssertSameSize( const ObjShape& shape ) const
 
 template<typename T>
 void
-DistTensor<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
+DistTensorBase<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
 {
     tensor_.AssertMergeableModes(oldModes);
 }
@@ -149,7 +149,7 @@ AssertConforming2x1
 #endif // RELEASE
 
 #define FULL(T) \
-    template class DistTensor<T>;
+    template class DistTensorBase<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT
