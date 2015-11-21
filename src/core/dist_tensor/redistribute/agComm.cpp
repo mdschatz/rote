@@ -15,11 +15,11 @@ namespace rote{
 
 template<typename T>
 bool DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution outDist = this->TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
 	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOrder(this->Order(), A.Order());
 	ret &= CheckOutIsPrefix(outDist, inDist);
 	ret &= CheckSameNonDist(outDist, inDist);
 
@@ -35,7 +35,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
     const rote::Grid& g = A.Grid();
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
         return;
@@ -57,7 +57,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Pack the data
     PROFILE_SECTION("AGPack");
-    PackAGCommSendBuf(A, sendBuf);
+    this->PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
 //    PrintArray(sendBuf, commDataShape, "sendBuf");
@@ -68,7 +68,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     T* alignSendBuf = &(auxBuf[0]);
 	T* alignRecvBuf = &(auxBuf[sendSize * nRedistProcs]);
 
-	bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+	bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
 	if(didAlign){
         sendBuf = &(alignRecvBuf[0]);
         recvBuf = &(alignSendBuf[0]);
@@ -82,7 +82,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
     PROFILE_SECTION("AGUnpack");
-    UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
+    this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -101,11 +101,11 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   packData.srcBufStrides = A.LocalStrides();
 
   //Pack into permuted form to minimize striding when unpacking
-  ObjShape finalShape = PermuteVector(A.MaxLocalShape(), localPerm_);
+  ObjShape finalShape = PermuteVector(A.MaxLocalShape(), this->localPerm_);
   std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
 
   //Determine permutation from local output to local input
-  Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, localPerm_));
+  Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, this->localPerm_));
 
   //Permute pack strides to match input local permutation (for correct packing)
   packData.dstBufStrides = PermuteVector(finalStrides, out2in);
