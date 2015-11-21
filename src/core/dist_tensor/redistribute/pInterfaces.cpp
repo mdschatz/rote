@@ -24,7 +24,7 @@ void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArra
     this->ResizeTo(A);
     ModeArray commModes;
     TensorDistribution distA = A.TensorDist();
-    TensorDistribution distB = TensorDist();
+    TensorDistribution distB = this->TensorDist();
     for(i = 0; i < A.Order(); i++){
     	commModes = ConcatenateVectors(commModes, GetSuffix(distA[i], distB[i]));
     }

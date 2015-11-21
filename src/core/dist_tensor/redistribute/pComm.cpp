@@ -16,12 +16,12 @@ namespace rote{
 //TODO: Check all unaffected indices are distributed similarly (Only done for CheckPermutationRedist currently)
 template <typename T>
 bool DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution outDist = this->TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
 	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
-	ret &= CheckSameGridViewShape(GridViewShape(), A.GridViewShape());
+	ret &= CheckOrder(this->Order(), A.Order());
+	ret &= CheckSameGridViewShape(this->GridViewShape(), A.GridViewShape());
 	ret &= CheckSameNonDist(outDist, inDist);
 
     return ret;
@@ -34,12 +34,12 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     const rote::Grid& g = A.Grid();
     const rote::GridView gvA = A.GetGridView();
-    const rote::GridView gvB = GetGridView();
+    const rote::GridView gvB = this->GetGridView();
 
     //Ripped from AlignCommBufRedist
 
     std::vector<Unsigned> alignA = A.Alignments();
-    std::vector<Unsigned> alignB = Alignments();
+    std::vector<Unsigned> alignB = this->Alignments();
 
     ModeArray misalignedModes;
     for(Unsigned i = 0; i < alignA.size(); i++){
@@ -57,14 +57,14 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     }
     SortVector(actualCommModes);
 
-    mpi::Comm sendRecvComm = GetCommunicatorForModes(actualCommModes, g);
+    mpi::Comm sendRecvComm = this->GetCommunicatorForModes(actualCommModes, g);
 
     //Skip if we aren't participating
     if(!A.Participating())
         return;
 
     //Determine buffer sizes for communication
-    const ObjShape commDataShape = MaxLocalShape();
+    const ObjShape commDataShape = this->MaxLocalShape();
     const Unsigned recvSize = prod(commDataShape);
     const Unsigned sendSize = recvSize;
 
@@ -77,7 +77,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Pack the data
     PROFILE_SECTION("PermutationPack");
-    PackAGCommSendBuf(A, sendBuf);
+    this->PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
 //    ObjShape sendShape = commDataShape;
@@ -90,9 +90,9 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     SortVector(sortedCommModes);
 
     const Location myFirstElemA = A.DetermineFirstElem(gvA.ParticipatingLoc());
-    const Location ownergvB = DetermineOwner(myFirstElemA);
+    const Location ownergvB = this->DetermineOwner(myFirstElemA);
 
-    const Location myFirstElemB = DetermineFirstElem(gvB.ParticipatingLoc());
+    const Location myFirstElemB = this->DetermineFirstElem(gvB.ParticipatingLoc());
     const Location ownergvA = A.DetermineOwner(myFirstElemB);
 
     const Location sendLoc = GridViewLoc2GridLoc(ownergvB, gvB);
@@ -110,7 +110,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");
-    UnpackPCommRecvBuf(recvBuf, A, alpha);
+    this->UnpackPCommRecvBuf(recvBuf, A, alpha);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -122,12 +122,12 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 template <typename T>
 void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A, const T alpha)
 {
-    T* dataBuf = Buffer();
+    T* dataBuf = this->Buffer();
 
     PackData unpackData;
-    unpackData.loopShape = LocalShape();
-    unpackData.dstBufStrides = LocalStrides();
-    unpackData.srcBufStrides = Dimensions2Strides(PermuteVector(MaxLocalShape(), localPerm_));
+    unpackData.loopShape = this->LocalShape();
+    unpackData.dstBufStrides = this->LocalStrides();
+    unpackData.srcBufStrides = Dimensions2Strides(PermuteVector(this->MaxLocalShape(), this->localPerm_));
 
 //    PrintPackData(unpackData, "unpackData");
     if(alpha == T(0))

@@ -39,11 +39,11 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     tmp.AlignWith(A);
 
     //Set up tmp2 for holding beta*B
-    ObjShape tmp2Shape = Shape();
-    TensorDistribution tmp2Dist = TensorDist();
+    ObjShape tmp2Shape = this->Shape();
+    TensorDistribution tmp2Dist = this->TensorDist();
 //    std::vector<Unsigned> tmp2Aligns = Alignments();
-    Permutation tmp2Perm = localPerm_;
-    std::vector<Unsigned> tmp2Strides = LocalStrides();
+    Permutation tmp2Perm = this->localPerm_;
+    std::vector<Unsigned> tmp2Strides = this->LocalStrides();
 
     for(i = 0; i < sortedRModes.size(); i++){
         Mode rMode = sortedRModes[i];
@@ -69,11 +69,11 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
 
     DistTensor<T> tmp2(tmp2Shape, rote::TensorDistToString(tmp2Dist), g);
     tmp2.SetLocalPermutation(tmp2Perm);
-    std::vector<Unsigned> tmp2Aligns = Alignments();
+    std::vector<Unsigned> tmp2Aligns = this->Alignments();
     for(i = 0; i < rModes.size(); i++)
         tmp2Aligns.push_back(0);
 
-    tmp2.Attach(tmp2Shape, tmp2Aligns, Buffer(), tmp2Strides, g);
+    tmp2.Attach(tmp2Shape, tmp2Aligns, this->Buffer(), tmp2Strides, g);
 
     if(alpha == T(0))
         Zero(tmp);
