@@ -11,6 +11,7 @@
 #define ROTE_BTAS_GEMM_HPP
 
 #include "rote/core/tensor_forward_decl.hpp"
+#include "rote/core/imports/blas.hpp"
 
 namespace rote {
 

@@ -185,7 +185,7 @@ private:
     friend class Tensor;
     template <typename F> 
     friend class DistTensor;
-    friend class AbstractDistTensor<T>;
+    friend class DistTensorBase<T>;
 
     friend void ViewHelper<T>( Tensor<T>& A, const Tensor<T>& B, bool isLocked );
     friend void ViewHelper<T>

@@ -15,6 +15,7 @@
 #include <ostream>
 #include "rote/core/tensor_forward_decl.hpp"
 #include "rote/core/environment_decl.hpp"
+#include "rote/core/indexing_decl.hpp"
 
 namespace rote {
 

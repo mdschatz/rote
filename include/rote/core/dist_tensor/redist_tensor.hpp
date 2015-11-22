@@ -15,7 +15,7 @@ namespace rote {
 
 #ifndef RELEASE
     template<typename T>
-    void AssertConforming2x1( const DistTensorBase<T>& AT, const DistTensorBase<T>& AB, Mode mode);
+    void AssertConforming2x1( const DistTensor<T>& AT, const DistTensor<T>& AB, Mode mode);
 #endif
 
 template<typename T>
@@ -86,7 +86,7 @@ public:
       T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g );
 
     // Create a copy of distributed matrix A
-    DistTensor( const DistTensor<T>& A );
+//    DistTensor( const DistTensor<T>& A );
 
     ~DistTensor();
 

@@ -15,6 +15,7 @@
 #include "rote/util/btas_util.hpp"
 #include "rote/core/view_decl.hpp"
 #include "rote/io/Print.hpp"
+#include "rote/util/btas_util.hpp"
 
 namespace rote{
 
