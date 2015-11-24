@@ -22,7 +22,7 @@ template <typename T>
 void
 DistTensor<T>::BroadcastRedistFrom(const DistTensor<T>& A, const ModeArray& commModes ){
     PROFILE_SECTION("BCastRedist");
-    ResizeTo(A);
+    this->ResizeTo(A);
 
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);

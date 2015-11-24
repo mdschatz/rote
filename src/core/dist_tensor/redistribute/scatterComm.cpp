@@ -15,11 +15,11 @@ namespace rote{
 
 template <typename T>
 bool DistTensor<T>::CheckScatterCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution outDist = this->TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
 	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOrder(this->Order(), A.Order());
 	ret &= CheckSameCommModes(outDist, inDist);
 	ret &= CheckInIsPrefix(outDist, inDist);
 	ret &= CheckNonDistOutIsPrefix(outDist, inDist);
@@ -33,14 +33,14 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 		LogicError("ScatterRedist: Invalid redistribution request");
 
 	const rote::Grid& g = A.Grid();
-	const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+	const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
-	if(!Participating())
+	if(!this->Participating())
 		return;
 
 	//Determine buffer sizes for communication
 	const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-	const ObjShape commDataShape = MaxLocalShape();
+	const ObjShape commDataShape = this->MaxLocalShape();
 
 	const Unsigned sendSize = prod(commDataShape);
 	const Unsigned recvSize = sendSize;
@@ -56,7 +56,7 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	//Pack the data
 	PROFILE_SECTION("ScatterPack");
 	if(A.Participating())
-		PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
+		this->PackA2ACommSendBuf(A, commModes, commDataShape, sendBuf);
 	PROFILE_STOP;
 
 //	ObjShape sendShape = commDataShape;
@@ -69,7 +69,7 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	T* alignSendBuf = &(sendBuf[0]);
 	T* alignRecvBuf = &(sendBuf[sendSize * nRedistProcs]);
 
-	bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
+	bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize * nRedistProcs, alignRecvBuf, sendSize * nRedistProcs);
 	if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
 		recvBuf = &(alignSendBuf[0]);
@@ -83,8 +83,8 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 
 	//Unpack the data (if participating)
 	PROFILE_SECTION("ScatterUnpack");
-	PROFILE_MEMOPS(prod(MaxLocalShape()));
-	UnpackPCommRecvBuf(recvBuf, A);
+	PROFILE_MEMOPS(prod(this->MaxLocalShape()));
+	this->UnpackPCommRecvBuf(recvBuf, A);
 	PROFILE_STOP;
 
 //	const T* myBuf = LockedBuffer();

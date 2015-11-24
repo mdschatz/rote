@@ -21,10 +21,10 @@ template <typename T>
 void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha){
     PROFILE_SECTION("PermuteRedist");
     Unsigned i;
-    ResizeTo(A);
+    this->ResizeTo(A);
     ModeArray commModes;
     TensorDistribution distA = A.TensorDist();
-    TensorDistribution distB = TensorDist();
+    TensorDistribution distB = this->TensorDist();
     for(i = 0; i < A.Order(); i++){
     	commModes = ConcatenateVectors(commModes, GetSuffix(distA[i], distB[i]));
     }

@@ -13,7 +13,7 @@
 namespace rote {
 
 template<typename T>
-class AbstractDistTensor;
+class DistTensorBase;
 
 template<typename T>
 class DistTensor;

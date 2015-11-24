@@ -15,11 +15,11 @@ namespace rote{
 
 template<typename T>
 bool DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution outDist = this->TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
 	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOrder(this->Order(), A.Order());
 	ret &= CheckInIsPrefix(outDist, inDist);
 	ret &= CheckSameNonDist(outDist, inDist);
 
@@ -28,10 +28,10 @@ bool DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
 
 template<typename T>
 void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
-    if(!CheckLocalCommRedist(A))
+    if(!this->CheckLocalCommRedist(A))
         LogicError("LocalRedist: Invalid redistribution request");
 
-    if(!(Participating()))
+    if(!(this->Participating()))
         return;
 
 //    const T* dataBuf = A.LockedBuffer();
@@ -47,7 +47,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
 
     //Pack the data
     PROFILE_SECTION("LPack");
-    PackAGCommSendBuf(A, sendBuf);
+    this->PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
 //	PrintArray(sendBuf, commDataShape, "sendBuf");
@@ -57,7 +57,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
     T* alignSendBuf = &(auxBuf[0]);
 	T* alignRecvBuf = &(auxBuf[sendSize]);
 
-	bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+	bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
 	if(didAlign){
         sendBuf = &(alignSendBuf[0]);
         recvBuf = &(alignRecvBuf[0]);
@@ -71,7 +71,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
 
         //Packing is what is stored in memory
 	PROFILE_SECTION("LocalUnpack");
-	UnpackLocalCommRecvBuf(A, recvBuf, alpha);
+	this->UnpackLocalCommRecvBuf(A, recvBuf, alpha);
 	PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -85,16 +85,16 @@ template <typename T>
 void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recvBuf, const T alpha)
 {
 
-	const Location myFirstLocB = DetermineFirstElem(GetGridView().ParticipatingLoc());
+	const Location myFirstLocB = this->DetermineFirstElem(this->GetGridView().ParticipatingLoc());
 	const Location myFirstLocA = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
 
-	const rote::Grid& g = Grid();
+	const rote::Grid& g = this->Grid();
     const rote::GridView gvA = A.GetGridView();
-    const rote::GridView& gvB = GetGridView();
+    const rote::GridView& gvB = this->GetGridView();
     const ObjShape gvAShape = gvA.ParticipatingShape();
     const ObjShape gvBShape = gvB.ParticipatingShape();
 	const Location myGridLoc = g.Loc();
-	Location firstOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
+	Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
 	Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(myGridLoc, g.Shape(), A.TensorDist());
     std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
     Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
@@ -108,13 +108,13 @@ void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recv
     const std::vector<Unsigned> commLCMs = LCMs(gvAShape, gvBShape);
     const std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
 
-    const Unsigned order = Order();
-    T* dataBuf = Buffer();
+    const Unsigned order = this->Order();
+    T* dataBuf = this->Buffer();
 
     PackData unpackData;
-    unpackData.loopShape = LocalShape();
+    unpackData.loopShape = this->LocalShape();
     unpackData.srcBufStrides = ElemwiseProd(Dimensions2Strides(A.MaxLocalShape()), modeStrideFactor);
-    unpackData.dstBufStrides = LocalStrides();
+    unpackData.dstBufStrides = this->LocalStrides();
 
 //    PrintPackData(unpackData, "unpacking local");
     if(alpha == T(0))

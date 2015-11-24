@@ -15,11 +15,11 @@ namespace rote{
 
 template<typename T>
 bool DistTensor<T>::CheckBroadcastCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution outDist = this->TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
 	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOrder(this->Order(), A.Order());
 	ret &= CheckOutIsPrefix(outDist, inDist);
 	ret &= CheckNonDistOutIsPrefix(outDist, inDist);
 
@@ -31,14 +31,14 @@ void
 DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::BroadcastCommRedist");
-    if(!CheckBroadcastCommRedist(A))
+    if(!this->CheckBroadcastCommRedist(A))
         LogicError("BroadcastRedist: Invalid redistribution request");
 #endif
     const rote::Grid& g = A.Grid();
 
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
-    if(!Participating())
+    if(!this->Participating())
         return;
 
     //Determine buffer sizes for communication
@@ -58,7 +58,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
     //Pack the data
     PROFILE_SECTION("BCastPack");
     if(A.Participating())
-    	PackAGCommSendBuf(A, sendBuf);
+    	this->PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
 //    PrintArray(sendBuf, commDataShape, "sendBuf");
@@ -69,7 +69,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
     T* alignSendBuf = &(auxBuf[0]);
     T* alignRecvBuf = &(auxBuf[sendSize]);
 
-    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+    bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
 
     if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
@@ -84,7 +84,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Unpack the data (if participating)
     PROFILE_SECTION("BCastUnpack");
-	UnpackPCommRecvBuf(recvBuf, A);
+	this->UnpackPCommRecvBuf(recvBuf, A);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

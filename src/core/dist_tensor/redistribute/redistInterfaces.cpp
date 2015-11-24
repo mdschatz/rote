@@ -20,10 +20,10 @@ namespace rote{
 ////////////////////////////////
 
 template<typename T>
-GenRedistData DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenDistA, const TensorDistribution& tenDistB, const ModeArray& reduceModes){
+RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenDistA, const TensorDistribution& tenDistB, const ModeArray& reduceModes){
 //	 Unsigned commRank = mpi::CommRank(MPI_COMM_WORLD);
 	 Unsigned i, j;
-	 GenRedistData redistData;
+	 RedistPlanInfo redistData;
 
 	 //Determine tensor modes that are reduced
 //	 redistData.gridModesReduced = GetBoundGridModes(tenDistA, reduceModes);
@@ -101,19 +101,19 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     PROFILE_SECTION("Redist");
 //    ResizeTo(A);
 
-    const rote::Grid& g = Grid();
+    const rote::Grid& g = this->Grid();
     Unsigned i;
-    std::vector<RedistInfo> intermediateDists;
-    GenRedistData redistData = CreateGenRedistData(A.TensorDist(), TensorDist(), reduceModes);
+    std::vector<Redist> intermediateDists;
+    RedistPlanInfo redistData = CreateGenRedistData(A.TensorDist(), this->TensorDist(), reduceModes);
 
     printf("making plan\n");
-    CommRedist(TensorDist(), A.TensorDist(), redistData, intermediateDists);
+    CommRedist(this->TensorDist(), A.TensorDist(), redistData, intermediateDists);
 
     if(commRank == 0){
 		printf("plan created\n");
 		std::cout << "start dist: " << TensorDistToString(A.TensorDist()) << std::endl;
 		for(i = 0; i < intermediateDists.size(); i++){
-			RedistInfo redistInfo = intermediateDists[i];
+			Redist redistInfo = intermediateDists[i];
 			std::cout << "int dist: (";
 			switch(redistInfo.redistType){
 			case AG: std::cout << "AG"; break;
@@ -125,14 +125,14 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 			std::cout << ") " << TensorDistToString(redistInfo.dist) << " ";
 			PrintVector(redistInfo.modes, "");
 		}
-		std::cout << "final dist: " << TensorDistToString(TensorDist()) << std::endl;
+		std::cout << "final dist: " << TensorDistToString(this->TensorDist()) << std::endl;
     }
 
     DistTensor<T> tmp(A.TensorDist(), g);
     tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
 
     for(i = 0; i < intermediateDists.size() - 1; i++){
-    	RedistInfo intRedist = intermediateDists[i];
+    	Redist intRedist = intermediateDists[i];
     	DistTensor<T> tmp2(intRedist.dist, g);
 
     	if(commRank == 0){
@@ -149,23 +149,17 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	case RS: tmp2.ReduceScatterRedistFrom(alpha, tmp, reduceModes); break;
     	default: break;
     	}
-//    	if(commRank == 0){
-//			printf("done redist\n");
-//
-//		}
-//    	PrintData(tmp2, "tmp2");
-//    	Print(tmp2, "tmp2");
     	tmp.Empty();
     	tmp = tmp2;
     }
 
-	RedistInfo lastRedist = intermediateDists[intermediateDists.size() - 1];
+	Redist lastRedist = intermediateDists[intermediateDists.size() - 1];
 	switch(lastRedist.redistType){
-	case AG: AllGatherRedistFrom(tmp, lastRedist.modes); break;
-	case A2A: AllToAllRedistFrom(tmp, lastRedist.modes); break;
+	case AG: AllGatherRedistFrom(tmp, lastRedist.modes, beta); break;
+	case A2A: AllToAllRedistFrom(tmp, lastRedist.modes, beta); break;
 	case Local: LocalRedistFrom(tmp); break;
-	case Perm: PermutationRedistFrom(tmp, lastRedist.modes); break;
-	case RS: ReduceScatterUpdateRedistFrom(tmp, reduceModes); break;
+	case Perm: PermutationRedistFrom(tmp, lastRedist.modes, beta); break;
+	case RS: ReduceScatterUpdateRedistFrom(tmp, beta, reduceModes); break;
 	default: break;
 	}
 

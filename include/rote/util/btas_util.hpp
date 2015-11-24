@@ -13,7 +13,9 @@
 
 #include <vector>
 #include <iostream>
-#include "rote/core.hpp"
+#include "rote/core/types_decl.hpp"
+#include "rote/util/vec_util.hpp"
+//#include "rote/core.hpp"
 
 namespace rote{
 

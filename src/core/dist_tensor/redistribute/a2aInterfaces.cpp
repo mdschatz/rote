@@ -21,7 +21,7 @@ namespace rote{
 template <typename T>
 void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
     PROFILE_SECTION("A2ARedist");
-    ResizeTo(A);
+    this->ResizeTo(A);
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
 

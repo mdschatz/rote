@@ -1,6 +1,5 @@
 #include "rote/util/btas_util.hpp"
 
-
 namespace rote{
 
 std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC){

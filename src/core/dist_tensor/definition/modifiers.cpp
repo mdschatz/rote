@@ -14,7 +14,7 @@ namespace rote {
 //TODO: Check if this should retain order of object
 template<typename T>
 void
-DistTensor<T>::Align( const std::vector<Unsigned>& modeAlignments )
+DistTensorBase<T>::Align( const std::vector<Unsigned>& modeAlignments )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Align");
@@ -29,7 +29,7 @@ DistTensor<T>::Align( const std::vector<Unsigned>& modeAlignments )
 
 template<typename T>
 void
-DistTensor<T>::AlignMode( Mode mode, Unsigned modeAlignment )
+DistTensorBase<T>::AlignMode( Mode mode, Unsigned modeAlignment )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::AlignMode");
@@ -46,7 +46,7 @@ DistTensor<T>::AlignMode( Mode mode, Unsigned modeAlignment )
 //NOTE: This needs to be generalized
 template<typename T>
 void
-DistTensor<T>::AlignWith( const DistTensor<T>& A )
+DistTensorBase<T>::AlignWith( const DistTensorBase<T>& A )
 {
     Unsigned i;
     Unsigned order = A.Order();
@@ -62,19 +62,19 @@ DistTensor<T>::AlignWith( const DistTensor<T>& A )
 
 template<typename T>
 void
-DistTensor<T>::SetDistribution( const TensorDistribution& tenDist)
+DistTensorBase<T>::SetDistribution( const TensorDistribution& tenDist)
 {
     dist_ = tenDist;
 }
 
 template<typename T>
 void
-DistTensor<T>::AlignModeWith( Mode mode, const DistTensor<T>& A )
+DistTensorBase<T>::AlignModeWith( Mode mode, const DistTensorBase<T>& A )
 { AlignModeWith( mode, A, mode ); }
 
 template<typename T>
 void
-DistTensor<T>::AlignModeWith(Mode mode, const DistTensor<T>& A, Mode modeA)
+DistTensorBase<T>::AlignModeWith(Mode mode, const DistTensorBase<T>& A, Mode modeA)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::AlignModeWith");
@@ -88,7 +88,7 @@ DistTensor<T>::AlignModeWith(Mode mode, const DistTensor<T>& A, Mode modeA)
 
 template<typename T>
 void
-DistTensor<T>::AlignModesWith(const ModeArray& modes, const DistTensor<T>& A, const ModeArray& modesA)
+DistTensorBase<T>::AlignModesWith(const ModeArray& modes, const DistTensorBase<T>& A, const ModeArray& modesA)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::AlignModesWith");
@@ -105,7 +105,7 @@ DistTensor<T>::AlignModesWith(const ModeArray& modes, const DistTensor<T>& A, co
 
 template<typename T>
 void
-DistTensor<T>::Attach
+DistTensorBase<T>::Attach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
@@ -122,13 +122,13 @@ DistTensor<T>::Attach
     if( Participating() )
     {
         ObjShape localShape = Lengths(shape, ModeShifts(), ModeStrides());
-        tensor_.Attach_( PermuteVector(localShape, localPerm_), buffer, strides );
+        tensor_.Attach( PermuteVector(localShape, localPerm_), buffer, strides );
     }
 }
 
 template<typename T>
 void
-DistTensor<T>::LockedAttach
+DistTensorBase<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
@@ -147,7 +147,7 @@ DistTensor<T>::LockedAttach
 
 template<typename T>
 void
-DistTensor<T>::LockedAttach
+DistTensorBase<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
@@ -167,7 +167,7 @@ DistTensor<T>::LockedAttach
 }
 
 template<typename T>
-void DistTensor<T>::ResizeTo( const DistTensor<T>& A)
+void DistTensorBase<T>::ResizeTo( const DistTensorBase<T>& A)
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::ResizeTo");
@@ -179,7 +179,7 @@ void DistTensor<T>::ResizeTo( const DistTensor<T>& A)
 //TODO: FIX Participating
 template<typename T>
 void
-DistTensor<T>::ResizeTo( const ObjShape& shape )
+DistTensorBase<T>::ResizeTo( const ObjShape& shape )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::ResizeTo");
@@ -197,7 +197,7 @@ DistTensor<T>::ResizeTo( const ObjShape& shape )
 
 template<typename T>
 void
-DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides )
+DistTensorBase<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::ResizeTo");
@@ -211,7 +211,7 @@ DistTensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& str
 
 template<typename T>
 void
-DistTensor<T>::Set( const Location& loc, T u )
+DistTensorBase<T>::Set( const Location& loc, T u )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Set");
@@ -230,7 +230,7 @@ DistTensor<T>::Set( const Location& loc, T u )
 
 template<typename T>
 void
-DistTensor<T>::Update( const Location& loc, T u )
+DistTensorBase<T>::Update( const Location& loc, T u )
 {
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::Update");
@@ -250,45 +250,45 @@ DistTensor<T>::Update( const Location& loc, T u )
 
 template<typename T>
 void
-DistTensor<T>::SetRealPart( const Location& loc, BASE(T) u )
+DistTensorBase<T>::SetRealPart( const Location& loc, BASE(T) u )
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::SetImagPart( const Location& loc, BASE(T) u )
+DistTensorBase<T>::SetImagPart( const Location& loc, BASE(T) u )
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::UpdateRealPart( const Location& loc, BASE(T) u )
+DistTensorBase<T>::UpdateRealPart( const Location& loc, BASE(T) u )
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::UpdateImagPart( const Location& loc, BASE(T) u )
+DistTensorBase<T>::UpdateImagPart( const Location& loc, BASE(T) u )
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::SetRealPartOfDiagonal
+DistTensorBase<T>::SetRealPartOfDiagonal
 ( const DistTensor<BASE(T)>& d, Int offset )
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::SetImagPartOfDiagonal
+DistTensorBase<T>::SetImagPartOfDiagonal
 ( const DistTensor<BASE(T)>& d, Int offset )
 {
 }
 
 template<typename T>
 void
-DistTensor<T>::SetAlignmentsAndResize
+DistTensorBase<T>::SetAlignmentsAndResize
 ( const std::vector<Unsigned>& modeAligns, const ObjShape& shape )
 {
 #ifndef RELEASE
@@ -304,7 +304,7 @@ DistTensor<T>::SetAlignmentsAndResize
 
 template<typename T>
 void
-DistTensor<T>::ForceAlignmentsAndResize
+DistTensorBase<T>::ForceAlignmentsAndResize
 ( const std::vector<Unsigned>& modeAligns, const ObjShape& shape )
 {
 #ifndef RELEASE
@@ -317,7 +317,7 @@ DistTensor<T>::ForceAlignmentsAndResize
 
 template<typename T>
 void
-DistTensor<T>::SetModeAlignmentAndResize
+DistTensorBase<T>::SetModeAlignmentAndResize
 ( Mode mode, Unsigned modeAlign, const ObjShape& shape )
 {
 #ifndef RELEASE
@@ -336,7 +336,7 @@ DistTensor<T>::SetModeAlignmentAndResize
 
 template<typename T>
 void
-DistTensor<T>::ForceModeAlignmentAndResize
+DistTensorBase<T>::ForceModeAlignmentAndResize
 (Mode mode, Unsigned modeAlign, const ObjShape& shape  )
 {
 #ifndef RELEASE
@@ -352,7 +352,7 @@ DistTensor<T>::ForceModeAlignmentAndResize
 
 template<typename T>
 void
-DistTensor<T>::FreeAlignments()
+DistTensorBase<T>::FreeAlignments()
 {
     Unsigned i;
     const Unsigned order = Order();
@@ -363,7 +363,7 @@ DistTensor<T>::FreeAlignments()
 //TODO: Figure out how to extend this
 template<typename T>
 void
-DistTensor<T>::MakeConsistent()
+DistTensorBase<T>::MakeConsistent()
 {
 /*
 #ifndef RELEASE
@@ -424,33 +424,33 @@ DistTensor<T>::MakeConsistent()
 
 template<typename T>
 void
-DistTensor<T>::SetLocalRealPart
+DistTensorBase<T>::SetLocalRealPart
 ( const Location& loc, BASE(T) alpha )
 { tensor_.SetRealPart(loc,alpha); }
 
 
 template<typename T>
 void
-DistTensor<T>::SetLocalImagPart
+DistTensorBase<T>::SetLocalImagPart
 ( const Location& loc, BASE(T) alpha )
 { tensor_.SetImagPart(loc,alpha); }
 
 template<typename T>
 void
-DistTensor<T>::UpdateLocalRealPart
+DistTensorBase<T>::UpdateLocalRealPart
 ( const Location& loc, BASE(T) alpha )
 { tensor_.UpdateRealPart(loc,alpha); }
 
 template<typename T>
 void
-DistTensor<T>::UpdateLocalImagPart
+DistTensorBase<T>::UpdateLocalImagPart
 ( const Location& loc, BASE(T) alpha )
 { tensor_.UpdateImagPart(loc,alpha); }
 
 //TODO: Figure out participating logic
 template<typename T>
 void
-DistTensor<T>::SetShifts()
+DistTensorBase<T>::SetShifts()
 {
 
     const Unsigned order = Order();
@@ -466,7 +466,7 @@ DistTensor<T>::SetShifts()
 
 template<typename T>
 void
-DistTensor<T>::SetModeShift(Mode mode)
+DistTensorBase<T>::SetModeShift(Mode mode)
 {
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
@@ -480,7 +480,7 @@ DistTensor<T>::SetModeShift(Mode mode)
 
 template<typename T>
 void
-DistTensor<T>::SetGrid( const rote::Grid& grid )
+DistTensorBase<T>::SetGrid( const rote::Grid& grid )
 {
     Empty();
     grid_ = &grid;
@@ -490,7 +490,7 @@ DistTensor<T>::SetGrid( const rote::Grid& grid )
 //TODO: Figure out how to clear grid and gridView
 template<typename T>
 void
-DistTensor<T>::Empty()
+DistTensorBase<T>::Empty()
 {
     std::fill(shape_.begin(), shape_.end(), 0);
 
@@ -499,7 +499,7 @@ DistTensor<T>::Empty()
     std::fill(constrainedModeAlignments_.begin(), constrainedModeAlignments_.end(), false);
     std::fill(modeShifts_.begin(), modeShifts_.end(), 0);
 
-    tensor_.Empty_();
+    tensor_.Empty();
 
     viewType_ = OWNER;
 }
@@ -507,27 +507,27 @@ DistTensor<T>::Empty()
 //TODO: Figure out if this is fully correct
 template<typename T>
 void
-DistTensor<T>::EmptyData()
+DistTensorBase<T>::EmptyData()
 {
     std::fill(shape_.begin(), shape_.end(), 0);
 
-    tensor_.Empty_();
+    tensor_.Empty();
     viewType_ = OWNER;
 }
 
 template<typename T>
 void
-DistTensor<T>::SetLocal( const Location& loc, T alpha )
+DistTensorBase<T>::SetLocal( const Location& loc, T alpha )
 { tensor_.Set(loc, alpha); }
 
 template<typename T>
 void
-DistTensor<T>::UpdateLocal( const Location& loc, T alpha )
+DistTensorBase<T>::UpdateLocal( const Location& loc, T alpha )
 { tensor_.Update(loc,alpha); }
 
 template<typename T>
 void
-DistTensor<T>::SetLocalPermutation(const Permutation& perm)
+DistTensorBase<T>::SetLocalPermutation(const Permutation& perm)
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetLocalPermutation");
@@ -539,7 +539,7 @@ DistTensor<T>::SetLocalPermutation(const Permutation& perm)
 
 template<typename T>
 void
-DistTensor<T>::SetDefaultPermutation()
+DistTensorBase<T>::SetDefaultPermutation()
 {
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetDefaultPermutation");
@@ -551,7 +551,7 @@ DistTensor<T>::SetDefaultPermutation()
 }
 
 #define FULL(T) \
-    template class DistTensor<T>;
+    template class DistTensorBase<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT

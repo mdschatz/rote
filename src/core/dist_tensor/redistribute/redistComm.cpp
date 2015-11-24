@@ -16,7 +16,7 @@
 namespace rote{
 
 template<typename T>
-void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
+void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
 	Unsigned i;
 	TensorDistribution intDist = startDist;
 
@@ -47,7 +47,7 @@ void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const 
 	}
 	std::cout << TensorDistToString(intDist) << "after adding reductions\n";
 	printf("ping1\n");
-	RedistInfo newRedistInfo;
+	Redist newRedistInfo;
 	newRedistInfo.redistType = RS;
 	newRedistInfo.dist = intDist;
 	newRedistInfo.modes = reduceModes;
@@ -59,7 +59,7 @@ void DistTensor<T>::CommRedistReduce(const TensorDistribution& finalDist, const 
 }
 
 template <typename T>
-void DistTensor<T>::CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
+void DistTensor<T>::CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
 	Unsigned i;
 
 	//Get the prefix tensor distribution
@@ -70,7 +70,7 @@ void DistTensor<T>::CommRedistAdd(const TensorDistribution& finalDist, const Ten
 	}
 
 	//Add the intermediate distribution to the list
-	RedistInfo newRedistInfo;
+	Redist newRedistInfo;
 	newRedistInfo.redistType = Local;
 	newRedistInfo.dist = intDist;
 	newRedistInfo.modes = redistData.gridModesMoved;
@@ -85,7 +85,7 @@ void DistTensor<T>::CommRedistAdd(const TensorDistribution& finalDist, const Ten
 }
 
 template <typename T>
-void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
+void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
 	Unsigned i, j;
 	Unsigned order = startDist.size() - 1;
 	//Get the prefix tensor distribution
@@ -108,15 +108,15 @@ void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const 
 	}
 	//Add the intermediate distribution to the list (if needed)
 	if(prepDist != intDist && prepDist != startDist){
-		RedistInfo prepRedistInfo;
+		Redist prepRedistInfo;
 		prepRedistInfo.redistType = Perm;
 		prepRedistInfo.dist = prepDist;
-		prepRedistInfo.modes = DefaultPermutation(Grid().Order());
+		prepRedistInfo.modes = DefaultPermutation(this->Grid().Order());
 		intDists.push_back(prepRedistInfo);
 	}
 
 	//Now remove the modes
-	RedistInfo newRedistInfo;
+	Redist newRedistInfo;
 	newRedistInfo.redistType = AG;
 	newRedistInfo.dist = intDist;
 	newRedistInfo.modes = redistData.gridModesRemoved;
@@ -131,7 +131,7 @@ void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const 
 }
 
 template <typename T>
-void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
+void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
 	Unsigned i, j;
 
 	//Pick the grid modes to move in this pass
@@ -168,10 +168,10 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 
 	//Create the "prep" redistribution
 	if(prepDist != startDist){
-		RedistInfo prepRedistInfo;
+		Redist prepRedistInfo;
 		prepRedistInfo.redistType = Perm;
 		prepRedistInfo.dist = prepDist;
-		prepRedistInfo.modes = DefaultPermutation(Grid().Order());
+		prepRedistInfo.modes = DefaultPermutation(this->Grid().Order());
 		intDists.push_back(prepRedistInfo);
 	}
 
@@ -187,7 +187,7 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 		intDist[gridModesToMoveSinks[i]].push_back(gridModesToMove[i]);
 	}
 
-	RedistInfo moveRedistInfo;
+	Redist moveRedistInfo;
 	moveRedistInfo.redistType = A2A;
 	moveRedistInfo.dist = intDist;
 	moveRedistInfo.modes = gridModesToMove;
@@ -211,10 +211,10 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 }
 
 template <typename T>
-void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
+void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
 	Unsigned i;
 	Unsigned order = startDist.size() - 1;
-	const rote::Grid& g = Grid();
+	const rote::Grid& g = this->Grid();
 
 	ModeArray movedModes = redistData.gridModesMoved;
 //	ModeArray movedModesSrcs = redistData.gridModesMovedSrcs;
@@ -296,10 +296,10 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 			}
 		}
 
-		RedistInfo newRedistInfo;
+		Redist newRedistInfo;
 		newRedistInfo.dist = intDist;
 		newRedistInfo.redistType = Perm;
-		newRedistInfo.modes = DefaultPermutation(Grid().Order());
+		newRedistInfo.modes = DefaultPermutation(this->Grid().Order());
 
 		intDists.push_back(newRedistInfo);
 
@@ -312,7 +312,7 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 }
 
 template <typename T>
-void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startDist, GenRedistData& redistData, std::vector<RedistInfo>& intDists){
+void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
 	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	//Add any grid modes to reduce communicated data
 	if(finalDist == startDist){
@@ -347,10 +347,10 @@ void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const Tensor
 			std::cout << "Final: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		//Add the final redistribution
 		//NOTE: modes is clearly a hack until interface changes
-		RedistInfo redistInfo;
+		Redist redistInfo;
 		redistInfo.redistType = Perm;
-		redistInfo.dist = TensorDist();
-		redistInfo.modes = DefaultPermutation(Grid().Order());
+		redistInfo.dist = this->TensorDist();
+		redistInfo.modes = DefaultPermutation(this->Grid().Order());
 		intDists.push_back(redistInfo);
 	}
 }

@@ -26,7 +26,7 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
       LogicError("ReduceToOneRedist: Invalid redistribution request");
 
     const rote::Grid& g = A.Grid();
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
         return;
@@ -47,7 +47,7 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
 
     //Pack the data
     PROFILE_SECTION("RTOPack");
-    PackAGCommSendBuf(A, sendBuf);
+    this->PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
 //    ObjShape sendShape = commDataShape;
@@ -58,7 +58,7 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
     T* alignSendBuf = &(sendBuf[0]);
     T* alignRecvBuf = &(recvBuf[0]);
 
-    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+    bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
     if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
 		recvBuf = &(alignSendBuf[0]);
@@ -73,8 +73,8 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RTOUnpack");
-    if(Participating())
-    	UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
+    if(this->Participating())
+    	this->UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

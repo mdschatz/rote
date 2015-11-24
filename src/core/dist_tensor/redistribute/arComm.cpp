@@ -24,13 +24,13 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
       LogicError("AllReduceRedist: Invalid redistribution request");
     const rote::Grid& g = A.Grid();
 
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, g);
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
     if(!A.Participating())
         return;
 
     //Determine buffer sizes for communication
-    const ObjShape commDataShape = MaxLocalShape();
+    const ObjShape commDataShape = this->MaxLocalShape();
     const Unsigned sendSize = prod(commDataShape);
     const Unsigned recvSize = sendSize;
 

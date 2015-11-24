@@ -17,11 +17,11 @@ namespace rote{
 //TODO: FLESH OUT THIS CHECK
 template <typename T>
 bool DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = TensorDist();
+	const TensorDistribution outDist = this->TensorDist();
 	const TensorDistribution inDist = A.TensorDist();
 
 	bool ret = true;
-	ret &= CheckOrder(Order(), A.Order());
+	ret &= CheckOrder(this->Order(), A.Order());
 	ret &= CheckOutIsPrefix(outDist, inDist);
 	ret &= CheckSameCommModes(outDist, inDist);
 
@@ -33,7 +33,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     if(!CheckGatherToOneCommRedist(A))
       LogicError("GatherToOneRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = GetCommunicatorForModes(commModes, A.Grid());
+    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
 
     if(!A.Participating())
         return;
@@ -51,7 +51,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Pack the data
     PROFILE_SECTION("GTOPack");
-    PackAGCommSendBuf(A, sendBuf);
+    this->PackAGCommSendBuf(A, sendBuf);
     PROFILE_STOP;
 
     //Communicate the data
@@ -60,7 +60,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     T* alignSendBuf = &(auxBuf[0]);
     T* alignRecvBuf = &(auxBuf[sendSize]);
 
-    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+    bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
 
     if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
@@ -72,8 +72,8 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("GTOUnpack");
-    if(Participating())
-    	UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
+    if(this->Participating())
+    	this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
     PROFILE_STOP;
 
     this->auxMemory_.Release();

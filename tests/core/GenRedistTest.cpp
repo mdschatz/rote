@@ -59,10 +59,12 @@ void RunReduceTest(const Grid& g, const char* outDist, const char* inDist, const
 	DistTensor<double> A(tenShape, inDist, g);
 	MakeUniform(A);
 	DistTensor<double> B(tenShapeB, outDist, g);
+	MakeUniform(B);
 
 	Print(A, "A");
-	B.RedistFrom(A, reduceModes, 1.0, 0.0);
-	Print(B, "B");
+	Print(B, "Bstart");
+	B.RedistFrom(A, reduceModes, 2.0, 1.0);
+	Print(B, "Bend");
 }
 
 int
@@ -77,10 +79,10 @@ main( int argc, char* argv[] )
     {
     	Unsigned gridOrder = 10;
     	ObjShape gridShape(gridOrder);
-    	gridShape[0] = 1;
-    	gridShape[1] = 1;
-    	gridShape[2] = 1;
-    	gridShape[3] = 1;
+    	gridShape[0] = 3;
+    	gridShape[1] = 2;
+    	gridShape[2] = 2;
+    	gridShape[3] = 3;
     	for(i = 4; i < gridOrder; i++)
     		gridShape[i] = 1;
 
