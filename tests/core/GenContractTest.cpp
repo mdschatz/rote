@@ -244,6 +244,8 @@ void RunTest(const Grid& g, const Params& args){
 			shapeC[i] = args.n_dim;
 	}
 
+	PrintVector(shapeA, "shapeA");
+	PrintVector(args.indicesA, "indicesA");
 	DistTensor<double> A(shapeA, args.distA, g);
 	DistTensor<double> B(shapeB, args.distB, g);
 	DistTensor<double> C(shapeC, args.distC, g);
@@ -252,6 +254,12 @@ void RunTest(const Grid& g, const Params& args){
 	Set(B);
 	Set(C);
 
+	Print(A, "A");
+	PrintData(A, "Adata");
+	Print(B, "B");
+	PrintData(B, "Bdata");
+	Print(C, "C");
+	PrintData(C, "Cdata");
 	double alpha = 1.0;
 	double beta = 0.0;
 	GenContract(alpha, A, args.indicesA, B, args.indicesB, beta, C, args.indicesC);
