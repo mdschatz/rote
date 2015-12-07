@@ -296,9 +296,9 @@ main( int argc, char* argv[] )
     {
     	Unsigned gridOrder = 10;
     	ObjShape gridShape(gridOrder);
-    	gridShape[0] = 3;
+    	gridShape[0] = 2;
     	gridShape[1] = 2;
-    	gridShape[2] = 3;
+    	gridShape[2] = 2;
     	gridShape[3] = 2;
     	for(i = 4; i < gridOrder; i++)
     		gridShape[i] = 1;

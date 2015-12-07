@@ -252,11 +252,13 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	if(depth == contractInfo.partModesA.size()){
 		DistTensor<T> intA(contractInfo.distIntA, A.Grid());
+		intA.SetLocalPermutation(contractInfo.permA);
 		intA.AlignModesWith(contractInfo.alignModesA, C, contractInfo.alignModesATo);
 		intA.RedistFrom(A);
 
 		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
 		intB.AlignModesWith(contractInfo.alignModesB, C, contractInfo.alignModesBTo);
+		intB.SetLocalPermutation(contractInfo.permB);
 		intB.RedistFrom(B);
 
 //		if(commRank == 0)
@@ -374,6 +376,11 @@ void SetBlkContractStatCInfo(const ObjShape& shapeA, const TensorDistribution& d
 	for(i = 0; i < indicesAB.size(); i++)
 		contractInfo.blkSizes[i] = 1;
 	contractInfo.firstIter = true;
+
+	//Set the local permutation info
+	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
+	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
+	contractInfo.permC = DeterminePermutation(indicesC, ConcatenateVectors(indicesAC, indicesBC));
 }
 
 template <typename T>
@@ -399,10 +406,20 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	SetBlkContractStatCInfo(A.Shape(), distIntA, indicesA, B.Shape(), distIntB, indicesB, C.Shape(), indicesC, contractInfo);
 
 //	Print(C, "before scal");
+	TensorDistribution tmpDistC = distC;
+	DistTensor<T> tmpC(tmpDistC, C.Grid());
+	PrintVector(contractInfo.permA, "permA");
+	PrintVector(contractInfo.permB, "permB");
+	PrintVector(contractInfo.permC, "permC");
+	tmpC.SetLocalPermutation(contractInfo.permC);
+	Permute(C, tmpC);
 	Scal(beta, C);
 //	Print(C, "after scal");
-	RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+	RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, tmpC, indicesC);
 
+	PrintData(C, "after contract");
+	Print(C, "after contract");
+	Permute(tmpC, C);
 //	//Perform the distributed computation
 //	DistTensor<T> intA(distIntA, A.Grid());
 //	DistTensor<T> intB(distIntB, B.Grid());
@@ -423,7 +440,7 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
 
     if(numElemA > numElemB && numElemA > numElemC){
     	//Stationary A variant
-//    	printf("StatA\n");
+    	printf("StatA\n");
     	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }else if(numElemB > numElemA && numElemB > numElemC){
     	//Stationary B variant
@@ -431,7 +448,7 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC);
     }else{
     	//Stationary C variant
-//    	printf("StatC\n");
+    	printf("StatC\n");
     	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }
 }
