@@ -273,6 +273,7 @@ void RunTest(const Grid& g, const Params& args){
 	finalC.RedistFrom(C);
 	Print(finalC, "final");
 
+
 	if(commRank == 0){
 		Tensor<double> checkA(shapeA);
 		Tensor<double> checkB(shapeB);
@@ -281,7 +282,11 @@ void RunTest(const Grid& g, const Params& args){
 		Set(checkB);
 		Set(checkC);
 
+		Print(checkA, "checkABefore");
+		Print(checkB, "checkBBefore");
+		Print(checkC, "checkCBefore");
 		LocalContractAndLocalEliminate(alpha, checkA, args.indicesA, checkB, args.indicesB, beta, checkC, args.indicesC);
+		Print(checkC, "check");
 		double norm;
 		Tensor<double> diff(finalC.Tensor().Shape());
 		Diff(finalC.Tensor(), checkC, diff);
@@ -305,9 +310,9 @@ main( int argc, char* argv[] )
     	Unsigned gridOrder = 10;
     	ObjShape gridShape(gridOrder);
     	gridShape[0] = 2;
-    	gridShape[1] = 2;
+    	gridShape[1] = 3;
     	gridShape[2] = 2;
-    	gridShape[3] = 2;
+    	gridShape[3] = 3;
     	for(i = 4; i < gridOrder; i++)
     		gridShape[i] = 1;
 
