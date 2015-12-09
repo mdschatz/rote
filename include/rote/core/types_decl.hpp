@@ -75,7 +75,7 @@ struct 	BlkContractStatAInfo
 	Permutation permB;
 	ModeArray partModesC;
 	TensorDistribution distIntC;
-	Permutation permC;
+	Permutation permA;
 	std::vector<Unsigned> blkSizes;
 };
 

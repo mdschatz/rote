@@ -32,9 +32,11 @@ void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indic
 	}
 }
 
-void SetTempShapeToMatch(const rote::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch){
+void SetTempShapeToMatch(const rote::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch, const IndexArray& sharedIndices){
 	Unsigned i;
 	for(i = 0; i < indicesToMatch.size(); i++){
+		if(IndexOf(sharedIndices, indicesToMatch[i]) == -1)
+			continue;
 		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
 		if(index >= 0)
 			toMatch[i] = gvMatchAgainst.Dimension(index);
@@ -72,17 +74,44 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 	if(depth == contractInfo.partModesB.size()){
 		//Perform the distributed computation
 		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
-		DistTensor<T> intT(contractInfo.shapeT, contractInfo.distT, C.Grid());
 		DistTensor<T> intC(C.Shape(), contractInfo.distIntC, C.Grid());
+
+		const rote::GridView gvA = A.GetGridView();
+		IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+		IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
+		ObjShape shapeT(indicesT.size());
+		SetTensorShapeToMatch(intC.Shape(), indicesC, shapeT, indicesT);
+		PrintVector(shapeT, "shapeTBefore");
+		SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
+		PrintVector(indicesC, "indicesC");
+		PrintVector(indicesT, "indicesT");
+		PrintVector(shapeT, "shapeT");
+		PrintVector(intC.Shape(), "shapeIntC");
+		PrintVector(gvA.ParticipatingShape(), "shapeGVA");
+		DistTensor<T> intT(shapeT, contractInfo.distT, C.Grid());
 		Scal(T(0.0), C);
+		Scal(T(0.0), intT);
 
 		intB.AlignModesWith(contractInfo.alignModesB, A, contractInfo.alignModesBTo);
+		intB.SetLocalPermutation(contractInfo.permB);
 		intB.RedistFrom(B);
 
 //		Print(A, "compute A");
 //		Print(B, "compute B");
 		intT.AlignModesWith(contractInfo.alignModesT, A, contractInfo.alignModesTTo);
-		LocalContract(alpha, A.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, T(0), intT.Tensor(), contractInfo.indicesT);
+		intT.SetLocalPermutation(contractInfo.permT);
+		intT.ResizeTo(shapeT);
+
+		PrintData(A, "Adata");
+		PrintData(intB, "Bdata");
+		PrintData(intT, "intTdata");
+		PrintData(intC, "intCdata");
+		PrintData(C, "Cdata");
+		Print(A, "Adata");
+		Print(B, "Bdata");
+		Print(intT, "intTdata");
+		Print(intC, "intCdata");
+		LocalContractNoReallyPerm(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), contractInfo.indicesT, false);
 //		Print(intT, "result T");
 		intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, contractInfo.reduceTensorModes);
 //		Print(intC, "intC");
@@ -195,6 +224,22 @@ void SetBlkContractStatAInfo(const ObjShape& shapeT, const TensorDistribution& d
 	contractInfo.blkSizes.resize(indicesAB.size());
 	for(i = 0; i < indicesAB.size(); i++)
 		contractInfo.blkSizes[i] = 1;
+
+	printf("determining StatA\n");
+	PrintVector(indicesA, "indicesA");
+	PrintVector(indicesB, "indicesB");
+	PrintVector(indicesC, "indicesC");
+	PrintVector(indicesC, "indicesT");
+	PrintVector(ConcatenateVectors(indicesAC, indicesAB), "ConcatedindicesA");
+	PrintVector(ConcatenateVectors(indicesAB, indicesBC), "ConcatedindicesB");
+	PrintVector(ConcatenateVectors(indicesAC, indicesBC), "ConcatedindicesC");
+	PrintVector(ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB), "CocatedindicesT");
+	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
+	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
+	contractInfo.permT = DeterminePermutation(indicesT, ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB));
+	PrintVector(contractInfo.permA, "permA");
+	PrintVector(contractInfo.permT, "permT");
+	PrintVector(contractInfo.permB, "permB");
 }
 
 template <typename T>
@@ -233,7 +278,8 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	ObjShape shapeT(indicesT.size());
 	SetTensorDistToMatch(distA, indicesA, distT, indicesT);
 	SetTensorShapeToMatch(shapeC, indicesC, shapeT, indicesT);
-	SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT);
+	SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
+	PrintVector(shapeT, "shapeT");
 
 	//Setup temp distIntC
 	const rote::GridView gvC = C.GetGridView();
@@ -244,7 +290,19 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	BlkContractStatAInfo contractInfo;
 	SetBlkContractStatAInfo(shapeT, distT, indicesT, A.Shape(), indicesA, B.Shape(), distIntB, indicesB, C.Shape(), distIntC, indicesC, contractInfo);
 
-	RecurContractStatA(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+	TensorDistribution tmpDistA = distA;
+	DistTensor<T> tmpA(tmpDistA, A.Grid());
+	tmpA.SetLocalPermutation(contractInfo.permA);
+	Permute(A, tmpA);
+	PrintData(A, "Adata");
+	PrintData(tmpA, "tmpAdata");
+	PrintData(B, "Bdata");
+	PrintData(C, "Cdata");
+	Print(A, "Adata");
+	Print(tmpA, "tmpAdata");
+	Print(B, "Bdata");
+	Print(C, "Cdata");
+	RecurContractStatA(0, contractInfo, alpha, tmpA, indicesA, B, indicesB, beta, C, indicesC);
 }
 
 template <typename T>
@@ -258,11 +316,8 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 
 		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
 		intB.AlignModesWith(contractInfo.alignModesB, C, contractInfo.alignModesBTo);
-		PrintVector(contractInfo.permB, "setting permB..");
 		intB.SetLocalPermutation(contractInfo.permB);
-		PrintData(intB, "hokay....");
 		intB.RedistFrom(B);
-		PrintData(intB, "hokayDone");
 
 //		if(commRank == 0)
 //			PrintData(A, "compute A");

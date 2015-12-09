@@ -312,7 +312,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //    }
 #endif
 
-    LocalContract(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
+    LocalContractNoReallyPerm(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
 }
 
 template <typename T>
