@@ -244,8 +244,6 @@ void RunTest(const Grid& g, const Params& args){
 			shapeC[i] = args.n_dim;
 	}
 
-	PrintVector(shapeA, "shapeA");
-	PrintVector(args.indicesA, "indicesA");
 	DistTensor<double> A(shapeA, args.distA, g);
 	DistTensor<double> B(shapeB, args.distB, g);
 	DistTensor<double> C(shapeC, args.distC, g);
@@ -254,12 +252,6 @@ void RunTest(const Grid& g, const Params& args){
 	Set(B);
 	Set(C);
 
-	Print(A, "A");
-	PrintData(A, "Adata");
-	Print(B, "B");
-	PrintData(B, "Bdata");
-	Print(C, "C");
-	PrintData(C, "Cdata");
 	double alpha = 1.0;
 	double beta = 0.0;
 	GenContract(alpha, A, args.indicesA, B, args.indicesB, beta, C, args.indicesC);
@@ -271,7 +263,6 @@ void RunTest(const Grid& g, const Params& args){
 	}
 	DistTensor<double> finalC(shapeC, distFinalC, g);
 	finalC.RedistFrom(C);
-	Print(finalC, "final");
 
 
 	if(commRank == 0){
@@ -282,11 +273,7 @@ void RunTest(const Grid& g, const Params& args){
 		Set(checkB);
 		Set(checkC);
 
-		Print(checkA, "checkABefore");
-		Print(checkB, "checkBBefore");
-		Print(checkC, "checkCBefore");
 		LocalContractAndLocalEliminate(alpha, checkA, args.indicesA, checkB, args.indicesB, beta, checkC, args.indicesC);
-		Print(checkC, "check");
 		double norm;
 		Tensor<double> diff(finalC.Tensor().Shape());
 		Diff(finalC.Tensor(), checkC, diff);

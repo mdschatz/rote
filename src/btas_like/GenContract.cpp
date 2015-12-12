@@ -81,13 +81,8 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 		IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
 		ObjShape shapeT(indicesT.size());
 		SetTensorShapeToMatch(intC.Shape(), indicesC, shapeT, indicesT);
-		PrintVector(shapeT, "shapeTBefore");
 		SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
-		PrintVector(indicesC, "indicesC");
-		PrintVector(indicesT, "indicesT");
-		PrintVector(shapeT, "shapeT");
-		PrintVector(intC.Shape(), "shapeIntC");
-		PrintVector(gvA.ParticipatingShape(), "shapeGVA");
+
 		DistTensor<T> intT(shapeT, contractInfo.distT, C.Grid());
 		Scal(T(0.0), C);
 		Scal(T(0.0), intT);
@@ -102,15 +97,6 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 		intT.SetLocalPermutation(contractInfo.permT);
 		intT.ResizeTo(shapeT);
 
-		PrintData(A, "Adata");
-		PrintData(intB, "Bdata");
-		PrintData(intT, "intTdata");
-		PrintData(intC, "intCdata");
-		PrintData(C, "Cdata");
-		Print(A, "Adata");
-		Print(B, "Bdata");
-		Print(intT, "intTdata");
-		Print(intC, "intCdata");
 		LocalContractNoReallyPerm(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), contractInfo.indicesT, false);
 //		Print(intT, "result T");
 		intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, contractInfo.reduceTensorModes);
@@ -225,21 +211,21 @@ void SetBlkContractStatAInfo(const ObjShape& shapeT, const TensorDistribution& d
 	for(i = 0; i < indicesAB.size(); i++)
 		contractInfo.blkSizes[i] = 1;
 
-	printf("determining StatA\n");
-	PrintVector(indicesA, "indicesA");
-	PrintVector(indicesB, "indicesB");
-	PrintVector(indicesC, "indicesC");
-	PrintVector(indicesC, "indicesT");
-	PrintVector(ConcatenateVectors(indicesAC, indicesAB), "ConcatedindicesA");
-	PrintVector(ConcatenateVectors(indicesAB, indicesBC), "ConcatedindicesB");
-	PrintVector(ConcatenateVectors(indicesAC, indicesBC), "ConcatedindicesC");
-	PrintVector(ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB), "CocatedindicesT");
+//	printf("determining StatA\n");
+//	PrintVector(indicesA, "indicesA");
+//	PrintVector(indicesB, "indicesB");
+//	PrintVector(indicesC, "indicesC");
+//	PrintVector(indicesC, "indicesT");
+//	PrintVector(ConcatenateVectors(indicesAC, indicesAB), "ConcatedindicesA");
+//	PrintVector(ConcatenateVectors(indicesAB, indicesBC), "ConcatedindicesB");
+//	PrintVector(ConcatenateVectors(indicesAC, indicesBC), "ConcatedindicesC");
+//	PrintVector(ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB), "CocatedindicesT");
 	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
 	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
 	contractInfo.permT = DeterminePermutation(indicesT, ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB));
-	PrintVector(contractInfo.permA, "permA");
-	PrintVector(contractInfo.permT, "permT");
-	PrintVector(contractInfo.permB, "permB");
+//	PrintVector(contractInfo.permA, "permA");
+//	PrintVector(contractInfo.permT, "permT");
+//	PrintVector(contractInfo.permB, "permB");
 }
 
 template <typename T>
@@ -279,7 +265,6 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	SetTensorDistToMatch(distA, indicesA, distT, indicesT);
 	SetTensorShapeToMatch(shapeC, indicesC, shapeT, indicesT);
 	SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
-	PrintVector(shapeT, "shapeT");
 
 	//Setup temp distIntC
 	const rote::GridView gvC = C.GetGridView();
@@ -294,14 +279,7 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	DistTensor<T> tmpA(tmpDistA, A.Grid());
 	tmpA.SetLocalPermutation(contractInfo.permA);
 	Permute(A, tmpA);
-	PrintData(A, "Adata");
-	PrintData(tmpA, "tmpAdata");
-	PrintData(B, "Bdata");
-	PrintData(C, "Cdata");
-	Print(A, "Adata");
-	Print(tmpA, "tmpAdata");
-	Print(B, "Bdata");
-	Print(C, "Cdata");
+
 	RecurContractStatA(0, contractInfo, alpha, tmpA, indicesA, B, indicesB, beta, C, indicesC);
 }
 
@@ -337,20 +315,8 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 //			PrintVector(indicesB, "indicesB");
 //			PrintVector(indicesC, "indicesC");
 //		}
-		PrintVector(indicesA, "indicesA");
-		PrintVector(indicesB, "indicesB");
-		PrintVector(indicesC, "indicesC");
-		PrintData(intA, "just beforeA");
-		Print(intA.LockedTensor(), "just before localintA");
-		Print(intA, "just beforeA");
-		PrintData(intB, "just beforeB");
-		Print(intB, "just beforeB");
-		Print(intB.LockedTensor(), "just before localIntB");
-		PrintData(C, "just beforeC");
-		Print(C, "just beforeC");
-		Print(C.LockedTensor(), "just before localC");
 		LocalContractAndLocalEliminate(alpha, intA.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(1), C.Tensor(), indicesC, false);
-		Print(C, "just afterC");
+
 		contractInfo.firstIter = false;
 //		Print(C, "after update");
 		return;
@@ -449,19 +415,9 @@ void SetBlkContractStatCInfo(const ObjShape& shapeA, const TensorDistribution& d
 	contractInfo.firstIter = true;
 
 	//Set the local permutation info
-	printf("determining StatC\n");
-	PrintVector(indicesA, "indicesA");
-	PrintVector(indicesB, "indicesB");
-	PrintVector(indicesC, "indicesC");
-	PrintVector(ConcatenateVectors(indicesAC, indicesAB), "ConcatedindicesA");
-	PrintVector(ConcatenateVectors(indicesAB, indicesBC), "ConcatedindicesB");
-	PrintVector(ConcatenateVectors(indicesAC, indicesBC), "ConcatedindicesC");
 	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
 	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
 	contractInfo.permC = DeterminePermutation(indicesC, ConcatenateVectors(indicesAC, indicesBC));
-	PrintVector(contractInfo.permA, "permA");
-	PrintVector(contractInfo.permB, "permB");
-	PrintVector(contractInfo.permC, "permC");
 }
 
 template <typename T>
@@ -489,22 +445,12 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 //	Print(C, "before scal");
 	TensorDistribution tmpDistC = distC;
 	DistTensor<T> tmpC(tmpDistC, C.Grid());
-//	PrintVector(contractInfo.permA, "permA");
-//	PrintVector(contractInfo.permB, "permB");
-//	PrintVector(contractInfo.permC, "permC");
 	tmpC.SetLocalPermutation(contractInfo.permC);
-//	PrintVector(C.LocalPermutation(), "ClocalPerm");
 	Permute(C, tmpC);
-//	PrintVector(tmpC.LocalPermutation(), "CtmplocalPerm");
 	Scal(beta, tmpC);
-//	Print(C, "after scal");
-	Print(tmpC, "beforeContract");
 	RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, tmpC, indicesC);
 
-	PrintData(tmpC, "after contract");
-	Print(tmpC, "after contract");
 	Permute(tmpC, C);
-	Print(C, "after Permute");
 }
 
 //TODO: Handle updates

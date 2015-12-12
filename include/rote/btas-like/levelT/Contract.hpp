@@ -162,14 +162,14 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
         Permute(IPC, C, invPermC);
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
-        PrintData(A, "A in");
-        PrintData(B, "B in");
-        PrintData(C, "C in");
-        PrintData(MPA, "MPA in");
-        PrintData(MPB, "MPB in");
-        PrintData(MPC, "MPC in");
+//        PrintData(A, "A in");
+//        PrintData(B, "B in");
+//        PrintData(C, "C in");
+//        PrintData(MPA, "MPA in");
+//        PrintData(MPB, "MPB in");
+//        PrintData(MPC, "MPC in");
         Gemm(alpha, MPA, MPB, beta, MPC);
-        PrintData(MPC, "MPC out");
+//        PrintData(MPC, "MPC out");
     }
     PROFILE_STOP;
 }
@@ -222,18 +222,18 @@ void LocalContractNoReallyPerm(T alpha, const Tensor<T>& A, const IndexArray& in
         Permute(C, PC, permC);
         ViewAsMatrix(MPC, PC, nIndicesM);
 
-        PrintData(A, "A in");
-        PrintData(B, "B in");
-        PrintData(C, "C in");
-        PrintData(MPA, "MPA in");
-        PrintData(MPB, "MPB in");
-        PrintData(MPC, "MPC in");
-        Print(MPA, "MPA data");
-        Print(MPB, "MPB data");
-        Print(MPC, "MPC data");
+//        PrintData(A, "A in");
+//        PrintData(B, "B in");
+//        PrintData(C, "C in");
+//        PrintData(MPA, "MPA in");
+//        PrintData(MPB, "MPB in");
+//        PrintData(MPC, "MPC in");
+//        Print(MPA, "MPA data");
+//        Print(MPB, "MPB data");
+//        Print(MPC, "MPC data");
         Gemm(alpha, MPA, MPB, beta, MPC);
-        PrintData(MPC, "MPC out");
-        Print(MPC, "MPC out data");
+//        PrintData(MPC, "MPC out");
+//        Print(MPC, "MPC out data");
 
 
         Tensor<T> IPC;
@@ -251,21 +251,21 @@ void LocalContractNoReallyPerm(T alpha, const Tensor<T>& A, const IndexArray& in
         Permute(IPC, C, invPermC);
     }else{
         ViewAsMatrix(MPC, C, nIndicesM);
-        PrintData(A, "A in");
-        PrintData(B, "B in");
-        PrintData(C, "C in");
-        Print(A, "A in");
-        Print(B, "B in");
-        Print(C, "C in");
-        PrintData(MPA, "MPA in");
-        PrintData(MPB, "MPB in");
-        PrintData(MPC, "MPC in");
-        Print(MPA, "MPA in");
-        Print(MPB, "MPB in");
-        Print(MPC, "MPC in");
+//        PrintData(A, "A in");
+//        PrintData(B, "B in");
+//        PrintData(C, "C in");
+//        Print(A, "A in");
+//        Print(B, "B in");
+//        Print(C, "C in");
+//        PrintData(MPA, "MPA in");
+//        PrintData(MPB, "MPB in");
+//        PrintData(MPC, "MPC in");
+//        Print(MPA, "MPA in");
+//        Print(MPB, "MPB in");
+//        Print(MPC, "MPC in");
         Gemm(alpha, MPA, MPB, beta, MPC);
-        PrintData(MPC, "MPC out");
-        Print(MPC, "MPC out");
+//        PrintData(MPC, "MPC out");
+//        Print(MPC, "MPC out");
     }
     PROFILE_STOP;
 }
