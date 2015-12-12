@@ -148,6 +148,11 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	tmp = tmp2;
     }
 
+//    PrintData(tmp, "tmp last data");
+//    Print(tmp, "tmp last");
+//    PrintData(*this, "this last data");
+//    Print(*this, "this last");
+//    printf("beta is: %.3f\n", beta);
 	Redist lastRedist = intermediateDists[intermediateDists.size() - 1];
 	switch(lastRedist.redistType){
 	case AG: AllGatherRedistFrom(tmp, lastRedist.modes, beta); break;
@@ -158,6 +163,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 	default: break;
 	}
 
+//	Print(*this, "this after");
     PROFILE_STOP;
 }
 

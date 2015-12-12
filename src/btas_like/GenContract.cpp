@@ -84,8 +84,8 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 		SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
 
 		DistTensor<T> intT(shapeT, contractInfo.distT, C.Grid());
-		Scal(T(0.0), C);
-		Scal(T(0.0), intT);
+//		Scal(T(0.0), C);
+//		Scal(T(0.0), intT);
 
 		intB.AlignModesWith(contractInfo.alignModesB, A, contractInfo.alignModesBTo);
 		intB.SetLocalPermutation(contractInfo.permB);
@@ -99,10 +99,12 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 
 		LocalContractNoReallyPerm(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), contractInfo.indicesT, false);
 //		Print(intT, "result T");
-		intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, contractInfo.reduceTensorModes);
+//		Print(C, "C before");
+		C.RedistFrom(intT, contractInfo.reduceTensorModes, T(1), beta);
+//		intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, contractInfo.reduceTensorModes);
 //		Print(intC, "intC");
-		C.RedistFrom(intC);
-//		Print(C, "C");
+//		C.RedistFrom(intC);
+//		Print(C, "C after update");
 		return;
 	}
 	//Must partition and recur
@@ -280,7 +282,12 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	tmpA.SetLocalPermutation(contractInfo.permA);
 	Permute(A, tmpA);
 
+//	printf("alpha: %.3f, beta: %.3f\n", alpha, beta);
+//	Print(tmpA, "orig tmpA");
+//	Print(B, "orig tmpB");
+//	Print(C, "orig C");
 	RecurContractStatA(0, contractInfo, alpha, tmpA, indicesA, B, indicesB, beta, C, indicesC);
+//	Print(C, "final C");
 }
 
 template <typename T>

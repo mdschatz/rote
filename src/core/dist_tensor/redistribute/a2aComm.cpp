@@ -408,7 +408,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             	data.loopShape = unpackData.loopShape;
             	data.dstStrides = unpackData.dstBufStrides;
             	data.srcStrides = unpackData.srcBufStrides;
-            	YAxpBy_fast(T(1), alpha, &(recvBuf[0]), &(dataBuf[0]), data);
+            	YAxpBy_fast(T(1), alpha, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]), data);
             }
         }
     }

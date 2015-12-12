@@ -77,6 +77,7 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 	mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
     PROFILE_STOP;
 
+//    printf("alpha: %.3f\n", alpha);
 //    ObjShape recvShape = commDataShape;
 //    recvShape.insert(recvShape.end(), nRedistProcs);
 //    PrintArray(recvBuf, recvShape, "recvBuf");
@@ -85,8 +86,8 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
     this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
     PROFILE_STOP;
 
-//    const T* myBuf = LockedBuffer();
-//    PrintArray(myBuf, LocalShape(), "myBuf");
+//    const T* myBuf = this->LockedBuffer();
+//    PrintArray(myBuf, this->LocalShape(), "myBuf");
 
     this->auxMemory_.Release();
 }
