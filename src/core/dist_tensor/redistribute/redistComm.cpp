@@ -318,15 +318,15 @@ void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const Tensor
 	if(finalDist == startDist){
 		return;
 	}
-	else if(redistData.tenModesReduced.size() > 0){
-//		if(commRank == 0)
-//			std::cout << "Reduce: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
-		CommRedistReduce(finalDist, startDist, redistData, intDists);
-	}
 	else if(redistData.gridModesAppeared.size() > 0){
 //		if(commRank == 0)
 //			std::cout << "Add: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistAdd(finalDist, startDist, redistData, intDists);
+	}
+	else if(redistData.tenModesReduced.size() > 0){
+//		if(commRank == 0)
+//			std::cout << "Reduce: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		CommRedistReduce(finalDist, startDist, redistData, intDists);
 	}
 	//Move any grid modes with Perm + A2A
 	//Try the Perm first

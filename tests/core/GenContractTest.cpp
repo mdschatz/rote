@@ -253,7 +253,7 @@ void RunTest(const Grid& g, const Params& args){
 	Set(C);
 
 	double alpha = 2.0;
-	double beta = 1.0;
+	double beta = 3.0;
 	GenContract(alpha, A, args.indicesA, B, args.indicesB, beta, C, args.indicesC);
 
 	TensorDistribution distFinalC = args.distC;

@@ -28,6 +28,9 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 	 //Determine tensor modes that are reduced
 //	 redistData.gridModesReduced = GetBoundGridModes(tenDistA, reduceModes);
 	 redistData.tenModesReduced = reduceModes;
+	 ModeArray gridModesReduced;
+	 for(i = 0; i < redistData.tenModesReduced.size(); i++)
+		 gridModesReduced = ConcatenateVectors(gridModesReduced, tenDistA[reduceModes[i]]);
 	 //gridModesA = DiffVector(gridModesA, redistData.gridModesReduced);
 
 	 //Determine grid modes that are removed/added
@@ -36,6 +39,14 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 
 	 redistData.gridModesRemoved = DiffVector(gridModesA, gridModesB);
 	 redistData.gridModesRemovedSrcs = GetModeDistOfGridMode(redistData.gridModesRemoved, tenDistA);
+
+	 //By default, we put AR modes to ten mode 0
+	 for(i = 0; i < redistData.gridModesRemoved.size(); i++){
+		 Mode gridMode = redistData.gridModesRemoved[i];
+		 if(Contains(gridModesReduced, gridMode)){
+			 redistData.gridModesRemovedSrcs[i] = 0;
+		 }
+	 }
 
 	 redistData.gridModesAppeared = DiffVector(gridModesB, gridModesA);
 	 redistData.gridModesAppearedSinks = GetModeDistOfGridMode(redistData.gridModesAppeared, tenDistB);
@@ -141,6 +152,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	case A2A: tmp2.AllToAllRedistFrom(tmp, intRedist.modes); break;
     	case Perm: tmp2.PermutationRedistFrom(tmp, intRedist.modes); break;
     	case Local: tmp2.LocalRedistFrom(tmp); break;
+//    	case AR: tmp2.AllReduceRedistFrom(tmp, reduceModes); break;
     	case RS: tmp2.ReduceScatterRedistFrom(alpha, tmp, reduceModes); break;
     	default: break;
     	}
@@ -159,6 +171,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 	case A2A: AllToAllRedistFrom(tmp, lastRedist.modes, beta); break;
 	case Local: LocalRedistFrom(tmp); break;
 	case Perm: PermutationRedistFrom(tmp, lastRedist.modes, beta); break;
+//	case AR: tmp2.AllReduceUpdateRedistFrom(tmp, beta, reduceModes); break;
 	case RS: ReduceScatterUpdateRedistFrom(tmp, beta, reduceModes); break;
 	default: break;
 	}
