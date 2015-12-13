@@ -109,7 +109,7 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 	}
 	//Must partition and recur
 	//Note: pull logic out
-	Unsigned blkSize = 1;
+	Unsigned blkSize = contractInfo.blkSizes[depth];
 	Mode partModeB = contractInfo.partModesB[depth];
 	Mode partModeC = contractInfo.partModesC[depth];
 	DistTensor<T> B_T(B.TensorDist(), B.Grid());
@@ -211,7 +211,7 @@ void SetBlkContractStatAInfo(const ObjShape& shapeT, const TensorDistribution& d
 	//TODO: Needs to be updated correctly!!!!!!
 	contractInfo.blkSizes.resize(indicesAB.size());
 	for(i = 0; i < indicesAB.size(); i++)
-		contractInfo.blkSizes[i] = 1;
+		contractInfo.blkSizes[i] = 4;
 
 //	printf("determining StatA\n");
 //	PrintVector(indicesA, "indicesA");
@@ -330,7 +330,7 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 	}
 	//Must partition and recur
 	//Note: pull logic out
-	Unsigned blkSize = 1;
+	Unsigned blkSize = contractInfo.blkSizes[depth];
 	Mode partModeA = contractInfo.partModesA[depth];
 	Mode partModeB = contractInfo.partModesB[depth];
 	DistTensor<T> A_T(A.TensorDist(), A.Grid());
@@ -418,7 +418,7 @@ void SetBlkContractStatCInfo(const ObjShape& shapeA, const TensorDistribution& d
 	//TODO: Needs to be updated correctly!!!!!!
 	contractInfo.blkSizes.resize(indicesAB.size());
 	for(i = 0; i < indicesAB.size(); i++)
-		contractInfo.blkSizes[i] = 1;
+		contractInfo.blkSizes[i] = 4;
 	contractInfo.firstIter = true;
 
 	//Set the local permutation info
