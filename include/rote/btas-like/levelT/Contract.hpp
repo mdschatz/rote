@@ -112,6 +112,9 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
             reallyPermuteC |= (pStridesC[i] != (pShapeC[i-1] * pStridesC[i-1]));
     }
 
+    printf("reallyPermuteA: %s\n", reallyPermuteA ? "True" : "False");
+    printf("reallyPermuteB: %s\n", reallyPermuteB ? "True" : "False");
+    printf("reallyPermuteC: %s\n", reallyPermuteC ? "True" : "False");
     //Create a matrix view of the tensors (permute if needed)
     //Then call Gemm
     if(reallyPermuteA){
@@ -171,6 +174,102 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
     PROFILE_STOP;
 }
 
+template <typename T>
+void LocalContractNoReallyPerm(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+#ifndef RELEASE
+    CallStackEntry("LocalContract");
+
+    if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
+        LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
+#endif
+    PROFILE_SECTION("Contract");
+
+    Unsigned i;
+    const std::vector<ModeArray> contractPerms(DetermineContractModes(indicesA, indicesB, indicesC));
+    const IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+    const Unsigned nIndicesContract = contractIndices.size();
+
+    //Determine the permutations for each Tensor
+    const Permutation permA = contractPerms[0];
+    const Permutation permB = contractPerms[1];
+    const Permutation permC = contractPerms[2];
+    const Unsigned nIndicesM = permA.size() - nIndicesContract;
+
+    Tensor<T> PA(A.Order());
+    Tensor<T> PB(B.Order());
+    Tensor<T> PC(C.Order());
+
+    Tensor<T> MPA, MPB, MPC;
+
+    //Create a matrix view of the tensors (permute if needed)
+    //Then call Gemm
+    if(permuteA){
+//        PA.ResizeTo(PermuteVector(A.Shape(), permA));
+        Permute(A, PA, permA);
+        ViewAsMatrix(MPA, PA, nIndicesM);
+    }else{
+        ViewAsMatrix(MPA, A, nIndicesM);
+    }
+    if(permuteB){
+//        PB.ResizeTo(PermuteVector(B.Shape(), permB));
+        Permute(B, PB, permB);
+        ViewAsMatrix(MPB, PB, nIndicesContract);
+    }else{
+        ViewAsMatrix(MPB, B, nIndicesContract);
+    }
+    if(permuteC){
+//        PC.ResizeTo(PermuteVector(C.Shape(), permC));
+        Permute(C, PC, permC);
+        ViewAsMatrix(MPC, PC, nIndicesM);
+
+//        PrintData(A, "A in");
+//        PrintData(B, "B in");
+//        PrintData(C, "C in");
+//        PrintData(MPA, "MPA in");
+//        PrintData(MPB, "MPB in");
+//        PrintData(MPC, "MPC in");
+//        Print(MPA, "MPA data");
+//        Print(MPB, "MPB data");
+//        Print(MPC, "MPC data");
+        Gemm(alpha, MPA, MPB, beta, MPC);
+//        PrintData(MPC, "MPC out");
+//        Print(MPC, "MPC out data");
+
+
+        Tensor<T> IPC;
+        const Permutation invPermC = DetermineInversePermutation(permC);
+        ObjShape splitColModes(nIndicesM);
+        for(i = 0; i < splitColModes.size(); i++)
+            splitColModes[i] = i;
+
+        std::vector<ObjShape> newShape(2);
+        newShape[0] = FilterVector(PC.Shape(), splitColModes);
+        newShape[1] = NegFilterVector(PC.Shape(), splitColModes);
+
+        ViewAsHigherOrder(IPC, MPC, newShape);
+
+        Permute(IPC, C, invPermC);
+    }else{
+        ViewAsMatrix(MPC, C, nIndicesM);
+//        PrintData(A, "A in");
+//        PrintData(B, "B in");
+//        PrintData(C, "C in");
+//        Print(A, "A in");
+//        Print(B, "B in");
+//        Print(C, "C in");
+//        PrintData(MPA, "MPA in");
+//        PrintData(MPB, "MPB in");
+//        PrintData(MPC, "MPC in");
+//        Print(MPA, "MPA in");
+//        Print(MPB, "MPB in");
+//        Print(MPC, "MPC in");
+        Gemm(alpha, MPA, MPB, beta, MPC);
+//        PrintData(MPC, "MPC out");
+//        Print(MPC, "MPC out");
+    }
+    PROFILE_STOP;
+}
+
 ////////////////////////////////////
 // Local Interfaces
 ////////////////////////////////////
@@ -213,7 +312,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 //    }
 #endif
 
-    LocalContract(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
+    LocalContractNoReallyPerm(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
 }
 
 template <typename T>
@@ -237,7 +336,7 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
     //LocalContract leaves unit modes in result, so introduce them here
     C.IntroduceUnitModes(uModes);
 
-    LocalContract(alpha, A, indicesA, permuteA, B, indicesB, permuteB, beta, C, CIndices, permuteC);
+    LocalContractNoReallyPerm(alpha, A, indicesA, permuteA, B, indicesB, permuteB, beta, C, CIndices, permuteC);
 
     //Remove the unit modes
     C.RemoveUnitModes(uModes);

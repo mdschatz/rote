@@ -28,7 +28,7 @@ DistTensor<T>::DistTensor( const TensorDistribution& dist, const rote::Grid& gri
 template<typename T>
 DistTensor<T>::DistTensor
 ( const ObjShape& shape, const TensorDistribution& dist, const rote::Grid& grid )
-: DistTensorBase<T>(dist, grid)
+: DistTensorBase<T>(shape, dist, grid)
 { }
 
 template<typename T>

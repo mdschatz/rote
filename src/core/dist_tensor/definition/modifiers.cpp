@@ -189,7 +189,7 @@ DistTensorBase<T>::ResizeTo( const ObjShape& shape )
         shape_ = shape;
         SetShifts();
     }
-    if(Participating()){
+    if(Participating() && viewType_ == OWNER){
         //Account for local permutation
         tensor_.ResizeTo(PermuteVector(Lengths(shape, modeShifts_, gridView_.ParticipatingShape()), localPerm_));
     }

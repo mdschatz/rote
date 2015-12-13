@@ -67,12 +67,15 @@ struct 	BlkContractStatAInfo
 	TensorDistribution distT;
 	ModeArray alignModesT;
 	ModeArray alignModesTTo;
+	Permutation permT;
 	ModeArray partModesB;
 	TensorDistribution distIntB;
 	ModeArray alignModesB;
 	ModeArray alignModesBTo;
+	Permutation permB;
 	ModeArray partModesC;
 	TensorDistribution distIntC;
+	Permutation permA;
 	std::vector<Unsigned> blkSizes;
 };
 
@@ -82,10 +85,13 @@ struct 	BlkContractStatCInfo
 	TensorDistribution distIntA;
 	ModeArray alignModesA;
 	ModeArray alignModesATo;
+	Permutation permA;
 	ModeArray partModesB;
 	TensorDistribution distIntB;
 	ModeArray alignModesB;
 	ModeArray alignModesBTo;
+	Permutation permB;
+	Permutation permC;
 	std::vector<Unsigned> blkSizes;
 	bool firstIter;
 };
