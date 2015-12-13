@@ -96,7 +96,7 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 		intT.SetLocalPermutation(contractInfo.permT);
 		intT.ResizeTo(shapeT);
 
-		LocalContractNoReallyPerm(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), contractInfo.indicesT, false);
+		LocalContract(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), contractInfo.indicesT, false);
 //		Print(intT, "result T");
 //		Print(C, "C before");
 		C.RedistFrom(intT, contractInfo.reduceTensorModes, T(1), beta);
