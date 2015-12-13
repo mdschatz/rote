@@ -108,7 +108,6 @@ void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recv
     const std::vector<Unsigned> commLCMs = LCMs(gvAShape, gvBShape);
     const std::vector<Unsigned> modeStrideFactor = ElemwiseDivide(commLCMs, gvAShape);
 
-    const Unsigned order = this->Order();
     T* dataBuf = this->Buffer();
 
     PackData unpackData;

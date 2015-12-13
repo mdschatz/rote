@@ -70,7 +70,6 @@ void AppendTensorDistToMatch(const ModeArray& modes, const TensorDistribution& m
 
 template <typename T>
 void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo, T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	if(depth == contractInfo.partModesB.size()){
 		//Perform the distributed computation
 		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
@@ -292,7 +291,6 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 
 template <typename T>
 void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	if(depth == contractInfo.partModesA.size()){
 		DistTensor<T> intA(contractInfo.distIntA, A.Grid());
 		intA.SetLocalPermutation(contractInfo.permA);
@@ -429,8 +427,6 @@ void SetBlkContractStatCInfo(const ObjShape& shapeA, const TensorDistribution& d
 
 template <typename T>
 void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
-	Unsigned i;
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
