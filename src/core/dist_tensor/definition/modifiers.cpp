@@ -252,24 +252,28 @@ template<typename T>
 void
 DistTensorBase<T>::SetRealPart( const Location& loc, BASE(T) u )
 {
+	NOT_USED(loc); NOT_USED(u);
 }
 
 template<typename T>
 void
 DistTensorBase<T>::SetImagPart( const Location& loc, BASE(T) u )
 {
+	NOT_USED(loc); NOT_USED(u);
 }
 
 template<typename T>
 void
 DistTensorBase<T>::UpdateRealPart( const Location& loc, BASE(T) u )
 {
+	NOT_USED(loc); NOT_USED(u);
 }
 
 template<typename T>
 void
 DistTensorBase<T>::UpdateImagPart( const Location& loc, BASE(T) u )
 {
+	NOT_USED(loc); NOT_USED(u);
 }
 
 template<typename T>
@@ -277,6 +281,7 @@ void
 DistTensorBase<T>::SetRealPartOfDiagonal
 ( const DistTensor<BASE(T)>& d, Int offset )
 {
+	NOT_USED(d); NOT_USED(offset);
 }
 
 template<typename T>
@@ -284,6 +289,7 @@ void
 DistTensorBase<T>::SetImagPartOfDiagonal
 ( const DistTensor<BASE(T)>& d, Int offset )
 {
+	NOT_USED(d); NOT_USED(offset);
 }
 
 template<typename T>
