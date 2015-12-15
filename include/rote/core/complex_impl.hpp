@@ -33,7 +33,7 @@ RealPart( const std::complex<Real>& alpha )
 template<typename Real>
 inline Real
 ImagPart( const Real& alpha )
-{ alpha; return 0; }
+{ NOT_USED(alpha); return 0; }
 
 template<typename Real>
 inline Real
@@ -64,7 +64,7 @@ SetImagPart( Real& alpha, const Real& beta )
 #ifndef RELEASE
     CallStackEntry cse("SetImagPart");
 #endif
-    alpha; beta;
+    NOT_USED(alpha); NOT_USED(beta);
     LogicError("Nonsensical assignment");
 }
 
@@ -104,7 +104,7 @@ UpdateImagPart( Real& alpha, const Real& beta )
 #ifndef RELEASE
     CallStackEntry cse("UpdateImagPart");
 #endif
-    alpha; beta;
+    (void) alpha; (void) beta;
     LogicError("Nonsensical update");
 }
 

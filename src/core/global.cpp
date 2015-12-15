@@ -61,24 +61,33 @@ namespace rote {
 
 void PrintVersion( std::ostream& os )
 {
-    os << "Elemental version information:\n"
+    os << "ROTE version information:\n"
        << "  Git revision: " << GIT_SHA1 << "\n"
-       << "  Version:      " << Elemental_VERSION_MAJOR << "."
-                             << Elemental_VERSION_MINOR << "\n"
+       << "  Version:      " << ROTE_VERSION_MAJOR << "."
+                             << ROTE_VERSION_MINOR << "\n"
        << "  Build type:   " << CMAKE_BUILD_TYPE << "\n"
        << std::endl;
 }
 
 void PrintConfig( std::ostream& os )
 {
+	os << "Config information:\n"
+	   << "Default"
+	   << std::endl;
 }
 
 void PrintCCompilerInfo( std::ostream& os )
 {
+	os << "Compiler information:\n"
+	   << "Default"
+	   << std::endl;
 }
 
 void PrintCxxCompilerInfo( std::ostream& os )
 {
+	os << "CXX Compiler information:\n"
+	   << "Default"
+	   << std::endl;
 }
 
 bool Initialized()

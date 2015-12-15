@@ -33,6 +33,7 @@ template<typename T>
 void
 MaxLocFunc( void* inVoid, void* outVoid, int* length, Datatype* datatype )
 {           
+	NOT_USED(datatype);
     const ValueInt<T>* inData = static_cast<ValueInt<T>*>(inVoid);
     ValueInt<T>* outData = static_cast<ValueInt<T>*>(outVoid);
     for( int j=0; j<*length; ++j )
@@ -50,6 +51,7 @@ template<typename T>
 void
 MaxLocPairFunc( void* inVoid, void* outVoid, int* length, Datatype* datatype )
 {           
+	NOT_USED(datatype);
     const ValueIntPair<T>* inData = static_cast<ValueIntPair<T>*>(inVoid);
     ValueIntPair<T>* outData = static_cast<ValueIntPair<T>*>(outVoid);
     for( int j=0; j<*length; ++j )

@@ -157,7 +157,6 @@ Tensor<T> LockedViewAsLowerOrder
 template<typename T>
 void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
-  const Tensor<T>& B,
   const std::vector<ObjShape>& splitShape, bool isLocked );
 
 template<typename T>

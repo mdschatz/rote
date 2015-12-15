@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8)
 
-project(Rote)
+project(ROTE)
 set(ROTE_VERSION_MAJOR 0)
 set(ROTE_VERSION_MINOR 0-dev)
 

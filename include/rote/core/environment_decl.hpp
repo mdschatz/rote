@@ -18,6 +18,8 @@
 
 namespace rote {
 
+#define NOT_USED(x) ( (void)(x) )
+
 void PrintVersion( std::ostream& os=std::cout );
 void PrintConfig( std::ostream& os=std::cout );
 void PrintCCompilerInfo( std::ostream& os=std::cout );

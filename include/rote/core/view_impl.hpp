@@ -262,7 +262,6 @@ inline void ViewAsLowerOrderHelper
 template<typename T>
 inline void ViewAsHigherOrderHelper
 ( Tensor<T>& A,
-  const Tensor<T>& B,
   const std::vector<ObjShape>& splitShape,
   bool isLocked)
 {
@@ -726,7 +725,7 @@ inline void ViewAsHigherOrder
 #ifndef RELEASE
     CallStackEntry entry("ViewAsHigherOrder");
 #endif
-    ViewAsHigherOrderHelper(A, B, splitShape, false);
+    ViewAsHigherOrderHelper(A, splitShape, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
 }

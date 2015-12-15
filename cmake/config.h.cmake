@@ -6,13 +6,13 @@
    which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
-#ifndef ELEMENTAL_CONFIG_H
-#define ELEMENTAL_CONFIG_H
+#ifndef ROTE_CONFIG_H
+#define ROTE_CONFIG_H
 
 /* Build type and version information */
 #define GIT_SHA1 "@GIT_SHA1@"
-#define Elemental_VERSION_MAJOR "@Elemental_VERSION_MAJOR@"
-#define Elemental_VERSION_MINOR "@Elemental_VERSION_MINOR@"
+#define ROTE_VERSION_MAJOR "@ROTE_VERSION_MAJOR@"
+#define ROTE_VERSION_MINOR "@ROTE_VERSION_MINOR@"
 #define CMAKE_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 #cmakedefine RELEASE
 
@@ -64,4 +64,4 @@
 #cmakedefine POOL_MEMORY
 #cmakedefine AVOID_OMP_FMA
 
-#endif /* ELEMENTAL_CONFIG_H */
+#endif /* ROTE_CONFIG_H */
