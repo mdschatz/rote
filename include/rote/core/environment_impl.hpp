@@ -22,7 +22,7 @@ inline void Args::HandleVersion( std::ostream& os ) const
     if( foundVersion )
     {
         if( mpi::WorldRank() == 0 )
-            PrintVersion();
+            PrintVersion(os);
         throw ArgException();
     }
 }
@@ -36,10 +36,10 @@ inline void Args::HandleBuild( std::ostream& os ) const
     {
         if( mpi::WorldRank() == 0 )
         {
-            PrintVersion();
+            PrintVersion(os);
             //PrintConfig();
-            PrintCCompilerInfo();
-            PrintCxxCompilerInfo();
+            PrintCCompilerInfo(os);
+            PrintCxxCompilerInfo(os);
         }
         throw ArgException();
     }
@@ -114,7 +114,7 @@ StridedMemCopy
   const T* source, std::size_t sourceStride, std::size_t numEntries )
 {
     // For now, use the BLAS wrappers/generalization
-    //blas::Copy( numEntries, source, sourceStride, dest, destStride );
+    blas::Copy( numEntries, source, sourceStride, dest, destStride );
 }
 
 template<typename T>
