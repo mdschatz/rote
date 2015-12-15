@@ -28,7 +28,7 @@ bool DistTensor<T>::CheckBroadcastCommRedist(const DistTensor<T>& A){
 
 template<typename T>
 void
-DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
+DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
 #ifndef RELEASE
     CallStackEntry entry("DistTensor::BroadcastCommRedist");
     if(!this->CheckBroadcastCommRedist(A))
@@ -84,7 +84,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Unpack the data (if participating)
     PROFILE_SECTION("BCastUnpack");
-	this->UnpackPCommRecvBuf(recvBuf, A);
+	this->UnpackPCommRecvBuf(recvBuf, alpha);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

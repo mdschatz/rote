@@ -79,6 +79,7 @@ void DistTensor<T>::IntroduceUnitModesRedist(const std::vector<Unsigned>& unitMo
 
 template<typename T>
 void DistTensor<T>::IntroduceUnitModeRedist(const Unsigned& newModePosition){
+	NOT_USED(newModePosition);
 //    ModeArray modeArr(1);
 //    modeArr[0] = newModePosition;
 //    IntroduceUnitModesRedist(B, A, modeArr);

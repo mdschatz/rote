@@ -110,7 +110,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");
-    this->UnpackPCommRecvBuf(recvBuf, A, alpha);
+    this->UnpackPCommRecvBuf(recvBuf, alpha);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -120,7 +120,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 }
 
 template <typename T>
-void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const DistTensor<T>& A, const T alpha)
+void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const T alpha)
 {
     T* dataBuf = this->Buffer();
 

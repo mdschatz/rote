@@ -105,7 +105,6 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 
 template <typename T>
 void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha, const T beta){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
     PROFILE_SECTION("Redist");
 //    ResizeTo(A);
 

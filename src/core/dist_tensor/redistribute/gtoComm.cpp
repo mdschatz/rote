@@ -29,7 +29,7 @@ bool DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes){
+void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
     if(!CheckGatherToOneCommRedist(A))
       LogicError("GatherToOneRedist: Invalid redistribution request");
 
@@ -73,7 +73,7 @@ void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArra
     //Unpack the data (if participating)
     PROFILE_SECTION("GTOUnpack");
     if(this->Participating())
-    	this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A);
+    	this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
     PROFILE_STOP;
 
     this->auxMemory_.Release();

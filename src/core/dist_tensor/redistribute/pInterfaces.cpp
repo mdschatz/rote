@@ -19,6 +19,7 @@ namespace rote{
 
 template <typename T>
 void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha){
+	NOT_USED(redistModes);
     PROFILE_SECTION("PermuteRedist");
     Unsigned i;
     this->ResizeTo(A);

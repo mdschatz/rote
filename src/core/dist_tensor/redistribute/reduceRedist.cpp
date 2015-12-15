@@ -106,8 +106,8 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
 
     switch(redistType){
 		case RS:  tmp2.ReduceScatterUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes); break;
-		case RTO: tmp2.ReduceToOneUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes); break;
-		case AR:  tmp2.AllReduceUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes); break;
+		case RTO: tmp2.ReduceToOneUpdateCommRedist(alpha, tmp, beta, commModes); break;
+		case AR:  tmp2.AllReduceUpdateCommRedist(alpha, tmp, beta, commModes); break;
 		default: break;
     }
 }

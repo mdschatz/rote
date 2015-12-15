@@ -105,7 +105,7 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& indicesT,
 							 const IndexArray& indicesA,
 							 const TensorDistribution& distIntB, const IndexArray& indicesB,
-							 const TensorDistribution& distIntC, const IndexArray& indicesC,
+							 const IndexArray& indicesC,
 							 BlkContractStatAInfo& contractInfo){
 	Unsigned i;
 	IndexArray indicesAB = DiffVector(indicesA, indicesC);
@@ -200,7 +200,7 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 
 	//Create the Contract Info
 	BlkContractStatAInfo contractInfo;
-	SetBlkContractStatAInfo(distT, indicesT, indicesA, distIntB, indicesB, distIntC, indicesC, contractInfo);
+	SetBlkContractStatAInfo(distT, indicesT, indicesA, distIntB, indicesB, indicesC, contractInfo);
 
 	TensorDistribution tmpDistA = distA;
 	DistTensor<T> tmpA(tmpDistA, A.Grid());

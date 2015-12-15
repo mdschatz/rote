@@ -114,7 +114,7 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
 template<typename T>
 Tensor<T>::Tensor
 ( const ObjShape& shape, const std::vector<Unsigned>& strides, bool fixed )
-: shape_(shape), strides_(Dimensions2Strides(shape)),
+: shape_(shape), strides_(strides),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
@@ -131,7 +131,7 @@ Tensor<T>::Tensor
 template<typename T>
 Tensor<T>::Tensor
 ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides, bool fixed )
-: shape_(shape), strides_(Dimensions2Strides(shape)),
+: shape_(shape), strides_(strides),
   viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   data_(buffer), memory_()
 {
@@ -144,7 +144,7 @@ Tensor<T>::Tensor
 template<typename T>
 Tensor<T>::Tensor
 ( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides, bool fixed )
-: shape_(shape), strides_(Dimensions2Strides(shape)),
+: shape_(shape), strides_(strides),
   viewType_( fixed ? VIEW_FIXED: VIEW ),
   data_(buffer), memory_()
 {

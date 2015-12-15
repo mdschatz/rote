@@ -313,7 +313,6 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 
 template <typename T>
 void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	//Add any grid modes to reduce communicated data
 	if(finalDist == startDist){
 		return;
