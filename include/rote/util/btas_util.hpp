@@ -15,12 +15,17 @@
 #include <iostream>
 #include "rote/core/types_decl.hpp"
 #include "rote/util/vec_util.hpp"
-//#include "rote/core.hpp"
+#include "rote.hpp"
 
 namespace rote{
 
 std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC);
 IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray& indicesB);
+
+void SetTensorDistToMatch(const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch);
+void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch);
+void SetTempShapeToMatch(const rote::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch, const IndexArray& sharedIndices);
+void AppendTensorDistToMatch(const ModeArray& modes, const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch);
 
 }
 #endif // ifndef ROTE_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP
