@@ -40,8 +40,8 @@ protected:
     std::ostream& error_;
     mpi::Comm comm_;
 
-    void HandleVersion( std::ostream& os=std::cout ) const { }
-    void HandleBuild( std::ostream& os=std::cout ) const { }
+    void HandleVersion( std::ostream& os=std::cout ) const { os << "1.0" << std::endl; }
+    void HandleBuild( std::ostream& os=std::cout ) const { os << "1.0" << std::endl; }
 
     struct RequiredArg
     { 
