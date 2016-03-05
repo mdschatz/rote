@@ -32,6 +32,9 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 template <typename T>
 void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
 
+template <typename T>
+void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC);
+
 } // namespace rote
 
 #endif // ifndef ROTE_BTAS_GEN_CONTRACT_HPP

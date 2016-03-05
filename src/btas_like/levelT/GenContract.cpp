@@ -32,10 +32,28 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     }
 }
 
+template <typename T>
+void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC){
+	IndexArray indA(indicesA.size());
+	for(int i = 0; i < indicesA.size(); i++)
+		indA[i] = indicesA[i];
+
+	IndexArray indB(indicesB.size());
+	for(int i = 0; i < indicesB.size(); i++)
+		indB[i] = indicesB[i];
+
+	IndexArray indC(indicesC.size());
+	for(int i = 0; i < indicesC.size(); i++)
+		indC[i] = indicesC[i];
+
+	GenContract(alpha, A, indA, B, indB, beta, C, indC);
+}
+
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
+	template void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC); \
+	template void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC);
 
 //PROTO(Unsigned)
 //PROTO(Int)
