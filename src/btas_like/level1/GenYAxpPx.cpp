@@ -29,8 +29,12 @@ template <typename T>
 void GenYAxpPx( T alpha, const DistTensor<T>& X, T beta, const Permutation& perm, DistTensor<T>& Y ){
 	if(!CheckYAxpPxArgs(X, perm, Y))
 		LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
+	TensorDistribution copy = X.TensorDist();
+	TensorDistribution newDist = copy;
+	for(int i = 0; i < newDist.size(); i++)
+		newDist[i] = copy[perm[i]];
 
-	DistTensor<T> tmp(PermuteVector(X.TensorDist(), perm), X.Grid());
+	DistTensor<T> tmp(newDist, X.Grid());
 	tmp.RedistFrom(X);
 
 	YAxpPx(alpha, X, beta, tmp, perm, Y);

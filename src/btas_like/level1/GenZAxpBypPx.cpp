@@ -29,8 +29,12 @@ template <typename T>
 void GenZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const Permutation& perm, DistTensor<T>& Z ){
 	if(!CheckZAxpPxArgs(X, Y, perm, Z))
 		LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
+	TensorDistribution copy = X.TensorDist();
+	TensorDistribution newDist = copy;
+	for(int i = 0; i < newDist.size(); i++)
+		newDist[i] = copy[perm[i]];
 
-	DistTensor<T> tmp(PermuteVector(X.TensorDist(), perm), X.Grid());
+	DistTensor<T> tmp(newDist, X.Grid());
 	tmp.RedistFrom(X);
 
 	ZAxpBypPx(alpha, X, beta, Y, tmp, perm, Z);
@@ -39,7 +43,7 @@ void GenZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>&
 //Non-template functions
 #define PROTO(T) \
 	template bool CheckZAxpPxArgs(const DistTensor<T>& X, const DistTensor<T>& Y, const Permutation& perm, const DistTensor<T>& Z); \
-    template void GenZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const Permutation& perm, DistTensor<T>& Z );
+	template void GenZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const Permutation& perm, DistTensor<T>& Z );
 
 //PROTO(Unsigned)
 //PROTO(Int)
