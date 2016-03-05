@@ -280,7 +280,7 @@ FULL(double)
 FULL(std::complex<float>)
 #endif
 FULL(std::complex<double>)
-#endif 
+#endif
 
 
 } // namespace rote

@@ -256,6 +256,27 @@ YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor
 
 template<typename T>
 inline void
+YxpBy( const DistTensor<T>& X, T beta, DistTensor<T>& Y )
+{
+	YAxpBy(T(1), X, beta, Y);
+}
+
+template<typename T>
+inline void
+YAxpy( T alpha, const DistTensor<T>& X, DistTensor<T>& Y )
+{
+	YAxpBy(alpha, X, T(1), Y);
+}
+
+template<typename T>
+inline void
+Yxpy( const DistTensor<T>& X, DistTensor<T>& Y )
+{
+	YAxpBy(T(1), X, T(1), Y);
+}
+
+template<typename T>
+inline void
 YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y )
 {
 #ifndef RELEASE
@@ -271,13 +292,24 @@ YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y )
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y );
+	template void Yxpy( const DistTensor<T>& X, DistTensor<T>& Y ); \
+	template void YAxpy( T alpha, const DistTensor<T>& X, DistTensor<T>& Y ); \
+	template void YxpBy( const DistTensor<T>& X, T beta, DistTensor<T>& Y ); \
+	template void YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y ); \
+	template void YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAxpByData& data );
 
 
 //PROTO(Unsigned)
-//PROTO(Int)
+PROTO(Int)
 PROTO(float)
 PROTO(double)
 //PROTO(char)
+
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+PROTO(std::complex<float>)
+#endif
+PROTO(std::complex<double>)
+#endif
 
 } // namespace rote
