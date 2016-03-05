@@ -76,6 +76,7 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArray& indicesA,
 		                     const TensorDistribution& distIntB, const IndexArray& indicesB,
 							 const IndexArray& indicesC,
+							 const std::vector<Unsigned>& blkSizes,
 							 BlkContractStatCInfo& contractInfo){
 	Unsigned i;
 	IndexArray indicesAC = DiffVector(indicesC, indicesB);
@@ -109,10 +110,14 @@ void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArra
 	}
 
 	//Set the Block-size info
-	//TODO: Needs to be updated correctly!!!!!!
-	contractInfo.blkSizes.resize(indicesAB.size());
-	for(i = 0; i < indicesAB.size(); i++)
-		contractInfo.blkSizes[i] = 4;
+	//NOTE: There are better ways to do this
+	if(blkSizes.size() == 0){
+		contractInfo.blkSizes.resize(indicesAB.size());
+		for(i = 0; i < indicesAB.size(); i++)
+			contractInfo.blkSizes[i] = 32;
+	}else{
+		contractInfo.blkSizes = blkSizes;
+	}
 
 	//Set the local permutation info
 	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
@@ -121,7 +126,7 @@ void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArra
 }
 
 template <typename T>
-void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
@@ -138,7 +143,7 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 
 	//Determine how to partition
 	BlkContractStatCInfo contractInfo;
-	SetBlkContractStatCInfo(distIntA, indicesA, distIntB, indicesB, indicesC, contractInfo);
+	SetBlkContractStatCInfo(distIntA, indicesA, distIntB, indicesB, indicesC, blkSizes, contractInfo);
 
 	if(contractInfo.permC != DefaultPermutation(C.Order())){
 		TensorDistribution tmpDistC = distC;
@@ -158,7 +163,7 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
+	template void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes);
 
 //PROTO(Unsigned)
 //PROTO(Int)

@@ -14,7 +14,7 @@ namespace rote{
 //TODO: Handle updates
 //Note: StatA equivalent to StatB with rearranging operands
 template <typename T>
-void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
 	//Determine Stationary variant.
     const Unsigned numElemA = prod(A.Shape());
     const Unsigned numElemB = prod(B.Shape());
@@ -22,18 +22,18 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
 
     if(numElemA > numElemB && numElemA > numElemC){
     	//Stationary A variant
-    	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+    	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC, blkSizes);
     }else if(numElemB > numElemA && numElemB > numElemC){
     	//Stationary B variant
-    	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC);
+    	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC, blkSizes);
     }else{
     	//Stationary C variant
-    	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+    	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC, blkSizes);
     }
 }
 
 template <typename T>
-void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC){
+void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes){
 	IndexArray indA(indicesA.size());
 	for(int i = 0; i < indicesA.size(); i++)
 		indA[i] = indicesA[i];
@@ -46,14 +46,14 @@ void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, c
 	for(int i = 0; i < indicesC.size(); i++)
 		indC[i] = indicesC[i];
 
-	GenContract(alpha, A, indA, B, indB, beta, C, indC);
+	GenContract(alpha, A, indA, B, indB, beta, C, indC, blkSizes);
 }
 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC); \
-	template void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC);
+	template void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes); \
+	template void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes);
 
 //PROTO(Unsigned)
 //PROTO(Int)

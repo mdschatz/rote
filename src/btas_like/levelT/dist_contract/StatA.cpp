@@ -88,6 +88,7 @@ void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& 
 							 const IndexArray& indicesA,
 							 const TensorDistribution& distIntB, const IndexArray& indicesB,
 							 const IndexArray& indicesC,
+							 const std::vector<Unsigned>& blkSizes,
 							 BlkContractStatAInfo& contractInfo){
 	Unsigned i;
 	IndexArray indicesAB = DiffVector(indicesA, indicesC);
@@ -127,10 +128,13 @@ void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& 
 	}
 
 	//Set the Block-size info
-	//TODO: Needs to be updated correctly!!!!!!
-	contractInfo.blkSizes.resize(indicesAB.size());
-	for(i = 0; i < indicesAB.size(); i++)
-		contractInfo.blkSizes[i] = 4;
+	if(blkSizes.size() == 0){
+		contractInfo.blkSizes.resize(indicesBC.size());
+		for(i = 0; i < indicesBC.size(); i++)
+			contractInfo.blkSizes[i] = 32;
+	}else{
+		contractInfo.blkSizes = blkSizes;
+	}
 
 	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
 	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
@@ -138,7 +142,7 @@ void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& 
 }
 
 template <typename T>
-void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
 	Unsigned i;
 	const rote::GridView gvA = A.GetGridView();
 	IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
@@ -182,7 +186,7 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 
 	//Create the Contract Info
 	BlkContractStatAInfo contractInfo;
-	SetBlkContractStatAInfo(distT, indicesT, indicesA, distIntB, indicesB, indicesC, contractInfo);
+	SetBlkContractStatAInfo(distT, indicesT, indicesA, distIntB, indicesB, indicesC, blkSizes, contractInfo);
 
 	TensorDistribution tmpDistA = distA;
 	DistTensor<T> tmpA(tmpDistA, A.Grid());
@@ -195,7 +199,7 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
+	template void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes);
 
 //PROTO(Unsigned)
 //PROTO(Int)
