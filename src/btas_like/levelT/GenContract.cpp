@@ -20,15 +20,32 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     const Unsigned numElemB = prod(B.Shape());
     const Unsigned numElemC = prod(C.Shape());
 
-    if(numElemA > numElemB && numElemA > numElemC){
-    	//Stationary A variant
+    bool isBiggerAB = numElemA > numElemB;
+    bool isBiggerAC = numElemA > numElemC;
+    bool isBiggerBC = numElemB > numElemC;
+
+    bool isEqualAB = numElemA == numElemB;
+
+    bool isSmallerAB = numElemA < numElemB;
+    bool isSmallerAC = numElemA < numElemC;
+
+    bool isSmallerEqualAC = numElemA <= numElemC;
+    bool isSmallerEqualBC = numElemB <= numElemC;
+
+    bool isBiggerEqualAB = numElemA >= numElemB;
+    bool isBiggerEqualAC = numElemA >= numElemC;
+
+    if(isBiggerEqualAB && isBiggerAC){
     	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC, blkSizes);
-    }else if(numElemB > numElemA && numElemB > numElemC){
-    	//Stationary B variant
+    }else if((isSmallerAB && isBiggerEqualAC) ||
+    		 (isSmallerAB && isSmallerAC && isBiggerBC)){
     	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC, blkSizes);
+    }else if((isBiggerAB && isSmallerEqualAC) ||
+    		 (isEqualAB && isSmallerEqualAC) ||
+			 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
+    	ContractStatC(alpha, B, indicesB, A, indicesA, beta, C, indicesC, blkSizes);
     }else{
-    	//Stationary C variant
-    	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC, blkSizes);
+    	LogicError("Should never occur");
     }
 }
 

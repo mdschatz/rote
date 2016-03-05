@@ -242,14 +242,14 @@ void ComputeTZ(const DistTensor<T>& TX, const DistTensor<T>& TT, const DistTenso
 	Permutation perm_0_1_3_2 = {0,1,3,2};
 	Permutation perm_1_0_3_2 = {1,0,3,2};
 
-	std::vector<Unsigned> blkSizes = {10*blkSize, 1*blkSize};
+	std::vector<Unsigned> blkSizes = {1*blkSize, 10*blkSize};
 	//tmp = \sum_em X_bmej * T_aemi
 	GenContract(1.0, TX, "bmej", TT, "aemi", 0.0, TZtemp1, "abij", blkSizes);
 
 	//tmpAccum = -(0.5 + P_ij) (\sum_em X_bmej * T_aemi)
 	GenYAxpPx(-0.5, TZtemp1, -1.0, perm_0_1_3_2, TZaccum);
 
-	std::vector<Unsigned> blkSizes2 = {10*blkSize, 1*blkSize};
+	std::vector<Unsigned> blkSizes2 = {1*blkSize, 10*blkSize};
 	//tmpAccum += 0.5 * \sum_em W_bmje * (2T_aeim - T_aemi)
 	GenContract(0.5, TW, "bmje", TTsa, "aeim", 1.0, TZaccum, "abij", blkSizes2);
 
