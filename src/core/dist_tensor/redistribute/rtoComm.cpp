@@ -21,7 +21,7 @@ bool DistTensor<T>::CheckReduceToOneCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
+void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& commModes){
     if(!CheckReduceToOneCommRedist(A))
       LogicError("ReduceToOneRedist: Invalid redistribution request");
 
@@ -74,7 +74,7 @@ void DistTensor<T>::ReduceToOneUpdateCommRedist(const T alpha, const DistTensor<
     //Unpack the data (if participating)
     PROFILE_SECTION("RTOUnpack");
     if(this->Participating())
-    	this->UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
+    	this->UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

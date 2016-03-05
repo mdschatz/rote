@@ -284,6 +284,7 @@ void
 DistTensorBase<T>::GetDiagonal
 ( DistTensorBase<T>& d, Int offset ) const
 {
+	NOT_USED(d); NOT_USED(offset);
 }
 
 template<typename T>
@@ -300,6 +301,7 @@ void
 DistTensorBase<T>::GetRealPartOfDiagonal
 ( DistTensor<BASE(T)>& d, Int offset ) const
 {
+	NOT_USED(d); NOT_USED(offset);
 }
 
 template<typename T>
@@ -307,6 +309,7 @@ void
 DistTensorBase<T>::GetImagPartOfDiagonal
 ( DistTensor<BASE(T)>& d, Int offset ) const
 {
+	NOT_USED(d); NOT_USED(offset);
 }
 
 template<typename T>

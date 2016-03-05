@@ -175,13 +175,13 @@ CONFORMING(Int)
 CONFORMING(float)
 #endif // ifndef DISABLE_FLOAT
 CONFORMING(double)
+
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
 CONFORMING(std::complex<float>)
 #endif // ifndef DISABLE_FLOAT
 CONFORMING(std::complex<double>)
 #endif // ifndef DISABLE_COMPLEX
-
 #endif
 
 }

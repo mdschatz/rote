@@ -19,7 +19,7 @@ bool DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
+void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& commModes){
     if(!CheckAllReduceCommRedist(A))
       LogicError("AllReduceRedist: Invalid redistribution request");
     const rote::Grid& g = A.Grid();
@@ -72,7 +72,7 @@ void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>
 
     //Unpack the data (if participating)
     PROFILE_SECTION("ARUnpack");
-    UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
+    UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

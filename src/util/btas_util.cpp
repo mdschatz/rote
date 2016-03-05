@@ -2,6 +2,10 @@
 
 namespace rote{
 
+//
+// General contractions
+//
+
 std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC){
     Unsigned i;
     std::vector<ModeArray> ret(3);
@@ -56,4 +60,65 @@ IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray
     SortVector(contractIndices);
     return contractIndices;
 }
+
+//
+//  Distributed contraction routines
+//
+
+void SetTensorDistToMatch(const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i;
+	ModeArray blank;
+	for(i = 0; i < indicesToMatch.size(); i++){
+		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
+		if(index >= 0)
+			toMatch[i] = matchAgainst[index];
+	}
+	toMatch[toMatch.size() - 1] = matchAgainst[matchAgainst.size() - 1];
+}
+
+void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i;
+	for(i = 0; i < indicesToMatch.size(); i++){
+		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
+		if(index >= 0)
+			toMatch[i] = matchAgainst[index];
+	}
+}
+
+void SetTempShapeToMatch(const rote::GridView& gvMatchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch, const IndexArray& sharedIndices){
+	Unsigned i;
+	for(i = 0; i < indicesToMatch.size(); i++){
+		if(IndexOf(sharedIndices, indicesToMatch[i]) == -1)
+			continue;
+		int index = IndexOf(indicesMatchAgainst, indicesToMatch[i]);
+		if(index >= 0)
+			toMatch[i] = gvMatchAgainst.Dimension(index);
+	}
+}
+
+void AppendTensorDistToMatch(const ModeArray& modes, const TensorDistribution& matchAgainst, const IndexArray& indicesMatchAgainst, TensorDistribution& toMatch, const IndexArray& indicesToMatch){
+	Unsigned i, j;
+	ModeArray modesFound;
+
+	for(i = 0; i < modes.size(); i++){
+		Mode modeToMove = modes[i];
+		for(j = 0; j < indicesMatchAgainst.size(); j++){
+			Index indexMatchAgainst = indicesMatchAgainst[j];
+			ModeDistribution modeDistToCheck = matchAgainst[j];
+			if(Contains(modeDistToCheck, modeToMove)){
+				int index = IndexOf(indicesToMatch, indexMatchAgainst);
+				if(index >= 0){
+					toMatch[index].push_back(modeToMove);
+					modesFound.push_back(modeToMove);
+					break;
+				}
+			}
+		}
+	}
+
+	//Deal with the modes that disappeared
+	ModeArray modesNotFound = DiffVector(modes, modesFound);
+	toMatch[indicesToMatch.size() - 1] = ConcatenateVectors(toMatch[indicesToMatch.size() - 1], modesNotFound);
+}
+
 }

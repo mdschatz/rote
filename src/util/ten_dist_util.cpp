@@ -190,6 +190,20 @@ bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape){
     return true;
 }
 
+bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm){
+	for(Unsigned i = 0; i < perm.size(); i++)
+		if(perm[i] >= order)
+			return false;
+
+	Permutation tmp = perm;
+	auto last = std::unique(tmp.begin(), tmp.end());
+	tmp.erase(last, tmp.end());
+	if(tmp.size() != perm.size())
+		return false;
+
+	return true;
+}
+
 ModeArray GetBoundGridModes(const TensorDistribution& tenDist, const ModeArray& tenModes){
 	Unsigned i;
 	ModeArray ret;

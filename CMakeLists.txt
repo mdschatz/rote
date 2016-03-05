@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 2.8.8)
 
-project(Tensormental)
-set(Tensormental_VERSION_MAJOR 0)
-set(Tensormental_VERSION_MINOR 0-dev)
+project(ROTE)
+set(ROTE_VERSION_MAJOR 0)
+set(ROTE_VERSION_MINOR 0-dev)
+
 ################################################################################
 # Common build options                                                         #
 ################################################################################
 
-# By default, Tensormental builds static libraries, but shared libraries are 
+# By default, Rote builds static libraries, but shared libraries are 
 # also supported through this option.
 option(SHARED_LIBRARIES "Switch to shared libraries" OFF)
 
@@ -147,10 +148,10 @@ if(NOT WIN32) # I forget why we need this guard
     if(NOT ${LANG}_FLAGS_${UPPER_BUILD_TYPE})
       if(DEBUG)
 	  message("debug flags set")
-          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -g -Wall -Wunreachable-code -std=c++0x" CACHE STRING
+          set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O0 -g -Wall -Wunreachable-code -Wunused-parameter -std=c++0x" CACHE STRING
           "${LANG} optimization/debug flags for ${UPPER_BUILD_TYPE} mode")
       else()
-        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O3 -Wall -std=c++0x" CACHE STRING
+        set(${LANG}_FLAGS_${UPPER_BUILD_TYPE} "-O3 -Wall -Wunused-parameter -std=c++0x" CACHE STRING
           "${LANG} optimization flags for ${UPPER_BUILD_TYPE} mode")
       endif()
     endif()
@@ -368,7 +369,7 @@ else()
   message(STATUS "Could not find a restrict keyword.")
 endif()
 
-# Create the Tensormental configuration header
+# Create the Rote configuration header
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.cmake
                ${PROJECT_BINARY_DIR}/include/rote/config.h)
 install(FILES ${PROJECT_BINARY_DIR}/include/rote/config.h 
@@ -396,7 +397,7 @@ configure_file(${PROJECT_SOURCE_DIR}/cmake/rotevariables.cmake
                ${PROJECT_BINARY_DIR}/conf/rotevariables @ONLY)
 install(FILES ${PROJECT_BINARY_DIR}/conf/rotevariables DESTINATION conf)
 
-# Grab all of the .c, .cpp, .h, and .hpp Tensormental files
+# Grab all of the .c, .cpp, .h, and .hpp Rote files
 file(GLOB_RECURSE ROTE_CPP RELATIVE ${PROJECT_SOURCE_DIR} "src/*.c" "src/*.cpp")
 file(GLOB_RECURSE ROTE_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} 
   "include/*.h" "include/*.hpp")
@@ -461,17 +462,17 @@ endforeach()
 add_custom_target(prepare_rote_headers DEPENDS ${PREPARED_HEADERS})
 add_dependencies(rote prepare_rote_headers)
 
-# Make sure the Tensormental headers can be found
+# Make sure the Rote headers can be found
 include_directories("${PROJECT_BINARY_DIR}/include")
 
 # Build the test drivers if necessary
 if(ROTE_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
 #  set(TEST_TYPES core btas applications ccsd)
-  set(TEST_TYPES core ccsd)
+  set(TEST_TYPES core ccsd ccsd_gen)
   set(core_TESTS RedistCheckTest Views Grids GenContractTest GenRedistTest )
 #  set(btas_TESTS Level1 Contract)
-  set(ccsd_TESTS ccsd )#term_Tau term_W term_X term_U term_P term_Q term_H term_F term_G term_z_small term_Z ccsd)
+  set(ccsd_TESTS ccsd ccsd_gen)#term_Tau term_W term_X term_U term_P term_Q term_H term_F term_G term_z_small term_Z ccsd)
 #  set(ccsd_TESTS term_Tau term_H term_U)
   set(applications_TESTS BlockMP3DoublePartPerm MP3new MP3Newer)
 
@@ -539,7 +540,7 @@ if(ROTE_EXPERIMENTAL)
   #endforeach()
 endif()
 
-# If Tensormental is a subproject, then pass some variables to the parent
+# If Rote is a subproject, then pass some variables to the parent
 if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   include(./cmake/rote_sub.cmake)
 endif()

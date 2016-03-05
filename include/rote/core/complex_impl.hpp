@@ -33,7 +33,7 @@ RealPart( const std::complex<Real>& alpha )
 template<typename Real>
 inline Real
 ImagPart( const Real& alpha )
-{ return 0; }
+{ NOT_USED(alpha); return 0; }
 
 template<typename Real>
 inline Real
@@ -48,9 +48,9 @@ SetRealPart( Real& alpha, const Real& beta )
 template<typename Real>
 inline void
 SetRealPart( std::complex<Real>& alpha, const Real& beta )
-{ 
+{
 #if __cplusplus > 199711L
-alpha.real(beta); 
+alpha.real(beta);
 #else
 std::complex<Real> tmp(beta, 0);
 alpha = tmp;
@@ -64,15 +64,16 @@ SetImagPart( Real& alpha, const Real& beta )
 #ifndef RELEASE
     CallStackEntry cse("SetImagPart");
 #endif
+    NOT_USED(alpha); NOT_USED(beta);
     LogicError("Nonsensical assignment");
 }
 
 template<typename Real>
 inline void
 SetImagPart( std::complex<Real>& alpha, const Real& beta )
-{ 
+{
 #if __cplusplus > 199711L
-alpha.imag(beta); 
+alpha.imag(beta);
 #else
 std::complex<Real> tmp(0, beta);
 alpha = tmp;
@@ -87,9 +88,9 @@ UpdateRealPart( Real& alpha, const Real& beta )
 template<typename Real>
 inline void
 UpdateRealPart( std::complex<Real>& alpha, const Real& beta )
-{ 
+{
 #if __cplusplus > 199711L
-alpha.real( alpha.real()+beta ); 
+alpha.real( alpha.real()+beta );
 #else
 std::complex<Real> tmp(beta, 0);
 alpha += tmp;
@@ -103,15 +104,16 @@ UpdateImagPart( Real& alpha, const Real& beta )
 #ifndef RELEASE
     CallStackEntry cse("UpdateImagPart");
 #endif
+    (void) alpha; (void) beta;
     LogicError("Nonsensical update");
 }
 
 template<typename Real>
 inline void
 UpdateImagPart( std::complex<Real>& alpha, const Real& beta )
-{ 
+{
 #if __cplusplus > 199711L
-alpha.imag( alpha.imag()+beta ); 
+alpha.imag( alpha.imag()+beta );
 #else
 std::complex<Real> tmp(0, beta);
 alpha += beta;

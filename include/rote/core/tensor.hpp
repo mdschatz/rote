@@ -193,7 +193,7 @@ private:
     friend void View2x1Helper<T>( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Mode mode, bool isLocked );
     friend void ViewAsLowerOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
                                    const std::vector<ModeArray>& oldModes, bool isLocked );
-    friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A, const Tensor<T>& B,
+    friend void ViewAsHigherOrderHelper<T>( Tensor<T>& A,
                                    const std::vector<ObjShape>& splitShape, bool isLocked );
     friend void ViewAsMatrixHelper<T>( Tensor<T>& A, const Tensor<T>& B,
                                        const Unsigned& nModesMergeCol, bool isLocked );

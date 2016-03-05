@@ -79,7 +79,7 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RSUnpack");
-    UnpackRSUCommRecvBuf(recvBuf, alpha, A, beta);
+    UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -241,7 +241,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 }
 
 template <typename T>
-void DistTensor<T>::UnpackRSUCommRecvBuf(const T * const recvBuf, const T alpha, const DistTensor<T>& A, const T beta)
+void DistTensor<T>::UnpackRSUCommRecvBuf(const T * const recvBuf, const T alpha, const T beta)
 {
     const Unsigned order = this->Order();
     T* dataBuf = this->Buffer();

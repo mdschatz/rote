@@ -62,19 +62,19 @@ typedef std::vector<Redist> RedistPlan;
 struct 	BlkContractStatAInfo
 {
 	ModeArray reduceTensorModes;
-	ObjShape shapeT;
-	IndexArray indicesT;
 	TensorDistribution distT;
 	ModeArray alignModesT;
 	ModeArray alignModesTTo;
 	Permutation permT;
+
 	ModeArray partModesB;
 	TensorDistribution distIntB;
 	ModeArray alignModesB;
 	ModeArray alignModesBTo;
 	Permutation permB;
+
 	ModeArray partModesC;
-	TensorDistribution distIntC;
+
 	Permutation permA;
 	std::vector<Unsigned> blkSizes;
 };
@@ -86,14 +86,15 @@ struct 	BlkContractStatCInfo
 	ModeArray alignModesA;
 	ModeArray alignModesATo;
 	Permutation permA;
+
 	ModeArray partModesB;
 	TensorDistribution distIntB;
 	ModeArray alignModesB;
 	ModeArray alignModesBTo;
 	Permutation permB;
+
 	Permutation permC;
 	std::vector<Unsigned> blkSizes;
-	bool firstIter;
 };
 
 //Pack data structs

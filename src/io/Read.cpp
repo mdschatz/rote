@@ -18,6 +18,7 @@ namespace rote {
 template<typename T>
 void Read( Tensor<T>& A, const std::string filename, FileFormat format )
 {
+	NOT_USED(A);
     if( format == AUTO )
         format = DetectFormat( filename );
 

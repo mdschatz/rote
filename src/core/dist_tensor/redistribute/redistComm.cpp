@@ -279,6 +279,8 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 
 //    printf("ping2\n");
     if(AnyElemwiseNotEqual(maxLoc, startLoc)){
+//    	PrintVector(maxLoc, "macLoc");
+//    	PrintVector(startLoc, "startLoc");
 		//Form the base distribution
 		TensorDistribution intDist = startDist;
 		for(i = 0; i < numMoved; i++){
@@ -296,6 +298,8 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 			}
 		}
 
+//		printf("startDist: %s\n", TensorDistToString(startDist).c_str());
+//		printf("P2PIntDist: %s\n", TensorDistToString(intDist).c_str());
 		Redist newRedistInfo;
 		newRedistInfo.dist = intDist;
 		newRedistInfo.redistType = Perm;
@@ -307,13 +311,13 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 		CommRedist(finalDist, intDist, redistData, intDists);
     }
     else{
+//    	printf("trying to move\n");
 		CommRedistMove(finalDist, startDist, redistData, intDists);
     }
 }
 
 template <typename T>
 void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists){
-	int commRank = mpi::CommRank(MPI_COMM_WORLD);
 	//Add any grid modes to reduce communicated data
 	if(finalDist == startDist){
 		return;
@@ -343,6 +347,10 @@ void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const Tensor
 	}
 	//All thats left is a shuffle
 	else{
+//		printf("startDist: %s\n", TensorDistToString(startDist).c_str());
+//		printf("endDist: %s\n", TensorDistToString(finalDist).c_str());
+//		PrintVector(redistData.gridModesMoved);
+//		printf("failure\n");
 //		if(commRank == 0)
 //			std::cout << "Final: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		//Add the final redistribution

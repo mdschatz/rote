@@ -18,12 +18,12 @@ namespace rote{
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes){
+void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
     PROFILE_SECTION("GTORedist");
     this->ResizeTo(A);
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
-    GatherToOneCommRedist(A, sortedCommModes);
+    GatherToOneCommRedist(A, sortedCommModes, alpha);
     PROFILE_STOP;
 }
 

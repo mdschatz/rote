@@ -11,6 +11,7 @@
 #define ROTE_BTAS_GEN_CONTRACT_HPP
 
 #include "../level1/Permute.hpp"
+#include "rote/util/btas_util.hpp"
 #include "rote/util/vec_util.hpp"
 #include "rote/util/btas_util.hpp"
 #include "rote/core/view_decl.hpp"
@@ -23,13 +24,16 @@ namespace rote{
 ////////////////////////////////////
 
 template <typename T>
-void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
+void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
 
 template <typename T>
-void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
+void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
 
 template <typename T>
-void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC);
+void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
+
+template <typename T>
+void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
 
 } // namespace rote
 

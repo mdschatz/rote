@@ -33,6 +33,8 @@ bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistributio
 
 bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape);
 
+bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm);
+
 ModeArray GetBoundGridModes(const TensorDistribution& tenDist, const ModeArray& tenModes);
 
 ModeArray GetBoundGridModes(const TensorDistribution& tenDist);
