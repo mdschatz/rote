@@ -111,7 +111,7 @@ void InitCheckTensor(const std::string& data_path, int testIter, DistTensor<T>& 
 }
 
 template<typename T>
-void ComputeTW(const DistTensor<T>& Twsa, const DistTensor<T>& Trsa, const DistTensor<T>& Tusa, const DistTensor<T>& Tvsa, const DistTensor<T>& Ttau2sa, const DistTensor<T>& Tt, DistTensor<T>& TW){
+void ComputeTW(const DistTensor<T>& Twsa, const DistTensor<T>& Trsa, const DistTensor<T>& Tusa, const DistTensor<T>& Tvsa, const DistTensor<T>& Ttau2sa, const DistTensor<T>& Tt, DistTensor<T>& TW, Unsigned blkSize){
 	//W_bmje = (2w_amie - x_amei)
 	YAxpBy(1.0, Twsa, 0.0, TW);
 
@@ -121,17 +121,19 @@ void ComputeTW(const DistTensor<T>& Twsa, const DistTensor<T>& Trsa, const DistT
 	//W_bmje += -\sum_n (2u_nmje - u_mnje) * t_bn
 	GenContract(-1.0, Tusa, "nmje", Tt, "bn", 1.0, TW, "bmje");
 
+	const std::vector<Unsigned> blkSizes = {30*blkSize, 3*blkSize};
 	//W_bmje += \sum_fn (2v_fenm - v_femn)*(0.5T_bfnj - Tau_bfnj + T_bfjn)
-	GenContract(1.0, Tvsa, "fenm", Ttau2sa, "bfnj", 1.0, TW, "bmje");
+	GenContract(1.0, Tvsa, "fenm", Ttau2sa, "bfnj", 1.0, TW, "bmje", blkSizes);
 }
 
 template<typename T>
-void ComputeTX(const DistTensor<T>& Tx, const DistTensor<T>& Tv, const DistTensor<T>& Ttau2, const DistTensor<T>& Tu, const DistTensor<T>& Tt, const DistTensor<T>& Tr, DistTensor<T>& TX){
+void ComputeTX(const DistTensor<T>& Tx, const DistTensor<T>& Tv, const DistTensor<T>& Ttau2, const DistTensor<T>& Tu, const DistTensor<T>& Tt, const DistTensor<T>& Tr, DistTensor<T>& TX, Unsigned blkSize){
 	//X_bmej = x_bmej;
 	YAxpBy(1.0, Tx, 0.0, TX);
 
+	const std::vector<Unsigned> blkSizes = {30*blkSize, 3*blkSize};
 	//X_bmej += -\sum_fn v_femn (tau_bfnj - 0.5 * T_bfnj)
-	GenContract(-1.0, Tv, "femn", Ttau2, "bfnj", 1.0, TX, "bmej");
+	GenContract(-1.0, Tv, "femn", Ttau2, "bfnj", 1.0, TX, "bmej", blkSizes);
 
 	//X_bmej -= \sum_n u_mnje * t_bn
 	GenContract(-1.0, Tu, "mnje", Tt, "bn", 1.0, TX, "bmej");
@@ -151,7 +153,7 @@ void ComputeTU(const DistTensor<T>& Tu, const DistTensor<T>& Tv, const DistTenso
 }
 
 template<typename T>
-void ComputeTQ(const DistTensor<T>& Tu, const DistTensor<T>& Tt, const DistTensor<T>& Tv, const DistTensor<T>& Ttau, const DistTensor<T>& Tq, DistTensor<T>& TQ){
+void ComputeTQ(const DistTensor<T>& Tu, const DistTensor<T>& Tt, const DistTensor<T>& Tv, const DistTensor<T>& Ttau, const DistTensor<T>& Tq, DistTensor<T>& TQ, Unsigned blkSize){
 	DistTensor<double> TQtemp1( TQ.Shape(), "[(0),(1),(2),(3)]", TQ.Grid() );
 	Permutation perm_1_0_3_2 = {1,0,3,2};
 
@@ -161,6 +163,7 @@ void ComputeTQ(const DistTensor<T>& Tu, const DistTensor<T>& Tt, const DistTenso
 	//Q_mnij = (1 + P_mnij) (\sum_e u_mnie * t_ej)
 	GenYAxpPx(1.0, TQtemp1, 1.0, perm_1_0_3_2, TQ);
 
+	std::vector<Unsigned> blkSizes = {4*blkSize, 4*blkSize};
 	//Q_mnij += \sum_ef v_efmn * tau_efij
 	GenContract(1.0, Tv, "efmn", Ttau, "efij", 1.0, TQ, "mnij");
 
@@ -169,12 +172,13 @@ void ComputeTQ(const DistTensor<T>& Tu, const DistTensor<T>& Tt, const DistTenso
 }
 
 template<typename T>
-void ComputeTP(const DistTensor<T>& Tu, const DistTensor<T>& Tr, const DistTensor<T>& Ttau, const DistTensor<T>& Tw, const DistTensor<T>& Tt, const DistTensor<T>& Tx, DistTensor<T>& TP){
+void ComputeTP(const DistTensor<T>& Tu, const DistTensor<T>& Tr, const DistTensor<T>& Ttau, const DistTensor<T>& Tw, const DistTensor<T>& Tt, const DistTensor<T>& Tx, DistTensor<T>& TP, Unsigned blkSize){
 	//P_jimb = u_jimb
 	YAxpBy(1.0, Tu, 0.0, TP);
 
+	std::vector<Unsigned> blkSizes = {4*blkSize, 4*blkSize};
 	//P_jimb += \sum_ef r_bmef * tau_efij
-	GenContract(1.0, Tr, "bmef", Ttau, "efij", 1.0, TP, "jimb");
+	GenContract(1.0, Tr, "bmef", Ttau, "efij", 1.0, TP, "jimb", blkSizes);
 
 	//P_jimb += \sum_e w_bmie * t_ej
 	GenContract(1.0, Tw, "bmie", Tt, "ej", 1.0, TP, "jimb");
@@ -232,20 +236,22 @@ void ComputeTz(const DistTensor<T>& TG, const DistTensor<T>& Tt, const DistTenso
 }
 
 template<typename T>
-void ComputeTZ(const DistTensor<T>& TX, const DistTensor<T>& TT, const DistTensor<T>& TW, const DistTensor<T>& TTsa, const DistTensor<T>& TG, const DistTensor<T>& TF, const DistTensor<T>& TP, const DistTensor<T>& Tt, const DistTensor<T>& Tr, const DistTensor<T>& Ty, const DistTensor<T>& Ttau, const DistTensor<T>& TQ, const DistTensor<T>& Tv, DistTensor<T>& TZ){
+void ComputeTZ(const DistTensor<T>& TX, const DistTensor<T>& TT, const DistTensor<T>& TW, const DistTensor<T>& TTsa, const DistTensor<T>& TG, const DistTensor<T>& TF, const DistTensor<T>& TP, const DistTensor<T>& Tt, const DistTensor<T>& Tr, const DistTensor<T>& Ty, const DistTensor<T>& Ttau, const DistTensor<T>& TQ, const DistTensor<T>& Tv, DistTensor<T>& TZ, Unsigned blkSize){
 	DistTensor<T> TZtemp1(TZ.Shape(), TZ.TensorDist(), TZ.Grid());
 	DistTensor<T> TZaccum(TZ.Shape(), TZ.TensorDist(), TZ.Grid());
 	Permutation perm_0_1_3_2 = {0,1,3,2};
 	Permutation perm_1_0_3_2 = {1,0,3,2};
 
+	std::vector<Unsigned> blkSizes = {10*blkSize, 1*blkSize};
 	//tmp = \sum_em X_bmej * T_aemi
-	GenContract(1.0, TX, "bmej", TT, "aemi", 0.0, TZtemp1, "abij");
+	GenContract(1.0, TX, "bmej", TT, "aemi", 0.0, TZtemp1, "abij", blkSizes);
 
 	//tmpAccum = -(0.5 + P_ij) (\sum_em X_bmej * T_aemi)
 	GenYAxpPx(-0.5, TZtemp1, -1.0, perm_0_1_3_2, TZaccum);
 
+	std::vector<Unsigned> blkSizes2 = {10*blkSize, 1*blkSize};
 	//tmpAccum += 0.5 * \sum_em W_bmje * (2T_aeim - T_aemi)
-	GenContract(0.5, TW, "bmje", TTsa, "aeim", 1.0, TZaccum, "abij");
+	GenContract(0.5, TW, "bmje", TTsa, "aeim", 1.0, TZaccum, "abij", blkSizes2);
 
 	//tmpAccum += -\sum_m G_mi * T_abmj
 	GenContract(-1.0, TG, "mi", TT, "abmj", 1.0, TZaccum, "abij");
@@ -262,11 +268,13 @@ void ComputeTZ(const DistTensor<T>& TX, const DistTensor<T>& TT, const DistTenso
 	//Z_abij = (1 + P_aibj) TZaccum
 	GenYAxpPx(1.0, TZaccum, 1.0, perm_1_0_3_2, TZ);
 
+	std::vector<Unsigned> blkSizes3 = {3*blkSize, 3*blkSize};
 	//Z_abij = \sum_ef y_abef * tau_efij
-	GenContract(1.0, Ty, "abef", Ttau, "efij", 1.0, TZ, "abij");
+	GenContract(1.0, Ty, "abef", Ttau, "efij", 1.0, TZ, "abij", blkSizes3);
 
+	std::vector<Unsigned> blkSizes4 = {4*blkSize, 4*blkSize};
 	//Z_abij = \sum_mn Q_mnij * tau_abmn
-	GenContract(1.0, TQ, "mnij", Ttau, "abmn", 1.0, TZ, "abij");
+	GenContract(1.0, TQ, "mnij", Ttau, "abmn", 1.0, TZ, "abij", blkSizes4);
 
 	//Z_abij += v_abij
 	YAxpBy(1.0, Tv, 1.0, TZ);
@@ -451,20 +459,20 @@ InitCheckTensor("ccsd_terms/term_Z_iter", testIter, check_Z);
 	GenZAxpBypPx(0.5, TT, -1.0, Ttau, perm_0_1_3_2, Ttau2sa );
 
 	//BEGIN COMPUTATION
-	ComputeTW(Twsa, Trsa, Tusa, Tvsa, Ttau2sa, Tt, TW);
-	ComputeTX(Tx, Tv, Ttau2, Tu, Tt, Tr, TX);
+	ComputeTW(Twsa, Trsa, Tusa, Tvsa, Ttau2sa, Tt, TW, blkSize);
+	ComputeTX(Tx, Tv, Ttau2, Tu, Tt, Tr, TX, blkSize);
 	ComputeTU(Tu, Tv, Tt, TU);
 
 	//tmp = (2U_mnie - U_nmie)
 	GenYAxpPx(2.0, TU, -1.0, perm_1_0_2_3, TUsa);
 
-	ComputeTQ(Tu, Tt, Tv, Ttau, Tq, TQ);
-	ComputeTP(Tu, Tr, Ttau, Tw, Tt, Tx, TP);
+	ComputeTQ(Tu, Tt, Tv, Ttau, Tq, TQ, blkSize);
+	ComputeTP(Tu, Tr, Ttau, Tw, Tt, Tx, TP, blkSize);
 	ComputeTH(Tvsa, Tt, TH);
 	ComputeTF(TH, Tt, Trsa, Tvsa, TT, TF);
 	ComputeTG(TH, Tt, Tusa, Tvsa, TT, TG);
 	ComputeTz(TG, Tt, TUsa, TT, Twsa, TTsa, TH, Trsa, Ttau, Tz);
-	ComputeTZ(TX, TT, TW, TTsa, TG, TF, TP, Tt, Tr, Ty, Ttau, TQ, Tv, TZ);
+	ComputeTZ(TX, TT, TW, TTsa, TG, TF, TP, Tt, Tr, Ty, Ttau, TQ, Tv, TZ, blkSize);
 
 	//END COMPUTATION
 
