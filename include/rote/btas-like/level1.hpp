@@ -18,6 +18,7 @@
 #include "./level1/Scal.hpp"
 #include "./level1/YAxpBy.hpp"
 #include "./level1/GenYAxpPx.hpp"
+#include "./level1/GenZAxpBPy.hpp"
 #include "./level1/YAxpPx.hpp"
 #include "./level1/ZAxpBy.hpp"
 #include "./level1/ZAxpBypPx.hpp"

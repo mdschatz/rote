@@ -78,11 +78,15 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 	 ModeArray srcs = GetModeDistOfGridMode(nonReducedGridModes, tenDistA);
 	 ModeArray sinks = GetModeDistOfGridMode(nonReducedGridModes, tenDistB);
 
+//	 PrintVector(nonReducedGridModes, "nonReducedGridModes");
+//	 PrintVector(srcs, "srcs");
+//	 PrintVector(sinks, "sinks");
 	 for(i = 0; i < nonReducedGridModes.size(); i++){
 		 Mode possMovedMode = nonReducedGridModes[i];
-		 if(finalModeMap[srcs[i]] != sinks[i])
+		 if(srcs[i] != sinks[i])
 			 redistData.gridModesMoved.push_back(possMovedMode);
 	 }
+//	 PrintVector(redistData.gridModesMoved, "moved");
 
 //	 redistData.gridModesMoved = DiffVector(gridModesA, redistData.gridModesAppeared);
 //	 redistData.gridModesMoved = DiffVector(redistData.gridModesMoved, redistData.gridModesRemoved);
@@ -116,6 +120,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 //    printf("making plan\n");
     CommRedist(this->TensorDist(), A.TensorDist(), redistData, intermediateDists);
 
+//    int commRank = mpi::CommRank(MPI_COMM_WORLD);
 //    if(commRank == 0){
 //		printf("plan created\n");
 //		std::cout << "start dist: " << TensorDistToString(A.TensorDist()) << std::endl;

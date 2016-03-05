@@ -31,9 +31,10 @@ void GenZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>&
 		LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 	TensorDistribution copy = X.TensorDist();
 	TensorDistribution newDist = copy;
-	for(int i = 0; i < newDist.size(); i++)
+	for(int i = 0; i < X.Order(); i++)
 		newDist[i] = copy[perm[i]];
 
+	Z.ResizeTo(X);
 	DistTensor<T> tmp(newDist, X.Grid());
 	tmp.RedistFrom(X);
 

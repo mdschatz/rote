@@ -127,6 +127,7 @@ void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArra
 
 template <typename T>
 void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+	printf("in it\n");
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
@@ -136,26 +137,34 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	TensorDistribution distIntB(distB.size(), blank);
 
 	//Setup temp dist A
+	printf("matching dist A\n");
 	SetTensorDistToMatch(distC, indicesC, distIntA, indicesA);
 
 	//Setup temp dist B
+	printf("matching dist B\n");
 	SetTensorDistToMatch(distC, indicesC, distIntB, indicesB);
 
 	//Determine how to partition
+	printf("blk dist C\n");
 	BlkContractStatCInfo contractInfo;
 	SetBlkContractStatCInfo(distIntA, indicesA, distIntB, indicesB, indicesC, contractInfo);
 
+	printf("doing something\n");
 	if(contractInfo.permC != DefaultPermutation(C.Order())){
 		printf("temping");
 		TensorDistribution tmpDistC = distC;
 		DistTensor<T> tmpC(tmpDistC, C.Grid());
 		tmpC.SetLocalPermutation(contractInfo.permC);
+		PrintData(C, "C");
+		PrintData(tmpC, "tmpC");
 		Permute(C, tmpC);
 		Scal(beta, tmpC);
 		RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, tmpC, indicesC);
 		Permute(tmpC, C);
 	}else{
+		printf("scaling\n");
 		Scal(beta, C);
+		printf("recurring\n");
 		RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
 	}
 

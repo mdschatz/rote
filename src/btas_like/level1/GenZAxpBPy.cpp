@@ -12,13 +12,15 @@
 namespace rote{
 
 template<typename T>
-bool CheckYAxpPxArgs(const DistTensor<T>& X, const Permutation& perm, const DistTensor<T>& Y){
+bool CheckZAxpBPyArgs(const DistTensor<T>& X, const DistTensor<T>& Y, const Permutation& perm, const DistTensor<T>& Z){
+	const TensorDistribution zDist = Z.TensorDist();
 	const TensorDistribution yDist = Y.TensorDist();
 	const TensorDistribution xDist = X.TensorDist();
 
 	bool ret = true;
 	ret &= CheckOrder(X.Order(), Y.Order());
-	ret &= (yDist == xDist);
+	ret &= CheckOrder(X.Order(), Z.Order());
+	ret &= (yDist == xDist) && (xDist == zDist);
 	ret &= CheckIsValidPermutation(X.Order(), perm);
 	return ret;
 }
@@ -26,26 +28,26 @@ bool CheckYAxpPxArgs(const DistTensor<T>& X, const Permutation& perm, const Dist
 //TODO: Handle updates
 //Note: StatA equivalent to StatB with rearranging operands
 template <typename T>
-void GenYAxpPx( T alpha, const DistTensor<T>& X, T beta, const Permutation& perm, DistTensor<T>& Y ){
-	if(!CheckYAxpPxArgs(X, perm, Y))
+void GenZAxpBPy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const Permutation& perm, DistTensor<T>& Z ){
+	if(!CheckZAxpBPyArgs(X, Y, perm, Z))
 		LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
-	TensorDistribution copy = X.TensorDist();
+	TensorDistribution copy = Y.TensorDist();
 	TensorDistribution newDist = copy;
 	for(int i = 0; i < X.Order(); i++)
 		newDist[i] = copy[perm[i]];
 
-	DistTensor<T> tmp(newDist, X.Grid());
-	tmp.RedistFrom(X);
+	DistTensor<T> tmp(newDist, Y.Grid());
+	tmp.RedistFrom(Y);
 
-	Y.ResizeTo(X);
-	YAxpPx(alpha, X, beta, tmp, perm, Y);
+	Z.ResizeTo(X);
+	YAxpPx(alpha, X, beta, tmp, perm, Z);
 }
 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template bool CheckYAxpPxArgs(const DistTensor<T>& X, const Permutation& perm, const DistTensor<T>& Y); \
-    template void GenYAxpPx( T alpha, const DistTensor<T>& X, T beta, const Permutation& perm, DistTensor<T>& Y );
+	template bool CheckZAxpBPyArgs(const DistTensor<T>& X, const DistTensor<T>& Y, const Permutation& perm, const DistTensor<T>& Z); \
+    template void GenZAxpBPy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const Permutation& perm, DistTensor<T>& Z );
 
 //PROTO(Unsigned)
 //PROTO(Int)

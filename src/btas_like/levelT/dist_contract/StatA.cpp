@@ -29,10 +29,12 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 //		Scal(T(0.0), C);
 //		Scal(T(0.0), intT);
 
+//		printf("distB: %s\n", TensorDistToString(B.TensorDist()).c_str());
 		intB.AlignModesWith(contractInfo.alignModesB, A, contractInfo.alignModesBTo);
 		intB.SetLocalPermutation(contractInfo.permB);
 		intB.RedistFrom(B);
 
+//		printf("distC: %s\n", TensorDistToString(C.TensorDist()).c_str());
 //		Print(A, "compute A");
 //		Print(B, "compute B");
 		intT.AlignModesWith(contractInfo.alignModesT, A, contractInfo.alignModesTTo);
@@ -207,6 +209,8 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	tmpA.SetLocalPermutation(contractInfo.permA);
 	Permute(A, tmpA);
 
+	printf("distIntB: %s\n", TensorDistToString(contractInfo.distIntB).c_str());
+	printf("distT: %s\n", TensorDistToString(contractInfo.distT).c_str());
 //	printf("alpha: %.3f, beta: %.3f\n", alpha, beta);
 //	Print(tmpA, "orig tmpA");
 //	Print(B, "orig tmpB");
