@@ -481,27 +481,22 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 
 	//X_bmej += -\sum_fn v_femn (tau_bfnj - 0.5 * T_bfnj)
 	GenContract(-1.0, v_femn, indices_femn, Xtemp1, indices_bfnj, 1.0, X_bmej, indices_bmej);
-	printf("C5 done\n");
 
 	//X_bmej -= \sum_n u_mnje * t_bn
 	GenContract(-1.0, u_mnje, indices_mnje, t_fj, indices_bn, 1.0, X_bmej, indices_bmej);
-	printf("C6 done\n");
 
 	//X_bmej += \sum_f r_bmef * t_fj
 	GenContract(1.0, r_bmfe, indices_bmef, t_fj, indices_fj, 1.0, X_bmej, indices_bmej);
-	printf("C7 done\n");
 
 	//U_mnie = u_mnie;
 	U_mnie = u_mnje;
 
 	//U_mnie += \sum_f v_femn * t_fj
 	GenContract(1.0, v_femn, indices_femn, t_fj, indices_fi, 1.0, U_mnie, indices_mnie);
-	printf("C8 done\n");
 
 	//tmp = \sum_e u_mnie * t_ej
 	Qtemp1.ResizeTo(Q_mnij);
 	GenContract(1.0, u_mnje, indices_mnie, t_fj, indices_ej, 0.0, Qtemp1, indices_mnij);
-	printf("C9 done\n");
 
 	//Q_mnij = (1 + P_mnij) (\sum_e u_mnie * t_ej)
 	GenYAxpPx(1.0, Qtemp1, 1.0, perm_1_0_3_2, Q_mnij);
@@ -517,91 +512,84 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 
 	//P_jimb += \sum_ef r_bmef * tau_efij
 	GenContract(1.0, r_bmfe, indices_bmef, Tau_efmn, indices_efij, 1.0, P_jimb, indices_jimb);
-	printf("C11 done\n");
+
 	//P_jimb += \sum_e w_bmie * t_ej
 	GenContract(1.0, w_bmje, indices_bmie, t_fj, indices_ej, 1.0, P_jimb, indices_jimb);
-	printf("C12 done\n");
+
 	//P_jimb += \sum_e x_bmej * t_ei
 	GenContract(1.0, x_bmej, indices_bmej, t_fj, indices_ei, 1.0, P_jimb, indices_jimb);
-	printf("C13 done\n");
+
 
 	//tmp = (2v_efmn - v_efnm)
 	GenYAxpPx(2.0, v_femn, -1.0, perm_0_1_3_2, Htemp1);
 
 	//H_me = \sum_fn (2v_efmn - v_efnm) * t_fn
 	GenContract(1.0, Htemp1, indices_efmn, t_fj, indices_fn, 0.0, H_me, indices_me);
-	printf("C14 done\n");
 
 	//F_ae = -\sum_m H_me * t_am
 	GenContract(-1.0, H_me, indices_me, t_fj, indices_am, 0.0, F_ae, indices_ae);
-	printf("C15 done\n");
 
 	//tmp = (2r_amef - r_amfe)
 	GenYAxpPx(2.0, r_bmfe, -1.0, perm_0_1_3_2, Ftemp1);
 
 	//F_ae += \sum_fm (2r_amef - r_amfe) * t_fm
 	GenContract(1.0, Ftemp1, indices_amef, t_fj, indices_fm, 1.0, F_ae, indices_ae);
-	printf("C16 done\n");
 
 	//tmp = (2v_efmn - v_efnm)
 	GenYAxpPx(2.0, v_femn, -1.0, perm_0_1_3_2, Ftemp2);
 
 	//F_ae += -\sum_fmn (2v_efmn - v_efnm) * T_afmn
 	GenContract(-1.0, Ftemp2, indices_efmn, T_bfnj, indices_afmn, 1.0, F_ae, indices_ae);
-	printf("C17 done\n");
 
 	//G_mi = \sum_e H_me * t_ei
 	GenContract(1.0, H_me, indices_me, t_fj, indices_ei, 0.0, G_mi, indices_mi);
-	printf("C18 done\n");
 
 	//tmp = (2u_mnie - u_nmie)
 	GenYAxpPx(2.0, u_mnje, -1.0, perm_1_0_2_3, Gtemp1);
 
 	//G_mi += \sum_en (2u_mnie - u_nmie) * t_en
 	GenContract(1.0, Gtemp1, indices_mnie, t_fj, indices_en, 1.0, G_mi, indices_mi);
-	printf("C19 done\n");
+
 
 	//tmp = (2v_efmn - v_efnm)
 	GenYAxpPx(2.0, v_femn, -1.0, perm_0_1_3_2, Gtemp2);
 
 	//G_mi += \sum_efn (2v_efmn - v_efnm) * T_efin
 	GenContract(1.0, Gtemp2, indices_efmn, T_bfnj, indices_efin, 1.0, G_mi, indices_mi);
-	printf("C20 done\n");
+
 
 	//z_ai = -\sum_m G_mi * t_am
 	GenContract(-1.0, G_mi, indices_mi, t_fj, indices_am, 0.0, z_ai, indices_ai);
-	printf("C21 done\n");
+
 	//tmp = (2U_mnie - U_nmie)
 	GenYAxpPx(2.0, U_mnie, -1.0, perm_1_0_2_3, ztemp5);
 
 	//z_ai += -\sum_emn (2U_mnie - U_nmie) * T_aemn
 	GenContract(-1.0, ztemp5, indices_mnie, T_bfnj, indices_aemn, 1.0, z_ai, indices_ai);
-	printf("C22 done\n");
 
 	//tmp = (2w_amie - x_amei)
 	GenZAxpBPy( 2.0, w_bmje, -1.0, x_bmej, perm_0_1_3_2, ztemp4 );
 
 	//z_ai += \sum_em (2w_amie - x_amei) * t_em
 	GenContract(1.0, ztemp4, indices_amie, t_fj, indices_em, 1.0, z_ai, indices_ai);
-	printf("C23 done\n");
 
 	//tmp = (2T_aeim - T_aemi)
 	GenYAxpPx(2.0, T_bfnj, -1.0, perm_0_1_3_2, ztemp3);
 
 	//z_ai += \sum_em (2T_aeim - T_aemi) * H_me
 	GenContract(1.0, ztemp3, indices_aeim, H_me, indices_me, 1.0, z_ai, indices_ai);
-	printf("C24 done\n");
+
 	//tmp = (2r_amef - r_amfe)
 	GenYAxpPx(2.0, r_bmfe, -1.0, perm_0_1_3_2, ztemp2);
 
 	//z_ai += \sum_efm (2r_amef - r_amfe) * tau_efim
 	GenContract(1.0, ztemp2, indices_amef, Tau_efmn, indices_efim, 1.0, z_ai, indices_ai);
-	printf("C25 done\n");
+
 
 	//tmp = \sum_em X_bmej * T_aemi
 	Ztemp1.ResizeTo(Z_abij);
 	GenContract(1.0, X_bmej, indices_bmej, T_bfnj, indices_aemi, 0.0, Ztemp1, indices_abij);
-	printf("C26 done\n");
+
 	//tmpAccum = -(0.5 + P_ij) (\sum_em X_bmej * T_aemi)
 	GenYAxpPx(-0.5, Ztemp1, -1.0, perm_0_1_3_2, Zaccum);
 
@@ -610,28 +598,28 @@ Read(check_Z, fullName.str(), BINARY_FLAT, false);
 
 	//tmpAccum += 0.5 * \sum_em W_bmje * (2T_aeim - T_aemi)
 	GenContract(0.5, W_bmje, indices_bmje, Ztemp2, indices_aeim, 1.0, Zaccum, indices_abij);
-	printf("C27 done\n");
+
 	//tmpAccum += -\sum_m G_mi * T_abmj
 	GenContract(-1.0, G_mi, indices_mi, T_bfnj, indices_abmj, 1.0, Zaccum, indices_abij);
-	printf("C28 done\n");
+
 	//tmpAccum += \sum_e F_ae * T_ebij
 	GenContract(1.0, F_ae, indices_ae, T_bfnj, indices_ebij, 1.0, Zaccum, indices_abij);
-	printf("C29 done\n");
+
 	//tmpAccum += -\sum_m P_ijmb * t_am
 	GenContract(-1.0, P_jimb, indices_ijmb, t_fj, indices_am, 1.0, Zaccum, indices_abij);
-	printf("C30 done\n");
+
 	//tmpAccum += \sum_e r_ejab * t_ei
 	GenContract(1.0, r_bmfe, indices_ejab, t_fj, indices_ei, 1.0, Zaccum, indices_abij);
-	printf("C31 done\n");
+
 	//Z_abij = (1 + P_aibj) Zaccum
 	GenYAxpPx(1.0, Zaccum, 1.0, perm_1_0_3_2, Z_abij);
 
 	//Z_abij = \sum_ef y_abef * tau_efij
 	GenContract(1.0, y_abef, indices_abef, Tau_efmn, indices_efij, 1.0, Z_abij, indices_abij);
-	printf("C32 done\n");
+
 	//Z_abij = \sum_mn Q_mnij * tau_abmn
 	GenContract(1.0, Q_mnij, indices_mnij, Tau_efmn, indices_abmn, 1.0, Z_abij, indices_abij);
-	printf("C33 done\n");
+
 	//Z_abij += v_abij
 	YAxpBy(1.0, v_femn, 1.0, Z_abij);
 

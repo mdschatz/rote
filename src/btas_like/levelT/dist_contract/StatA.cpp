@@ -16,7 +16,6 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 	if(depth == contractInfo.partModesB.size()){
 		//Perform the distributed computation
 		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
-//		DistTensor<T> intC(C.Shape(), contractInfo.distIntC, C.Grid());
 
 		const rote::GridView gvA = A.GetGridView();
 		IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
@@ -26,29 +25,17 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 		SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
 
 		DistTensor<T> intT(shapeT, contractInfo.distT, C.Grid());
-//		Scal(T(0.0), C);
-//		Scal(T(0.0), intT);
 
-//		printf("distB: %s\n", TensorDistToString(B.TensorDist()).c_str());
 		intB.AlignModesWith(contractInfo.alignModesB, A, contractInfo.alignModesBTo);
 		intB.SetLocalPermutation(contractInfo.permB);
 		intB.RedistFrom(B);
 
-//		printf("distC: %s\n", TensorDistToString(C.TensorDist()).c_str());
-//		Print(A, "compute A");
-//		Print(B, "compute B");
 		intT.AlignModesWith(contractInfo.alignModesT, A, contractInfo.alignModesTTo);
 		intT.SetLocalPermutation(contractInfo.permT);
 		intT.ResizeTo(shapeT);
 
 		LocalContract(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), indicesT, false);
-//		Print(intT, "result T");
-//		Print(C, "C before");
 		C.RedistFrom(intT, contractInfo.reduceTensorModes, T(1), beta);
-//		intC.ReduceScatterUpdateRedistFrom(alpha, intT, beta, contractInfo.reduceTensorModes);
-//		Print(intC, "intC");
-//		C.RedistFrom(intC);
-//		Print(C, "C after update");
 		return;
 	}
 	//Must partition and recur
@@ -69,7 +56,6 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 	DistTensor<T> C_2(C.TensorDist(), C.Grid());
 
 	//Do the partitioning and looping
-	int count = 0;
 	LockedPartitionDown(B, B_T, B_B, partModeB, 0);
 	PartitionDown(C, C_T, C_B, partModeC, 0);
 	while(B_T.Dimension(partModeB) < B.Dimension(partModeB)){
@@ -84,13 +70,7 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 
 
 		/*----------------------------------------------------------------*/
-//		if(commRank == 0){
-//			printf("depth: %d, iter: %d\n", depth, count);
-//			PrintData(A_1, "A_1");
-//			PrintData(B_1, "B_1");
-//		}
 		RecurContractStatA(depth+1, contractInfo, alpha, A, indicesA, B_1, indicesB, beta, C_1, indicesC);
-		count++;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(B_T, B_0,
 				                B_1,
@@ -209,14 +189,7 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	tmpA.SetLocalPermutation(contractInfo.permA);
 	Permute(A, tmpA);
 
-	printf("distIntB: %s\n", TensorDistToString(contractInfo.distIntB).c_str());
-	printf("distT: %s\n", TensorDistToString(contractInfo.distT).c_str());
-//	printf("alpha: %.3f, beta: %.3f\n", alpha, beta);
-//	Print(tmpA, "orig tmpA");
-//	Print(B, "orig tmpB");
-//	Print(C, "orig C");
 	RecurContractStatA(0, contractInfo, alpha, tmpA, indicesA, B, indicesB, beta, C, indicesC);
-//	Print(C, "final C");
 }
 
 //Non-template functions

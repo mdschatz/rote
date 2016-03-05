@@ -22,15 +22,12 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
 
     if(numElemA > numElemB && numElemA > numElemC){
     	//Stationary A variant
-    	printf("StatA\n");
     	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }else if(numElemB > numElemA && numElemB > numElemC){
     	//Stationary B variant
-    	printf("StatB\n");
     	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC);
     }else{
     	//Stationary C variant
-    	printf("StatC\n");
     	ContractStatC(alpha, A, indicesA, B, indicesB, beta, C, indicesC);
     }
 }
