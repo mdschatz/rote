@@ -91,7 +91,9 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
 #endif
     Unsigned order = A.Order();
 
-    ModeArray tensorModes = DefaultPermutation(order);
+    ModeArray tensorModes(order);
+    for(int i = 0; i < order; i++)
+    	tensorModes[i] = i;
     ModeArray nonReduceModes = NegFilterVector(tensorModes, reduceModes);
 
     const ObjShape shapeA = A.Shape();
@@ -120,8 +122,6 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
 template <typename T>
 void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const ModeArray& reduceModes){
     Permutation perm(A.Order());
-    for(Unsigned i = 0; i < A.Order(); i++)
-        perm[i] = i;
     LocalReduce(A, B, perm, reduceModes);
 }
 
@@ -149,8 +149,8 @@ void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const ModeArray& redu
     if(B.Participating()){
         //Account for the local data being permuted
 
-        Permutation permBToA = DeterminePermutation(B.LocalPermutation(), A.LocalPermutation());
-        LocalReduce(A.LockedTensor(), B.Tensor(), permBToA, FilterVector(DetermineInversePermutation(A.LocalPermutation()), reduceModes));
+        Permutation permBToA = B.LocalPermutation().PermutationTo(A.LocalPermutation());//DeterminePermutation(B.LocalPermutation(), A.LocalPermutation());
+        LocalReduce(A.LockedTensor(), B.Tensor(), permBToA, FilterVector(A.LocalPermutation().InversePermutation().Entries(), reduceModes));
     }
     PROFILE_STOP;
 }

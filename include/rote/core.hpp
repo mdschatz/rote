@@ -89,6 +89,8 @@
 #include "rote/core/error_decl.hpp"
 #include "rote/core/complex_decl.hpp"
 #include "rote/core/types_decl.hpp"
+#include "rote/core/permutation.hpp"
+#include "rote/core/structs.hpp"
 #include "rote/core/tensor_forward_decl.hpp"
 #include "rote/core/dist_tensor_forward_decl.hpp"
 #include "rote/core/view_decl.hpp"

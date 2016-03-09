@@ -59,7 +59,7 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
         Gemm(alpha, MPA, MPB, beta, MPC);
 
         Tensor<T> IPC;
-        const Permutation invPermC = DetermineInversePermutation(permC);
+        const Permutation invPermC = permC.InversePermutation();
         ObjShape splitColModes(nIndicesM);
         for(i = 0; i < splitColModes.size(); i++)
             splitColModes[i] = i;

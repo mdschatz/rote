@@ -687,7 +687,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A)
 #ifndef RELEASE
     CallStackEntry cse("Tensor::CopyBuffer");
 #endif
-    Permutation perm = DefaultPermutation(A.Order());
+    Permutation perm(A.Order());
     CopyBuffer(A, perm, perm);
 }
 
@@ -701,7 +701,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
     const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
 
-    Permutation out2inPerm = DeterminePermutation(dstPerm, srcPerm);
+    Permutation out2inPerm = dstPerm.PermutationTo(srcPerm);//DeterminePermutation(dstPerm, srcPerm);
     PackData packData;
     packData.loopShape = A.Shape();
 	packData.srcBufStrides = A.Strides();

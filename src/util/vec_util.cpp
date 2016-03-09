@@ -227,7 +227,7 @@ bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec
 
 template<typename T>
 std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm){
-    return FilterVector(vec, perm);
+    return FilterVector(vec, perm.Entries());
 }
 
 template<typename T>
@@ -366,23 +366,22 @@ template<typename T>
 Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
     if(ref.size() != vec.size())
         LogicError("reference vector and permuted vector are of different sizes");
-    Permutation ret(ref.size());
+    std::vector<Unsigned> permVec(ref.size());
 
     Unsigned i;
     for(i = 0; i < vec.size(); i++){
-        ret[i] = IndexOf(ref, vec[i]);
+        permVec[i] = IndexOf(ref, vec[i]);
     }
 
+    Permutation ret(permVec);
     return ret;
 }
-
-Permutation DetermineInversePermutation(const Permutation& perm){
-    Unsigned i;
-    Permutation basePerm(perm.size());
-    for(i = 0; i < basePerm.size(); i++)
-        basePerm[i] = i;
-    return DeterminePermutation(perm, basePerm);
-}
+//
+//Permutation DetermineInversePermutation(const Permutation& perm){
+//    Unsigned i;
+//    Permutation basePerm(perm.size());
+//    return DeterminePermutation(perm, basePerm);
+//}
 
 template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2){
@@ -424,7 +423,7 @@ void SortVector(std::vector<T>& vec1){
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-	template std::vector<T> PermuteVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
+	template std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& filter); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2); \

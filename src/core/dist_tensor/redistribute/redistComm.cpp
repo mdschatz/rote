@@ -111,7 +111,7 @@ void DistTensor<T>::CommRedistRemove(const TensorDistribution& finalDist, const 
 		Redist prepRedistInfo;
 		prepRedistInfo.redistType = Perm;
 		prepRedistInfo.dist = prepDist;
-		prepRedistInfo.modes = DefaultPermutation(this->Grid().Order());
+		prepRedistInfo.modes = OrderedModes(this->Grid().Order());//DefaultPermutation(this->Grid().Order());
 		intDists.push_back(prepRedistInfo);
 	}
 
@@ -171,7 +171,7 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 		Redist prepRedistInfo;
 		prepRedistInfo.redistType = Perm;
 		prepRedistInfo.dist = prepDist;
-		prepRedistInfo.modes = DefaultPermutation(this->Grid().Order());
+		prepRedistInfo.modes = OrderedModes(this->Grid().Order());
 		intDists.push_back(prepRedistInfo);
 	}
 
@@ -303,7 +303,7 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 		Redist newRedistInfo;
 		newRedistInfo.dist = intDist;
 		newRedistInfo.redistType = Perm;
-		newRedistInfo.modes = DefaultPermutation(this->Grid().Order());
+		newRedistInfo.modes = OrderedModes(this->Grid().Order());
 
 		intDists.push_back(newRedistInfo);
 
@@ -358,7 +358,7 @@ void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const Tensor
 		Redist redistInfo;
 		redistInfo.redistType = Perm;
 		redistInfo.dist = this->TensorDist();
-		redistInfo.modes = DefaultPermutation(this->Grid().Order());
+		redistInfo.modes = OrderedModes(this->Grid().Order());
 		intDists.push_back(redistInfo);
 	}
 }

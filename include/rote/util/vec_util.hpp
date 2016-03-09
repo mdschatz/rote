@@ -14,6 +14,7 @@
 #include <iostream>
 #include "rote/core/error_decl.hpp"
 #include "rote/core/types_decl.hpp"
+#include "rote/core/permutation.hpp"
 
 namespace rote {
 
@@ -139,7 +140,7 @@ std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<
 template<typename T>
 Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
-Permutation DetermineInversePermutation(const Permutation& perm);
+//Permutation DetermineInversePermutation(const Permutation& perm);
 
 template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2);

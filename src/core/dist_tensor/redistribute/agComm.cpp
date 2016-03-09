@@ -106,7 +106,7 @@ void DistTensor<T>::PackAGCommSendBuf(const DistTensor<T>& A, T * const sendBuf)
   std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
 
   //Determine permutation from local output to local input
-  Permutation out2in = DetermineInversePermutation(DeterminePermutation(A.localPerm_, this->localPerm_));
+  Permutation out2in = A.localPerm_.PermutationTo(this->localPerm_).InversePermutation();//DetermineInversePermutation(DeterminePermutation(A.localPerm_, this->localPerm_));
 
   //Permute pack strides to match input local permutation (for correct packing)
   packData.dstBufStrides = PermuteVector(finalStrides, out2in);

@@ -432,7 +432,7 @@ GridViewLoc2GridLinearLoc_(const Location& gridViewLoc, const GridView& gridView
 	Location gridLoc(gridOrder);
 	for(i = 0; i < gvOrder; i++){
 		const ModeDistribution modeDist = tensorDist[i];
-		const ObjShape gridSliceShape = PermuteVector(gridShape, modeDist);
+		const ObjShape gridSliceShape = FilterVector(gridShape, modeDist);
 		Location gridSliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSliceShape);
 
 		for(j = 0; j < gridSliceLoc.size(); j++){
@@ -469,7 +469,7 @@ GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
     for(i = 0; i < gvOrder; i++){
 
         const ModeDistribution modeDist = tensorDist[i];
-        const ObjShape gridSliceShape = PermuteVector(gridShape, modeDist);
+        const ObjShape gridSliceShape = FilterVector(gridShape, modeDist);
         Location gridSliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSliceShape);
 
         for(j = 0; j < gridSliceLoc.size(); j++){
@@ -500,12 +500,12 @@ GridViewLoc2ParticipatingLoc_(const Location& gridViewLoc, const GridView& gridV
 
     const Location gvParticipatingLoc = gridView.ParticipatingLoc();
 
-    ObjShape gridSlice = PermuteVector(g->Shape(), participatingComms);
+    ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
     Location participatingGridLoc(gridSlice.size());
 
     for(i = 0; i < participatingOrder; i++){
         ModeDistribution modeDist = dist[i];
-        ObjShape modeSliceShape = PermuteVector(g->Shape(), modeDist);
+        ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
         const Location modeSliceLoc = LinearLoc2Loc(gridViewLoc[i], modeSliceShape);
 
         for(j = 0; j < modeDist.size(); j++){
@@ -537,12 +537,12 @@ GridViewLoc2ParticipatingLinearLoc_(const Location& gridViewLoc, const GridView&
 
     const Location gvParticipatingLoc = gridView.ParticipatingLoc();
 
-    ObjShape gridSlice = PermuteVector(g->Shape(), participatingComms);
+    ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
     Location participatingGridLoc(gridSlice.size());
 
     for(i = 0; i < participatingOrder; i++){
         ModeDistribution modeDist = dist[i];
-        ObjShape modeSliceShape = PermuteVector(g->Shape(), modeDist);
+        ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist);
         const Location modeSliceLoc = LinearLoc2Loc(gridViewLoc[i], modeSliceShape);
 
         for(j = 0; j < modeDist.size(); j++){
@@ -567,8 +567,8 @@ GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const Te
         Location gridSliceLoc(modeDist.size());
         ObjShape gridSliceShape(modeDist.size());
 
-        gridSliceLoc = PermuteVector(gridLoc, modeDist);
-        gridSliceShape = PermuteVector(gridShape, modeDist);
+        gridSliceLoc = FilterVector(gridLoc, modeDist);
+        gridSliceShape = FilterVector(gridShape, modeDist);
 
         ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     }
@@ -588,8 +588,8 @@ GridLoc2ParticipatingGridViewLoc(const Location& gridLoc, const ObjShape& gridSh
         Location gridSliceLoc(modeDist.size());
         ObjShape gridSliceShape(modeDist.size());
 
-        gridSliceLoc = PermuteVector(gridLoc, modeDist);
-        gridSliceShape = PermuteVector(gridShape, modeDist);
+        gridSliceLoc = FilterVector(gridLoc, modeDist);
+        gridSliceShape = FilterVector(gridShape, modeDist);
 
         ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     }

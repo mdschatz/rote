@@ -285,7 +285,7 @@ YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y )
         LogicError
         ("X and Y must be distributed over the same grid");
 #endif
-    Permutation permXToY = DeterminePermutation(X.LocalPermutation(), Y.LocalPermutation());
+    Permutation permXToY = X.LocalPermutation().PermutationTo(Y.LocalPermutation());
     YAxpBy(alpha, X.LockedTensor(), permXToY, beta, Y.Tensor());
 }
 

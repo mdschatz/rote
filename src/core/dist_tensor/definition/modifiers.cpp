@@ -538,9 +538,9 @@ DistTensorBase<T>::SetLocalPermutation(const Permutation& perm)
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetLocalPermutation");
 #endif
-    Permutation permOldToNew = DeterminePermutation(localPerm_, perm);
-    localPerm_ = perm;
+    Permutation permOldToNew = localPerm_.PermutationTo(perm);
     tensor_.ResizeTo(PermuteVector(tensor_.Shape(), permOldToNew));
+    localPerm_ = perm;
 }
 
 template<typename T>
@@ -550,10 +550,8 @@ DistTensorBase<T>::SetDefaultPermutation()
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::SetDefaultPermutation");
 #endif
-    Permutation defaultPerm = DefaultPermutation(Order());
-//    Permutation permOldToNew = DeterminePermutation(localPerm_, defaultPerm);
+    Permutation defaultPerm(Order());
     localPerm_ = defaultPerm;
-//    tensor_.ResizeTo(PermuteVector(tensor_.Shape(), permOldToNew));
 }
 
 #define FULL(T) \

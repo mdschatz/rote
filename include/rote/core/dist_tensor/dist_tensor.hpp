@@ -366,7 +366,7 @@ private:
 #endif // ifndef SWIG
 };
 
-Permutation DefaultPermutation(Unsigned order);
+ModeArray OrderedModes(Unsigned order);
 
 } // namespace rote
 

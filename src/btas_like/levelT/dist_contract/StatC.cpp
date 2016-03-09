@@ -145,7 +145,7 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	BlkContractStatCInfo contractInfo;
 	SetBlkContractStatCInfo(distIntA, indicesA, distIntB, indicesB, indicesC, blkSizes, contractInfo);
 
-	if(contractInfo.permC != DefaultPermutation(C.Order())){
+	if(contractInfo.permC != C.LocalPermutation()){
 		TensorDistribution tmpDistC = distC;
 		DistTensor<T> tmpC(tmpDistC, C.Grid());
 		tmpC.SetLocalPermutation(contractInfo.permC);

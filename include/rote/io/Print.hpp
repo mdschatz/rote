@@ -152,7 +152,7 @@ PrintData
         os << "Distribution: " << rote::TensorDistToString(A.TensorDist()) << std::endl;
         PrintVector(A.Alignments(), "alignments", os);
         PrintVector(A.ModeShifts(), "shifts", os);
-        PrintVector(A.LocalPermutation(), "local permutation", os);
+        os << A.LocalPermutation();
         PrintData(A.LockedTensor(), "tensor data", os);
 //    }
 }
@@ -229,7 +229,7 @@ PrintElemSelectData
     PrintVector(elemData.packElem, "  packElem", os);
     PrintVector(elemData.srcElem, "  srcElem", os);
     PrintVector(elemData.srcStrides, "  srcBufStrides", os);
-    PrintVector(elemData.permutation, "  permutation", os);
+    os << elemData.permutation;
     PrintVector(elemData.commModes, "  commModes", os);
 
 }

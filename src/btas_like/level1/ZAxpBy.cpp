@@ -208,8 +208,8 @@ ZAxpBy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTen
 #endif
     Z.ResizeTo(X.Shape());
 
-    Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
-    Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
+    Permutation permXToZ = X.LocalPermutation().PermutationTo(Z.LocalPermutation());
+    Permutation permYToZ = Y.LocalPermutation().PermutationTo(Z.LocalPermutation());
     ZAxpBy(alpha, X.LockedTensor(), permXToZ, beta, Y.LockedTensor(), permYToZ, Z.Tensor());
 }
 

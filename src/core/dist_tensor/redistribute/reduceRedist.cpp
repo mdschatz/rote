@@ -42,7 +42,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     ObjShape tmp2Shape = this->Shape();
     TensorDistribution tmp2Dist = this->TensorDist();
 //    std::vector<Unsigned> tmp2Aligns = Alignments();
-    Permutation tmp2Perm = this->localPerm_;
+    std::vector<Unsigned> tmp2PermVals = this->localPerm_.Entries();
     std::vector<Unsigned> tmp2Strides = this->LocalStrides();
 
     for(i = 0; i < sortedRModes.size(); i++){
@@ -50,10 +50,10 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
         tmp2Dist.insert(tmp2Dist.begin() + rMode, blank);
 //        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
 
-        for(j = 0; j < tmp2Perm.size(); j++)
-            if(tmp2Perm[j] >= rMode)
-                tmp2Perm[j]++;
-        tmp2Perm.insert(tmp2Perm.begin() + rMode, rMode);
+        for(j = 0; j < tmp2PermVals.size(); j++)
+            if(tmp2PermVals[j] >= rMode)
+                tmp2PermVals[j]++;
+        tmp2PermVals.insert(tmp2PermVals.begin() + rMode, rMode);
 
         if(rMode == tmp2Strides.size()){
             if(rMode == 0){
@@ -68,6 +68,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     }
 
     DistTensor<T> tmp2(tmp2Shape, rote::TensorDistToString(tmp2Dist), g);
+    Permutation tmp2Perm(tmp2PermVals);
     tmp2.SetLocalPermutation(tmp2Perm);
     std::vector<Unsigned> tmp2Aligns = this->Alignments();
     for(i = 0; i < rModes.size(); i++)
