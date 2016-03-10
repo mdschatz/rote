@@ -129,7 +129,6 @@ void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const T alpha)
     unpackData.dstBufStrides = this->LocalStrides();
     unpackData.srcBufStrides = Dimensions2Strides(PermuteVector(this->MaxLocalShape(), this->localPerm_));
 
-//    PrintPackData(unpackData, "unpackData");
     if(alpha == T(0))
     	PackCommHelper(unpackData, &(recvBuf[0]), &(dataBuf[0]));
     else{
