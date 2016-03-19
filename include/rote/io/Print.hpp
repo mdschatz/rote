@@ -149,7 +149,7 @@ PrintData
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
-        os << "Distribution: " << rote::TensorDistToString(A.TensorDist()) << std::endl;
+        os << "Distribution: " << A.TensorDist() << std::endl;
         PrintVector(A.Alignments(), "alignments", os);
         PrintVector(A.ModeShifts(), "shifts", os);
         PrintVector(A.LocalPermutation(), "local permutation", os);

@@ -132,14 +132,14 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	TensorDistribution distC = C.TensorDist();
 
 	ModeArray blank;
-	TensorDistribution distIntA(distA.size(), blank);
-	TensorDistribution distIntB(distB.size(), blank);
+	TensorDistribution distIntA(distA.size() - 1);
+	TensorDistribution distIntB(distB.size() - 1);
 
 	//Setup temp dist A
-	SetTensorDistToMatch(distC, indicesC, distIntA, indicesA);
+	distIntA.SetToMatch(distC, indicesC, indicesA);
 
 	//Setup temp dist B
-	SetTensorDistToMatch(distC, indicesC, distIntB, indicesB);
+	distIntB.SetToMatch(distC, indicesC, indicesB);
 
 	//Determine how to partition
 	BlkContractStatCInfo contractInfo;

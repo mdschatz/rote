@@ -45,7 +45,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     for(Unsigned i = 0; i < alignA.size(); i++){
         if(alignA[i] != alignB[i]){
             ModeDistribution modeDist = A.ModeDist(i);
-            misalignedModes.insert(misalignedModes.end(), modeDist.begin(), modeDist.end());
+            misalignedModes.insert(misalignedModes.end(), modeDist.Entries().begin(), modeDist.Entries().end());
         }
     }
 

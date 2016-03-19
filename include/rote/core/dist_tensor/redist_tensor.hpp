@@ -176,14 +176,6 @@ public:
     //
     void ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
 
-    //
-    //Unit mode intro/remove routines
-    //
-    void RemoveUnitModesRedist(const ModeArray& unitModes);
-    void RemoveUnitModeRedist(const Mode& unitMode);
-    void IntroduceUnitModesRedist(const std::vector<Unsigned>& newModePositions);
-    void IntroduceUnitModeRedist(const Unsigned& newModePosition);
-
 private:
     //
     // Redist workhorse routines

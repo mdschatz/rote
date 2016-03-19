@@ -108,7 +108,7 @@ DistTensorBase<T>::SetParticipatingComm()
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::GetParticipatingComm");
 #endif
-    ModeArray commModes = ConcatenateVectors(gridView_.FreeModes(), gridView_.BoundModes());
+    ModeArray commModes = gridView_.UsedModes();
     SortVector(commModes);
 
     const rote::Grid& grid = Grid();
@@ -197,7 +197,6 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
 #ifndef RELEASE
     CallStackEntry cse("DistTensor::AlignCommBufRedist");
 #endif
-
     const rote::Grid& g = this->Grid();
     GridView gvA = A.GetGridView();
     GridView gvB = this->GetGridView();
@@ -221,15 +220,15 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Location recvGridLoc = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
 
     //Create the communicator to involve all processes we need to fix misalignment
-    ModeArray misalignedModes;
+    ModeDistribution misalignedModesDist;
     for(Unsigned i = 0; i < alignA.size(); i++){
         if(alignBinA[i] != alignA[i]){
-            ModeDistribution modeDist = A.ModeDist(i);
-            misalignedModes.insert(misalignedModes.end(), modeDist.begin(), modeDist.end());
+            misalignedModesDist += A.ModeDist(i);
         }
     }
+    ModeArray misalignedModes = misalignedModesDist.Entries();
     SortVector(misalignedModes);
-//    PrintVector(misalignedModes, "misalignedModes");
+
     mpi::Comm sendRecvComm = this->GetCommunicatorForModes(misalignedModes, g);
 
     Location sendSliceLoc = FilterVector(sendGridLoc, misalignedModes);

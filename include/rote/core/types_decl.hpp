@@ -26,9 +26,6 @@ typedef Unsigned Mode;
 typedef std::vector<Index> IndexArray;
 typedef std::vector<Mode> ModeArray;
 
-typedef ModeArray ModeDistribution;
-typedef std::vector<ModeDistribution> TensorDistribution;
-
 //NOTE: I'm really not sure why, but I cannot have Shape
 typedef std::vector<Unsigned> ObjShape;
 typedef std::vector<Unsigned> Location;
@@ -36,122 +33,6 @@ typedef std::vector<Unsigned> Permutation;
 
 //Redistribution enum
 enum RedistType {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
-
-//Structs for performing general redistributions
-struct RedistPlanInfo
-{
-	ModeArray tenModesReduced;
-	ModeArray gridModesAppeared;
-	ModeArray gridModesAppearedSinks;
-	ModeArray gridModesRemoved;
-	ModeArray gridModesRemovedSrcs;
-	ModeArray gridModesMoved;
-	ModeArray gridModesMovedSrcs;
-	ModeArray gridModesMovedSinks;
-};
-
-struct Redist
-{
-	RedistType redistType;
-	TensorDistribution dist;
-	ModeArray modes;
-};
-
-typedef std::vector<Redist> RedistPlan;
-
-struct 	BlkContractStatAInfo
-{
-	ModeArray reduceTensorModes;
-	TensorDistribution distT;
-	ModeArray alignModesT;
-	ModeArray alignModesTTo;
-	Permutation permT;
-
-	ModeArray partModesB;
-	TensorDistribution distIntB;
-	ModeArray alignModesB;
-	ModeArray alignModesBTo;
-	Permutation permB;
-
-	ModeArray partModesC;
-
-	Permutation permA;
-	std::vector<Unsigned> blkSizes;
-};
-
-struct 	BlkContractStatCInfo
-{
-	ModeArray partModesA;
-	TensorDistribution distIntA;
-	ModeArray alignModesA;
-	ModeArray alignModesATo;
-	Permutation permA;
-
-	ModeArray partModesB;
-	TensorDistribution distIntB;
-	ModeArray alignModesB;
-	ModeArray alignModesBTo;
-	Permutation permB;
-
-	Permutation permC;
-	std::vector<Unsigned> blkSizes;
-};
-
-//Pack data structs
-struct PackData
-{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcBufStrides;
-    std::vector<Unsigned> dstBufStrides;
-    Permutation permutation;
-};
-
-struct YAxpPxData{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcStrides;
-    std::vector<Unsigned> permSrcStrides;
-    std::vector<Unsigned> dstStrides;
-};
-
-struct YAxpByData{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcStrides;
-    std::vector<Unsigned> dstStrides;
-};
-
-struct ScalData{
-    ObjShape loopShape;
-    std::vector<Unsigned> srcStrides;
-};
-
-struct DiffData{
-    ObjShape loopShape;
-    std::vector<Unsigned> src1Strides;
-    std::vector<Unsigned> src2Strides;
-    std::vector<Unsigned> dstStrides;
-};
-
-struct ElemScalData{
-    ObjShape loopShape;
-    std::vector<Unsigned> src1Strides;
-    std::vector<Unsigned> src2Strides;
-    std::vector<Unsigned> dstStrides;
-};
-
-struct ZAxpByData{
-    ObjShape loopShape;
-    std::vector<Unsigned> src1Strides;
-    std::vector<Unsigned> src2Strides;
-    std::vector<Unsigned> dstStrides;
-};
-
-struct ZAxpBypPxData{
-    ObjShape loopShape;
-    std::vector<Unsigned> src1Strides;
-    std::vector<Unsigned> src2Strides;
-    std::vector<Unsigned> permSrcStrides;
-    std::vector<Unsigned> dstStrides;
-};
 
 //template<typename Real>
 //using Complex = std::complex<Real>;
@@ -217,18 +98,6 @@ struct ValueIntPair<std::complex<Real> >
     ( const ValueIntPair<Real>& a, const ValueIntPair<Real>& b )
     { return Abs(a.value) > Abs(b.value); }
 };
-
-namespace distribution_wrapper {
-
-std::string TensorDistToString( const TensorDistribution&  distribution, bool endLine=false );
-TensorDistribution StringToTensorDist( const std::string& s );
-
-std::string ModeDistToString_( const ModeDistribution&  distribution, bool endLine=false );
-std::string ModeDistToString( const ModeDistribution&  distribution, bool endLine=false );
-ModeDistribution StringToModeDist( const std::string& s );
-}
-
-using namespace distribution_wrapper;
 
 namespace viewtype_wrapper {
 enum ViewType
