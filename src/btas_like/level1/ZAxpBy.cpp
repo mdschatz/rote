@@ -168,7 +168,7 @@ ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
-    Permutation perm = DefaultPermutation(X.Order());
+    Permutation perm(X.Order());
     ZAxpBy(alpha, X, perm, beta, Y, perm, Z);
 }
 

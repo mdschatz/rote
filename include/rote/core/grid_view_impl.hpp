@@ -29,41 +29,24 @@ GridView::SetMyGridViewLoc( )
 	const Location gridLoc = grid_->Loc();
 
 	loc_ = GridLoc2GridViewLoc(gridLoc, gridShape, Distribution());
-//
-//	for(i = 0; i < order; i++){
-//		ModeDistribution modeDist = dist_[i];
-//		std::vector<Int> gridSliceLoc(modeDist.size());
-//		std::vector<Int> gridSliceShape(modeDist.size());
-//
-//		gridSliceLoc = FilterVector(gridLoc, modeDist);
-//		gridSliceShape = FilterVector(gridShape, modeDist);
-//
-//		loc_[i] = LinearIndex(gridSliceLoc, Dimensions2Strides(gridSliceShape));
-//	}
 }
 
 inline
 void
-GridView::SetGridModeTypes(const ModeArray& unusedModes)
+GridView::SetGridModeTypes(const ModeDistribution& unusedModes)
 {
     const Unsigned gridOrder = grid_->Order();
     const Unsigned order = dist_.size()-1;
     Unsigned i;
-    Unsigned j;
+
     for(i = 0; i < order; i++){
         ModeDistribution modeDist = dist_[i];
-        for(j = 0; j < modeDist.size(); j++){
-            Mode mode = modeDist[j];
-            boundModes_.push_back(mode);
-        }
+        boundModes_ += modeDist;
     }
     unusedModes_ = unusedModes;
 
-    for(i = 0; i < gridOrder; i++){
-        if(!Contains(boundModes_, i) && !Contains(unusedModes_, i)){
-			freeModes_.push_back(i);
-        }
-    }
+    ModeDistribution allModes(OrderedModes(gridOrder));
+    freeModes_ = allModes - unusedModes_ - boundModes_;
 }
 
 inline
@@ -78,12 +61,12 @@ GridView::GridView( const rote::Grid* grid, const TensorDistribution& distributi
     CallStackEntry entry("GridView::GridView");
 #endif
 
-    SetupGridView(distribution[distribution.size() - 1]);
+    SetupGridView(distribution.UnusedModes());
 }
 
 inline
 void
-GridView::SetupGridView(const ModeArray& unusedModes)
+GridView::SetupGridView(const ModeDistribution& unusedModes)
 {
 #ifndef RELEASE
     CallStackEntry entry("GridView::SetupGridView");
@@ -105,21 +88,8 @@ GridView::SetupGridView(const ModeArray& unusedModes)
 }
 
 inline
-void
-GridView::AddFreeMode(const Mode& freeMode)
-{
-#ifndef RELEASE
-    CallStackEntry cse("GridView::AddFreeMode");
-#endif
-    freeModes_.push_back(freeMode);
-    boundModes_.erase(std::find(boundModes_.begin(), boundModes_.end(), freeMode));
-    unusedModes_.erase(std::find(boundModes_.begin(), boundModes_.end(), freeMode));
-}
-
-inline
 GridView::~GridView()
-{
-}
+{ }
 
 inline
 Location
@@ -226,81 +196,25 @@ GridView::Dimension(Mode mode) const
   return shape_[mode];
 }
 
-//
-//
-//
+inline
+ModeArray
+GridView::UnusedModes() const
+{ return unusedModes_.Entries(); }
 
 inline
 ModeArray
-GridView::BoundModes() const
-{ return boundModes_; }
+GridView::UsedModes() const
+{
+	ModeDistribution ret = freeModes_ + boundModes_;
+	return ret.Entries();
+}
 
 inline
 ModeArray
 GridView::FreeModes() const
-{ return freeModes_; }
-
-inline
-ModeArray
-GridView::UnusedModes() const
-{ return unusedModes_; }
-
-inline
-bool
-GridView::IsBound(Mode mode) const
-{ return Contains(boundModes_, mode); }
-
-inline
-bool
-GridView::IsFree(Mode mode) const
-{ return Contains(freeModes_, mode); }
-
-inline
-bool
-GridView::IsUnused(Mode mode) const
-{ return Contains(unusedModes_, mode); }
-
-inline
-void
-GridView::RemoveUnitModes(const ModeArray& unitModes)
 {
-    Unsigned i;
-    ModeArray sorted = unitModes;
-    SortVector(sorted);
-    for(i = sorted.size() - 1; i < sorted.size(); i--){
-        shape_.erase(shape_.begin() + sorted[i]);
-        loc_.erase(loc_.begin() + sorted[i]);
-        dist_.erase(dist_.begin() + sorted[i]);
-    }
+	return freeModes_.Entries();
 }
-
-inline
-void
-GridView::IntroduceUnitModes(const ModeArray& unitModes)
-{
-    Unsigned i, j;
-    ModeArray sorted = unitModes;
-    SortVector(sorted);
-    ModeArray blank(0);
-    for(i = 0; i < sorted.size(); i++){
-        shape_.insert(shape_.begin() + sorted[i], 1);
-        loc_.insert(loc_.begin() + sorted[i], 0);
-        dist_.insert(dist_.begin() + sorted[i], blank);
-
-        for(j = 0; j < freeModes_.size(); j++)
-            if(freeModes_[j] >= sorted[i])
-                freeModes_[j] += 1;
-        for(j = 0; j < boundModes_.size(); j++)
-            if(boundModes_[j] >= sorted[i])
-                boundModes_[j] += 1;
-        boundModes_.insert(boundModes_.begin(), sorted[i]);
-        for(j = 0; j < unusedModes_.size(); j++)
-            if(unusedModes_[j] == sorted[i])
-                unusedModes_[j] += 1;
-
-    }
-}
-
 
 inline
 bool

@@ -337,11 +337,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
 
     //Set up the communicator information, including
     //the permutation from TensorDist proc order -> comm proc order
-    ModeArray commModes;
-    for(i = 0; i < A.Order(); i++){
-        ModeDistribution modeDist = A.ModeDist(i);
-        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
-    }
+    ModeArray commModes = A.TensorDist().UsedModes().Entries();
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
     mpi::Comm comm = A.GetCommunicatorForModes(sortedCommModes, A.Grid());

@@ -180,7 +180,7 @@ CreatePerms(const Unsigned& order){
 	std::vector<Permutation> ret;
 
 
-	Permutation perm = DefaultPermutation(order);
+	Permutation perm(order);
 	do{
 		ret.push_back(perm);
 	}while(next_permutation(perm.begin(), perm.end()));
@@ -269,7 +269,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
 
     const ObjShape shape = A.Shape();
 
-    Permutation defaultPerm = DefaultPermutation(order);
+    Permutation defaultPerm(order);
 
     DistTensor<T> AT(order, g), AB(order, g), A0(order, g), A1(order, g), A2(order, g);
 

@@ -35,12 +35,6 @@ public:
     Unsigned LinearRank() const;
     void SetMyGridLoc();
 
-//These should be pushed to a separate GridView class
-//Grid is meant for the bottom-most layer
-//    int LocUnderView(GridView view) const;
-//    int DimensionUnderView(GridView view) const;
-//    mpi::Comm CommUnderView(GridView view) const;
-
     // Advanced routines
     explicit Grid( mpi::Comm viewers, mpi::Group owners, Unsigned height );
     bool InGrid() const;
@@ -53,10 +47,6 @@ private:
     Unsigned size_;
     Unsigned linearRank_;
     Location gridLoc_;
-
-    //TODO: Look at how these are used
-    // The processes that do and do not own data
-    //mpi::Group owningGroup_, notOwningGroup_;
 
     // Keep track of whether or not our process is in the grid. This is 
     // necessary to avoid calls like MPI_Comm_size when we're not in the

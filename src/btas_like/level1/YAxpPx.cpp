@@ -74,7 +74,7 @@ YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutat
 #ifndef RELEASE
     CallStackEntry entry("YAxpPx");
 #endif
-    Permutation permXToY = DefaultPermutation(X.Order());
+    Permutation permXToY(X.Order());
     YAxpPx(alpha, X, permXToY, beta, PX, perm, Y);
 }
 

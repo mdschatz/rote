@@ -28,7 +28,6 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     const rote::GridView gv = A.GetGridView();
     const rote::Grid& g = A.Grid();
     TensorDistribution dist = A.TensorDist();
-    ModeDistribution blank(0);
 
     //Sort the rModes just in case
     ModeArray sortedRModes = rModes;
@@ -41,14 +40,13 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     //Set up tmp2 for holding beta*B
     ObjShape tmp2Shape = this->Shape();
     TensorDistribution tmp2Dist = this->TensorDist();
+    tmp2Dist.IntroduceUnitModeDists(sortedRModes);
 //    std::vector<Unsigned> tmp2Aligns = Alignments();
     std::vector<Unsigned> tmp2PermVals = this->localPerm_.Entries();
     std::vector<Unsigned> tmp2Strides = this->LocalStrides();
 
     for(i = 0; i < sortedRModes.size(); i++){
         Mode rMode = sortedRModes[i];
-        tmp2Dist.insert(tmp2Dist.begin() + rMode, blank);
-//        tmp2Aligns.insert(tmp2Aligns.begin() + rMode, A.ModeAlignment(rMode));
 
         for(j = 0; j < tmp2PermVals.size(); j++)
             if(tmp2PermVals[j] >= rMode)
@@ -67,7 +65,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
         tmp2Shape.insert(tmp2Shape.begin() + rMode, Min(1, A.Dimension(rMode)));
     }
 
-    DistTensor<T> tmp2(tmp2Shape, rote::TensorDistToString(tmp2Dist), g);
+    DistTensor<T> tmp2(tmp2Shape, tmp2Dist, g);
     Permutation tmp2Perm(tmp2PermVals);
     tmp2.SetLocalPermutation(tmp2Perm);
     std::vector<Unsigned> tmp2Aligns = this->Alignments();
@@ -93,11 +91,8 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
         }
     }
 
-    ModeArray commModes;
-    for(i = 0; i < sortedRModes.size(); i++){
-        ModeDistribution modeDist = A.ModeDist(sortedRModes[i]);
-        commModes.insert(commModes.end(), modeDist.begin(), modeDist.end());
-    }
+
+    ModeArray commModes = A.TensorDist().Filter(sortedRModes).UsedModes().Entries();
     SortVector(commModes);
 
 //    PrintData(tmp, "tmp data");

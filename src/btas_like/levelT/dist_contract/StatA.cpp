@@ -21,8 +21,9 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatAInfo& contractInfo
 		IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
 		IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
 		ObjShape shapeT(indicesT.size());
+		//NOTE: Overwrites values, but this is correct (initially sets to match gvA but then overwrites with C)
+		SetTensorShapeToMatch(gvA.ParticipatingShape(), indicesA, shapeT, indicesT);
 		SetTensorShapeToMatch(C.Shape(), indicesC, shapeT, indicesT);
-		SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
 
 		DistTensor<T> intT(shapeT, contractInfo.distT, C.Grid());
 
@@ -149,40 +150,31 @@ void ContractStatA(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 	IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
 
 	TensorDistribution distA = A.TensorDist();
-	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
 
 	ObjShape shapeC = C.Shape();
 
-	ModeDistribution blank;
-	TensorDistribution distT(indicesT.size() + 1, blank);
-	TensorDistribution distIntB(indicesB.size() + 1, blank);
-	TensorDistribution distIntC(indicesC.size() + 1, blank);
+	TensorDistribution distT(indicesT.size());
+	TensorDistribution distIntB(indicesB.size());
+	TensorDistribution distIntC(indicesC.size());
 
-	ModeArray reduceTenModes;
-	for(i = 0; i < contractIndices.size(); i++){
-		reduceTenModes.push_back(C.Order() + i);
-	}
 	ModeArray reduceGridModes;
 	for(i = 0; i < contractIndices.size(); i++){
 		int index = IndexOf(indicesA, contractIndices[i]);
 		if(index >= 0)
-			reduceGridModes = ConcatenateVectors(reduceGridModes, distA[index]);
+			reduceGridModes = ConcatenateVectors(reduceGridModes, distA[index].Entries());
 	}
 
 	//Setup temp distB
-	SetTensorDistToMatch(distA, indicesA, distIntB, indicesB);
+	distIntB.SetToMatch(distA, indicesA, indicesB);
 
 	//Setup temp distT
-	ObjShape shapeT(indicesT.size());
-	SetTensorDistToMatch(distA, indicesA, distT, indicesT);
-	SetTensorShapeToMatch(shapeC, indicesC, shapeT, indicesT);
-	SetTempShapeToMatch(gvA, indicesA, shapeT, indicesT, contractIndices);
+	distT.SetToMatch(distA, indicesA, indicesT);
 
 	//Setup temp distIntC
 	const rote::GridView gvC = C.GetGridView();
-	SetTensorDistToMatch(distT, indicesT, distIntC, indicesC);
-	AppendTensorDistToMatch(reduceGridModes, distC, indicesC, distIntC, indicesC);
+	distIntC.SetToMatch(distT, indicesT, indicesC);
+	distIntC.AppendToMatchForGridModes(reduceGridModes, distC, indicesC, indicesC);
 
 	//Create the Contract Info
 	BlkContractStatAInfo contractInfo;

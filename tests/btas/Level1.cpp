@@ -138,7 +138,7 @@ TestYAxpPx(const DistTensor<T>& A)
     CallStackEntry entry("TestyAxpPx");
 #endif
     Unsigned i;
-    Permutation perm = DefaultPermutation(A.Order());
+    Permutation perm(A.Order());
 
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
 

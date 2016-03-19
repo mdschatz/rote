@@ -102,69 +102,9 @@ DistTensor<T>::DistTensor
 : DistTensorBase<T>(shape, dist, modeAlignments, buffer, strides, g)
 { }
 
-//template<typename T>
-//DistTensor<T>::DistTensor( const DistTensor<T>& A )
-//: DistTensorBase<T>(A)
-//{ }
-
 template<typename T>
 DistTensor<T>::~DistTensor()
 { }
-
-//template<typename T>
-//void
-//DistTensor<T>::Swap( DistTensor<T>& A )
-//{ }
-
-//template<typename T>
-//rote::DistData
-//DistTensor<T>::DistData() const
-//{ }
-
-
-//
-// Utility functions, e.g., TransposeFrom
-//
-
-//NOTE: No check for equal distributions
-//NOTE: Generalize alignments mismatched case
-//NOTE: Generalize CopyFromDifferentGrid case
-//template<typename T>
-//const DistTensor<T>&
-//DistTensor<T>::operator=( const DistTensor<T>& A )
-//{
-//#ifndef RELEASE
-//    CallStackEntry entry("DistTensor = DistTensor");
-//    AssertNotLocked();
-//#endif
-//    if( Grid() == A.Grid() )
-//    {
-//        if(A.Order() != Order()){
-//        	shape_.resize(A.Order());
-//
-//            constrainedModeAlignments_.resize(shape_.size());
-//            modeAlignments_.resize(shape_.size());
-//            modeShifts_.resize(shape_.size());
-//            gridView_ = A.gridView_;
-//            localPerm_.resize(shape_.size());
-//        }
-//        ResizeTo(A);
-//        if( !Participating() && !A.Participating() )
-//            return *this;
-//
-//        if( !AnyElemwiseNotEqual(Alignments(), A.Alignments()) )
-//        {
-//            dist_ = A.TensorDist();
-//            tensor_ = A.LockedTensor();
-//            localPerm_ = A.localPerm_;
-//            gridView_ = A.gridView_;
-//            participatingComm_ = A.participatingComm_;
-//            grid_ = A.grid_;
-//            SetShifts();
-//        }
-//    }
-//    return *this;
-//}
 
 #define FULL(T) \
     template class DistTensor<T>;

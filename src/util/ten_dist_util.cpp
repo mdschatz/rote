@@ -17,12 +17,12 @@ bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder){
 
 bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist){
 	Unsigned nonDistMode = outDist.size() - 1;
-	if(!IsPrefix(outDist[nonDistMode], inDist[nonDistMode])){
+	if(!(outDist[nonDistMode] <= inDist[nonDistMode])){
     	std::stringstream msg;
 		msg << "Invalid redistribution\n"
-			<< rote::TensorDistToString(outDist)
+			<< outDist
 			<< " <-- "
-			<< rote::TensorDistToString(inDist)
+			<< inDist
 			<< std::endl
 			<< "Output Non-distributed mode distribution must be prefix"
 			<< std::endl;
@@ -33,12 +33,12 @@ bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDist
 
 bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist){
 	Unsigned nonDistMode = outDist.size() - 1;
-	if(!IsPrefix(inDist[nonDistMode], outDist[nonDistMode])){
+	if(!(inDist[nonDistMode] <= outDist[nonDistMode])){
     	std::stringstream msg;
 		msg << "Invalid redistribution\n"
-			<< rote::TensorDistToString(outDist)
+			<< outDist
 			<< " <-- "
-			<< rote::TensorDistToString(inDist)
+			<< inDist
 			<< std::endl
 			<< "Input Non-distributed mode distribution must be prefix"
 			<< std::endl;
@@ -49,12 +49,12 @@ bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistr
 
 bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistribution& inDist){
 	Unsigned nonDistMode = outDist.size() - 1;
-	if(outDist[nonDistMode].size() != inDist[nonDistMode].size() || !EqualUnderPermutation(outDist[nonDistMode], inDist[nonDistMode])){
+	if(!outDist[nonDistMode].SameModesAs(inDist[nonDistMode])){
     	std::stringstream msg;
 		msg << "Invalid redistribution\n"
-			<< rote::TensorDistToString(outDist)
+			<< outDist
 			<< " <-- "
-			<< rote::TensorDistToString(inDist)
+			<< inDist
 			<< std::endl
 			<< "Output Non-distributed mode distribution must be same"
 			<< std::endl;
@@ -64,26 +64,16 @@ bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistributio
 }
 
 bool CheckSameCommModes(const TensorDistribution& outDist, const TensorDistribution& inDist){
-	Unsigned i;
-	Unsigned order = outDist.size();
-    ModeDistribution commModesOut;
-    ModeDistribution commModesIn;
+    TensorDistribution commonPrefix = GetCommonPrefix(inDist, outDist);
+    TensorDistribution remainderIn = inDist - commonPrefix;
+    TensorDistribution remainderOut = outDist - commonPrefix;
 
-    for(i = 0; i < order; i++){
-		if(IsPrefix(inDist[i], outDist[i])){
-			commModesOut = ConcatenateVectors(commModesOut, GetSuffix(inDist[i], outDist[i]));
-		}
-		else if(IsPrefix(outDist[i], inDist[i])){
-			commModesIn = ConcatenateVectors(commModesIn, GetSuffix(outDist[i], inDist[i]));
-		}
-    }
-
-    if(commModesOut.size() != commModesIn.size() || !EqualUnderPermutation(commModesOut, commModesIn)){
+    if(!remainderIn.UsedModes().SameModesAs(remainderOut.UsedModes())){
     	std::stringstream msg;
     	msg << "Invalid redistribution\n"
-			<< rote::TensorDistToString(outDist)
+			<< outDist
 			<< " <-- "
-			<< rote::TensorDistToString(inDist)
+			<< inDist
 			<< std::endl
 			<< "Cannot determine modes communicated over"
 			<< std::endl;
@@ -101,18 +91,18 @@ bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution&
 
     for(i = 0; i < objOrder; i++){
     	if(inDist[i].size() != outDist[i].size()){
-			if(IsPrefix(inDist[i], outDist[i])){
+			if(inDist[i] <= outDist[i]){
 				sinkModes.push_back(i);
 			}
-			else if(IsPrefix(outDist[i], inDist[i])){
+			else if(outDist[i] <= inDist[i]){
 				sourceModes.push_back(i);
 			}
-    	}else if(!IsSame(inDist[i], outDist[i])){
+    	}else if(inDist[i] != outDist[i]){
 			std::stringstream msg;
 			msg << "Invalid redistribution\n"
-				<< rote::TensorDistToString(outDist)
+				<< outDist
 				<< " <-- "
-				<< rote::TensorDistToString(inDist)
+				<< inDist
 				<< std::endl
 				<< "Cannot form partition"
 				<< std::endl;
@@ -124,9 +114,9 @@ bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution&
     	if(sourceModes[i] == sinkModes[j]){
         	std::stringstream msg;
     		msg << "Invalid redistribution\n"
-    			<< rote::TensorDistToString(outDist)
+    			<< outDist
     			<< " <-- "
-    			<< rote::TensorDistToString(inDist)
+    			<< inDist
     			<< std::endl
     			<< "Cannot form partition"
     			<< std::endl;
@@ -146,12 +136,12 @@ bool CheckInIsPrefix(const TensorDistribution& outDist, const TensorDistribution
 	Unsigned objOrder = outDist.size() - 1;
 
     for(Unsigned i = 0; i < objOrder; i++){
-    	if(!(IsPrefix(inDist[i], outDist[i]))){
+    	if(!(inDist[i] <= outDist[i])){
     		std::stringstream msg;
     		msg << "Invalid redistribution:\n"
-    		    << rote::TensorDistToString(outDist)
+    		    << outDist
     		    << " <-- "
-    		    << rote::TensorDistToString(inDist)
+    		    << inDist
     		    << std::endl
     		    << "Input mode-" << i << " mode distribution must be prefix of output mode distribution"
     			<< std::endl;
@@ -165,12 +155,12 @@ bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistributio
 	Unsigned objOrder = outDist.size() - 1;
 
     for(Unsigned i = 0; i < objOrder; i++){
-    	if(!(IsPrefix(outDist[i], inDist[i]))){
+    	if(!(outDist[i] <= inDist[i])){
     		std::stringstream msg;
     		msg << "Invalid redistribution\n"
-    		    << rote::TensorDistToString(outDist)
+    		    << outDist
     		    << " <-- "
-    		    << rote::TensorDistToString(inDist)
+    		    << inDist
     		    << std::endl
     		    << "Output mode-" << i << " mode distribution must be prefix of input mode distribution"
     			<< std::endl;
@@ -194,25 +184,6 @@ bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm){
 	return perm.size() == order;
 }
 
-ModeArray GetBoundGridModes(const TensorDistribution& tenDist, const ModeArray& tenModes){
-	Unsigned i;
-	ModeArray ret;
-	for(i = 0; i < tenModes.size(); i++){
-		ModeDistribution modeDist = tenDist[tenModes[i]];
-		ret.insert(ret.end(), modeDist.begin(), modeDist.end());
-	}
-	return ret;
-}
-
-//TODO: Figure out how to get DefaultPermutation
-ModeArray GetBoundGridModes(const TensorDistribution& tenDist){
-	Unsigned i;
-	ModeArray allModes(tenDist.size());
-	for(i = 0; i < tenDist.size(); i++)
-		allModes[i] = i;
-	return GetBoundGridModes(tenDist, allModes);
-}
-
 //TODO: Error checking
 ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist){
 	Unsigned i;
@@ -226,7 +197,7 @@ Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist){
 	Unsigned i;
 	for(i = 0; i < tenDist.size(); i++){
 		ModeDistribution modeDist = tenDist[i];
-		if(Contains(modeDist, mode))
+		if(modeDist.Contains(mode))
 			return i;
 	}
 	return tenDist.size();
