@@ -117,7 +117,6 @@
 //#include "rote/core/timer_impl.hpp"
 #include "rote/core/memory_impl.hpp"
 #include "rote/core/complex_impl.hpp"
-#include "rote/core/types_impl.hpp"
 #include "rote/core/grid_impl.hpp"
 #include "rote/core/grid_view_impl.hpp"
 #include "rote/core/environment_impl.hpp"
