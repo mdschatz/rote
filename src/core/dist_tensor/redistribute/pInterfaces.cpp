@@ -21,14 +21,8 @@ template <typename T>
 void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha){
 	NOT_USED(redistModes);
     PROFILE_SECTION("PermuteRedist");
-    Unsigned i;
     this->ResizeTo(A);
-    ModeArray commModes;
-    TensorDistribution distA = A.TensorDist();
-    TensorDistribution distB = this->TensorDist();
-    for(i = 0; i < A.Order(); i++){
-    	commModes = ConcatenateVectors(commModes, GetSuffix(distA[i], distB[i]));
-    }
+    ModeArray commModes = GetCommonSuffix(A.TensorDist(), this->TensorDist()).UsedModes().Entries();
 
     commModes = Unique(commModes);
     PermutationCommRedist(A, commModes, alpha);

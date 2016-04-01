@@ -39,35 +39,29 @@ public:
     TensorDistribution Distribution() const;
     const rote::Grid* Grid() const;
 
-    ModeArray BoundModes() const;
-    ModeArray FreeModes() const;
     ModeArray UnusedModes() const;
-
-    void AddFreeMode(const Mode& mode);
-    bool IsBound(Mode mode) const;
-    bool IsFree(Mode mode) const;
-    bool IsUnused(Mode mode) const;
+    ModeArray UsedModes() const;
+    ModeArray FreeModes() const;
 
     Unsigned LinearRank() const;
     void SetMyGridViewLoc();
 
-    void RemoveUnitModes(const ModeArray& unitModes);
     void IntroduceUnitModes(const ModeArray& unitModes);
 
     bool Participating() const;
 
 private:
     TensorDistribution dist_;
-    ModeArray boundModes_;
-    ModeArray freeModes_;
-    ModeArray unusedModes_;
+    ModeDistribution boundModes_;
+    ModeDistribution freeModes_;
+    ModeDistribution unusedModes_;
     ObjShape shape_;
     Location loc_;
 
     const rote::Grid* grid_;
 
-    void SetupGridView(const ModeArray& unusedModes = ModeArray());
-    void SetGridModeTypes(const ModeArray& unusedModes = ModeArray());
+    void SetupGridView(const ModeDistribution& unusedModes = ModeDistribution());
+    void SetGridModeTypes(const ModeDistribution& unusedModes = ModeDistribution());
 };
 
 bool operator== ( const GridView& A, const GridView& B );

@@ -149,7 +149,6 @@ void ComputeTU(const DistTensor<T>& Tu, const DistTensor<T>& Tv, const DistTenso
 
 	//U_mnie += \sum_f v_femn * t_fi
 	GenContract(1.0, Tv, "femn", Tt, "fi", 1.0, TU, "mnie");
-	printf("ping\n");
 }
 
 template<typename T>

@@ -498,7 +498,7 @@ DistTensorBase<T>::operator=( const DistTensorBase<T>& A )
             modeAlignments_.resize(shape_.size());
             modeShifts_.resize(shape_.size());
             gridView_ = A.gridView_;
-            localPerm_.resize(shape_.size());
+//            localPerm_.resize(shape_.size()); //Resizing handled in operator=
         }
         ResizeTo(A);
         if( !Participating() && !A.Participating() )

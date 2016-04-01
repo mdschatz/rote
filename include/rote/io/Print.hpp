@@ -149,10 +149,10 @@ PrintData
         os << title << std::endl;
 
         PrintVector(A.Shape(), "shape", os);
-        os << "Distribution: " << rote::TensorDistToString(A.TensorDist()) << std::endl;
+        os << "Distribution: " << A.TensorDist() << std::endl;
         PrintVector(A.Alignments(), "alignments", os);
         PrintVector(A.ModeShifts(), "shifts", os);
-        PrintVector(A.LocalPermutation(), "local permutation", os);
+        os << A.LocalPermutation();
         PrintData(A.LockedTensor(), "tensor data", os);
 //    }
 }
@@ -218,20 +218,6 @@ PrintPackData
     PrintVector(packData.loopShape, "  loopShape", os);
     PrintVector(packData.srcBufStrides, "  srcBufStrides", os);
     PrintVector(packData.dstBufStrides, "  dstBufStrides", os);
-}
-
-inline void
-PrintElemSelectData
-( const ElemSelectData& elemData, std::string title="", std::ostream& os = std::cout){
-    os << title << std::endl;
-    PrintVector(elemData.loopShape, "  loopShape", os);
-    os << "  nElemsPerProc: "<< elemData.nElemsPerProc << std::endl;
-    PrintVector(elemData.packElem, "  packElem", os);
-    PrintVector(elemData.srcElem, "  srcElem", os);
-    PrintVector(elemData.srcStrides, "  srcBufStrides", os);
-    PrintVector(elemData.permutation, "  permutation", os);
-    PrintVector(elemData.commModes, "  commModes", os);
-
 }
 } // namespace rote
 

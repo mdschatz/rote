@@ -256,11 +256,8 @@ void RunTest(const Grid& g, const Params& args){
 	double beta = 3.0;
 	GenContract(alpha, A, args.indicesA, B, args.indicesB, beta, C, args.indicesC);
 
-	TensorDistribution distFinalC = args.distC;
-	for(i = 0; i < C.Order(); i++){
-		ModeDistribution blank(0);
-		distFinalC[i] = blank;
-	}
+	TensorDistribution distFinalC(args.distC.size() - 1);
+
 	DistTensor<double> finalC(shapeC, distFinalC, g);
 	finalC.RedistFrom(C);
 

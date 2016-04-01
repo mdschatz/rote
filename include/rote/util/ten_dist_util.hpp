@@ -12,8 +12,10 @@
 
 #include <vector>
 #include <iostream>
-#include "rote/core/error_decl.hpp"
-#include "rote/core/types_decl.hpp"
+#include "rote.hpp"
+//#include "rote/core/error_decl.hpp"
+//#include "rote/core/types_decl.hpp"
+//#include "rote/core/tensor_distribution.hpp"
 
 namespace rote {
 
@@ -35,13 +37,17 @@ bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape);
 
 bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm);
 
-ModeArray GetBoundGridModes(const TensorDistribution& tenDist, const ModeArray& tenModes);
-
-ModeArray GetBoundGridModes(const TensorDistribution& tenDist);
-
 ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist);
 
 Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist);
+
+ModeArray GetCommonSuffixModes(const ModeDistribution& lhs, const ModeDistribution& rhs);
+
+ModeArray GetCommonSuffixModes(const TensorDistribution& lhs, const TensorDistribution& rhs);
+
+ModeDistribution GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
+
+TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
 
 } // namespace rote
 

@@ -134,7 +134,7 @@ CreateA2ATests(const TensorDistribution& distA){
     Unsigned i;
     std::vector<RedistTest > ret;
     const Unsigned order = distA.size() - 1;
-    ModeArray tensorModes = DefaultPermutation(order);
+    ModeArray tensorModes = OrderedModes(order);
 
     std::vector<ModeArray> srcTenModesGroups;
     for(i = 1; i < order; i++){

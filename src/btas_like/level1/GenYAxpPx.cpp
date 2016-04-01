@@ -30,10 +30,13 @@ void GenYAxpPx( T alpha, const DistTensor<T>& X, T beta, const Permutation& perm
 	if(!CheckYAxpPxArgs(X, perm, Y))
 		LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 	TensorDistribution copy = X.TensorDist();
-	TensorDistribution newDist = copy;
-	for(int i = 0; i < X.Order(); i++)
-		newDist[i] = copy[perm[i]];
+	std::vector<ModeDistribution> newDistEntries(copy.size());
 
+	for(int i = 0; i < X.Order(); i++)
+		newDistEntries[i] = copy[perm[i]];
+	newDistEntries[newDistEntries.size() - 1] = copy[copy.size() - 1];
+
+	TensorDistribution newDist(newDistEntries);
 	DistTensor<T> tmp(newDist, X.Grid());
 	tmp.RedistFrom(X);
 

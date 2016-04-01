@@ -168,7 +168,7 @@ ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
 #ifndef RELEASE
     CallStackEntry entry("ZAxpBy");
 #endif
-    Permutation perm = DefaultPermutation(X.Order());
+    Permutation perm(X.Order());
     ZAxpBy(alpha, X, perm, beta, Y, perm, Z);
 }
 
@@ -208,8 +208,8 @@ ZAxpBy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTen
 #endif
     Z.ResizeTo(X.Shape());
 
-    Permutation permXToZ = DeterminePermutation(X.LocalPermutation(), Z.LocalPermutation());
-    Permutation permYToZ = DeterminePermutation(Y.LocalPermutation(), Z.LocalPermutation());
+    Permutation permXToZ = X.LocalPermutation().PermutationTo(Z.LocalPermutation());
+    Permutation permYToZ = Y.LocalPermutation().PermutationTo(Z.LocalPermutation());
     ZAxpBy(alpha, X.LockedTensor(), permXToZ, beta, Y.LockedTensor(), permYToZ, Z.Tensor());
 }
 

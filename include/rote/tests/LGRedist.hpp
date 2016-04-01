@@ -61,7 +61,7 @@ CreateLGTests(const Unsigned& gridOrder, const TensorDistribution& distA){
 
     const Unsigned order = distA.size() - 1;
 
-    ModeArray gridModes = DefaultPermutation(gridOrder);
+    ModeArray gridModes = OrderedModes(gridOrder);
     ModeArray usedGridModes;
 
     for(i = 0; i <= order; i++)
