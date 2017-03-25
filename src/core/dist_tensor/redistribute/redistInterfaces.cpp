@@ -105,25 +105,29 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     std::vector<Redist> intermediateDists;
     RedistPlanInfo redistData = CreateGenRedistData(A.TensorDist(), this->TensorDist(), reduceModes);
 
-//    printf("making plan\n");
     CommRedist(this->TensorDist(), A.TensorDist(), redistData, intermediateDists);
 
-//    std::cout << "start: " << A.TensorDist() << std::endl;
-//    for(Unsigned i = 0; i < intermediateDists.size(); i++){
-//    	Redist intRedist = intermediateDists[i];
-//    	switch(intRedist.redistType){
-//    	case AG:    std::cout << "AG: "; break;
-//    	case A2A:   std::cout << "A2A: "; break;
-//    	case Perm:  std::cout << "Perm: "; break;
-//    	case Local: std::cout << "Local: "; break;
-//    	case RS:    std::cout << "RS: "; break;
-//    	}
-//    	std::cout << intRedist.dist << std::endl;
-//    }
-
+  //  std::cout << "start: " << A.TensorDist() << std::endl;
+  //  for(Unsigned i = 0; i < intermediateDists.size(); i++){
+  //  	Redist intRedist = intermediateDists[i];
+  //  	switch(intRedist.redistType){
+  //  	case AG:    std::cout << "AG: "; break;
+  //  	case A2A:   std::cout << "A2A: "; break;
+  //  	case Perm:  std::cout << "Perm: "; break;
+  //  	case Local: std::cout << "Local: "; break;
+  //  	case RS:    std::cout << "RS: "; break;
+  //  	}
+  //  	std::cout << intRedist.dist << std::endl;
+  //  }
 
     DistTensor<T> tmp(A.TensorDist(), g);
     tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);
+
+		if (intermediateDists.size() == 0) {
+			ModeArray blank;
+			this->PermutationRedistFrom(tmp, blank);
+			return;
+		}
 
     for(i = 0; i < intermediateDists.size() - 1; i++){
     	Redist intRedist = intermediateDists[i];

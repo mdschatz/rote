@@ -12,7 +12,7 @@
 using namespace rote;
 
 void Usage(){
-    std::cout << "./GenContractTest <distA> <indicesA> <distB> <indicesB> <distC> <indicesC> <m-dim> <k-dim> <n-dim>\n";
+    std::cout << "./GenContractTest <gridShape> <distA> <indicesA> <distB> <indicesB> <distC> <indicesC> <m-dim> <k-dim> <n-dim>\n";
 }
 
 template<typename T>
@@ -124,11 +124,34 @@ typedef struct Arguments{
   Unsigned m_dim;
   Unsigned k_dim;
   Unsigned n_dim;
+  ObjShape gShape;
 } Params;
+
+void ProcessGridShape(const std::string& s, ObjShape& gShape) {
+	size_t pos, lastPos;
+	pos = s.find_first_of("[");
+	lastPos = s.find_first_of("]");
+	if(pos != 0 || lastPos != s.size() - 1)
+		LogicError("Malformed gridShape string");
+	pos = s.find_first_not_of("[,]", pos);
+	while(pos != std::string::npos){
+		lastPos = s.find_first_of(",]", pos);
+		gShape.push_back(atoi(s.substr(pos, lastPos - pos).c_str()));
+		pos = s.find_first_not_of("[,]", lastPos+1);
+	}
+}
 
 void ProcessInput(Unsigned argc,  char** const argv, Params& args){
     Unsigned i;
     Unsigned argCount = 0;
+
+    if(argCount + 1 >= argc) {
+      std::cerr << "Missing required gShape argument\n";
+      Usage();
+      throw ArgException();
+    }
+    std::string arg = argv[++argCount];
+    ProcessGridShape(arg, args.gShape);
 
     if(argCount + 1 >= argc){
         std::cerr << "Missing required distA argument\n";
@@ -288,20 +311,10 @@ main( int argc, char* argv[] )
     Unsigned i;
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
-    printf("My Rank: %d\n", commRank);
     try
     {
-    	Unsigned gridOrder = 10;
-    	ObjShape gridShape(gridOrder);
-    	gridShape[0] = 2;
-    	gridShape[1] = 3;
-    	gridShape[2] = 2;
-    	gridShape[3] = 3;
-    	for(i = 4; i < gridOrder; i++)
-    		gridShape[i] = 1;
-
-    	const Grid g(comm, gridShape);
-        RunTest(g, args);
+    	const Grid g(comm, args.gShape);
+      RunTest(g, args);
     }
     catch( std::exception& e ) { ReportException(e); }
 

@@ -265,33 +265,33 @@ void DistTensor<T>::CommRedist(const TensorDistribution& finalDist, const Tensor
 		return;
 	}
 	else if(redistData.gridModesAppeared.size() > 0){
-//		if(commRank == 0)
-//			std::cout << "Add: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		// if(commRank == 0)
+			// std::cout << "Add: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistAdd(finalDist, startDist, redistData, intDists);
 	}
 	else if(redistData.tenModesReduced.size() > 0){
-//		if(commRank == 0)
-//			std::cout << "Reduce: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		// if(commRank == 0)
+			// std::cout << "Reduce: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistReduce(finalDist, startDist, redistData, intDists);
 	}
 	//Move any grid modes with Perm + A2A
 	//Try the Perm first
 	else if(redistData.gridModesMoved.size() > 0){
-//		if(commRank == 0)
-//			std::cout << "P2P: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		// if(commRank == 0)
+			// std::cout << "P2P: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistP2P(finalDist, startDist, redistData, intDists);
 	}
 	//Finally, perform the necessary replication
 	else if(redistData.gridModesRemoved.size() > 0){
-//		if(commRank == 0)
-//			std::cout << "Rmv: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
+		// if(commRank == 0)
+			// std::cout << "Rmv: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
 		CommRedistRemove(finalDist, startDist, redistData, intDists);
 	}
 	//All thats left is a shuffle
 	else{
-//		printf("startDist: %s\n", TensorDistToString(startDist).c_str());
-//		printf("endDist: %s\n", TensorDistToString(finalDist).c_str());
-//		PrintVector(redistData.gridModesMoved);
+		// printf("startDist: %s\n", TensorDistToString(startDist).c_str());
+		// printf("endDist: %s\n", TensorDistToString(finalDist).c_str());
+		// PrintVector(redistData.gridModesMoved);
 //		printf("failure\n");
 //		if(commRank == 0)
 //			std::cout << "Final: " << TensorDistToString(finalDist) << " <-- " << TensorDistToString(startDist) << std::endl;
