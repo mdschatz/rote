@@ -1,23 +1,3 @@
-/*
- This file is part of DxTer.
- DxTer is a prototype using the Design by Transformation (DxT)
- approach to program generation.
-
- Copyright (C) 2014, The University of Texas and Bryan Marker
-
- DxTer is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- DxTer is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
- */
 // NOTE: It is possible to simply include "rote.hpp" instead
 #include "rote.hpp"
 
@@ -31,8 +11,13 @@ using namespace rote;
 using namespace std;
 
 void Usage() {
-    std::cout << "./DistTensor <gridDim0> <gridDim1> ... \n";
+    std::cout << "./DistTensor <gridOrder> <gridDim0> <gridDim1> ... <n_o> <n_v> <block_size> <testIter> \n";
+    std::cout << "<gridOrder>  : order of computing grid (number dimensions)";
     std::cout << "<gridDimK>   : dimension of mode-K of grid\n";
+    std::cout << "<n_o>        : number occupied orbitals\n";
+    std::cout << "<n_v>        : number virtual orbitals\n";
+    std::cout << "<block_size> : computing block size\n";
+    std::cout << "<test_iter>  : computation iteration for testing (optional)\n";
 }
 
 typedef struct Arguments {
@@ -76,7 +61,7 @@ void ProcessInput(int argc, char** const argv, Params& args) {
     args.n_o = atoi(argv[++argCount]);
     args.n_v = atoi(argv[++argCount]);
     args.blkSize = atoi(argv[++argCount]);
-    args.testIter = atoi(argv[++argCount]);
+    args.testIter = argCount >= argc ? 0 : atoi(argv[++argCount]);
 }
 
 template<typename T>
@@ -527,5 +512,3 @@ int main(int argc, char* argv[]) {
     Finalize();
     return 0;
 }
-
-
