@@ -8,7 +8,7 @@ set(ROTE_VERSION_MINOR 0-dev)
 # Common build options                                                         #
 ################################################################################
 
-# By default, Rote builds static libraries, but shared libraries are 
+# By default, Rote builds static libraries, but shared libraries are
 # also supported through this option.
 option(SHARED_LIBRARIES "Switch to shared libraries" OFF)
 
@@ -27,26 +27,26 @@ option(ROTE_EXPERIMENTAL "Build experimental code" OFF)
 # Advanced build options                                                       #
 ################################################################################
 
-# Since it is surprisingly common for MPI libraries to have bugs in their 
-# support for complex data, the following option forces Elemental to cast 
+# Since it is surprisingly common for MPI libraries to have bugs in their
+# support for complex data, the following option forces Elemental to cast
 # all possible MPI communications in terms of twice as many real units of data.
 option(AVOID_COMPLEX_MPI "Avoid potentially buggy complex MPI routines" OFF)
 mark_as_advanced(AVOID_COMPLEX_MPI)
 
-# At one point, a bug was found in IBM's C++ compiler for Blue Gene/P, 
+# At one point, a bug was found in IBM's C++ compiler for Blue Gene/P,
 # where OpenMP statements of the form a[i] += alpha b[i], with complex data,
 # would segfault and/or return incorrect results
 option(AVOID_OMP_FMA "Avoid a bug in the IBM compilers." OFF)
 mark_as_advanced(AVOID_OMP_FMA)
 
-# Due to a subtle flaw in the Blue Gene/P extensions for MPICH2, treating 
-# floating-point data as a collection of byte-sized objects results in a 
+# Due to a subtle flaw in the Blue Gene/P extensions for MPICH2, treating
+# floating-point data as a collection of byte-sized objects results in a
 # better algorithm being chosen for MPI_Allgather. This should not effect
 # performance on most machines.
 option(USE_BYTE_ALLGATHERS "Avoid BG/P allgather performance bug." OFF)
 mark_as_advanced(USE_BYTE_ALLGATHERS)
 
-# If MPI_Reduce_scatter_block doesn't exist, perform it by composing 
+# If MPI_Reduce_scatter_block doesn't exist, perform it by composing
 # MPI_Allreduce and std::memcpy rather than MPI_Reduce and MPI_Scatter
 option(REDUCE_SCATTER_BLOCK_VIA_ALLREDUCE
        "AllReduce based block MPI_Reduce_scatter" OFF)
@@ -60,12 +60,12 @@ mark_as_advanced(POOL_MEMORY)
 # Development build options                                                    #
 ################################################################################
 
-# Print a warning any time a redistribution is performed which unpacks a 
+# Print a warning any time a redistribution is performed which unpacks a
 # large amount of data with a non-unit stride
 option(CACHE_WARNINGS "Warns when using cache-unfriendly routines" OFF)
 mark_as_advanced(CACHE_WARNINGS)
 
-# Print a warning when an improperly aligned redistribution is performed, 
+# Print a warning when an improperly aligned redistribution is performed,
 # i.e., if an unnecessary permutation communication stage must take place
 option(UNALIGNED_WARNINGS "Warn when performing unaligned redistributions" OFF)
 mark_as_advanced(UNALIGNED_WARNINGS)
@@ -158,12 +158,12 @@ if(NOT WIN32) # I forget why we need this guard
   endforeach()
 endif()
 
-# Go ahead and check for Fortran, but keep in mind that CMake's 'OPTIONAL' 
+# Go ahead and check for Fortran, but keep in mind that CMake's 'OPTIONAL'
 # argument for enable_language is still completely broken as of 2.8.8
 #include(./cmake/language_support_v2.cmake)
 #workaround_9220(Fortran FORTRAN_WORKS)
 #if(FORTRAN_WORKS)
-#  enable_language(Fortran)  
+#  enable_language(Fortran)
 #  set(HAVE_F90_INTERFACE FALSE)
 #  if(CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 #    include(FortranCInterface)
@@ -171,7 +171,7 @@ endif()
 #    if(FortranCInterface_VERIFIED_CXX)
 #      set(HAVE_F90_INTERFACE TRUE)
 #      FortranCInterface_HEADER(
-#        ${CMAKE_CURRENT_BINARY_DIR}/include/elemental/FCMangle.h 
+#        ${CMAKE_CURRENT_BINARY_DIR}/include/elemental/FCMangle.h
 #        MACRO_NAMESPACE "FC_")
 #      install(FILES ${PROJECT_BINARY_DIR}/include/elemental/FCMangle.h
 #              DESTINATION include/elemental/)
@@ -238,7 +238,7 @@ else()
   endif()
   set(REFERENCE_REQUIRED LAPACK BLAS)
   find_library(BLAS_LIB NAMES blas PATHS ${REFERENCE_ROOT})
-  find_library(LAPACK_LIB NAMES lapack reflapack PATHS ${REFERENCE_ROOT}) 
+  find_library(LAPACK_LIB NAMES lapack reflapack PATHS ${REFERENCE_ROOT})
   set(REFERENCE_FOUND TRUE)
   foreach(NAME ${REFERENCE_REQUIRED})
     if(${NAME}_LIB)
@@ -257,7 +257,7 @@ else()
   endif()
 endif()
 
-# Attempt to detect the BLAS and LAPACK underscore conventions. 
+# Attempt to detect the BLAS and LAPACK underscore conventions.
 # We currently only handle whether or not there is an underscore appended.
 include(CheckFunctionExists)
 set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
@@ -324,14 +324,14 @@ endif()
 #include(CheckCSourceCompiles)
 #set(MPI_IN_PLACE_CODE
 #    "#include \"mpi.h\"
-#     int main( int argc, char* argv[] ) 
+#     int main( int argc, char* argv[] )
 #     {
 #         MPI_Init( &argc, &argv );
 #         float a;
 #         MPI_Allreduce
 #         ( MPI_IN_PLACE, &a, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD );
-#         MPI_Finalize(); 
-#         return 0; 
+#         MPI_Finalize();
+#         return 0;
 #     }")
 #set(MPI_LONG_LONG_CODE
 #    "#include \"mpi.h\"
@@ -372,14 +372,14 @@ endif()
 # Create the Rote configuration header
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.cmake
                ${PROJECT_BINARY_DIR}/include/rote/config.h)
-install(FILES ${PROJECT_BINARY_DIR}/include/rote/config.h 
+install(FILES ${PROJECT_BINARY_DIR}/include/rote/config.h
         DESTINATION include/rote)
 
 # Create a file which can be included in Makefile's.
 # This is meant to be analogous to PETSc's 'conf/petscvariables' file
 set(MPI_CXX_INCLUDE_STRING)
 foreach(INC_PATH ${MPI_CXX_INCLUDE_PATH})
-  set(MPI_CXX_INCLUDE_STRING "${MPI_CXX_INCLUDE_STRING} -I${INC_PATH}")  
+  set(MPI_CXX_INCLUDE_STRING "${MPI_CXX_INCLUDE_STRING} -I${INC_PATH}")
 endforeach()
 set(MATH_LIBS_STRING)
 foreach(LIB ${MATH_LIBS})
@@ -399,7 +399,7 @@ install(FILES ${PROJECT_BINARY_DIR}/conf/rotevariables DESTINATION conf)
 
 # Grab all of the .c, .cpp, .h, and .hpp Rote files
 file(GLOB_RECURSE ROTE_CPP RELATIVE ${PROJECT_SOURCE_DIR} "src/*.c" "src/*.cpp")
-file(GLOB_RECURSE ROTE_HEADERS RELATIVE ${PROJECT_SOURCE_DIR} 
+file(GLOB_RECURSE ROTE_HEADERS RELATIVE ${PROJECT_SOURCE_DIR}
   "include/*.h" "include/*.hpp")
 if(ROTE_EXPERIMENTAL)
   if(NOT MPI_C_FOUND)
@@ -414,7 +414,7 @@ if(ROTE_EXPERIMENTAL)
 #    if(NOT MPI_Fortran_FOUND)
 #      message(FATAL_ERROR "Could not build F90 interface without Fortran MPI")
 #    endif()
-    # We cannot simply use check_function_exists, since MPI_Comm_f2c is 
+    # We cannot simply use check_function_exists, since MPI_Comm_f2c is
     # a macro in some MPI implementations
 #    set(MPI_COMM_F2C_CODE
 #    "#include \"mpi.h\"
@@ -469,8 +469,9 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 if(ROTE_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
 #  set(TEST_TYPES core btas applications ccsd)
-  set(TEST_TYPES core ccsd ccsd_gen)
+  set(TEST_TYPES core ccsd ccsd_gen gunnels)
   set(core_TESTS Views Grids GenContractTest )#RedistCheckTest GenRedistTest )
+  set(gunnels_TESTS example)
 #  set(btas_TESTS Level1 Contract)
   set(ccsd_TESTS ccsd ccsd_gen)#term_Tau term_W term_X term_U term_P term_Q term_H term_F term_G term_z_small term_Z ccsd)
 #  set(ccsd_TESTS term_Tau term_H term_U)
@@ -504,16 +505,16 @@ if(ROTE_EXAMPLES)
   foreach(TYPE ${EXAMPLE_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/examples/${TYPE}")
     foreach(EXAMPLE ${${TYPE}_EXAMPLES})
-      add_executable(examples-${TYPE}-${EXAMPLE} 
+      add_executable(examples-${TYPE}-${EXAMPLE}
         ${EXAMPLE_DIR}/${TYPE}/${EXAMPLE}.cpp)
       target_link_libraries(examples-${TYPE}-${EXAMPLE} rote)
-      set_target_properties(examples-${TYPE}-${EXAMPLE} PROPERTIES 
+      set_target_properties(examples-${TYPE}-${EXAMPLE} PROPERTIES
         OUTPUT_NAME ${EXAMPLE} RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
       if(MPI_LINK_FLAGS)
         set_target_properties(examples-${TYPE}-${EXAMPLE} PROPERTIES
           LINK_FLAGS ${MPI_LINK_FLAGS})
       endif()
-      install(TARGETS examples-${TYPE}-${EXAMPLE} 
+      install(TARGETS examples-${TYPE}-${EXAMPLE}
         DESTINATION bin/examples/${TYPE})
     endforeach()
   endforeach()
@@ -527,10 +528,10 @@ if(ROTE_EXPERIMENTAL)
   # Build the G3D example(s)
   #set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/experimental/g3d")
   #foreach(EXPER ${G3D_EXPERS})
-  #  add_executable(experimental-g3d-${EXPER} 
+  #  add_executable(experimental-g3d-${EXPER}
   #    ${EXPERIMENTAL_DIR}/g3d/${EXPER}.cpp)
   #  target_link_libraries(experimental-g3d-${EXPER} elemental)
-  #  set_target_properties(experimental-g3d-${EXPER} PROPERTIES 
+  #  set_target_properties(experimental-g3d-${EXPER} PROPERTIES
   #    OUTPUT_NAME ${EXPER} RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
   #  if(MPI_LINK_FLAGS)
   #    set_target_properties(experimental-g3d-${EXPER} PROPERTIES

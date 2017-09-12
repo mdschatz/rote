@@ -82,8 +82,9 @@ void ExampleInit(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) 
   ObjShape shapeA(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12),(13),(14),(15)]", g);
-  std::cerr << "Not yet implemented!";
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  SetAllVal(A, 1.0);
+  Print(A, "A");
 }
 
 int main(int argc, char* argv[]) {
