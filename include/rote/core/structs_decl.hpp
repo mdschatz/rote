@@ -92,6 +92,11 @@ struct BlkHadamardStatCInfo
 	ModeArray alignModesBTo;
 	Permutation permB;
 
+	TensorDistribution distIntC;
+	ModeArray alignModesC;
+	ModeArray alignModesCTo;
+	Permutation permC;
+
 	std::vector<Unsigned> blkSizes;
 };
 
