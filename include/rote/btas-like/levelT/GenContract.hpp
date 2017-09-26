@@ -20,6 +20,22 @@
 namespace rote{
 
 ////////////////////////////////////
+// Utils
+////////////////////////////////////
+void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& indicesT,
+							 const IndexArray& indicesA,
+							 const TensorDistribution& distIntB, const IndexArray& indicesB,
+							 const IndexArray& indicesC,
+							 const std::vector<Unsigned>& blkSizes,
+							 BlkContractStatAInfo& contractInfo);
+
+void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArray& indicesA,
+		           const TensorDistribution& distIntB, const IndexArray& indicesB,
+							 const IndexArray& indicesC,
+							 const std::vector<Unsigned>& blkSizes,
+							 BlkContractStatCInfo& contractInfo);
+
+////////////////////////////////////
 // DistContract Workhorse
 ////////////////////////////////////
 

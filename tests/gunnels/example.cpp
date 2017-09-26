@@ -15,17 +15,17 @@ void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   ObjShape shapeB(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12),(13),(14),(15)]", g);
-  DistTensor<double> C(shapeC, "[(0,1,2,3),(4,5,6,7),(8,9,10,11),(12,13,14,15)]", g);
-  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12),(13),(14),(15)]", g);
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> C(shapeC, "[(0),(1),(2),(3)]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
 
 
   // Compute
   const std::vector<Unsigned> blkSizes(4, blkSize);
-  std::cout << "Contracting\n";
+  std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  std::cout << "Not yet implemented!";
+  GenHadamard(C, "cpgo", B, "abcdefghijklmnop", A, "abcdefghijklmnop");
 }
 
 void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
@@ -46,7 +46,7 @@ void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
 
   // Compute
   const std::vector<Unsigned> blkSizes(6, blkSize);
-  std::cout << "Contracting\n";
+  std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
   GenContract(1.0, D, "abcdefgh123456", E, "ijklmnop615234", 1.0, C, "abcdefghijklmnop", blkSizes);
@@ -69,13 +69,13 @@ void Example3(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
 
   // Compute
   const std::vector<Unsigned> blkSizes(6, blkSize);
-  std::cout << "Contracting\n";
+  std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
   GenContract(1.0, G, "p6a1f3d5j2m4", H, "abcdefghijklmnop", 1.0, F, "1bc5e3ghi2kl4no6", blkSizes);
 }
 
-void ExampleInit(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
+void Example4(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
   // Oh, and just initializing a ROTE tensor to all (1.0,0.0) ... or any specified complex value.
   // Init
   std::cout << "Init\n";
@@ -83,7 +83,39 @@ void ExampleInit(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) 
 
   const Grid g(comm, gridShape);
   DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+
+  // Compute
+  std::cout << "Computing\n";
   SetAllVal(A, 1.0);
+}
+
+void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
+  std::cout << "Running Example 5\n";
+  // TensorA["abcdefghijklmnop"] = Tensor["cpgo"] * TensorB["abcdefghijklmnop"]; // Mult without contract
+
+  // Init
+  std::cout << "init\n";
+  ObjShape shapeA(3, tensorDim);
+  ObjShape shapeC(2, tensorDim);
+  ObjShape shapeB(3, tensorDim);
+
+  const Grid g(comm, gridShape);
+  DistTensor<double> A(shapeA, "[(0),(1),(2)]", g);
+  DistTensor<double> C(shapeC, "[(0,1),(2,3)]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2)]", g);
+  SetAllVal(A, 1.0);
+  SetAllVal(C, 2.0);
+  SetAllVal(B, 3.0);
+
+  // Compute
+  const std::vector<Unsigned> blkSizes(2, blkSize);
+  std::cout << "Computing\n";
+  mpi::Barrier(g.OwningComm());
+
+  Print(A, "A");
+  Print(B, "B");
+  Print(C, "C");
+  GenHadamard(C, "go", B, "cgo", A, "cog");
   Print(A, "A");
 }
 
@@ -103,13 +135,15 @@ int main(int argc, char* argv[]) {
         Usage();
         throw ArgException();
     }
-    std::cout << "siwtching\n";
+
     switch(args.exNum) {
       case 1: Example1(comm, args.gridShape, args.tensorDim, args.blkSize); break;
       case 2: Example2(comm, args.gridShape, args.tensorDim, args.blkSize); break;
       case 3: Example3(comm, args.gridShape, args.tensorDim, args.blkSize); break;
-      case 4: ExampleInit(comm, args.gridShape, args.tensorDim);
+      case 4: Example4(comm, args.gridShape, args.tensorDim);
+      case 5: Example5(comm, args.gridShape, args.tensorDim, args.blkSize); break;
     }
+    std::cout << "OKAY!\n";
   } catch (std::exception& e) {
       ReportException(e);
   }

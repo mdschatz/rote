@@ -33,7 +33,7 @@ void ProcessInput(int argc, char** const argv, Params& args) {
     }
 
     args.exNum = atoi(argv[++argCount]);
-    if (args.exNum > 4) {
+    if (args.exNum > 5) {
         std::cerr << "example number must be between 1 and 3";
         Usage();
         throw ArgException();

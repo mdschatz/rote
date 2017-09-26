@@ -13,6 +13,7 @@
 #include "rote/util/vec_util.hpp"
 #include "rote/util/btas_util.hpp"
 #include "rote/core/view_decl.hpp"
+#include "rote/io/Print.hpp"
 
 namespace rote{
 
@@ -41,9 +42,15 @@ ElemScal_fast(T const * const src1Buf, T const * const src2Buf,  T * const dstBu
 
     bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-    while(!done){
+    PrintElemScalData(data, "ElemScalData", true);
 
+    while(!done){
+        PrintVector(curLoc, "curLoc", true);
+        std::cout << "Cbuf[" << dstBufPtr << "]: " << dstBuf[dstBufPtr] << "\n";
         dstBuf[dstBufPtr] = src1Buf[src1BufPtr] * src2Buf[src2BufPtr];
+        std::cout << "Abuf[" << src1BufPtr << "]: " << src1Buf[src1BufPtr] << "\n";
+        std::cout << "Bbuf[" << src2BufPtr << "]: " << src2Buf[src2BufPtr] << "\n";
+        std::cout << "Cbuf[" << dstBufPtr << "]: " << dstBuf[dstBufPtr] << "\n";
         //Update
         curLoc[ptr]++;
         dstBufPtr += dstBufStrides[ptr];
@@ -94,6 +101,7 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
     T* dstBuf = C.Buffer();
 
     ElemScal_fast(src1Buf, src2Buf, dstBuf, data);
+    std::cout << "done\n";
 }
 
 ////////////////////////////////////

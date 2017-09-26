@@ -74,6 +74,27 @@ struct 	BlkContractStatCInfo
 	std::vector<Unsigned> blkSizes;
 };
 
+struct BlkHadamardStatCInfo
+{
+	ModeArray partModesACA;
+	ModeArray partModesACC;
+
+	ModeArray partModesBCB;
+	ModeArray partModesBCC;
+
+	TensorDistribution distIntA;
+	ModeArray alignModesA;
+	ModeArray alignModesATo;
+	Permutation permA;
+
+	TensorDistribution distIntB;
+	ModeArray alignModesB;
+	ModeArray alignModesBTo;
+	Permutation permB;
+
+	std::vector<Unsigned> blkSizes;
+};
+
 //Pack data structs
 struct PackData
 {
@@ -113,6 +134,21 @@ struct ElemScalData{
     std::vector<Unsigned> src1Strides;
     std::vector<Unsigned> src2Strides;
     std::vector<Unsigned> dstStrides;
+};
+
+struct HadamardScalData{
+    ObjShape loopShapeAC;
+    std::vector<Unsigned> stridesACA;
+    std::vector<Unsigned> stridesACC;
+
+		ObjShape loopShapeBC;
+    std::vector<Unsigned> stridesBCB;
+    std::vector<Unsigned> stridesBCC;
+
+		ObjShape loopShapeABC;
+    std::vector<Unsigned> stridesABCA;
+		std::vector<Unsigned> stridesABCB;
+    std::vector<Unsigned> stridesABCC;
 };
 
 struct ZAxpByData{

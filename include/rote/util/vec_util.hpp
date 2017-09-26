@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -135,6 +135,9 @@ template<typename T>
 int IndexOf(const std::vector<T>& vec, const T& val);
 
 template<typename T>
+std::vector<Unsigned> IndicesOf(const std::vector<T>& vec, const std::vector<T>& vals);
+
+template<typename T>
 T Min(const std::vector<T>& vec);
 
 template<typename T>
@@ -146,10 +149,16 @@ std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<
 template<typename T>
 Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
 
+template<typename T>
+Permutation DetermineSubPermutation(const std::vector<T>& ref, const std::vector<T>& vec);
+
 //Permutation DetermineInversePermutation(const Permutation& perm);
 
 template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2);
+
+template<typename T>
+std::vector<T> IsectVector(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 void SortVector(std::vector<T>& vec1);

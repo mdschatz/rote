@@ -316,6 +316,19 @@ int IndexOf(const std::vector<T>& vec, const T& val){
 }
 
 template<typename T>
+std::vector<Unsigned> IndicesOf(const std::vector<T>& vec, const std::vector<T>& vals) {
+	std::vector<Unsigned> ret(vals.size());
+	for(Unsigned i = 0; i < vals.size(); i++) {
+    int index = IndexOf(vec, vals[i]);
+    if (index < 0) {
+      LogicError("val not found in vec");
+    }
+    ret[i] = index;
+  }
+	return ret;
+}
+
+template<typename T>
 std::vector<T> Unique(const std::vector<T>& vec){
 	std::vector<T> ret = vec;
 	SortVector(ret);
@@ -398,12 +411,23 @@ Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>
     Permutation ret(permVec);
     return ret;
 }
-//
-//Permutation DetermineInversePermutation(const Permutation& perm){
-//    Unsigned i;
-//    Permutation basePerm(perm.size());
-//    return DeterminePermutation(perm, basePerm);
-//}
+
+template<typename T>
+Permutation DetermineSubPermutation(const std::vector<T>& ref, const std::vector<T>& vec) {
+  std::vector<Unsigned> permVec(ref.size());
+
+  Unsigned entryCount = 0;
+  for(Unsigned i = 0; i < ref.size(); i++) {
+    if (Contains(vec, ref[i])) {
+      permVec[i] = IndexOf(ref, vec[entryCount++]);
+    } else {
+      permVec[i] = i;
+    }
+  }
+
+  Permutation ret(permVec);
+  return ret;
+}
 
 template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2){
@@ -415,7 +439,20 @@ std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2
 }
 
 template<typename T>
-void SortVector(std::vector<T>& vec1){
+std::vector<T> IsectVector(const std::vector<T>& vec1, const std::vector<T>& vec2){
+	Unsigned i;
+	std::vector<T> ret;
+  for(i = 0; i < vec1.size(); i++) {
+    T val = vec1[i];
+    if(Contains(vec2, val)) {
+      ret.push_back(val);
+    }
+  }
+	return ret;
+}
+
+template<typename T>
+void SortVector(std::vector<T>& vec1) {
 	std::sort(vec1.begin(), vec1.end());
 }
 
@@ -425,7 +462,7 @@ void SortVector(std::vector<T>& vec1){
 	template T sum(const std::vector<T>& src, const Unsigned startIndex); \
 	template T sum(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template T prod(const std::vector<T>& src, const Unsigned startIndex); \
-    template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
+  template T prod(const std::vector<T>& src, const Unsigned startIndex, const Unsigned endIndex); \
 	template void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
 	template std::vector<T> ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
@@ -452,6 +489,7 @@ void SortVector(std::vector<T>& vec1){
 	template bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template int  IndexOf(const std::vector<T>& vec, const T& val); \
+  template std::vector<Unsigned> IndicesOf(const std::vector<T>& vec, const std::vector<T>& vals); \
 	template bool Contains(const std::vector<T>& vec, const T& val); \
 	template std::vector<T> Unique(const std::vector<T>& vec); \
 	template std::vector<T> GetSuffix_(const std::vector<T>& vec1, const std::vector<T>& vec2); \
@@ -461,8 +499,10 @@ void SortVector(std::vector<T>& vec1){
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template T Min(const std::vector<T>& vec); \
 	template T Max(const std::vector<T>& vec); \
-    template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec); \
-    template std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+  template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec); \
+  template Permutation DetermineSubPermutation(const std::vector<T>& ref, const std::vector<T>& vec); \
+  template std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2); \
+  template std::vector<T> IsectVector(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template void SortVector(std::vector<T>& vec1);
 
 PROTO(Unsigned)
@@ -472,8 +512,8 @@ PROTO(double)
 PROTO(char)
 
 #define PROTOMOD(T) \
-        template void ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
-        template std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2);
+  template void ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out); \
+  template std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2);
 PROTOMOD(Unsigned)
 PROTOMOD(Int)
 
