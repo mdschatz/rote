@@ -31,26 +31,6 @@ public:
   );
 
 private:
-  class StatA {
-  public:
-    static void run(
-      const DistTensor<T>& A, const IndexArray& indicesA,
-      const DistTensor<T>& B, const IndexArray& indicesB,
-            DistTensor<T>& C, const IndexArray& indicesC,
-      const std::vector<Unsigned>& blkSizes
-    );
-  };
-
-  class StatC {
-  public:
-    static void run(
-      const DistTensor<T>& A, const IndexArray& indicesA,
-      const DistTensor<T>& B, const IndexArray& indicesB,
-            DistTensor<T>& C, const IndexArray& indicesC,
-      const std::vector<Unsigned>& blkSizes
-    );
-  };
-
   static void setHadamardInfo(
     const DistTensor<T>& A, const IndexArray& indicesA,
     const DistTensor<T>& B, const IndexArray& indicesB,
@@ -59,6 +39,7 @@ private:
           BlkHadamardStatCInfo& hadamardInfo
   );
 
+  // Partition helpers
   static void runHelperPartitionBC(
     Unsigned depth, BlkHadamardStatCInfo& hadamardInfo,
     const DistTensor<T>& A, const IndexArray& indicesA,
@@ -73,13 +54,7 @@ private:
           DistTensor<T>& C, const IndexArray& indicesC
   );
 
-  static void run(
-    const DistTensor<T>& A, const IndexArray& indicesA,
-    const DistTensor<T>& B, const IndexArray& indicesB,
-          DistTensor<T>& C, const IndexArray& indicesC,
-    const std::vector<Unsigned>& blkSizes
-  );
-
+  // Internal Dist interface
   static void run(
     const DistTensor<T>& A, const IndexArray& indicesA,
     const DistTensor<T>& B, const IndexArray& indicesB,
@@ -88,6 +63,7 @@ private:
     bool isStatC
   );
 
+  // Local
   static void run(
     const Tensor<T>& A, const IndexArray& indicesA,
     const Tensor<T>& B, const IndexArray& indicesB,

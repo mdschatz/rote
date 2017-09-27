@@ -12,15 +12,27 @@
 
 namespace rote{
 
-// TODO: Restrict scope
 template <typename T>
 void Hadamard<T>::run(
-  const DistTensor<T>& A, const IndexArray& indicesA,
-  const DistTensor<T>& B, const IndexArray& indicesB,
-        DistTensor<T>& C, const IndexArray& indicesC,
+  const DistTensor<T>& A, const std::string& indicesA,
+  const DistTensor<T>& B, const std::string& indicesB,
+        DistTensor<T>& C, const std::string& indicesC,
   const std::vector<Unsigned>& blkSizes
 ) {
-	//Determine Stationary variant.
+  // Convert to index array
+	IndexArray indA(indicesA.size());
+	for(int i = 0; i < indicesA.size(); i++)
+		indA[i] = indicesA[i];
+
+	IndexArray indB(indicesB.size());
+	for(int i = 0; i < indicesB.size(); i++)
+		indB[i] = indicesB[i];
+
+	IndexArray indC(indicesC.size());
+	for(int i = 0; i < indicesC.size(); i++)
+		indC[i] = indicesC[i];
+
+  //Determine Stationary variant.
   const Unsigned numElemA = prod(A.Shape());
   const Unsigned numElemB = prod(B.Shape());
   const Unsigned numElemC = prod(C.Shape());
@@ -42,18 +54,18 @@ void Hadamard<T>::run(
 
   if(isBiggerEqualAB && isBiggerAC){
   	Hadamard::run(
-      A, indicesA,
-      B, indicesB,
-      C, indicesC,
+      A, indA,
+      B, indB,
+      C, indC,
       blkSizes,
       false
     );
   } else if((isSmallerAB && isBiggerEqualAC) ||
   		 (isSmallerAB && isSmallerAC && isBiggerBC)){
   	Hadamard::run(
-      B, indicesB,
-      A, indicesA,
-      C, indicesC,
+      B, indB,
+      A, indA,
+      C, indC,
       blkSizes,
       false
     );
@@ -61,37 +73,15 @@ void Hadamard<T>::run(
   		 (isEqualAB && isSmallerEqualAC) ||
 		 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
   	Hadamard::run(
-      A, indicesA,
-      B, indicesB,
-      C, indicesC,
+      A, indA,
+      B, indB,
+      C, indC,
       blkSizes,
       false
     );
-  } else{
+  } else {
   	LogicError("Should never occur");
   }
-}
-
-template <typename T>
-void Hadamard<T>::run(
-  const DistTensor<T>& A, const std::string& indicesA,
-  const DistTensor<T>& B, const std::string& indicesB,
-        DistTensor<T>& C, const std::string& indicesC,
-  const std::vector<Unsigned>& blkSizes
-) {
-	IndexArray indA(indicesA.size());
-	for(int i = 0; i < indicesA.size(); i++)
-		indA[i] = indicesA[i];
-
-	IndexArray indB(indicesB.size());
-	for(int i = 0; i < indicesB.size(); i++)
-		indB[i] = indicesB[i];
-
-	IndexArray indC(indicesC.size());
-	for(int i = 0; i < indicesC.size(); i++)
-		indC[i] = indicesC[i];
-
-	Hadamard<T>::run(A, indA, B, indB, C, indC, blkSizes);
 }
 
 //Non-template functions
