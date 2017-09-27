@@ -23,6 +23,7 @@ namespace rote {
 template<typename T>
 class Hadamard {
 public:
+  // Main interface
   static void run(
     const DistTensor<T>& A, const std::string& indicesA,
     const DistTensor<T>& B, const std::string& indicesB,
@@ -31,6 +32,7 @@ public:
   );
 
 private:
+  // Struct interface
   static void setHadamardInfo(
     const DistTensor<T>& A, const IndexArray& indicesA,
     const DistTensor<T>& B, const IndexArray& indicesB,
@@ -54,7 +56,7 @@ private:
           DistTensor<T>& C, const IndexArray& indicesC
   );
 
-  // Internal Dist interface
+  // Internal interface
   static void run(
     const DistTensor<T>& A, const IndexArray& indicesA,
     const DistTensor<T>& B, const IndexArray& indicesB,
@@ -63,7 +65,7 @@ private:
     bool isStatC
   );
 
-  // Local
+  // Local interface
   static void run(
     const Tensor<T>& A, const IndexArray& indicesA,
     const Tensor<T>& B, const IndexArray& indicesB,
