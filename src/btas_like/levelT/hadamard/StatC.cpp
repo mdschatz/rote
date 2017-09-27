@@ -154,12 +154,25 @@ void Hadamard<T>::runHelperPartitionAC(
 
 template<typename T>
 void Hadamard<T>::setHadamardInfo(
-	const TensorDistribution& distIntA, const IndexArray& indicesA,
-  const TensorDistribution& distIntB, const IndexArray& indicesB,
-  const TensorDistribution& distIntC, const IndexArray& indicesC,
+	const DistTensor<T>& A, const IndexArray& indicesA,
+  const DistTensor<T>& B, const IndexArray& indicesB,
+  const DistTensor<T>& C, const IndexArray& indicesC,
   const std::vector<Unsigned>& blkSizes, bool isStatC,
         BlkHadamardStatCInfo& hadamardInfo
 ) {
+	TensorDistribution distA = A.TensorDist();
+	TensorDistribution distB = B.TensorDist();
+	TensorDistribution distC = C.TensorDist();
+
+	TensorDistribution distIntA(distA.size() - 1); // isStatC
+	TensorDistribution distIntB(distB.size() - 1);
+	TensorDistribution distIntC(distC.size() - 1); // !isStatC
+
+	//Setup temp dist A
+	distIntA.SetToMatch(distC, indicesC, indicesA); // isStatC
+	distIntB.SetToMatch(distC, indicesC, indicesB);
+	distIntC.SetToMatch(distA, indicesA, indicesC); // !isStatC
+
 	Unsigned i;
 	IndexArray indicesCA = isStatC
 		? DiffVector(IsectVector(indicesC, indicesA), indicesB)
@@ -254,32 +267,21 @@ void Hadamard<T>::StatC::run(
 	const DistTensor<T>& A, const IndexArray& indicesA,
 	const DistTensor<T>& B, const IndexArray& indicesB,
 	DistTensor<T>& C, const IndexArray& indicesC,
-	const std::vector<Unsigned>& blkSizes){
+	const std::vector<Unsigned>& blkSizes
+) {
 	std::cout << "Stat C\n";
-	TensorDistribution distA = A.TensorDist();
-	TensorDistribution distB = B.TensorDist();
-	TensorDistribution distC = C.TensorDist();
-
-	TensorDistribution distIntA(distA.size() - 1);
-	TensorDistribution distIntB(distB.size() - 1);
-
-	//Setup temp dist A
-	distIntA.SetToMatch(distC, indicesC, indicesA);
-
-	//Setup temp dist B
-	distIntB.SetToMatch(distC, indicesC, indicesB);
 
 	//Determine how to partition
 	BlkHadamardStatCInfo hadamardInfo;
 	Hadamard<T>::setHadamardInfo(
-		distIntA, indicesA,
-		distIntB, indicesB,
-		distC, indicesC,
+		A, indicesA,
+		B, indicesB,
+		C, indicesC,
 		blkSizes, true,
 		hadamardInfo
 	);
 
-	DistTensor<T> tmpC(distC, C.Grid());
+	DistTensor<T> tmpC(C.TensorDist(), C.Grid());
 	tmpC.SetLocalPermutation(hadamardInfo.permC);
 	Permute(C, tmpC);
 	Hadamard<T>::runHelperPartitionAC(

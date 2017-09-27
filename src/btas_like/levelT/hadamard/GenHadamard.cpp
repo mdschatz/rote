@@ -48,7 +48,7 @@ void Hadamard<T>::run(
   } else if((isBiggerAB && isSmallerEqualAC) ||
   		 (isEqualAB && isSmallerEqualAC) ||
 		 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
-  	Hadamard::StatA::run(A, indicesA, B, indicesB, C, indicesC, blkSizes);
+  	Hadamard::StatC::run(A, indicesA, B, indicesB, C, indicesC, blkSizes);
   } else{
   	LogicError("Should never occur");
   }

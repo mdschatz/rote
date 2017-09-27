@@ -52,9 +52,9 @@ private:
   };
 
   static void setHadamardInfo(
-    const TensorDistribution& distIntA, const IndexArray& indicesA,
-    const TensorDistribution& distIntB, const IndexArray& indicesB,
-    const TensorDistribution& distIntC, const IndexArray& indicesC,
+    const DistTensor<T>& A, const IndexArray& indicesA,
+    const DistTensor<T>& B, const IndexArray& indicesB,
+    const DistTensor<T>& C, const IndexArray& indicesC,
     const std::vector<Unsigned>& blkSizes, bool isStatC,
           BlkHadamardStatCInfo& hadamardInfo
   );

@@ -154,28 +154,18 @@ namespace rote{
 template <typename T>
 void Hadamard<T>::StatA::run(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
 	std::cout << "Stat A\n";
-	TensorDistribution distA = A.TensorDist();
-	TensorDistribution distB = B.TensorDist();
-	TensorDistribution distC = C.TensorDist();
-
-	TensorDistribution distIntB(distB.size() - 1);
-	TensorDistribution distIntC(distC.size() - 1);
-
-	//Setup temp dists
-	distIntB.SetToMatch(distA, indicesA, indicesB);
-	distIntC.SetToMatch(distA, indicesA, indicesC);
 
 	//Determine how to partition
 	BlkHadamardStatCInfo hadamardInfo;
 	Hadamard<T>::setHadamardInfo(
-		distA, indicesA,
-		distIntB, indicesB,
-		distIntC, indicesC,
+		A, indicesA,
+		B, indicesB,
+		C, indicesC,
 		blkSizes, false,
 		hadamardInfo
 	);
 
-	DistTensor<T> tmpA(distA, A.Grid());
+	DistTensor<T> tmpA(A.TensorDist(), A.Grid());
 	tmpA.SetLocalPermutation(hadamardInfo.permA);
 	Permute(A, tmpA);
 	Hadamard<T>::runHelperStatAPartitionAC(0, hadamardInfo, A, indicesA, B, indicesB, C, indicesC);
