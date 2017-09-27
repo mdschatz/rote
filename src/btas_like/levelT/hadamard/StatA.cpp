@@ -16,14 +16,14 @@ namespace rote{
 		if(depth == hadamardInfo.partModesBCB.size()){
 			std::cout << "redistC\n";
 			DistTensor<T> intC(hadamardInfo.distIntC, C.Grid());
-			// intA.SetLocalPermutation(hadamardInfo.permA);
+			intC.SetLocalPermutation(hadamardInfo.permC);
 			intC.AlignModesWith(hadamardInfo.alignModesC, A, hadamardInfo.alignModesCTo);
 			intC.RedistFrom(C);
 
 			std::cout << "redistB\n";
 			DistTensor<T> intB(hadamardInfo.distIntB, B.Grid());
 			intB.AlignModesWith(hadamardInfo.alignModesB, A, hadamardInfo.alignModesBTo);
-			// intB.SetLocalPermutation(hadamardInfo.permB);
+			intB.SetLocalPermutation(hadamardInfo.permB);
 			intB.RedistFrom(B);
 
 			std::cout << "local\n";
@@ -33,7 +33,11 @@ namespace rote{
 			PrintData(intB, "intB", true);
 			PrintData(C, "C", true);
 			PrintData(intC, "intC", true);
-			Hadamard<T>::run(A.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, intC.Tensor(), indicesC);
+			Hadamard<T>::run(
+				A.LockedTensor(), indicesA,
+				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
+				intC.Tensor(), PermuteVector(indicesC, hadamardInfo.permC)
+			);
 			C.RedistFrom(intC);
 			return;
 		}
@@ -152,7 +156,12 @@ namespace rote{
 	}
 
 template <typename T>
-void Hadamard<T>::StatA::run(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
+void Hadamard<T>::StatA::run(
+	const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	      DistTensor<T>& C, const IndexArray& indicesC,
+	const std::vector<Unsigned>& blkSizes
+) {
 	std::cout << "Stat A\n";
 
 	//Determine how to partition

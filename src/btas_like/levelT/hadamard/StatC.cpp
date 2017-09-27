@@ -23,13 +23,13 @@ void Hadamard<T>::runHelperPartitionBC(
 ) {
 	if(depth == hadamardInfo.partModesBCB.size()){
 		DistTensor<T> intA(hadamardInfo.distIntA, A.Grid());
-		// intA.SetLocalPermutation(hadamardInfo.permA);
+		intA.SetLocalPermutation(hadamardInfo.permA);
 		intA.AlignModesWith(hadamardInfo.alignModesA, C, hadamardInfo.alignModesATo);
 		intA.RedistFrom(A);
 
 		DistTensor<T> intB(hadamardInfo.distIntB, B.Grid());
 		intB.AlignModesWith(hadamardInfo.alignModesB, C, hadamardInfo.alignModesBTo);
-		// intB.SetLocalPermutation(hadamardInfo.permB);
+		intB.SetLocalPermutation(hadamardInfo.permB);
 		intB.RedistFrom(B);
 
 		PrintHadamardStatCData(hadamardInfo, "HadamardInfo", true);
@@ -39,8 +39,8 @@ void Hadamard<T>::runHelperPartitionBC(
 		PrintData(intB, "intB", true);
 		PrintData(C, "C", true);
 		Hadamard<T>::run(
-			intA.LockedTensor(), indicesA,
-			intB.LockedTensor(), indicesB,
+			intA.LockedTensor(), PermuteVector(indicesA, hadamardInfo.permA),
+			intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
 			C.Tensor(), indicesC
 		);
 		return;
