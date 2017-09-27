@@ -13,7 +13,11 @@ namespace rote {
 
 // Assumes Tensor indices are arranged as follows:
 template <typename T>
-void LocalHadamard(const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, Tensor<T>& C, const IndexArray& indicesC) {
+void Hadamard<T>::run(
+  const Tensor<T>& A, const IndexArray& indicesA,
+  const Tensor<T>& B, const IndexArray& indicesB,
+        Tensor<T>& C, const IndexArray& indicesC
+) {
 #ifndef RELEASE
     CallStackEntry("LocalHadamard");
 
@@ -63,7 +67,7 @@ void LocalHadamard(const Tensor<T>& A, const IndexArray& indicesA, const Tensor<
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void LocalHadamard(const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, Tensor<T>& C, const IndexArray& indicesC);
+	template class Hadamard<T>;
 
 //PROTO(Unsigned)
 //PROTO(Int)

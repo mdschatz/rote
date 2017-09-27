@@ -15,7 +15,12 @@ namespace rote{
 //       They match indices, or make redistribution plans which can be shared
 //       across operations.
 template <typename T>
-void RecurHadamardStatCPartBC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC){
+void Hadamard<T>::runHelperPartitionBC(
+	Unsigned depth, BlkHadamardStatCInfo& hadamardInfo,
+	const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	      DistTensor<T>& C, const IndexArray& indicesC
+) {
 	if(depth == hadamardInfo.partModesBCB.size()){
 		DistTensor<T> intA(hadamardInfo.distIntA, A.Grid());
 		// intA.SetLocalPermutation(hadamardInfo.permA);
@@ -33,7 +38,11 @@ void RecurHadamardStatCPartBC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo
 		PrintData(B, "B", true);
 		PrintData(intB, "intB", true);
 		PrintData(C, "C", true);
-		LocalHadamard(intA.LockedTensor(), indicesA, intB.LockedTensor(), indicesB, C.Tensor(), indicesC);
+		Hadamard<T>::run(
+			intA.LockedTensor(), indicesA,
+			intB.LockedTensor(), indicesB,
+			C.Tensor(), indicesC
+		);
 		return;
 	}
 
@@ -69,7 +78,7 @@ void RecurHadamardStatCPartBC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo
 						C_B, C_2, partModeC, blkSize);
 
 		/*----------------------------------------------------------------*/
-		RecurHadamardStatCPartBC(depth+1, hadamardInfo, A, indicesA, B_1, indicesB, C_1, indicesC);
+		Hadamard<T>::runHelperPartitionBC(depth+1, hadamardInfo, A, indicesA, B_1, indicesB, C_1, indicesC);
 		count++;
 		std::cout << "COUNT: " << count << std::endl;
 		/*----------------------------------------------------------------*/
@@ -85,10 +94,15 @@ void RecurHadamardStatCPartBC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo
 }
 
 template <typename T>
-void RecurHadamardStatCPartAC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC){
+void Hadamard<T>::runHelperPartitionAC(
+	Unsigned depth, BlkHadamardStatCInfo& hadamardInfo,
+	const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	      DistTensor<T>& C, const IndexArray& indicesC
+) {
 	if(depth == hadamardInfo.partModesACA.size()){
 		std::cout << "recur BC\n";
-		RecurHadamardStatCPartBC(0, hadamardInfo, A, indicesA, B, indicesB, C, indicesC);
+		Hadamard<T>::runHelperPartitionBC(0, hadamardInfo, A, indicesA, B, indicesB, C, indicesC);
 		return;
 	}
 
@@ -124,7 +138,7 @@ void RecurHadamardStatCPartAC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo
 						C_B, C_2, partModeC, blkSize);
 
 		/*----------------------------------------------------------------*/
-		RecurHadamardStatCPartAC(depth+1, hadamardInfo, A_1, indicesA, B, indicesB, C_1, indicesC);
+		Hadamard<T>::runHelperPartitionAC(depth+1, hadamardInfo, A_1, indicesA, B, indicesB, C_1, indicesC);
 		count++;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(A_T, A_0,
@@ -138,13 +152,13 @@ void RecurHadamardStatCPartAC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo
 	}
 }
 
-void SetBlkHadamardStatCInfo(
+template<typename T>
+void Hadamard<T>::setHadamardInfo(
 	const TensorDistribution& distIntA, const IndexArray& indicesA,
   const TensorDistribution& distIntB, const IndexArray& indicesB,
   const TensorDistribution& distIntC, const IndexArray& indicesC,
-  const std::vector<Unsigned>& blkSizes,
-  BlkHadamardStatCInfo& hadamardInfo,
-  bool isStatC
+  const std::vector<Unsigned>& blkSizes, bool isStatC,
+        BlkHadamardStatCInfo& hadamardInfo
 ) {
 	Unsigned i;
 	IndexArray indicesCA = isStatC
@@ -236,7 +250,11 @@ void SetBlkHadamardStatCInfo(
 }
 
 template <typename T>
-void HadamardStatC(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
+void Hadamard<T>::StatC::run(
+	const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	DistTensor<T>& C, const IndexArray& indicesC,
+	const std::vector<Unsigned>& blkSizes){
 	std::cout << "Stat C\n";
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
@@ -253,24 +271,30 @@ void HadamardStatC(const DistTensor<T>& A, const IndexArray& indicesA, const Dis
 
 	//Determine how to partition
 	BlkHadamardStatCInfo hadamardInfo;
-	SetBlkHadamardStatCInfo(
+	Hadamard<T>::setHadamardInfo(
 		distIntA, indicesA,
 		distIntB, indicesB,
 		distC, indicesC,
-		blkSizes,
-		hadamardInfo, true);
+		blkSizes, true,
+		hadamardInfo
+	);
 
 	DistTensor<T> tmpC(distC, C.Grid());
 	tmpC.SetLocalPermutation(hadamardInfo.permC);
 	Permute(C, tmpC);
-	RecurHadamardStatCPartAC(0, hadamardInfo, A, indicesA, B, indicesB, tmpC, indicesC);
+	Hadamard<T>::runHelperPartitionAC(
+		0, hadamardInfo,
+		A, indicesA,
+		B, indicesB,
+		tmpC, indicesC
+	);
 	Permute(tmpC, C);
 }
 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void HadamardStatC(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes);
+	template class Hadamard<T>;
 
 //PROTO(Unsigned)
 //PROTO(Int)

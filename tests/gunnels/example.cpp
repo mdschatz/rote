@@ -25,7 +25,7 @@ void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  GenHadamard(C, "cpgo", B, "abcdefghijklmnop", A, "abcdefghijklmnop");
+  Hadamard<double>::run(C, "cpgo", B, "abcdefghijklmnop", A, "abcdefghijklmnop", blkSizes);
 }
 
 void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
@@ -115,7 +115,7 @@ void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   Print(A, "A");
   Print(B, "B");
   Print(C, "C");
-  GenHadamard(C, "go", B, "cgo", A, "cog");
+  Hadamard<double>::run(C, "go", B, "cgo", A, "cog", blkSizes);
   Print(A, "A");
 }
 

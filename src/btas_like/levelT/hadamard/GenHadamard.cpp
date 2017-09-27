@@ -8,12 +8,13 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
+#include "rote/core/dist_tensor_forward_decl.hpp"
 
 namespace rote{
 
 // TODO: Restrict scope
 template <typename T>
-void GenHadamard(
+void Hadamard<T>::run(
   const DistTensor<T>& A, const IndexArray& indicesA,
   const DistTensor<T>& B, const IndexArray& indicesB,
         DistTensor<T>& C, const IndexArray& indicesC,
@@ -40,21 +41,21 @@ void GenHadamard(
   bool isBiggerEqualAC = numElemA >= numElemC;
 
   if(isBiggerEqualAB && isBiggerAC){
-  	HadamardStatA(A, indicesA, B, indicesB, C, indicesC, blkSizes);
+  	Hadamard::StatA::run(A, indicesA, B, indicesB, C, indicesC, blkSizes);
   } else if((isSmallerAB && isBiggerEqualAC) ||
   		 (isSmallerAB && isSmallerAC && isBiggerBC)){
-  	HadamardStatA(B, indicesB, A, indicesA, C, indicesC, blkSizes);
+  	Hadamard::StatA::run(B, indicesB, A, indicesA, C, indicesC, blkSizes);
   } else if((isBiggerAB && isSmallerEqualAC) ||
   		 (isEqualAB && isSmallerEqualAC) ||
 		 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
-  	HadamardStatC(A, indicesA, B, indicesB, C, indicesC, blkSizes);
+  	Hadamard::StatA::run(A, indicesA, B, indicesB, C, indicesC, blkSizes);
   } else{
   	LogicError("Should never occur");
   }
 }
 
 template <typename T>
-void GenHadamard(
+void Hadamard<T>::run(
   const DistTensor<T>& A, const std::string& indicesA,
   const DistTensor<T>& B, const std::string& indicesB,
         DistTensor<T>& C, const std::string& indicesC,
@@ -72,24 +73,13 @@ void GenHadamard(
 	for(int i = 0; i < indicesC.size(); i++)
 		indC[i] = indicesC[i];
 
-	GenHadamard(A, indA, B, indB, C, indC, blkSizes);
+	Hadamard<T>::run(A, indA, B, indB, C, indC, blkSizes);
 }
 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void GenHadamard ( \
-    const DistTensor<T>& A, const IndexArray& indicesA, \
-    const DistTensor<T>& B, const IndexArray& indicesB, \
-          DistTensor<T>& C, const IndexArray& indicesC, \
-    const std::vector<Unsigned>& blkSizes \
-  ); \
-	template void GenHadamard ( \
-    const DistTensor<T>& A, const std::string& indicesA, \
-    const DistTensor<T>& B, const std::string& indicesB, \
-          DistTensor<T>& C, const std::string& indicesC, \
-    const std::vector<Unsigned>& blkSizes \
-  );
+  template class Hadamard<T>;
 
 //PROTO(Unsigned)
 //PROTO(Int)

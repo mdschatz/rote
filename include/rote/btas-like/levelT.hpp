@@ -14,6 +14,5 @@
 #include "./levelT/GenContract.hpp"
 #include "./levelT/Hadamard.hpp"
 #include "./levelT/HadamardScal.hpp"
-#include "./levelT/GenHadamard.hpp"
 
 #endif // ifndef ROTE_BTAS_LEVELT_HPP
