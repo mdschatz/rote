@@ -11,46 +11,55 @@
 
 namespace rote{
 
-//TODO: Handle updates
-//Note: StatA equivalent to StatB with rearranging operands
+// TODO: Restrict scope
 template <typename T>
-void GenHadamard(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
+void GenHadamard(
+  const DistTensor<T>& A, const IndexArray& indicesA,
+  const DistTensor<T>& B, const IndexArray& indicesB,
+        DistTensor<T>& C, const IndexArray& indicesC,
+  const std::vector<Unsigned>& blkSizes
+) {
 	//Determine Stationary variant.
-    const Unsigned numElemA = prod(A.Shape());
-    const Unsigned numElemB = prod(B.Shape());
-    const Unsigned numElemC = prod(C.Shape());
+  const Unsigned numElemA = prod(A.Shape());
+  const Unsigned numElemB = prod(B.Shape());
+  const Unsigned numElemC = prod(C.Shape());
 
-    bool isBiggerAB = numElemA > numElemB;
-    bool isBiggerAC = numElemA > numElemC;
-    bool isBiggerBC = numElemB > numElemC;
+  bool isBiggerAB = numElemA > numElemB;
+  bool isBiggerAC = numElemA > numElemC;
+  bool isBiggerBC = numElemB > numElemC;
 
-    bool isEqualAB = numElemA == numElemB;
+  bool isEqualAB = numElemA == numElemB;
 
-    bool isSmallerAB = numElemA < numElemB;
-    bool isSmallerAC = numElemA < numElemC;
+  bool isSmallerAB = numElemA < numElemB;
+  bool isSmallerAC = numElemA < numElemC;
 
-    bool isSmallerEqualAC = numElemA <= numElemC;
-    bool isSmallerEqualBC = numElemB <= numElemC;
+  bool isSmallerEqualAC = numElemA <= numElemC;
+  bool isSmallerEqualBC = numElemB <= numElemC;
 
-    bool isBiggerEqualAB = numElemA >= numElemB;
-    bool isBiggerEqualAC = numElemA >= numElemC;
+  bool isBiggerEqualAB = numElemA >= numElemB;
+  bool isBiggerEqualAC = numElemA >= numElemC;
 
-    if(isBiggerEqualAB && isBiggerAC){
-    	HadamardStatA(A, indicesA, B, indicesB, C, indicesC, blkSizes);
-    }else if((isSmallerAB && isBiggerEqualAC) ||
-    		 (isSmallerAB && isSmallerAC && isBiggerBC)){
-    	HadamardStatA(B, indicesB, A, indicesA, C, indicesC, blkSizes);
-    }else if((isBiggerAB && isSmallerEqualAC) ||
-    		 (isEqualAB && isSmallerEqualAC) ||
-			 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
-    	HadamardStatC(A, indicesA, B, indicesB, C, indicesC, blkSizes);
-    }else{
-    	LogicError("Should never occur");
-    }
+  if(isBiggerEqualAB && isBiggerAC){
+  	HadamardStatA(A, indicesA, B, indicesB, C, indicesC, blkSizes);
+  } else if((isSmallerAB && isBiggerEqualAC) ||
+  		 (isSmallerAB && isSmallerAC && isBiggerBC)){
+  	HadamardStatA(B, indicesB, A, indicesA, C, indicesC, blkSizes);
+  } else if((isBiggerAB && isSmallerEqualAC) ||
+  		 (isEqualAB && isSmallerEqualAC) ||
+		 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
+  	HadamardStatC(A, indicesA, B, indicesB, C, indicesC, blkSizes);
+  } else{
+  	LogicError("Should never occur");
+  }
 }
 
 template <typename T>
-void GenHadamard(const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes){
+void GenHadamard(
+  const DistTensor<T>& A, const std::string& indicesA,
+  const DistTensor<T>& B, const std::string& indicesB,
+        DistTensor<T>& C, const std::string& indicesC,
+  const std::vector<Unsigned>& blkSizes
+) {
 	IndexArray indA(indicesA.size());
 	for(int i = 0; i < indicesA.size(); i++)
 		indA[i] = indicesA[i];
@@ -64,14 +73,23 @@ void GenHadamard(const DistTensor<T>& A, const std::string& indicesA, const Dist
 		indC[i] = indicesC[i];
 
 	GenHadamard(A, indA, B, indB, C, indC, blkSizes);
-  std::cout << "DONE\n";
 }
 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void GenHadamard(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes); \
-	template void GenHadamard(const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes);
+	template void GenHadamard ( \
+    const DistTensor<T>& A, const IndexArray& indicesA, \
+    const DistTensor<T>& B, const IndexArray& indicesB, \
+          DistTensor<T>& C, const IndexArray& indicesC, \
+    const std::vector<Unsigned>& blkSizes \
+  ); \
+	template void GenHadamard ( \
+    const DistTensor<T>& A, const std::string& indicesA, \
+    const DistTensor<T>& B, const std::string& indicesB, \
+          DistTensor<T>& C, const std::string& indicesC, \
+    const std::vector<Unsigned>& blkSizes \
+  );
 
 //PROTO(Unsigned)
 //PROTO(Int)

@@ -17,14 +17,23 @@
 #include "rote/core/view_decl.hpp"
 #include "rote/io/Print.hpp"
 
-namespace rote{
+namespace rote {
 
 ////////////////////////////////////
-// LocalContract Workhorse
+// Local routines
 ////////////////////////////////////
 
 template <typename T>
-void LocalHadamard(const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, Tensor<T>& C, const IndexArray& indicesC);
+void LocalHadamard(
+  const Tensor<T>& A, const IndexArray& indicesA,
+  const Tensor<T>& B, const IndexArray& indicesB,
+        Tensor<T>& C, const IndexArray& indicesC
+);
+
+////////////////////////////////////
+// Distributed Interface
+////////////////////////////////////
+
 
 } // namespace rote
 

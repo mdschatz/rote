@@ -20,20 +20,36 @@
 namespace rote{
 
 ////////////////////////////////////
-// DistHadamard Workhorse
+// DistHadamard Workhorses
 ////////////////////////////////////
 
 template <typename T>
-void HadamardStatA(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
+void HadamardStatA(
+  const DistTensor<T>& A, const IndexArray& indicesA,
+  const DistTensor<T>& B, const IndexArray& indicesB,
+        DistTensor<T>& C, const IndexArray& indicesC,
+  const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0)
+);
 
 template <typename T>
-void HadamardStatC(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
+void HadamardStatC(
+  const DistTensor<T>& A, const IndexArray& indicesA,
+  const DistTensor<T>& B, const IndexArray& indicesB,
+        DistTensor<T>& C, const IndexArray& indicesC,
+  const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0)
+);
+
+////////////////////////////////////
+// DistTensor interfaces
+////////////////////////////////////
 
 template <typename T>
-void GenHadamard(const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
-
-template <typename T>
-void GenHadamard(const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0));
+void GenHadamard(
+  const DistTensor<T>& A, const std::string& indicesA,
+  const DistTensor<T>& B, const std::string& indicesB,
+        DistTensor<T>& C, const std::string& indicesC,
+  const std::vector<Unsigned>& blkSizes = std::vector<Unsigned>(0)
+);
 
 } // namespace rote
 
