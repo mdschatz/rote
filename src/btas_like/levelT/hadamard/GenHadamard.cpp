@@ -41,28 +41,31 @@ void Hadamard<T>::run(
   bool isBiggerEqualAC = numElemA >= numElemC;
 
   if(isBiggerEqualAB && isBiggerAC){
-  	Hadamard::StatA::run(
+  	Hadamard::run(
       A, indicesA,
       B, indicesB,
       C, indicesC,
-      blkSizes
+      blkSizes,
+      false
     );
   } else if((isSmallerAB && isBiggerEqualAC) ||
   		 (isSmallerAB && isSmallerAC && isBiggerBC)){
-  	Hadamard::StatA::run(
+  	Hadamard::run(
       B, indicesB,
       A, indicesA,
       C, indicesC,
-      blkSizes
+      blkSizes,
+      false
     );
   } else if((isBiggerAB && isSmallerEqualAC) ||
   		 (isEqualAB && isSmallerEqualAC) ||
 		 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
-  	Hadamard::StatA::run(
+  	Hadamard::run(
       A, indicesA,
       B, indicesB,
       C, indicesC,
-      blkSizes
+      blkSizes,
+      false
     );
   } else{
   	LogicError("Should never occur");

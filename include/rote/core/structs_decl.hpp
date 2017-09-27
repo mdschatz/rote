@@ -98,6 +98,7 @@ struct BlkHadamardStatCInfo
 	Permutation permC;
 
 	std::vector<Unsigned> blkSizes;
+	bool isStatC;
 };
 
 //Pack data structs

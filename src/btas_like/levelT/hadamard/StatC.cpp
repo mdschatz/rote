@@ -11,9 +11,6 @@
 
 namespace rote{
 
-// NOTE: Util functions named "Contract" are actually usable for this operation
-//       They match indices, or make redistribution plans which can be shared
-//       across operations.
 template <typename T>
 void Hadamard<T>::runHelperPartitionBC(
 	Unsigned depth, BlkHadamardStatCInfo& hadamardInfo,
@@ -22,27 +19,55 @@ void Hadamard<T>::runHelperPartitionBC(
 	      DistTensor<T>& C, const IndexArray& indicesC
 ) {
 	if(depth == hadamardInfo.partModesBCB.size()){
-		DistTensor<T> intA(hadamardInfo.distIntA, A.Grid());
-		intA.SetLocalPermutation(hadamardInfo.permA);
-		intA.AlignModesWith(hadamardInfo.alignModesA, C, hadamardInfo.alignModesATo);
-		intA.RedistFrom(A);
+		if(hadamardInfo.isStatC) {
+			DistTensor<T> intA(hadamardInfo.distIntA, A.Grid());
+			intA.SetLocalPermutation(hadamardInfo.permA);
+			intA.AlignModesWith(hadamardInfo.alignModesA, C, hadamardInfo.alignModesATo);
+			intA.RedistFrom(A);
 
-		DistTensor<T> intB(hadamardInfo.distIntB, B.Grid());
-		intB.AlignModesWith(hadamardInfo.alignModesB, C, hadamardInfo.alignModesBTo);
-		intB.SetLocalPermutation(hadamardInfo.permB);
-		intB.RedistFrom(B);
+			DistTensor<T> intB(hadamardInfo.distIntB, B.Grid());
+			intB.AlignModesWith(hadamardInfo.alignModesB, C, hadamardInfo.alignModesBTo);
+			intB.SetLocalPermutation(hadamardInfo.permB);
+			intB.RedistFrom(B);
 
-		PrintHadamardStatCData(hadamardInfo, "HadamardInfo", true);
-		PrintData(A, "A", true);
-		PrintData(intA, "intA", true);
-		PrintData(B, "B", true);
-		PrintData(intB, "intB", true);
-		PrintData(C, "C", true);
-		Hadamard<T>::run(
-			intA.LockedTensor(), PermuteVector(indicesA, hadamardInfo.permA),
-			intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
-			C.Tensor(), indicesC
-		);
+			PrintHadamardStatCData(hadamardInfo, "HadamardInfo", true);
+			PrintData(A, "A", true);
+			PrintData(intA, "intA", true);
+			PrintData(B, "B", true);
+			PrintData(intB, "intB", true);
+			PrintData(C, "C", true);
+			Hadamard<T>::run(
+				intA.LockedTensor(), PermuteVector(indicesA, hadamardInfo.permA),
+				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
+				C.Tensor(), indicesC
+			);
+		} else {
+			std::cout << "Actual StatA\n";
+			DistTensor<T> intC(hadamardInfo.distIntC, C.Grid());
+			intC.SetLocalPermutation(hadamardInfo.permC);
+			intC.AlignModesWith(hadamardInfo.alignModesC, A, hadamardInfo.alignModesCTo);
+			intC.RedistFrom(C);
+
+			std::cout << "redistB\n";
+			DistTensor<T> intB(hadamardInfo.distIntB, B.Grid());
+			intB.AlignModesWith(hadamardInfo.alignModesB, A, hadamardInfo.alignModesBTo);
+			intB.SetLocalPermutation(hadamardInfo.permB);
+			intB.RedistFrom(B);
+
+			std::cout << "local\n";
+			PrintHadamardStatCData(hadamardInfo, "HadamardInfo", true);
+			PrintData(A, "A", true);
+			PrintData(B, "B", true);
+			PrintData(intB, "intB", true);
+			PrintData(C, "C", true);
+			PrintData(intC, "intC", true);
+			Hadamard<T>::run(
+				A.LockedTensor(), indicesA,
+				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
+				intC.Tensor(), PermuteVector(indicesC, hadamardInfo.permC)
+			);
+			C.RedistFrom(intC);
+		}
 		return;
 	}
 
@@ -184,6 +209,7 @@ void Hadamard<T>::setHadamardInfo(
 		? IsectVector(IsectVector(indicesC, indicesB), indicesA)
 		: IsectVector(IsectVector(indicesA, indicesB), indicesC);
 
+	hadamardInfo.isStatC = isStatC;
 	//Set the intermediate dists
 	hadamardInfo.distIntB = distIntB;
 	if (isStatC) {
@@ -263,11 +289,11 @@ void Hadamard<T>::setHadamardInfo(
 }
 
 template <typename T>
-void Hadamard<T>::StatC::run(
+void Hadamard<T>::run(
 	const DistTensor<T>& A, const IndexArray& indicesA,
 	const DistTensor<T>& B, const IndexArray& indicesB,
-	DistTensor<T>& C, const IndexArray& indicesC,
-	const std::vector<Unsigned>& blkSizes
+	      DistTensor<T>& C, const IndexArray& indicesC,
+	const std::vector<Unsigned>& blkSizes, bool isStatC
 ) {
 	std::cout << "Stat C\n";
 
@@ -277,20 +303,32 @@ void Hadamard<T>::StatC::run(
 		A, indicesA,
 		B, indicesB,
 		C, indicesC,
-		blkSizes, true,
+		blkSizes, isStatC,
 		hadamardInfo
 	);
 
-	DistTensor<T> tmpC(C.TensorDist(), C.Grid());
-	tmpC.SetLocalPermutation(hadamardInfo.permC);
-	Permute(C, tmpC);
-	Hadamard<T>::runHelperPartitionAC(
-		0, hadamardInfo,
-		A, indicesA,
-		B, indicesB,
-		tmpC, indicesC
-	);
-	Permute(tmpC, C);
+	if (isStatC) {
+		DistTensor<T> tmpC(C.TensorDist(), C.Grid());
+		tmpC.SetLocalPermutation(hadamardInfo.permC);
+		Permute(C, tmpC);
+		Hadamard<T>::runHelperPartitionAC(
+			0, hadamardInfo,
+			A, indicesA,
+			B, indicesB,
+			tmpC, indicesC
+		);
+		Permute(tmpC, C);
+	} else {
+		DistTensor<T> tmpA(A.TensorDist(), A.Grid());
+		tmpA.SetLocalPermutation(hadamardInfo.permA);
+		Permute(A, tmpA);
+		Hadamard<T>::runHelperPartitionAC(
+			0, hadamardInfo,
+			A, indicesA,
+			B, indicesB,
+			C, indicesC
+		);
+	}
 }
 
 //Non-template functions
