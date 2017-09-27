@@ -138,21 +138,32 @@ void RecurHadamardStatCPartAC(Unsigned depth, BlkHadamardStatCInfo& hadamardInfo
 	}
 }
 
-void SetBlkHadamardStatCInfo(const TensorDistribution& distIntA, const IndexArray& indicesA,
-		                     const TensorDistribution& distIntB, const IndexArray& indicesB,
-							 const IndexArray& indicesC,
-							 const std::vector<Unsigned>& blkSizes,
-							 BlkHadamardStatCInfo& hadamardInfo,
-						   bool isStatC) {
+void SetBlkHadamardStatCInfo(
+	const TensorDistribution& distIntA, const IndexArray& indicesA,
+  const TensorDistribution& distIntB, const IndexArray& indicesB,
+  const TensorDistribution& distIntC, const IndexArray& indicesC,
+  const std::vector<Unsigned>& blkSizes,
+  BlkHadamardStatCInfo& hadamardInfo,
+  bool isStatC
+) {
 	Unsigned i;
-	IndexArray indicesCA = DiffVector(IsectVector(indicesC, indicesA), indicesB);
+	IndexArray indicesCA = isStatC
+		? DiffVector(IsectVector(indicesC, indicesA), indicesB)
+		: DiffVector(IsectVector(indicesA, indicesC), indicesB);
+	PrintVector(IsectVector(indicesA, indicesC), "indicesAC");
 	IndexArray indicesCB = DiffVector(IsectVector(indicesC, indicesB), indicesA);
-	IndexArray indicesAB = IsectVector(indicesA, indicesB);
-	IndexArray indicesCBA = IsectVector(IsectVector(indicesC, indicesB), indicesA);
+	IndexArray indicesAB = DiffVector(IsectVector(indicesA, indicesB), indicesC);
+	IndexArray indicesCBA = isStatC
+		? IsectVector(IsectVector(indicesC, indicesB), indicesA)
+		: IsectVector(IsectVector(indicesA, indicesB), indicesC);
 
 	//Set the intermediate dists
-	hadamardInfo.distIntA = distIntA;
 	hadamardInfo.distIntB = distIntB;
+	if (isStatC) {
+		hadamardInfo.distIntA = distIntA;
+	} else {
+		hadamardInfo.distIntC = distIntC;
+	}
 
 	//Determine the modes to partition
 	hadamardInfo.partModesACA.resize(indicesCA.size());
@@ -169,17 +180,28 @@ void SetBlkHadamardStatCInfo(const TensorDistribution& distIntA, const IndexArra
 	}
 
 	//Determine the final alignments needed
-	hadamardInfo.alignModesA.resize(indicesCA.size());
-	hadamardInfo.alignModesATo.resize(indicesCA.size());
-	for(i = 0; i < indicesCA.size(); i++){
-		hadamardInfo.alignModesA[i] = IndexOf(indicesA, indicesCA[i]);
-		hadamardInfo.alignModesATo[i] = IndexOf(indicesC, indicesCA[i]);
-	}
 	hadamardInfo.alignModesB.resize(indicesCB.size());
 	hadamardInfo.alignModesBTo.resize(indicesCB.size());
 	for(i = 0; i < indicesCB.size(); i++){
 		hadamardInfo.alignModesB[i] = IndexOf(indicesB, indicesCB[i]);
 		hadamardInfo.alignModesBTo[i] = IndexOf(indicesC, indicesCB[i]);
+	}
+
+	if (isStatC) {
+		hadamardInfo.alignModesA.resize(indicesCA.size());
+		hadamardInfo.alignModesATo.resize(indicesCA.size());
+		for(i = 0; i < indicesCA.size(); i++){
+			hadamardInfo.alignModesA[i] = IndexOf(indicesA, indicesCA[i]);
+			hadamardInfo.alignModesATo[i] = IndexOf(indicesC, indicesCA[i]);
+		}
+	}
+	else {
+		hadamardInfo.alignModesC.resize(indicesCA.size());
+		hadamardInfo.alignModesCTo.resize(indicesCA.size());
+		for(i = 0; i < indicesCA.size(); i++){
+			hadamardInfo.alignModesC[i] = IndexOf(indicesC, indicesCA[i]);
+			hadamardInfo.alignModesCTo[i] = IndexOf(indicesA, indicesCA[i]);
+		}
 	}
 
 	//Set the Block-size info
@@ -202,8 +224,14 @@ void SetBlkHadamardStatCInfo(const TensorDistribution& distIntA, const IndexArra
 	PrintVector(indicesCBA, "indicesCBA", true);
 	hadamardInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesCA, indicesCBA));
 	PrintVector(indicesB, "indicesB", true);
+	PrintVector(indicesCB, "indicesCB", true);
 	PrintVector(indicesCBA, "indicesCBA", true);
 	hadamardInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesCBA, indicesCB));
+	PrintVector(indicesC, "indicesC", true);
+	PrintVector(indicesCBA, "indicesCBA", true);
+	PrintVector(indicesCB, "indicesCB", true);
+	PrintVector(indicesCA, "indicesCA", true);
+	hadamardInfo.permC = DeterminePermutation(indicesC, ConcatenateVectors(ConcatenateVectors(indicesCBA, indicesCB), indicesCA));
 	std::cout << "done with mer\n";
 }
 
@@ -225,23 +253,18 @@ void HadamardStatC(const DistTensor<T>& A, const IndexArray& indicesA, const Dis
 
 	//Determine how to partition
 	BlkHadamardStatCInfo hadamardInfo;
-	SetBlkHadamardStatCInfo(distIntA, indicesA, distIntB, indicesB, indicesC, blkSizes, hadamardInfo, true);
+	SetBlkHadamardStatCInfo(
+		distIntA, indicesA,
+		distIntB, indicesB,
+		distC, indicesC,
+		blkSizes,
+		hadamardInfo, true);
 
-	// if(hadamardInfo.permC != C.LocalPermutation()){
-	// 	TensorDistribution tmpDistC = distC;
-	// 	DistTensor<T> tmpC(tmpDistC, C.Grid());
-	// 	std::cout << "setting local perm\n";
-	// 	tmpC.SetLocalPermutation(hadamardInfo.permC);
-	// 	std::cout << "perming\n";
-	// 	Permute(C, tmpC);
-	// 	std::cout << "recur\n";
-	// 	RecurHadamardStatCPartAC(0, hadamardInfo, A, indicesA, B, indicesB, tmpC, indicesC);
-	// 	std::cout << "unperm\n";
-	// 	Permute(tmpC, C);
-	// }else{
-		RecurHadamardStatCPartAC(0, hadamardInfo, A, indicesA, B, indicesB, C, indicesC);
-	// }
-
+	DistTensor<T> tmpC(distC, C.Grid());
+	tmpC.SetLocalPermutation(hadamardInfo.permC);
+	Permute(C, tmpC);
+	RecurHadamardStatCPartAC(0, hadamardInfo, A, indicesA, B, indicesB, tmpC, indicesC);
+	Permute(tmpC, C);
 }
 
 //Non-template functions

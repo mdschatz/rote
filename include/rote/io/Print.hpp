@@ -255,6 +255,7 @@ PrintHadamardStatCData
     PrintVector(hadamardInfo.partModesBCC, "  partModesBCC", all);
     PrintVector(hadamardInfo.permA.Entries(), "  permA", all);
     PrintVector(hadamardInfo.permB.Entries(), "  permB", all);
+    PrintVector(hadamardInfo.permC.Entries(), "  permC", all);
 }
 
 inline void
