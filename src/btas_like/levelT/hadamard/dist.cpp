@@ -93,7 +93,7 @@ void Hadamard<T>::run(
 	      DistTensor<T>& C, const IndexArray& indicesC,
 	const std::vector<Unsigned>& blkSizes, bool isStatC
 ) {
-	std::cout << "Stat C\n";
+	std::cout << (isStatC ? "Stat C" : "Stat A") << std::endl;
 
 	//Determine how to partition
 	BlkHadamardStatCInfo hadamardInfo;
@@ -112,6 +112,7 @@ void Hadamard<T>::run(
   PrintData(C, "CData", true);
   PrintVector(indicesC, "indicesC", true);
   PrintHadamardStatCData(hadamardInfo, "hadamardInfo", true);
+  // return;
 	if (isStatC) {
 		DistTensor<T> tmpC(C.TensorDist(), C.Grid());
 		tmpC.SetLocalPermutation(hadamardInfo.permC);

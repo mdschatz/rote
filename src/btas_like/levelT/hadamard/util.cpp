@@ -20,6 +20,7 @@ void Hadamard<T>::runHelperPartitionBC(
 	      DistTensor<T>& C, const IndexArray& indicesC
 ) {
 	if(depth == hadamardInfo.partModesBCB.size()){
+		std::cout << "compute\n";
 		if(hadamardInfo.isStatC) {
 			DistTensor<T> intA(hadamardInfo.distIntA, A.Grid());
 			intA.SetLocalPermutation(hadamardInfo.permA);
@@ -51,15 +52,15 @@ void Hadamard<T>::runHelperPartitionBC(
 			intB.SetLocalPermutation(hadamardInfo.permB);
 			intB.RedistFrom(B);
 
-			Print(A, "A");
-			Print(B, "B");
-			Print(intB, "intB");
-			Print(intC, "intC");
-			PrintData(A, "Adata");
-			PrintData(intB, "intBdata");
-			PrintData(intC, "intCdata");
-			Print(C, "C");
-			PrintData(C, "Cdata");
+			// Print(A, "A");
+			// Print(B, "B");
+			// Print(intB, "intB");
+			// Print(intC, "intC");
+			// PrintData(A, "Adata");
+			// PrintData(intB, "intBdata");
+			// PrintData(intC, "intCdata");
+			// Print(C, "C");
+			// PrintData(C, "Cdata");
 
 			Hadamard<T>::run(
 				A.LockedTensor(), indicesA,
@@ -106,8 +107,11 @@ void Hadamard<T>::runHelperPartitionBC(
 
 		/*----------------------------------------------------------------*/
 		Hadamard<T>::runHelperPartitionBC(depth+1, hadamardInfo, A, indicesA, B_1, indicesB, C_1, indicesC);
+
 		count++;
-		std::cout << "    BC count: " << count << std::endl;
+		for(Unsigned i = 0; i < depth; i++)
+			std::cout << " ";
+		std::cout << "depth: " << depth << " blkSize: " << blkSize << " BT dim " << B_T.Dimension(partModeB) << " B dim " << B.Dimension(partModeB) << " BC count: " << count << std::endl;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(B_T, B_0,
 				                B_1,
@@ -166,6 +170,8 @@ void Hadamard<T>::runHelperPartitionAC(
 		/*----------------------------------------------------------------*/
 		Hadamard<T>::runHelperPartitionAC(depth+1, hadamardInfo, A_1, indicesA, B, indicesB, C_1, indicesC);
 		count++;
+		for(Unsigned i = 0; i < depth; i++)
+			std::cout << " ";
 		std::cout << "AC count: " << count << std::endl;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(A_T, A_0,
@@ -210,11 +216,13 @@ void Hadamard<T>::setHadamardInfo(
 		? DiffVector(IsectVector(indicesC, indicesA), indicesB)
 		: DiffVector(IsectVector(indicesA, indicesC), indicesB);
 	IndexArray indicesCB = DiffVector(IsectVector(indicesC, indicesB), indicesA);
-	IndexArray indicesAB = DiffVector(IsectVector(indicesA, indicesB), indicesC);
 	IndexArray indicesCBA = isStatC
 		? IsectVector(IsectVector(indicesC, indicesB), indicesA)
 		: IsectVector(IsectVector(indicesA, indicesB), indicesC);
 
+	PrintVector(indicesCA, "indicesAC", true);
+	PrintVector(indicesCB, "indicesBC", true);
+	PrintVector(indicesCBA, "indicesABC", true);
 	hadamardInfo.isStatC = isStatC;
 	//Set the intermediate dists
 	hadamardInfo.distIntB = distIntB;
@@ -266,12 +274,15 @@ void Hadamard<T>::setHadamardInfo(
 	//Set the Block-size info
 	//NOTE: There are better ways to do this
 	if(blkSizes.size() == 0){
+		std::cout << "if init" << std::endl;
 		hadamardInfo.blkSizes.resize(indicesCA.size() + indicesCB.size());
 		for(i = 0; i < indicesCA.size() + indicesCB.size(); i++)
 			hadamardInfo.blkSizes[i] = 1;
 	}else{
+		std::cout << "else init" << std::endl;
 		hadamardInfo.blkSizes = blkSizes;
 	}
+	PrintVector(hadamardInfo.blkSizes, "blksize after init", true);
 
 	//Set the local permutation info
 	hadamardInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesCA, indicesCBA));

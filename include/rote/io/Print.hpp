@@ -249,6 +249,7 @@ PrintHadamardStatCData
     std::ostream& os = std::cout;
     os << title << std::endl;
 
+    PrintVector(hadamardInfo.blkSizes, "  blkSizes", all);
     PrintVector(hadamardInfo.partModesACA, "  partModesACA", all);
     PrintVector(hadamardInfo.partModesACC, "  partModesACC", all);
     PrintVector(hadamardInfo.partModesBCB, "  partModesBCB", all);
