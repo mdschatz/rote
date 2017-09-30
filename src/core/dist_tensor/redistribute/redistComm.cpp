@@ -129,6 +129,9 @@ void DistTensor<T>::CommRedistMove(const TensorDistribution& finalDist, const Te
 	}
 
 	for(i = 0; i < possModes.size(); i++){
+		// std::cout << "attempting to remove gMode: " << modesToMove[i] << std::endl;
+		// std::cout << "attempting to remove gModeSrc: " << modesToMoveSrcs[i] << std::endl;
+		// std::cout << "attempting to remove gModeSink: " << modesToMoveSinks[i] << std::endl;
 		redistData.gridModesMoved.erase(std::find(redistData.gridModesMoved.begin(), redistData.gridModesMoved.end(), modesToMove[i]));
 		redistData.gridModesMovedSrcs.erase(std::find(redistData.gridModesMovedSrcs.begin(), redistData.gridModesMovedSrcs.end(), modesToMoveSrcs[i]));
 		redistData.gridModesMovedSinks.erase(std::find(redistData.gridModesMovedSinks.begin(), redistData.gridModesMovedSinks.end(), modesToMoveSinks[i]));
@@ -240,8 +243,15 @@ void DistTensor<T>::CommRedistP2P(const TensorDistribution& finalDist, const Ten
 		intDist += movedModesFinalDist;
 		//NOTE: REMOVE THIS TWO-LINE HACK (STILL NEED THE REDISTDATA UPDATE)
 		ModeDistribution gridModesMoved(redistData.gridModesMoved);
-		gridModesMoved -= movedModesDist;
-		redistData.gridModesMoved = gridModesMoved.Entries();
+		for(i = movedModesDist.Entries().size() - 1; i < movedModesDist.Entries().size(); i--) {
+			Unsigned index = IndexOf(redistData.gridModesMoved, movedModesDist[i]);
+			redistData.gridModesMoved.erase(redistData.gridModesMoved.begin() + index);
+			redistData.gridModesMovedSrcs.erase(redistData.gridModesMovedSrcs.begin() + index);
+			redistData.gridModesMovedSinks.erase(redistData.gridModesMovedSinks.begin() + index);
+		}
+		// gridModesMoved -= movedModesDist;
+		// redistData.gridModesMoved = gridModesMoved.Entries();
+
 
 		Redist newRedistInfo;
 		newRedistInfo.dist = intDist;

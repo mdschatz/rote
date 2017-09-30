@@ -77,11 +77,14 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 	 srcTenDist.RemoveUnitModeDists(reduceModes);
 	 TensorDistribution sinkTenDist = GetTensorDistForGridModes(tenDistB, nonReducedGridModes);
 
+	//  std::cout << "Planning srcTenDist: " << srcTenDist << std::endl;
+	//  std::cout << "Planning sinkTenDist: " << sinkTenDist << std::endl;
 	 ModeDistribution finalModesMoved;
 	 for(i = 0; i < srcTenDist.size(); i++){
 		 ModeDistribution diff = srcTenDist[i] - sinkTenDist[i];
 		 finalModesMoved += diff;
 	 }
+	//  PrintVector(finalModesMoved.Entries(), "final modes moved");
 	 redistData.gridModesMoved = finalModesMoved.Entries();
 	 redistData.gridModesMovedSrcs.resize(redistData.gridModesMoved.size());
 	 redistData.gridModesMovedSinks.resize(redistData.gridModesMoved.size());
@@ -92,6 +95,7 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 		 redistData.gridModesMovedSinks[i] = sinkTenDist.TensorModeForGridMode(mode);
 	 }
 
+	//  PrintRedistPlanInfo(redistData, "RedistInfo pre return", true);
 	 return redistData;
 }
 
@@ -107,18 +111,8 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 
     CommRedist(this->TensorDist(), A.TensorDist(), redistData, intermediateDists);
 
-  //  std::cout << "start: " << A.TensorDist() << std::endl;
-  //  for(Unsigned i = 0; i < intermediateDists.size(); i++){
-  //  	Redist intRedist = intermediateDists[i];
-  //  	switch(intRedist.redistType){
-  //  	case AG:    std::cout << "AG: "; break;
-  //  	case A2A:   std::cout << "A2A: "; break;
-  //  	case Perm:  std::cout << "Perm: "; break;
-  //  	case Local: std::cout << "Local: "; break;
-  //  	case RS:    std::cout << "RS: "; break;
-  //  	}
-  //  	std::cout << intRedist.dist << std::endl;
-  //  }
+		// PrintRedistPlanInfo(redistData, "RedistInfo", true);
+		// PrintRedistPlan(A.TensorDist(), intermediateDists, "RedistPlan: ");
 
     DistTensor<T> tmp(A.TensorDist(), g);
     tmp.LockedAttach(A.Shape(), A.Alignments(), A.LockedBuffer(), A.LocalPermutation(), A.LocalStrides(), g);

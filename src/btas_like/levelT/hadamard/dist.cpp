@@ -105,6 +105,13 @@ void Hadamard<T>::run(
 		hadamardInfo
 	);
 
+  PrintData(A, "AData", true);
+  PrintVector(indicesA, "indicesA", true);
+  PrintData(B, "BData", true);
+  PrintVector(indicesB, "indicesB", true);
+  PrintData(C, "CData", true);
+  PrintVector(indicesC, "indicesC", true);
+  PrintHadamardStatCData(hadamardInfo, "hadamardInfo", true);
 	if (isStatC) {
 		DistTensor<T> tmpC(C.TensorDist(), C.Grid());
 		tmpC.SetLocalPermutation(hadamardInfo.permC);

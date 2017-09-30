@@ -45,11 +45,7 @@ void Hadamard<T>::run(
   data.stridesABCB  = FilterVector(B.Strides(), IndicesOf(indicesB, indicesABC));
   data.stridesABCC  = FilterVector(C.Strides(), IndicesOf(indicesC, indicesABC));
 
-  PrintData(A, "A");
-  PrintData(B, "B");
-  PrintData(C, "C");
   HadamardScal(A, B, C, data);
-  PrintData(C, "Cafter");
 
   PROFILE_STOP;
 }

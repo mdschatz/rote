@@ -326,5 +326,4 @@ StringToTensorDist( const std::string& s )
     TensorDistribution ret(distVals);
     return ret;
 }
-
 }

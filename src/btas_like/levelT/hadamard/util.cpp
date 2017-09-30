@@ -31,43 +31,44 @@ void Hadamard<T>::runHelperPartitionBC(
 			intB.SetLocalPermutation(hadamardInfo.permB);
 			intB.RedistFrom(B);
 
-			PrintHadamardStatCData(hadamardInfo, "HadamardInfo", true);
-			PrintData(A, "A", true);
-			PrintData(intA, "intA", true);
-			PrintData(B, "B", true);
-			PrintData(intB, "intB", true);
-			PrintData(C, "C", true);
+			Print(A, "A");
+			Print(B, "B");
+			Print(intA, "intA");
+			Print(intB, "intB");
 			Hadamard<T>::run(
 				intA.LockedTensor(), PermuteVector(indicesA, hadamardInfo.permA),
 				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
 				C.Tensor(), indicesC
 			);
 		} else {
-			std::cout << "Actual StatA\n";
 			DistTensor<T> intC(hadamardInfo.distIntC, C.Grid());
 			intC.SetLocalPermutation(hadamardInfo.permC);
 			intC.AlignModesWith(hadamardInfo.alignModesC, A, hadamardInfo.alignModesCTo);
 			intC.RedistFrom(C);
 
-			std::cout << "redistB\n";
 			DistTensor<T> intB(hadamardInfo.distIntB, B.Grid());
 			intB.AlignModesWith(hadamardInfo.alignModesB, A, hadamardInfo.alignModesBTo);
 			intB.SetLocalPermutation(hadamardInfo.permB);
 			intB.RedistFrom(B);
 
-			std::cout << "local\n";
-			PrintHadamardStatCData(hadamardInfo, "HadamardInfo", true);
-			PrintData(A, "A", true);
-			PrintData(B, "B", true);
-			PrintData(intB, "intB", true);
-			PrintData(C, "C", true);
-			PrintData(intC, "intC", true);
+			Print(A, "A");
+			Print(B, "B");
+			Print(intB, "intB");
+			Print(intC, "intC");
+			PrintData(A, "Adata");
+			PrintData(intB, "intBdata");
+			PrintData(intC, "intCdata");
+			Print(C, "C");
+			PrintData(C, "Cdata");
+
 			Hadamard<T>::run(
 				A.LockedTensor(), indicesA,
 				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
 				intC.Tensor(), PermuteVector(indicesC, hadamardInfo.permC)
 			);
 			C.RedistFrom(intC);
+			Print(C, "C");
+			PrintData(C, "Cdata");
 		}
 		return;
 	}
@@ -106,7 +107,7 @@ void Hadamard<T>::runHelperPartitionBC(
 		/*----------------------------------------------------------------*/
 		Hadamard<T>::runHelperPartitionBC(depth+1, hadamardInfo, A, indicesA, B_1, indicesB, C_1, indicesC);
 		count++;
-		std::cout << "COUNT: " << count << std::endl;
+		std::cout << "    BC count: " << count << std::endl;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(B_T, B_0,
 				                B_1,
@@ -127,7 +128,6 @@ void Hadamard<T>::runHelperPartitionAC(
 	      DistTensor<T>& C, const IndexArray& indicesC
 ) {
 	if(depth == hadamardInfo.partModesACA.size()){
-		std::cout << "recur BC\n";
 		Hadamard<T>::runHelperPartitionBC(0, hadamardInfo, A, indicesA, B, indicesB, C, indicesC);
 		return;
 	}
@@ -166,6 +166,7 @@ void Hadamard<T>::runHelperPartitionAC(
 		/*----------------------------------------------------------------*/
 		Hadamard<T>::runHelperPartitionAC(depth+1, hadamardInfo, A_1, indicesA, B, indicesB, C_1, indicesC);
 		count++;
+		std::cout << "AC count: " << count << std::endl;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(A_T, A_0,
 				                A_1,
@@ -197,14 +198,17 @@ void Hadamard<T>::setHadamardInfo(
 
 	//Setup temp dist A
 	distIntA.SetToMatch(distC, indicesC, indicesA); // isStatC
-	distIntB.SetToMatch(distC, indicesC, indicesB);
+	if (isStatC) {
+		distIntB.SetToMatch(distC, indicesC, indicesB);
+	} else {
+		distIntB.SetToMatch(distA, indicesA, indicesB);
+	}
 	distIntC.SetToMatch(distA, indicesA, indicesC); // !isStatC
 
 	Unsigned i;
 	IndexArray indicesCA = isStatC
 		? DiffVector(IsectVector(indicesC, indicesA), indicesB)
 		: DiffVector(IsectVector(indicesA, indicesC), indicesB);
-	PrintVector(IsectVector(indicesA, indicesC), "indicesAC");
 	IndexArray indicesCB = DiffVector(IsectVector(indicesC, indicesB), indicesA);
 	IndexArray indicesAB = DiffVector(IsectVector(indicesA, indicesB), indicesC);
 	IndexArray indicesCBA = isStatC
@@ -270,24 +274,9 @@ void Hadamard<T>::setHadamardInfo(
 	}
 
 	//Set the local permutation info
-	PrintVector(indicesA, "indicesA", true);
-	PrintVector(indicesB, "indicesB", true);
-	PrintVector(indicesC, "indicesC", true);
-	PrintVector(indicesCA, "indicesCA", true);
-	PrintVector(indicesCB, "indicesCB", true);
-	PrintVector(indicesAB, "indicesAB", true);
-	PrintVector(indicesCBA, "indicesCBA", true);
 	hadamardInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesCA, indicesCBA));
-	PrintVector(indicesB, "indicesB", true);
-	PrintVector(indicesCB, "indicesCB", true);
-	PrintVector(indicesCBA, "indicesCBA", true);
 	hadamardInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesCBA, indicesCB));
-	PrintVector(indicesC, "indicesC", true);
-	PrintVector(indicesCBA, "indicesCBA", true);
-	PrintVector(indicesCB, "indicesCB", true);
-	PrintVector(indicesCA, "indicesCA", true);
 	hadamardInfo.permC = DeterminePermutation(indicesC, ConcatenateVectors(ConcatenateVectors(indicesCBA, indicesCB), indicesCA));
-	std::cout << "done with mer\n";
 }
 
 #define PROTO(T) \

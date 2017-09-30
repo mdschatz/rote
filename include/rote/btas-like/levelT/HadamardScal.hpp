@@ -47,14 +47,9 @@ HadamardScalBC_fast(T const * const bufA, T const * const bufB,  T * const bufC,
 
     bool done = !ElemwiseLessThan(curLoc, loopBCEnd);
 
-    PrintHadamardScalData(data, "HadamardScalData", true);
 
     while(!done){
-        PrintVector(curLoc, "curLoc", true);
-        std::cout << "Cbuf[" << bufCPtr << "]: " << bufC[bufCPtr] << "\n";
         ElemScal_fast(bufA, bufB, bufC, elemScalData);
-        std::cout << "Bbuf[" << bufBPtr << "]: " << bufB[bufBPtr] << "\n";
-        std::cout << "Cbuf[" << bufCPtr << "]: " << bufC[bufCPtr] << "\n";
         //Update
         curLoc[ptr]++;
         bufBPtr += bufBCBStrides[ptr];
@@ -100,14 +95,8 @@ HadamardScalAC_fast(T const * const bufA, T const * const bufB,  T * const bufC,
 
     bool done = !ElemwiseLessThan(curLoc, loopACEnd);
 
-    PrintHadamardScalData(data, "HadamardScalData", true);
-
     while(!done){
-        PrintVector(curLoc, "curLoc", true);
-        std::cout << "Cbuf[" << bufCPtr << "]: " << bufC[bufCPtr] << "\n";
         HadamardScalBC_fast(bufA, bufB, bufC, data);
-        std::cout << "Abuf[" << bufAPtr << "]: " << bufA[bufAPtr] << "\n";
-        std::cout << "Cbuf[" << bufCPtr << "]: " << bufC[bufCPtr] << "\n";
         //Update
         curLoc[ptr]++;
         bufAPtr += bufACAStrides[ptr];
@@ -149,7 +138,6 @@ void HadamardScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C, Hadamard
     T* bufC = C.Buffer();
 
     HadamardScalAC_fast(bufA, bufB, bufC, data);
-    std::cout << "done\n";
 }
 
 } // namespace rote

@@ -160,12 +160,12 @@ PrintData
 //    if( A.Grid().LinearRank() == 0 && title != "" ){
         os << title << std::endl;
 
-        PrintVector(A.Shape(), "shape", all);
-        os << "Distribution: " << A.TensorDist() << std::endl;
-        PrintVector(A.Alignments(), "alignments", all);
-        PrintVector(A.ModeShifts(), "shifts", all);
-        PrintVector(A.LocalPermutation().Entries(), "permutation", all);
-        PrintData(A.LockedTensor(), "tensor data", all);
+        PrintVector(A.Shape(), "    shape", all);
+        os << "    Distribution: " << A.TensorDist() << std::endl;
+        PrintVector(A.Alignments(), "    alignments", all);
+        PrintVector(A.ModeShifts(), "    shifts", all);
+        PrintVector(A.LocalPermutation().Entries(), "    permutation", all);
+        PrintData(A.LockedTensor(), "    tensor data", all);
 //    }
 }
 
@@ -253,8 +253,11 @@ PrintHadamardStatCData
     PrintVector(hadamardInfo.partModesACC, "  partModesACC", all);
     PrintVector(hadamardInfo.partModesBCB, "  partModesBCB", all);
     PrintVector(hadamardInfo.partModesBCC, "  partModesBCC", all);
+    // std::cout << "  distIntA: " << hadamardInfo.distIntA << std::endl;
     PrintVector(hadamardInfo.permA.Entries(), "  permA", all);
+    std::cout << "  distIntB: " << hadamardInfo.distIntB << std::endl;
     PrintVector(hadamardInfo.permB.Entries(), "  permB", all);
+    std::cout << "  distIntC: " << hadamardInfo.distIntC << std::endl;
     PrintVector(hadamardInfo.permC.Entries(), "  permC", all);
 }
 
@@ -276,6 +279,44 @@ PrintHadamardScalData
     PrintVector(hadamardInfo.stridesABCA, "  stridesABCA", all);
     PrintVector(hadamardInfo.stridesABCB, "  stridesABCB", all);
     PrintVector(hadamardInfo.stridesABCC, "  stridesABCC", all);
+}
+
+inline void
+PrintRedistPlan
+( const TensorDistribution& startDist, const RedistPlan& redistPlan, std::string title="") {
+  std::cout << title << std::endl;
+  std::cout << "start: " << startDist << std::endl;
+  for(Unsigned i = 0; i < redistPlan.size(); i++){
+   Redist intRedist = redistPlan[i];
+   switch(intRedist.redistType){
+     case AG:    std::cout << "AG: "; break;
+     case A2A:   std::cout << "A2A: "; break;
+     case Perm:  std::cout << "Perm: "; break;
+     case Local: std::cout << "Local: "; break;
+     case RS:    std::cout << "RS: "; break;
+     case GTO:   std::cout << "GTO: "; break;
+     case RTO:   std::cout << "RTO: "; break;
+     case AR:    std::cout << "AR: "; break;
+     case BCast:    std::cout << "BCast: "; break;
+     case Scatter:    std::cout << "Scatter: "; break;
+   }
+   std::cout << intRedist.dist << std::endl;
+  }
+}
+
+inline void
+PrintRedistPlanInfo
+( const RedistPlanInfo& redistPlanInfo, std::string title="", bool all=false) {
+  std::ostream& os = std::cout;
+  os << title << std::endl;
+  PrintVector(redistPlanInfo.tenModesReduced, "  T reduced", all);
+  PrintVector(redistPlanInfo.gridModesAppeared, "  G appeared", all);
+  PrintVector(redistPlanInfo.gridModesAppearedSinks, "  G appeared sinks", all);
+  PrintVector(redistPlanInfo.gridModesRemoved, "  G removed", all);
+  PrintVector(redistPlanInfo.gridModesRemovedSrcs, "  G removed srcs", all);
+  PrintVector(redistPlanInfo.gridModesMoved, "  G moved", all);
+  PrintVector(redistPlanInfo.gridModesMovedSrcs, "  G moved srcs", all);
+  PrintVector(redistPlanInfo.gridModesMovedSinks, "  G moved sinks", all);
 }
 
 } // namespace rote

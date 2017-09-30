@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
@@ -241,6 +241,32 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     mpi::SendRecv(unalignedSendBuf, sendSize, sendLinLoc,
                   alignedSendBuf, recvSize, recvLinLoc, sendRecvComm);
     return true;
+}
+
+template<typename T>
+ModeArray
+DistTensorBase<T>::GetMisalignedModes(const DistTensor<T>& B) const {
+	// DEBUG
+	if (this->Order() != B.Order()) {
+		LogicError("Tensors have different order");
+	}
+	// END DEBUG
+
+	std::vector<Unsigned> alignA = this->Alignments();
+	std::vector<Unsigned> alignB = B.Alignments();
+
+	ModeArray misalignedModes;
+	for(Unsigned i = 0; i < alignA.size(); i++) {
+		if(alignA[i] != alignB[i]) {
+			ModeArray modeDistEntries = this->ModeDist(i).Entries();
+			for(Unsigned j = 0; j < modeDistEntries.size(); j++) {
+				if (!Contains(misalignedModes, modeDistEntries[j])) {
+					misalignedModes.push_back(modeDistEntries[j]);
+				}
+			}
+		}
+	}
+	return misalignedModes;
 }
 
 #define PROTOBASE(T) template class DistTensorBase<T>

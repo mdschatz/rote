@@ -38,17 +38,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Ripped from AlignCommBufRedist
 
-    std::vector<Unsigned> alignA = A.Alignments();
-    std::vector<Unsigned> alignB = this->Alignments();
-
-    ModeArray misalignedModes;
-    for(Unsigned i = 0; i < alignA.size(); i++){
-        if(alignA[i] != alignB[i]){
-            ModeDistribution modeDist = A.ModeDist(i);
-            misalignedModes.insert(misalignedModes.end(), modeDist.Entries().begin(), modeDist.Entries().end());
-        }
-    }
-
+		ModeArray misalignedModes = this->GetMisalignedModes(A);
     ModeArray actualCommModes = misalignedModes;
     for(Unsigned i = 0; i < commModes.size(); i++){
         if(!Contains(actualCommModes, commModes[i])){
@@ -60,8 +50,10 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     mpi::Comm sendRecvComm = this->GetCommunicatorForModes(actualCommModes, g);
 
     //Skip if we aren't participating
-    if(!A.Participating())
-        return;
+    if(!A.Participating()) {
+			std::cout << "NOT PARTICIPATING\n";
+			return;
+		}
 
     //Determine buffer sizes for communication
     const ObjShape commDataShape = this->MaxLocalShape();
@@ -101,10 +93,12 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const Location recvLoc = GridViewLoc2GridLoc(ownergvA, gvA);
     const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
+		// PrintVector(actualCommModes, "actualCommModes", true);
+		// std::cout << "sendLoc: " << sendLinLoc << " recvLoc: " << recvLinLoc << std::endl;
 	mpi::SendRecv(sendBuf, sendSize, sendLinLoc,
 				  recvBuf, recvSize, recvLinLoc, sendRecvComm);
     PROFILE_STOP;
-
+		// std::cout << "unpacking " << std::endl;
 //    ObjShape recvShape = commDataShape;
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 

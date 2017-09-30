@@ -10,14 +10,14 @@ void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
 
   // Init
   std::cout << "init\n";
-  ObjShape shapeA(16, tensorDim);
+  ObjShape shapeA(8, tensorDim);
   ObjShape shapeC(4, tensorDim);
-  ObjShape shapeB(16, tensorDim);
+  ObjShape shapeB(8, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),()]", g);
   DistTensor<double> C(shapeC, "[(0),(1),(2),(3)]", g);
-  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),()]", g);
 
 
   // Compute
@@ -25,7 +25,8 @@ void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  Hadamard<double>::run(C, "cpgo", B, "abcdefghijklmnop", A, "abcdefghijklmnop", blkSizes);
+  Hadamard<double>::run(C, "cpgo", B, "abcdegop", A, "abcdegop", blkSizes);
+  Print(A, "A");
 }
 
 void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
@@ -95,14 +96,14 @@ void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
 
   // Init
   std::cout << "init\n";
-  ObjShape shapeA(3, tensorDim);
+  ObjShape shapeA(4, tensorDim);
   ObjShape shapeC(2, tensorDim);
-  ObjShape shapeB(3, tensorDim);
+  ObjShape shapeB(4, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(shapeA, "[(0),(1),(2)]", g);
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3)]", g);
   DistTensor<double> C(shapeC, "[(0,1),(2,3)]", g);
-  DistTensor<double> B(shapeB, "[(0),(1),(2)]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2),(3)]", g);
   SetAllVal(A, 1.0);
   SetAllVal(C, 2.0);
   SetAllVal(B, 3.0);
@@ -115,7 +116,7 @@ void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   Print(A, "A");
   Print(B, "B");
   Print(C, "C");
-  Hadamard<double>::run(C, "go", B, "cgo", A, "cog", blkSizes);
+  Hadamard<double>::run(C, "go", B, "cgop", A, "cogp", blkSizes);
   Print(A, "A");
 }
 
