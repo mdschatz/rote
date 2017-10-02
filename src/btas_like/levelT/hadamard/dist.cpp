@@ -78,7 +78,7 @@ void Hadamard<T>::run(
       B, indB,
       C, indC,
       blkSizes,
-      false
+      true
     );
   } else {
   	LogicError("Should never occur");
@@ -117,6 +117,8 @@ void Hadamard<T>::run(
 		DistTensor<T> tmpC(C.TensorDist(), C.Grid());
 		tmpC.SetLocalPermutation(hadamardInfo.permC);
 		Permute(C, tmpC);
+    Permutation defaultPerm(tmpC.Order());
+    tmpC.SetLocalPermutation(defaultPerm);
 		Hadamard<T>::runHelperPartitionAC(
 			0, hadamardInfo,
 			A, indicesA,
