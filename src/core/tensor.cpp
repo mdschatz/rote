@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
@@ -210,7 +210,7 @@ Tensor<T>::Shape() const
 template<typename T>
 Unsigned
 Tensor<T>::Dimension(Mode mode) const
-{ 
+{
   const Unsigned order = Order();
   if( mode >= order){
     LogicError("Requested mode dimension out of range.");
@@ -372,7 +372,7 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
 template<typename T>
 const T&
 Tensor<T>::Get_( const Location& loc ) const
-{ 
+{
     return data_[LinearLocFromStrides(loc, strides_)];
 }
 
@@ -425,7 +425,7 @@ Tensor<T>::Update( const Location& loc, T alpha )
 template<typename T>
 void
 Tensor<T>::ComplainIfReal() const
-{ 
+{
     if( !IsComplex<T>::val )
         LogicError("Called complex-only routine with real data");
 }
@@ -453,7 +453,7 @@ Tensor<T>::GetImagPart( const Location& loc ) const
 }
 
 template<typename T>
-void 
+void
 Tensor<T>::SetRealPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
@@ -466,7 +466,7 @@ Tensor<T>::SetRealPart( const Location& loc, BASE(T) alpha )
 }
 
 template<typename T>
-void 
+void
 Tensor<T>::SetImagPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
@@ -480,7 +480,7 @@ Tensor<T>::SetImagPart( const Location& loc, BASE(T) alpha )
 }
 
 template<typename T>
-void 
+void
 Tensor<T>::UpdateRealPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
@@ -493,7 +493,7 @@ Tensor<T>::UpdateRealPart( const Location& loc, BASE(T) alpha )
 }
 
 template<typename T>
-void 
+void
 Tensor<T>::UpdateImagPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
@@ -715,6 +715,7 @@ template class Tensor<Int>;
 template class Tensor<float>;
 #endif // ifndef DISABLE_FLOAT
 template class Tensor<double>;
+
 #ifndef DISABLE_COMPLEX
 #ifndef DISABLE_FLOAT
 template class Tensor<std::complex<float> >;

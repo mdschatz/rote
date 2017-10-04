@@ -132,4 +132,11 @@ PROTO(float)
 PROTO(double)
 //PROTO(char)
 
+#ifndef DISABLE_COMPLEX
+#ifndef DISABLE_FLOAT
+PROTO(std::complex<float>)
+#endif
+PROTO(std::complex<double>)
+#endif
+
 } // namespace rote

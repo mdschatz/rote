@@ -26,7 +26,7 @@ void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   mpi::Barrier(g.OwningComm());
 
   Hadamard<double>::run(C, "cpgo", B, "abcdegop", A, "abcdegop", blkSizes);
-  Print(A, "A");
+  // Print(A, "A");
 }
 
 void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
@@ -124,6 +124,22 @@ void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   Print(A, "A");
 }
 
+void Example6(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
+  // Oh, and just initializing a ROTE tensor to all (1.0,0.0) ... or any specified complex value.
+  // Init
+  std::cout << "Init\n";
+  ObjShape shapeA(16, tensorDim);
+
+  const Grid g(comm, gridShape);
+  DistTensor<std::complex<double>> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+
+  // Compute
+  std::cout << "Computing\n";
+  std::complex<double> val(2.0,1.0);
+  SetAllVal(A, val);
+  Print(A, "A");
+}
+
 int main(int argc, char* argv[]) {
   Initialize(argc, argv);
   mpi::Comm comm = mpi::COMM_WORLD;
@@ -147,6 +163,7 @@ int main(int argc, char* argv[]) {
       case 3: Example3(comm, args.gridShape, args.tensorDim, args.blkSize); break;
       case 4: Example4(comm, args.gridShape, args.tensorDim);
       case 5: Example5(comm, args.gridShape, args.tensorDim, args.blkSize); break;
+      case 6: Example6(comm, args.gridShape, args.tensorDim);
     }
     std::cout << "OKAY!\n";
   } catch (std::exception& e) {
