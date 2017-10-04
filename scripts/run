@@ -1,0 +1,5 @@
+#!/bin/bash
+make -j6 && mpirun -n 4 xterm -hold -e bin/tests/gunnels/example 6 2 4 2 1 1 2 1
+#make -j6 && mpirun -n 4 xterm -hold -e lldb
+#make -j6 && mpirun -n 2 xterm -hold -e bin/tests/gunnels/example 5 2 4 1 1 1 2 1
+#make -j6 && mpirun -n 1 xterm -hold -e bin/tests/gunnels/example 5 2 4 1 1 1 1 1

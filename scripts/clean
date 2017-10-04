@@ -1,0 +1,8 @@
+#!/bin/bash
+rm -r CMake*
+rm Makefile
+rm -r bin
+rm cmake_install.cmake
+rm -r conf
+rm -r include
+rm librote.a
