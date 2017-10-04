@@ -93,8 +93,6 @@ void Hadamard<T>::run(
 	      DistTensor<T>& C, const IndexArray& indicesC,
 	const std::vector<Unsigned>& blkSizes, bool isStatC
 ) {
-	std::cout << (isStatC ? "Stat C" : "Stat A") << std::endl;
-
 	//Determine how to partition
 	BlkHadamardStatCInfo hadamardInfo;
 	Hadamard<T>::setHadamardInfo(
@@ -105,20 +103,15 @@ void Hadamard<T>::run(
 		hadamardInfo
 	);
 
-  PrintData(A, "AData", true);
-  PrintVector(indicesA, "indicesA", true);
-  PrintData(B, "BData", true);
-  PrintVector(indicesB, "indicesB", true);
-  PrintData(C, "CData", true);
-  PrintVector(indicesC, "indicesC", true);
-  PrintHadamardStatCData(hadamardInfo, "hadamardInfo", true);
-  // return;
 	if (isStatC) {
 		DistTensor<T> tmpC(C.TensorDist(), C.Grid());
 		tmpC.SetLocalPermutation(hadamardInfo.permC);
 		Permute(C, tmpC);
+
+    //TODO: Hack need to reset local permutation in permute function
     Permutation defaultPerm(tmpC.Order());
     tmpC.SetLocalPermutation(defaultPerm);
+
 		Hadamard<T>::runHelperPartitionAC(
 			0, hadamardInfo,
 			A, indicesA,

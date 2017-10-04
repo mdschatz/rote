@@ -256,9 +256,9 @@ PrintHadamardStatCData
     PrintVector(hadamardInfo.partModesBCC, "  partModesBCC", all);
     // std::cout << "  distIntA: " << hadamardInfo.distIntA << std::endl;
     PrintVector(hadamardInfo.permA.Entries(), "  permA", all);
-    std::cout << "  distIntB: " << hadamardInfo.distIntB << std::endl;
+    // std::cout << "  distIntB: " << hadamardInfo.distIntB << std::endl;
     PrintVector(hadamardInfo.permB.Entries(), "  permB", all);
-    std::cout << "  distIntC: " << hadamardInfo.distIntC << std::endl;
+    // std::cout << "  distIntC: " << hadamardInfo.distIntC << std::endl;
     PrintVector(hadamardInfo.permC.Entries(), "  permC", all);
 }
 
