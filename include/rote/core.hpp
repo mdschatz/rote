@@ -65,6 +65,7 @@
 #include "rote/core/imports.hpp"
 
 #include "rote/core/memory.hpp"
+// TODO: Fix complex_* headers
 #include "rote/core/complex_decl.hpp"
 #include "rote/core/permutation.hpp"
 #include "rote/core/mode_distribution.hpp"
@@ -80,6 +81,7 @@
 #include "rote/core/grid.hpp"
 #include "rote/core/grid_view.hpp"
 #include "rote/core/dist_tensor.hpp"
+// TODO: Fix environment_* and indexing_* headers
 #include "rote/core/environment_decl.hpp"
 #include "rote/core/indexing_decl.hpp"
 
@@ -87,6 +89,7 @@
 #include "rote/core/environment_impl.hpp"
 #include "rote/core/indexing_impl.hpp"
 
+// TODO: Fix view headers
 #include "rote/core/view_impl.hpp"
 #include "rote/core/partition_decl.hpp"
 #include "rote/core/partition_impl.hpp"
@@ -98,4 +101,5 @@
 #include "rote/core/random_impl.hpp"
 
 #include "rote/core/time.hpp"
+
 #endif // ifndef ROTE_CORE_HPP

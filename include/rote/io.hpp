@@ -11,7 +11,7 @@
 #define ROTE_IO_HPP
 
 #include "rote/io/read.hpp"
-#include "rote/io/Print.hpp"
+#include "rote/io/print.hpp"
 #include "rote/io/write.hpp"
 
 #endif // ifndef ROTE_IO_HPP

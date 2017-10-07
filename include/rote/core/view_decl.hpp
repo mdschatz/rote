@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -208,13 +208,12 @@ void LockedViewAsMatrix
   const Tensor<T>& B,
   const Unsigned& nModesMergeCol );
 
-template<typename T>
-Tensor<T> LockedViewAsMatrix
-( const Tensor<T>& B,
-  const Unsigned& nModesMergeCol );
+// template<typename T>
+// Tensor<T> LockedViewAsMatrix
+// ( const Tensor<T>& B,
+//   const Unsigned& nModesMergeCol );
 
 
 } // namespace rote
 
 #endif // ifndef ROTE_CORE_VIEW_DECL_HPP
-
