@@ -7,19 +7,15 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef TENSORMENTAL_HPP
-#define TENSORMENTAL_HPP
+#ifndef ROTE_HPP
+#define ROTE_HPP
 
 #include "rote/builtin.hpp"
-
 #include "rote/config.h"
-#ifdef HAVE_F90_INTERFACE
-# include "rote/FCMangle.h"
-#endif
-
 #include "rote/core.hpp"
+
 #include "rote/tensors.hpp"
 #include "rote/btas-like.hpp"
-
 #include "rote/io.hpp"
-#endif // ifndef TENSORMENTAL_HPP
+
+#endif // ifndef ROTE_HPP

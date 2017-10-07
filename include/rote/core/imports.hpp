@@ -10,9 +10,9 @@
 #ifndef ROTE_CORE_IMPORTS_HPP
 #define ROTE_CORE_IMPORTS_HPP
 
+#include "rote/core/imports/mpi.hpp"
 #include "rote/core/imports/blas.hpp"
 #include "rote/core/imports/choice.hpp"
 #include "rote/core/imports/mpi_choice.hpp"
-#include "rote/core/imports/mpi.hpp"
 
 #endif // ifndef ROTE_CORE_IMPORTS_HPP

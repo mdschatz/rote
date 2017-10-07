@@ -67,7 +67,8 @@
 // Declare the intertwined core parts of our library
 #include "rote/core/types_decl.hpp"
 #include "rote/core/error_decl.hpp"
-#include "rote/core/imports/mpi.hpp"
+#include "rote/core/imports.hpp"
+
 #include "rote/core/memory_decl.hpp"
 #include "rote/core/complex_decl.hpp"
 #include "rote/core/permutation.hpp"
@@ -78,10 +79,9 @@
 #include "rote/core/dist_tensor_forward_decl.hpp"
 #include "rote/core/view_decl.hpp"
 #include "rote/core/tensor.hpp"
+
 #include "rote/core/util.hpp"
-// #include "rote/util/vec_util.hpp"
-// #include "rote/util/ten_dist_util.hpp"
-#include "rote/core/imports.hpp"
+
 #include "rote/core/grid_decl.hpp"
 #include "rote/core/grid_view_decl.hpp"
 #include "rote/core/dist_tensor.hpp"
