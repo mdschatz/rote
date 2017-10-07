@@ -172,4 +172,47 @@ namespace rote {
   operator!=( const Grid& A, const Grid& B )
   { return &A != &B; }
 
+  //
+  // Util
+  //
+  Location Grid::ToGridViewLoc(const Location& loc, const GridView& gv) const {
+    Unsigned i;
+
+    ObjShape gShape = Shape();
+    TensorDistribution tDist = gv.Distribution();
+    const Unsigned order = tDist.size();
+    Location ret(order);
+
+    for(i = 0; i < order; i++){
+        ModeDistribution mDist = tDist[i];
+        Location gSliceLoc(mDist.size());
+        ObjShape gSliceShape(mDist.size());
+
+        gSliceLoc = FilterVector(loc, mDist.Entries());
+        gSliceShape = FilterVector(gShape, mDist.Entries());
+
+        ret[i] = Loc2LinearLoc(gSliceLoc, gSliceShape);
+    }
+    return ret;
+  }
+
+  Location Grid::ToParticipatingGridViewLoc(const Location& loc, const GridView& gv) const {
+    Unsigned i;
+    ObjShape gShape = Shape();
+    TensorDistribution tDist = gv.Distribution();
+    const Unsigned order = tDist.size() - 1;
+    Location ret(order);
+
+    for(i = 0; i < order; i++){
+        ModeDistribution mDist = tDist[i];
+        Location gSliceLoc(mDist.size());
+        ObjShape gSliceShape(mDist.size());
+
+        gSliceLoc = FilterVector(loc, mDist.Entries());
+        gSliceShape = FilterVector(gShape, mDist.Entries());
+
+        ret[i] = Loc2LinearLoc(gSliceLoc, gSliceShape);
+    }
+    return ret;
+  }
 }

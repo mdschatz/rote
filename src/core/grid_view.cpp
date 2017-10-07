@@ -14,7 +14,7 @@ namespace rote {
     const ObjShape gridShape = grid_->Shape();
     const Location gridLoc = grid_->Loc();
 
-    loc_ = GridLoc2GridViewLoc(gridLoc, gridShape, Distribution());
+    loc_ = grid_->ToGridViewLoc(gridLoc, *this);
   }
 
   void GridView::SetGridModeTypes(const ModeDistribution &unusedModes) {

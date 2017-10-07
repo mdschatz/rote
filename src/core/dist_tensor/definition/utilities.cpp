@@ -210,9 +210,9 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     std::vector<Unsigned> alignA = A.Alignments();
     std::vector<Unsigned> alignB = this->Alignments();
 
-    std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+    std::vector<Unsigned> alignBinA = g.ToParticipatingGridViewLoc(firstOwnerB, gvA);
 
-    Location alignedFirstOwnerA = GridLoc2GridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+    Location alignedFirstOwnerA = g.ToGridViewLoc(firstOwnerB, gvA);
     Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
     Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(gvA.ParticipatingLoc(), alignBinA);
 

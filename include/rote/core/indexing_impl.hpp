@@ -16,53 +16,26 @@ inline
 Unsigned
 GCD( Unsigned a, Unsigned b )
 {
-    return GCD_( a, b );
-}
-
-inline
-Unsigned
-GCD_( Unsigned a, Unsigned b )
-{
-    if( b == 0 )
-        return a;
-    else
-        return GCD_( b, a-b*(a/b) );
+    return b == 0 ? a : GCD( b, a-b*(a/b) );
 }
 
 inline
 Unsigned
 LCM(Unsigned a, Unsigned b)
 {
-    return LCM_(a, b);
-}
-
-inline
-Unsigned
-LCM_( Unsigned a, Unsigned b )
-{
-    if(a == 0 || b == 0)
-        return 0;
-    return a*b/(GCD(a, b));
-}
-
-inline
-std::vector<Unsigned>
-LCMs_(const std::vector<Unsigned>& a, const std::vector<Unsigned>& b)
-{
-    Unsigned i;
-    std::vector<Unsigned> ret(a.size());
-    if(a.size() == 0 || b.size() == 0)
-        return ret;
-    for(i = 0; i < ret.size(); i++)
-        ret[i] = LCM(a[i], b[i]);
-    return ret;
+  return (a == 0 || b == 0) ? 0 : a*b/(GCD(a, b));
 }
 
 inline
 std::vector<Unsigned>
 LCMs(const std::vector<Unsigned>& a, const std::vector<Unsigned>& b)
 {
-    return LCMs_(a, b);
+  std::vector<Unsigned> ret(a.size());
+  if(a.size() == 0 || b.size() == 0)
+      return ret;
+  for(Unsigned i = 0; i < ret.size(); i++)
+      ret[i] = LCM(a[i], b[i]);
+  return ret;
 }
 
 inline
@@ -81,13 +54,6 @@ Length( Unsigned n, Unsigned shift, Unsigned wrap )
     if( wrap == 0 )
         LogicError("Modulus must be positive");
 #endif
-    return Length_( n, shift, wrap );
-}
-
-inline
-Unsigned
-Length_( Unsigned n, Unsigned shift, Unsigned wrap )
-{
     return ( n > shift ? (n - shift - 1)/wrap + 1 : 0 );
 }
 
@@ -103,19 +69,11 @@ Length( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap )
 }
 
 inline
-Unsigned
-Length_( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap )
-{
-    Unsigned shift = Shift_( rank, alignment, wrap );
-    return Length_( n, shift, wrap );
-}
-
-inline
 std::vector<Unsigned>
 Lengths( const ObjShape& objShape, const std::vector<Unsigned>& shifts, const ObjShape& wrapShape )
 {
+  Unsigned i;
 #ifndef RELEASE
-	Unsigned i;
 	Unsigned order;
     CallStackEntry entry("Length");
     if(!(objShape.size() == shifts.size() && objShape.size() == wrapShape.size())){
@@ -132,18 +90,10 @@ Lengths( const ObjShape& objShape, const std::vector<Unsigned>& shifts, const Ob
 		}
     }
 #endif
-    return Lengths_( objShape, shifts, wrapShape );
-}
-
-inline
-std::vector<Unsigned>
-Lengths_( const ObjShape& objShape, const std::vector<Unsigned>& shifts, const ObjShape& wrapShape )
-{
-	Unsigned i;
-	std::vector<Unsigned> lengths(objShape.size());
-	for(i = 0; i < objShape.size(); i++)
-		lengths[i] = Length(objShape[i], shifts[i], wrapShape[i]);
-	return lengths;
+  std::vector<Unsigned> lengths(objShape.size());
+  for(i = 0; i < objShape.size(); i++)
+    lengths[i] = Length(objShape[i], shifts[i], wrapShape[i]);
+  return lengths;
 }
 
 inline
@@ -155,13 +105,6 @@ MaxLength( Unsigned n, Unsigned wrap )
     if( wrap == 0 )
         LogicError("Modulus must be positive");
 #endif
-    return MaxLength_( n, wrap );
-}
-
-inline
-Unsigned
-MaxLength_( Unsigned n, Unsigned wrap )
-{
     return ( n > 0 ? (n - 1)/wrap + 1 : 0 );
 }
 
@@ -176,18 +119,10 @@ MaxLengths( const ObjShape& shape, const ObjShape& wrapShape)
     if( AnyZeroElem(wrapShape) )
         LogicError("wrapShape entries must be positive");
 #endif
-    return MaxLengths_( shape, wrapShape );
-}
-
-inline
-std::vector<Unsigned>
-MaxLengths_( const ObjShape& shape, const ObjShape& wrapShape)
-{
-    Unsigned i;
-    std::vector<Unsigned> ret(shape.size());
-    for(i = 0; i < ret.size(); i++)
-        ret[i] = MaxLength(shape[i], wrapShape[i]);
-    return ret;
+  std::vector<Unsigned> ret(shape.size());
+  for(Unsigned i = 0; i < ret.size(); i++)
+      ret[i] = MaxLength(shape[i], wrapShape[i]);
+  return ret;
 }
 
 // For determining the first index assigned to a given rank
@@ -212,13 +147,8 @@ Shift( Int rank, Unsigned alignment, Unsigned wrap )
         LogicError( msg.str() );
     }
 #endif
-    return Shift_( rank, alignment, wrap );
+    return (rank + wrap - alignment) % wrap;
 }
-
-inline
-Unsigned
-Shift_( Int rank, Unsigned alignment, Unsigned wrap )
-{ return (rank + wrap - alignment) % wrap; }
 
 // For determining the first index assigned to a given rank
 inline
@@ -269,17 +199,10 @@ Shifts( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alig
         LogicError( msg.str() );
     }
 #endif
-    return Shifts_( modeRanks, alignments, wrapShape );
-}
-
-inline
-std::vector<Unsigned>
-Shifts_( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape )
-{
-    std::vector<Unsigned> ret(modeRanks.size());
-    for(Unsigned i = 0; i < ret.size(); i++)
-        ret[i] = Shift(modeRanks[i], alignments[i], wrapShape[i]);
-    return ret;
+  std::vector<Unsigned> ret(modeRanks.size());
+  for(Unsigned i = 0; i < ret.size(); i++)
+      ret[i] = Shift(modeRanks[i], alignments[i], wrapShape[i]);
+  return ret;
 }
 
 inline
@@ -301,42 +224,25 @@ inline
 Unsigned
 Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
 {
-    if(strides.size() != 0 && (loc.size() != strides.size() || shape.size() != loc.size())){
-//        Unsigned i;
-//        printf("loc:");
-//        for(i = 0; i < loc.size(); i++)
-//            printf(" %d", loc[i]);
-//        printf("\n");
-//        printf("strides:");
-//        for(i = 0; i < strides.size(); i++)
-//            printf(" %d", strides[i]);
-//        printf("\n");
-        LogicError( "Invalid index+stride combination");
-    }
+  if(strides.size() != 0 && (loc.size() != strides.size() || shape.size() != loc.size())){
+      LogicError( "Invalid index+stride combination");
+  }
 
-    return Loc2LinearLoc_(loc, shape, strides);
-}
-
-inline
-Unsigned
-Loc2LinearLoc_(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides)
-{
-    Unsigned i;
-
-	Unsigned linearInd = 0;
-	if(strides.size() == 0){
-	    if(loc.size() > 0){
+  Unsigned i;
+  Unsigned linearInd = 0;
+  if(strides.size() == 0){
+      if(loc.size() > 0){
             const std::vector<Unsigned> shapeStrides = Dimensions2Strides(shape);
             linearInd += loc[0];
             for(i = 1; i < loc.size(); i++)
                 linearInd += loc[i] * shape[i-1] * shapeStrides[i-1];
-	    }
-	}else{
-	    for(i = 0; i < loc.size(); i++)
-	        linearInd += loc[i] * strides[i];
-	}
+      }
+  }else{
+      for(i = 0; i < loc.size(); i++)
+          linearInd += loc[i] * strides[i];
+  }
 
-	return linearInd;
+  return linearInd;
 }
 
 inline
@@ -346,13 +252,6 @@ LinearLocFromStrides(const Location& loc, const std::vector<Unsigned>& strides)
     if(strides.size() != 0 && (loc.size() != strides.size())){
         LogicError( "Invalid index+stride combination");
     }
-    return LinearLocFromStrides_(loc, strides);
-}
-
-inline
-Unsigned
-LinearLocFromStrides_(const Location& loc, const std::vector<Unsigned>& strides)
-{
     Unsigned i;
 
     Unsigned linearInd = 0;
@@ -370,14 +269,6 @@ LinearLoc2Loc(const Unsigned linearLoc, const ObjShape& shape, const Permutation
         LogicError("Shape and Permutation orders differ.");
     if(shape.size() == 0 && linearLoc != 0)
         LogicError("Combination of linearLoc=0 and strides incompatible");
-    return LinearLoc2Loc_(linearLoc, shape, permutation);
-}
-
-//TODO: Clean up FilterVector with () as filter
-inline
-Location
-LinearLoc2Loc_(const Unsigned linearLoc, const ObjShape& shape, const Permutation& permutation)
-{
     Unsigned i;
     const Unsigned order = shape.size();
     Location ret(order);
@@ -399,48 +290,6 @@ LinearLoc2Loc_(const Unsigned linearLoc, const ObjShape& shape, const Permutatio
             ret[permutation[i]] = modeLoc;
             remainder -= modeLoc * strides[i];
         }
-    }
-    return ret;
-}
-
-inline
-Location
-GridLoc2GridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist)
-{
-    Unsigned i;
-    const Unsigned order = tensorDist.size();
-    Location ret(order);
-
-    for(i = 0; i < order; i++){
-        ModeDistribution modeDist = tensorDist[i];
-        Location gridSliceLoc(modeDist.size());
-        ObjShape gridSliceShape(modeDist.size());
-
-        gridSliceLoc = FilterVector(gridLoc, modeDist.Entries());
-        gridSliceShape = FilterVector(gridShape, modeDist.Entries());
-
-        ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
-    }
-    return ret;
-}
-
-inline
-Location
-GridLoc2ParticipatingGridViewLoc(const Location& gridLoc, const ObjShape& gridShape, const TensorDistribution& tensorDist)
-{
-    Unsigned i;
-    const Unsigned order = tensorDist.size() - 1;
-    Location ret(order);
-
-    for(i = 0; i < order; i++){
-        ModeDistribution modeDist = tensorDist[i];
-        Location gridSliceLoc(modeDist.size());
-        ObjShape gridSliceShape(modeDist.size());
-
-        gridSliceLoc = FilterVector(gridLoc, modeDist.Entries());
-        gridSliceShape = FilterVector(gridShape, modeDist.Entries());
-
-        ret[i] = Loc2LinearLoc(gridSliceLoc, gridSliceShape);
     }
     return ret;
 }

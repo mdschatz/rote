@@ -22,6 +22,7 @@ class DistTensor;
 template<typename T>
 class Hadamard;
 
+class GridView;
 } // namespace rote
 
 #endif // ifndef ROTE_CORE_DISTTENSOR_FORWARD_DECL_HPP

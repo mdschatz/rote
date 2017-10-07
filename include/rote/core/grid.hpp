@@ -37,6 +37,10 @@ public:
 
     static int FindFactor( int p );
 
+    // Utils
+    Location ToGridViewLoc(const Location& loc, const GridView& gv) const;
+    Location ToParticipatingGridViewLoc(const Location& loc, const GridView& gv) const;
+
 private:
     ObjShape shape_;
     Unsigned size_;

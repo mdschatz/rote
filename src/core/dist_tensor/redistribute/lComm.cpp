@@ -95,8 +95,8 @@ void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recv
     const ObjShape gvBShape = gvB.ParticipatingShape();
 	const Location myGridLoc = g.Loc();
 	Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
-	Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(myGridLoc, g.Shape(), A.TensorDist());
-    std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+	Location unpackProcGVA = g.ToParticipatingGridViewLoc(myGridLoc, gvA);
+    std::vector<Unsigned> alignBinA = g.ToParticipatingGridViewLoc(firstOwnerB, gvA);
     Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
 
 //    PrintVector(myFirstLocB, "firstLocB");

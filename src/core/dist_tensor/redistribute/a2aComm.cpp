@@ -138,7 +138,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
         Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
         Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
-        std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+        std::vector<Unsigned> alignBinA = g.ToParticipatingGridViewLoc(firstOwnerB, gvA);
         Location sendGridLoc = gvA.ToGridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA));
         Location procGridLoc = sendGridLoc;
 
@@ -148,7 +148,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 
         //Get my first elem location
         Location myFirstLoc = A.DetermineFirstElem(A.GetGridView().ParticipatingLoc());
-        Location procFirstLoc = this->DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, this->TensorDist()));
+        Location procFirstLoc = this->DetermineFirstElem(g.ToParticipatingGridViewLoc(procGridLoc, gvB));
 
         //Iterate to figure out the first elem I need to send p_i
         Location firstSendLoc(order,-1);
@@ -250,12 +250,12 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
         //Determine what grid location p_i corresponds to BEFORE alignment has been performed
         //so we correctly determine what elements to unpack
         Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
-        Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
-        std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+        Location unpackProcGVA = g.ToParticipatingGridViewLoc(procGridLoc, gvA);
+        std::vector<Unsigned> alignBinA = g.ToParticipatingGridViewLoc(firstOwnerB, gvA);
         Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
         Location procLocBeforeRealign = gvA.ToGridLoc(A.DetermineOwner(myFirstElemLocAligned));
 
-        Location procFirstLoc = A.DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procLocBeforeRealign, gridShape, A.TensorDist()));
+        Location procFirstLoc = A.DetermineFirstElem(g.ToParticipatingGridViewLoc(procLocBeforeRealign, gvA));
 
         //Iterate to figure out the first elem I need from p_i
         Location firstRecvLoc(order,-1);

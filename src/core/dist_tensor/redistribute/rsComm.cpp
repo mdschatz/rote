@@ -142,7 +142,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //        Location procGridLoc = myGridLoc;
         Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
         Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
-        std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
+        std::vector<Unsigned> alignBinA = g.ToParticipatingGridViewLoc(firstOwnerB, gvA);
         Location sendGridLoc = gvA.ToGridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA));
         Location procGridLoc = sendGridLoc;
 
@@ -166,7 +166,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
 //        Location firstElemOwnerB = GridViewLoc2GridLoc(Alignments(), gvB);
 //        Location alignDiff = ElemwiseSubtract(firstElemOwnerB, firstElemOwnerA);
 //        Location procLocAfterRealign = ElemwiseMod(ElemwiseSum(ElemwiseSum(procGridLoc, alignDiff), g.Shape()), g.Shape());
-        Location procFirstLoc = this->DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procGridLoc, gridShape, this->TensorDist()));
+        Location procFirstLoc = this->DetermineFirstElem(g.ToParticipatingGridViewLoc(procGridLoc, gvB));
 
         //Determine the first element I need to send to p_i
         //The first element I own is
