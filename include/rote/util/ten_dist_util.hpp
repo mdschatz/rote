@@ -10,53 +10,44 @@
 #ifndef ROTE_UTIL_TENDISTUTIL_HPP
 #define ROTE_UTIL_TENDISTUTIL_HPP
 
-#include "rote.hpp"
-#include <iostream>
 #include <vector>
+#include <iostream>
+#include "rote.hpp"
+//#include "rote/core/error_decl.hpp"
+//#include "rote/core/types_decl.hpp"
+//#include "rote/core/tensor_distribution.hpp"
 
 namespace rote {
 
-bool CheckOrder(const Unsigned &outOrder, const Unsigned &inOrder);
+bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder);
 
-bool CheckPartition(const TensorDistribution &outDist,
-                    const TensorDistribution &inDist);
+bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
-bool CheckNonDistOutIsPrefix(const TensorDistribution &outDist,
-                             const TensorDistribution &inDist);
-bool CheckNonDistInIsPrefix(const TensorDistribution &outDist,
-                            const TensorDistribution &inDist);
-bool CheckSameNonDist(const TensorDistribution &outDist,
-                      const TensorDistribution &inDist);
+bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
+bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
+bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
-bool CheckSameCommModes(const TensorDistribution &outDist,
-                        const TensorDistribution &inDist);
+bool CheckSameCommModes(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
-bool CheckInIsPrefix(const TensorDistribution &outDist,
-                     const TensorDistribution &inDist);
+bool CheckInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
-bool CheckOutIsPrefix(const TensorDistribution &outDist,
-                      const TensorDistribution &inDist);
+bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
 
-bool CheckSameGridViewShape(const ObjShape &outShape, const ObjShape &inShape);
+bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape);
 
-bool CheckIsValidPermutation(const Unsigned &order, const Permutation &perm);
+bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm);
 
-ModeArray GetModeDistOfGridMode(const ModeArray &gridModes,
-                                const TensorDistribution &tenDist);
+ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist);
 
-Mode GetModeDistOfGridMode(const Mode &mode, const TensorDistribution &tenDist);
+Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist);
 
-ModeArray GetCommonSuffixModes(const ModeDistribution &lhs,
-                               const ModeDistribution &rhs);
+ModeArray GetCommonSuffixModes(const ModeDistribution& lhs, const ModeDistribution& rhs);
 
-ModeArray GetCommonSuffixModes(const TensorDistribution &lhs,
-                               const TensorDistribution &rhs);
+ModeArray GetCommonSuffixModes(const TensorDistribution& lhs, const TensorDistribution& rhs);
 
-ModeDistribution GetCommonPrefix(const ModeDistribution &lhs,
-                                 const ModeDistribution &rhs);
+ModeDistribution GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
 
-TensorDistribution GetCommonPrefix(const TensorDistribution &lhs,
-                                   const TensorDistribution &rhs);
+TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
 
 } // namespace rote
 

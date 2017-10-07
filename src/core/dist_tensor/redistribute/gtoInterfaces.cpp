@@ -11,25 +11,24 @@
 #include "rote.hpp"
 #include <algorithm>
 
-namespace rote {
+namespace rote{
 
 ////////////////////////////////
 // Workhorse interface
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T> &A,
-                                          const ModeArray &commModes,
-                                          const T alpha) {
-  PROFILE_SECTION("GTORedist");
-  this->ResizeTo(A);
-  ModeArray sortedCommModes = commModes;
-  SortVector(sortedCommModes);
-  GatherToOneCommRedist(A, sortedCommModes, alpha);
-  PROFILE_STOP;
+void DistTensor<T>::GatherToOneRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+    PROFILE_SECTION("GTORedist");
+    this->ResizeTo(A);
+    ModeArray sortedCommModes = commModes;
+    SortVector(sortedCommModes);
+    GatherToOneCommRedist(A, sortedCommModes, alpha);
+    PROFILE_STOP;
 }
 
-#define FULL(T) template class DistTensor<T>;
+#define FULL(T) \
+    template class DistTensor<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT
@@ -44,4 +43,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} // namespace rote
+} //namespace rote

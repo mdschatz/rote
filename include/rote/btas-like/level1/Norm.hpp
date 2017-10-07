@@ -10,74 +10,79 @@
 #ifndef ROTE_BTAS_NORM_HPP
 #define ROTE_BTAS_NORM_HPP
 
-#include "rote/core/view_decl.hpp"
-#include "rote/util/btas_util.hpp"
 #include "rote/util/vec_util.hpp"
+#include "rote/util/btas_util.hpp"
+#include "rote/core/view_decl.hpp"
 
-namespace rote {
+namespace rote{
 
 ////////////////////////////////////
 // Local interfaces
 ////////////////////////////////////
 
 template <typename T>
-BASE(T) Norm(const Tensor<T> &A) {
-  const std::vector<Unsigned> loopEnd = A.Shape();
-  const std::vector<Unsigned> srcBufStrides = A.Strides();
-  const T *srcBuf = A.LockedBuffer();
-  Unsigned srcBufPtr = 0;
-  Unsigned order = loopEnd.size();
-  Location curLoc(order, 0);
-  Unsigned ptr = 0;
+BASE(T) Norm(const Tensor<T>& A){
+#ifndef RELEASE
+    CallStackEntry("Norm");
+#endif
+    const std::vector<Unsigned> loopEnd = A.Shape();
+    const std::vector<Unsigned> srcBufStrides = A.Strides();
+    const T* srcBuf = A.LockedBuffer();
+    Unsigned srcBufPtr = 0;
+    Unsigned order = loopEnd.size();
+    Location curLoc(order, 0);
+    Unsigned ptr = 0;
+    
+    BASE(T) norm = 0;
 
-  BASE(T) norm = 0;
+    if(loopEnd.size() == 0){
+		norm += Sqrt(srcBuf[0] * srcBuf[0]);
+		return norm;
+    }
 
-  if (loopEnd.size() == 0) {
-    norm += Sqrt(srcBuf[0] * srcBuf[0]);
-    return norm;
-  }
+    bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-  bool done = !ElemwiseLessThan(curLoc, loopEnd);
+    while(!done){
 
-  while (!done) {
-
-    norm += srcBuf[srcBufPtr] * srcBuf[srcBufPtr];
-
-    // Update
-    curLoc[ptr]++;
-    srcBufPtr += srcBufStrides[ptr];
-    while (ptr < order && curLoc[ptr] >= loopEnd[ptr]) {
-      curLoc[ptr] = 0;
-
-      srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-      ptr++;
-      if (ptr >= order) {
-        done = true;
-        break;
-      } else {
+        norm += srcBuf[srcBufPtr] * srcBuf[srcBufPtr];
+        
+        //Update
         curLoc[ptr]++;
         srcBufPtr += srcBufStrides[ptr];
-      }
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+            curLoc[ptr] = 0;
+
+            srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+            ptr++;
+            if(ptr >= order){
+                done = true;
+                break;
+            }else{
+                curLoc[ptr]++;
+                srcBufPtr += srcBufStrides[ptr];
+            }
+        }
+        if(done)
+            break;
+        ptr = 0;
     }
-    if (done)
-      break;
-    ptr = 0;
-  }
-  return Sqrt(norm);
+    return Sqrt(norm);
 }
 
 ////////////////////////////////////
 // Global interfaces
 ////////////////////////////////////
-template <typename T> BASE(T)
-Norm(const DistTensor<T> &A) {
-  BASE(T) local_norm = 0;
-  if (A.Participating()) {
-    local_norm = Norm(A.LockedTensor());
-  }
-  BASE(T) global_norm =
-    mpi::AllReduce(local_norm, mpi::SUM, A.GetParticipatingComm());
-  return global_norm;
+//TODO: Fix this.  Norm is not calculated correctly :(
+template<typename T>
+BASE(T) Norm(const DistTensor<T>& A){
+#ifndef RELEASE
+    CallStackEntry("Norm");
+#endif
+    BASE(T) local_norm = 0;
+    if(A.Participating())
+        local_norm = Norm(A.LockedTensor());
+    BASE(T) global_norm = mpi::AllReduce(local_norm, mpi::SUM, A.GetParticipatingComm());
+    return global_norm;
 }
 
 } // namespace rote

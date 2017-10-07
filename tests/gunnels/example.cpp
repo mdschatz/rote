@@ -1,14 +1,12 @@
-#include "preprocess.hpp"
 #include "rote.hpp"
+#include "preprocess.hpp"
 
 using namespace rote;
 using namespace std;
 
-void Example1(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
-              Unsigned blkSize) {
+void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
   std::cout << "Running Example 1\n";
-  // TensorA["abcdefghijklmnop"] = Tensor["cpgo"] * TensorB["abcdefghijklmnop"];
-  // // Mult without contract
+  // TensorA["abcdefghijklmnop"] = Tensor["cpgo"] * TensorB["abcdefghijklmnop"]; // Mult without contract
 
   // Init
   std::cout << "init\n";
@@ -21,6 +19,7 @@ void Example1(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
   DistTensor<double> C(shapeC, "[(0),(1),(2),(3)]", g);
   DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),()]", g);
 
+
   // Compute
   const std::vector<Unsigned> blkSizes(4, blkSize);
   std::cout << "Computing\n";
@@ -30,11 +29,9 @@ void Example1(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
   // Print(A, "A");
 }
 
-void Example2(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
-              Unsigned blkSize) {
+void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
   std::cout << "Running Example 2\n";
-  // TensorC["abcdefghijklmnop"] = TensorD["abcdefgh123456"] *
-  // TensorE["ijklmnop615234"]; // 6 dim contraction
+  // TensorC["abcdefghijklmnop"] = TensorD["abcdefgh123456"] * TensorE["ijklmnop615234"]; // 6 dim contraction
 
   // Init
   std::cout << "Init\n";
@@ -44,27 +41,21 @@ void Example2(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
 
   const Grid g(comm, gridShape);
 
-  DistTensor<double> C(
-      shapeC, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
-  DistTensor<double> D(shapeD,
-                       "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),()]", g);
-  DistTensor<double> E(shapeE,
-                       "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> C(shapeC, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> D(shapeD, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> E(shapeE, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),()]", g);
 
   // Compute
   const std::vector<Unsigned> blkSizes(6, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  GenContract(1.0, D, "abcdefgh123456", E, "ijklmnop615234", 1.0, C,
-              "abcdefghijklmnop", blkSizes);
+  GenContract(1.0, D, "abcdefgh123456", E, "ijklmnop615234", 1.0, C, "abcdefghijklmnop", blkSizes);
 }
 
-void Example3(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
-              Unsigned blkSize) {
+void Example3(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
   std::cout << "Running Example 3\n";
-  // TensorF["1bc5e3ghi2kl4no6"] = TensorG["p6a1f3d5j2m4"] *
-  // TensorH["abcdefghijklmnop"]; // Probably redundant with previous example
+  // TensorF["1bc5e3ghi2kl4no6"] = TensorG["p6a1f3d5j2m4"] * TensorH["abcdefghijklmnop"]; // Probably redundant with previous example
 
   // Init
   std::cout << "Init\n";
@@ -73,41 +64,35 @@ void Example3(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
   ObjShape shapeH(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> F(
-      shapeF, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> F(shapeF, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
   DistTensor<double> G(shapeG, "[(0),(1),(2),(3),(),(),(),(),(),(),(),()]", g);
-  DistTensor<double> H(
-      shapeH, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> H(shapeH, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
 
   // Compute
   const std::vector<Unsigned> blkSizes(6, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  GenContract(1.0, G, "p6a1f3d5j2m4", H, "abcdefghijklmnop", 1.0, F,
-              "1bc5e3ghi2kl4no6", blkSizes);
+  GenContract(1.0, G, "p6a1f3d5j2m4", H, "abcdefghijklmnop", 1.0, F, "1bc5e3ghi2kl4no6", blkSizes);
 }
 
-void Example4(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim) {
-  // Oh, and just initializing a ROTE tensor to all (1.0,0.0) ... or any
-  // specified complex value. Init
+void Example4(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
+  // Oh, and just initializing a ROTE tensor to all (1.0,0.0) ... or any specified complex value.
+  // Init
   std::cout << "Init\n";
   ObjShape shapeA(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(
-      shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
 
   // Compute
   std::cout << "Computing\n";
   SetAllVal(A, 1.0);
 }
 
-void Example5(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
-              Unsigned blkSize) {
+void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
   std::cout << "Running Example 5\n";
-  // TensorA["abcdefghijklmnop"] = Tensor["cpgo"] * TensorB["abcdefghijklmnop"];
-  // // Mult without contract
+  // TensorA["abcdefghijklmnop"] = Tensor["cpgo"] * TensorB["abcdefghijklmnop"]; // Mult without contract
 
   // Init
   std::cout << "init\n";
@@ -116,11 +101,9 @@ void Example5(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
   ObjShape shapeB(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(
-      shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
   DistTensor<double> C(shapeC, "[(0),(1),(2),(3)]", g);
-  DistTensor<double> B(
-      shapeB, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
   SetAllVal(A, 1.0);
   SetAllVal(C, 2.0);
   SetAllVal(B, 3.0);
@@ -141,24 +124,23 @@ void Example5(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim,
   Print(A, "A");
 }
 
-void Example6(const mpi::Comm &comm, ObjShape gridShape, Unsigned tensorDim) {
-  // Oh, and just initializing a ROTE tensor to all (1.0,0.0) ... or any
-  // specified complex value. Init
+void Example6(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
+  // Oh, and just initializing a ROTE tensor to all (1.0,0.0) ... or any specified complex value.
+  // Init
   std::cout << "Init\n";
   ObjShape shapeA(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<std::complex<double>> A(
-      shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
+  DistTensor<std::complex<double>> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
 
   // Compute
   std::cout << "Computing\n";
-  std::complex<double> val(2.0, 1.0);
+  std::complex<double> val(2.0,1.0);
   SetAllVal(A, val);
   Print(A, "A");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   Initialize(argc, argv);
   mpi::Comm comm = mpi::COMM_WORLD;
   const Int commRank = mpi::CommRank(comm);
@@ -169,33 +151,23 @@ int main(int argc, char *argv[]) {
     ProcessInput(argc, argv, args);
 
     if (commRank == 0 && commSize != args.nProcs) {
-      std::cerr << "program not started with correct number of processes\n";
-      std::cerr << commSize << " vs " << args.nProcs << std::endl;
-      Usage();
-      throw ArgException();
+        std::cerr << "program not started with correct number of processes\n";
+        std::cerr << commSize << " vs " << args.nProcs << std::endl;
+        Usage();
+        throw ArgException();
     }
 
-    switch (args.exNum) {
-    case 1:
-      Example1(comm, args.gridShape, args.tensorDim, args.blkSize);
-      break;
-    case 2:
-      Example2(comm, args.gridShape, args.tensorDim, args.blkSize);
-      break;
-    case 3:
-      Example3(comm, args.gridShape, args.tensorDim, args.blkSize);
-      break;
-    case 4:
-      Example4(comm, args.gridShape, args.tensorDim);
-    case 5:
-      Example5(comm, args.gridShape, args.tensorDim, args.blkSize);
-      break;
-    case 6:
-      Example6(comm, args.gridShape, args.tensorDim);
+    switch(args.exNum) {
+      case 1: Example1(comm, args.gridShape, args.tensorDim, args.blkSize); break;
+      case 2: Example2(comm, args.gridShape, args.tensorDim, args.blkSize); break;
+      case 3: Example3(comm, args.gridShape, args.tensorDim, args.blkSize); break;
+      case 4: Example4(comm, args.gridShape, args.tensorDim);
+      case 5: Example5(comm, args.gridShape, args.tensorDim, args.blkSize); break;
+      case 6: Example6(comm, args.gridShape, args.tensorDim);
     }
     std::cout << "OKAY!\n";
-  } catch (std::exception &e) {
-    ReportException(e);
+  } catch (std::exception& e) {
+      ReportException(e);
   }
 
   Finalize();

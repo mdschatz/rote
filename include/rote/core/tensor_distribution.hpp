@@ -16,74 +16,59 @@
 
 namespace rote {
 
-class TensorDistribution {
+class TensorDistribution
+{
 public:
-  TensorDistribution();
-  TensorDistribution(Unsigned order);
-  TensorDistribution(const TensorDistribution &dist);
-  TensorDistribution(const std::vector<ModeDistribution> &dist);
-  TensorDistribution(const std::string &dist);
+	TensorDistribution( );
+	TensorDistribution( Unsigned order );
+//    TensorDistribution( std::initializer_list<std::initializer_list<Unsigned> > list );
+    TensorDistribution( const TensorDistribution& dist);
+    TensorDistribution( const std::vector<ModeDistribution>& dist);
+    TensorDistribution( const std::string& dist);
 
-  ~TensorDistribution();
+    ~TensorDistribution();
 
-  // Simple interface (simpler version of distributed-based interface)
-  Unsigned size() const;
-  std::vector<ModeDistribution> Entries() const;
-  ModeDistribution UnusedModes() const;
-  ModeDistribution UsedModes() const;
+    // Simple interface (simpler version of distributed-based interface)
+    Unsigned size() const;
+    std::vector<ModeDistribution> Entries() const;
+    ModeDistribution UnusedModes() const;
+    ModeDistribution UsedModes() const;
 
-  TensorDistribution &operator=(const TensorDistribution &rhs);
-  TensorDistribution &operator+=(const TensorDistribution &rhs);
-  TensorDistribution &operator-=(const TensorDistribution &rhs);
+    TensorDistribution& operator=(const TensorDistribution& rhs);
+    TensorDistribution& operator+=(const TensorDistribution& rhs);
+    TensorDistribution& operator-=(const TensorDistribution& rhs);
 
-  const ModeDistribution &operator[](size_t index) const;
-  void RemoveUnitModeDists(const std::vector<Unsigned> &unitModes);
-  void IntroduceUnitModeDists(const std::vector<Unsigned> &unitModes);
+    const ModeDistribution& operator[](size_t index) const;
+    void RemoveUnitModeDists(const std::vector<Unsigned>& unitModes);
+    void IntroduceUnitModeDists(const std::vector<Unsigned>& unitModes);
 
-  void SetToMatch(const TensorDistribution &other,
-                  const IndexArray &otherIndices, const IndexArray &myIndices);
-  void AppendToMatchForGridModes(const ModeArray &gridModes,
-                                 const TensorDistribution &other,
-                                 const IndexArray &otherIndices,
-                                 const IndexArray &myIndices);
-  TensorDistribution Filter(const std::vector<Unsigned> &filterIndices) const;
+    void SetToMatch(const TensorDistribution& other, const IndexArray& otherIndices, const IndexArray& myIndices);
+    void AppendToMatchForGridModes(const ModeArray& gridModes, const TensorDistribution& other, const IndexArray& otherIndices, const IndexArray& myIndices);
+    TensorDistribution Filter(const std::vector<Unsigned>& filterIndices) const;
 
-  Mode TensorModeForGridMode(const Mode &mode) const;
+    Mode TensorModeForGridMode(const Mode& mode) const;
 
-  friend TensorDistribution GetCommonPrefix(const TensorDistribution &lhs,
-                                            const TensorDistribution &rhs);
-  friend TensorDistribution GetCommonSuffix(const TensorDistribution &lhs,
-                                            const TensorDistribution &rhs);
-  friend TensorDistribution
-  GetTensorDistForGridModes(const TensorDistribution &tenDist,
-                            const ModeDistribution &gridModes);
+    friend TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend TensorDistribution GetCommonSuffix(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend TensorDistribution GetTensorDistForGridModes(const TensorDistribution& tenDist, const ModeDistribution& gridModes);
 
-  friend bool operator<(const TensorDistribution &lhs,
-                        const TensorDistribution &rhs);
-  friend bool operator>(const TensorDistribution &lhs,
-                        const TensorDistribution &rhs);
-  friend bool operator<=(const TensorDistribution &lhs,
-                         const TensorDistribution &rhs);
-  friend bool operator>=(const TensorDistribution &lhs,
-                         const TensorDistribution &rhs);
-  friend TensorDistribution operator+(const TensorDistribution &lhs,
-                                      const TensorDistribution &rhs);
-  friend TensorDistribution operator-(const TensorDistribution &lhs,
-                                      const TensorDistribution &rhs);
-  friend bool operator==(const TensorDistribution &A,
-                         const TensorDistribution &B);
-  friend bool operator!=(const TensorDistribution &A,
-                         const TensorDistribution &B);
+    friend bool operator<(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend bool operator>(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend bool operator<=(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend bool operator>=(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend TensorDistribution operator+(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend TensorDistribution operator-(const TensorDistribution& lhs, const TensorDistribution& rhs);
+    friend bool operator== ( const TensorDistribution& A, const TensorDistribution& B );
+    friend bool operator!= ( const TensorDistribution& A, const TensorDistribution& B );
 
 private:
-  std::vector<ModeDistribution> entries_;
-  void CheckIsValid();
+    std::vector<ModeDistribution> entries_;
+    void CheckIsValid();
 };
 
-std::string TensorDistToString(const TensorDistribution &distribution,
-                               bool endLine = false);
-TensorDistribution StringToTensorDist(const std::string &s);
-std::ostream &operator<<(std::ostream &os, const TensorDistribution &dist);
+std::string TensorDistToString( const TensorDistribution&  distribution, bool endLine=false );
+TensorDistribution StringToTensorDist( const std::string& s );
+std::ostream& operator<<( std::ostream& os, const TensorDistribution& dist );
 } // namespace rote
 
 #endif // ifndef ROTE_CORE_TENSOR_DISTRIBUTION_HPP

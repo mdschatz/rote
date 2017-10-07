@@ -16,9 +16,8 @@ namespace rote {
 // Workhorse routines
 ////////////////////////////////////
 
-template <typename T>
-void ZAxpBy(T alpha, const DistTensor<T> &X, T beta, const DistTensor<T> &Y,
-            DistTensor<T> &Z);
+template<typename T>
+void ZAxpBy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTensor<T>& Z );
 
 } // namespace rote
 

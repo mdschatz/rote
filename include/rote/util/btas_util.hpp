@@ -11,23 +11,18 @@
 #ifndef ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
 #define ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
 
-#include "rote.hpp"
+#include <vector>
+#include <iostream>
 #include "rote/core/types_decl.hpp"
 #include "rote/util/vec_util.hpp"
-#include <iostream>
-#include <vector>
+#include "rote.hpp"
 
-namespace rote {
+namespace rote{
 
-std::vector<ModeArray> DetermineContractModes(const IndexArray &indicesA,
-                                              const IndexArray &indicesB,
-                                              const IndexArray &indicesC);
-IndexArray DetermineContractIndices(const IndexArray &indicesA,
-                                    const IndexArray &indicesB);
+std::vector<ModeArray> DetermineContractModes(const IndexArray& indicesA, const IndexArray& indicesB, const IndexArray& indicesC);
+IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray& indicesB);
 
-void SetTensorShapeToMatch(const ObjShape &matchAgainst,
-                           const IndexArray &indicesMatchAgainst,
-                           ObjShape &toMatch, const IndexArray &indicesToMatch);
+void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch);
 
-} // namespace rote
+}
 #endif // ifndef ROTE_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP

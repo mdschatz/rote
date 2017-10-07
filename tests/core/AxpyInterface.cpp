@@ -3,8 +3,8 @@
    Copyright (c) 2011, The University of Texas at Austin
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License,
-   which can be found in the LICENSE file in the root directory, or at
+   This file is part of Elemental and is under the BSD 2-Clause License, 
+   which can be found in the LICENSE file in the root directory, or at 
    http://opensource.org/licenses/BSD-2-Clause
 */
 // NOTE: It is possible to simply include "rote.hpp" instead
@@ -12,56 +12,61 @@
 #include "rote/matrices/Zeros.hpp"
 using namespace rote;
 
-int main(int argc, char *argv[]) {
-  Initialize(argc, argv);
-  mpi::Comm comm = mpi::COMM_WORLD;
-  const Int commRank = mpi::CommRank(comm);
-  const Int commSize = mpi::CommSize(comm);
+int
+main( int argc, char* argv[] )
+{
+    Initialize( argc, argv );
+    mpi::Comm comm = mpi::COMM_WORLD;
+    const Int commRank = mpi::CommRank( comm );
+    const Int commSize = mpi::CommSize( comm );
 
-  try {
-    const Int m = 3 * commSize;
-    const Int n = 2 * commSize;
+    try 
+    {
+        const Int m = 3*commSize;
+        const Int n = 2*commSize;
 
-    Grid g(comm);
+        Grid g( comm );
 
-    for (Int k = 0; k < 50; ++k) {
-      if (commRank == 0)
-        std::cout << "Iteration " << k << std::endl;
+        for( Int k=0; k<50; ++k )
+        {
+            if( commRank == 0 )
+                std::cout << "Iteration " << k << std::endl;
 
-      DistTensor<double> A(g);
-      Zeros(A, m, n);
+            DistTensor<double> A(g);
+            Zeros( A, m, n );
 
-      AxpyInterface<double> interface;
-      interface.Attach(LOCAL_TO_GLOBAL, A);
-      Tensor<double> X(commSize, 1);
-      for (Int j = 0; j < X.Width(); ++j)
-        for (Int i = 0; i < commSize; ++i)
-          X.Set(i, j, commRank + 1);
-      for (Int i = 0; i < 5; ++i) {
-        interface.Axpy(2, X, 2 * commRank, commRank);
-        interface.Axpy(2, X, 2 * commRank, commRank + 1);
-      }
-      interface.Detach();
+            AxpyInterface<double> interface;
+            interface.Attach( LOCAL_TO_GLOBAL, A );
+            Tensor<double> X( commSize, 1 );
+            for( Int j=0; j<X.Width(); ++j )
+                for( Int i=0; i<commSize; ++i )
+                    X.Set(i,j,commRank+1);
+            for( Int i=0; i<5; ++i )
+            {
+                interface.Axpy( 2, X, 2*commRank, commRank );
+                interface.Axpy( 2, X, 2*commRank, commRank+1 );
+            }
+            interface.Detach();
 
-      Print(A, "A");
+            Print( A, "A" );
 
-      interface.Attach(GLOBAL_TO_LOCAL, A);
-      Tensor<double> Y;
-      if (commRank == 0) {
-        Zeros(Y, m, n);
-        interface.Axpy(1.0, Y, 0, 0);
-      }
-      interface.Detach();
+            interface.Attach( GLOBAL_TO_LOCAL, A );
+            Tensor<double> Y;
+            if( commRank == 0 )
+            {
+                Zeros( Y, m, n );
+                interface.Axpy( 1.0, Y, 0, 0 );
+            }
+            interface.Detach();
 
-      if (commRank == 0)
-        Print(Y, "Copy of global matrix on root process:");
+            if( commRank == 0 )
+                Print( Y, "Copy of global matrix on root process:" );
 
-      // TODO: Check to ensure that the result is correct
+            // TODO: Check to ensure that the result is correct
+        }
     }
-  } catch (std::exception &e) {
-    ReportException(e);
-  }
+    catch( std::exception& e ) { ReportException(e); }
 
-  Finalize();
-  return 0;
+    Finalize();
+    return 0;
 }

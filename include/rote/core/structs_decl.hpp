@@ -14,157 +14,163 @@
 
 namespace rote {
 
-// Structs for performing general redistributions
-struct RedistPlanInfo {
-  ModeArray tenModesReduced;
-  ModeArray gridModesAppeared;
-  ModeArray gridModesAppearedSinks;
-  ModeArray gridModesRemoved;
-  ModeArray gridModesRemovedSrcs;
-  ModeArray gridModesMoved;
-  ModeArray gridModesMovedSrcs;
-  ModeArray gridModesMovedSinks;
+//Structs for performing general redistributions
+struct RedistPlanInfo
+{
+	ModeArray tenModesReduced;
+	ModeArray gridModesAppeared;
+	ModeArray gridModesAppearedSinks;
+	ModeArray gridModesRemoved;
+	ModeArray gridModesRemovedSrcs;
+	ModeArray gridModesMoved;
+	ModeArray gridModesMovedSrcs;
+	ModeArray gridModesMovedSinks;
 };
 
-struct Redist {
-  RedistType redistType;
-  TensorDistribution dist;
-  ModeArray modes;
+struct Redist
+{
+	RedistType redistType;
+	TensorDistribution dist;
+	ModeArray modes;
 };
 
 typedef std::vector<Redist> RedistPlan;
 
-struct BlkContractStatAInfo {
-  ModeArray reduceTensorModes;
-  TensorDistribution distT;
-  ModeArray alignModesT;
-  ModeArray alignModesTTo;
-  Permutation permT;
+struct 	BlkContractStatAInfo
+{
+	ModeArray reduceTensorModes;
+	TensorDistribution distT;
+	ModeArray alignModesT;
+	ModeArray alignModesTTo;
+	Permutation permT;
 
-  ModeArray partModesB;
-  TensorDistribution distIntB;
-  ModeArray alignModesB;
-  ModeArray alignModesBTo;
-  Permutation permB;
+	ModeArray partModesB;
+	TensorDistribution distIntB;
+	ModeArray alignModesB;
+	ModeArray alignModesBTo;
+	Permutation permB;
 
-  ModeArray partModesC;
+	ModeArray partModesC;
 
-  Permutation permA;
-  std::vector<Unsigned> blkSizes;
+	Permutation permA;
+	std::vector<Unsigned> blkSizes;
 };
 
-struct BlkContractStatCInfo {
-  ModeArray partModesA;
-  TensorDistribution distIntA;
-  ModeArray alignModesA;
-  ModeArray alignModesATo;
-  Permutation permA;
+struct 	BlkContractStatCInfo
+{
+	ModeArray partModesA;
+	TensorDistribution distIntA;
+	ModeArray alignModesA;
+	ModeArray alignModesATo;
+	Permutation permA;
 
-  ModeArray partModesB;
-  TensorDistribution distIntB;
-  ModeArray alignModesB;
-  ModeArray alignModesBTo;
-  Permutation permB;
+	ModeArray partModesB;
+	TensorDistribution distIntB;
+	ModeArray alignModesB;
+	ModeArray alignModesBTo;
+	Permutation permB;
 
-  Permutation permC;
-  std::vector<Unsigned> blkSizes;
+	Permutation permC;
+	std::vector<Unsigned> blkSizes;
 };
 
-struct BlkHadamardStatCInfo {
-  ModeArray partModesACA;
-  ModeArray partModesACC;
+struct BlkHadamardStatCInfo
+{
+	ModeArray partModesACA;
+	ModeArray partModesACC;
 
-  ModeArray partModesBCB;
-  ModeArray partModesBCC;
+	ModeArray partModesBCB;
+	ModeArray partModesBCC;
 
-  TensorDistribution distIntA;
-  ModeArray alignModesA;
-  ModeArray alignModesATo;
-  Permutation permA;
+	TensorDistribution distIntA;
+	ModeArray alignModesA;
+	ModeArray alignModesATo;
+	Permutation permA;
 
-  TensorDistribution distIntB;
-  ModeArray alignModesB;
-  ModeArray alignModesBTo;
-  Permutation permB;
+	TensorDistribution distIntB;
+	ModeArray alignModesB;
+	ModeArray alignModesBTo;
+	Permutation permB;
 
-  TensorDistribution distIntC;
-  ModeArray alignModesC;
-  ModeArray alignModesCTo;
-  Permutation permC;
+	TensorDistribution distIntC;
+	ModeArray alignModesC;
+	ModeArray alignModesCTo;
+	Permutation permC;
 
-  std::vector<Unsigned> blkSizes;
-  bool isStatC;
+	std::vector<Unsigned> blkSizes;
+	bool isStatC;
 };
 
-// Pack data structs
-struct PackData {
-  ObjShape loopShape;
-  std::vector<Unsigned> srcBufStrides;
-  std::vector<Unsigned> dstBufStrides;
-  Permutation permutation;
+//Pack data structs
+struct PackData
+{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcBufStrides;
+    std::vector<Unsigned> dstBufStrides;
+    Permutation permutation;
 };
 
-struct YAxpPxData {
-  ObjShape loopShape;
-  std::vector<Unsigned> srcStrides;
-  std::vector<Unsigned> permSrcStrides;
-  std::vector<Unsigned> dstStrides;
+struct YAxpPxData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> permSrcStrides;
+    std::vector<Unsigned> dstStrides;
 };
 
-struct YAxpByData {
-  ObjShape loopShape;
-  std::vector<Unsigned> srcStrides;
-  std::vector<Unsigned> dstStrides;
+struct YAxpByData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
+    std::vector<Unsigned> dstStrides;
 };
 
-struct ScalData {
-  ObjShape loopShape;
-  std::vector<Unsigned> srcStrides;
+struct ScalData{
+    ObjShape loopShape;
+    std::vector<Unsigned> srcStrides;
 };
 
-struct DiffData {
-  ObjShape loopShape;
-  std::vector<Unsigned> src1Strides;
-  std::vector<Unsigned> src2Strides;
-  std::vector<Unsigned> dstStrides;
+struct DiffData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> dstStrides;
 };
 
-struct ElemScalData {
-  ObjShape loopShape;
-  std::vector<Unsigned> src1Strides;
-  std::vector<Unsigned> src2Strides;
-  std::vector<Unsigned> dstStrides;
+struct ElemScalData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> dstStrides;
 };
 
-struct HadamardScalData {
-  ObjShape loopShapeAC;
-  std::vector<Unsigned> stridesACA;
-  std::vector<Unsigned> stridesACC;
+struct HadamardScalData{
+    ObjShape loopShapeAC;
+    std::vector<Unsigned> stridesACA;
+    std::vector<Unsigned> stridesACC;
 
-  ObjShape loopShapeBC;
-  std::vector<Unsigned> stridesBCB;
-  std::vector<Unsigned> stridesBCC;
+		ObjShape loopShapeBC;
+    std::vector<Unsigned> stridesBCB;
+    std::vector<Unsigned> stridesBCC;
 
-  ObjShape loopShapeABC;
-  std::vector<Unsigned> stridesABCA;
-  std::vector<Unsigned> stridesABCB;
-  std::vector<Unsigned> stridesABCC;
+		ObjShape loopShapeABC;
+    std::vector<Unsigned> stridesABCA;
+		std::vector<Unsigned> stridesABCB;
+    std::vector<Unsigned> stridesABCC;
 };
 
-struct ZAxpByData {
-  ObjShape loopShape;
-  std::vector<Unsigned> src1Strides;
-  std::vector<Unsigned> src2Strides;
-  std::vector<Unsigned> dstStrides;
+struct ZAxpByData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> dstStrides;
 };
 
-struct ZAxpBypPxData {
-  ObjShape loopShape;
-  std::vector<Unsigned> src1Strides;
-  std::vector<Unsigned> src2Strides;
-  std::vector<Unsigned> permSrcStrides;
-  std::vector<Unsigned> dstStrides;
+struct ZAxpBypPxData{
+    ObjShape loopShape;
+    std::vector<Unsigned> src1Strides;
+    std::vector<Unsigned> src2Strides;
+    std::vector<Unsigned> permSrcStrides;
+    std::vector<Unsigned> dstStrides;
 };
 
-} // namespace rote
+}
 #endif

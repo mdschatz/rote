@@ -1,30 +1,30 @@
 #ifndef _TIME_HPP_
 #define _TIME_HPP_
 
+#include <string>
+#include <vector>
 #include <list>
 #include <mpi.h>
-#include <string>
 #include <time.h>
-#include <vector>
 
 #ifdef PROFILE
 
-#define PROFILE_SECTION(name)                                                  \
-  {                                                                            \
-    static Timer &__timer = Timer::timer(name);                                \
-    __timer.start();
+#define PROFILE_SECTION(name) \
+{ \
+static Timer& __timer = Timer::timer(name); \
+__timer.start();
 
 #define PROFILE_FUNCTION PROFILE_SECTION(__func__)
 
-#define PROFILE_STOP                                                           \
-  __timer.stop();                                                              \
-  }
+#define PROFILE_STOP \
+__timer.stop(); \
+}
 
-#define PROFILE_RETURN                                                         \
-  {                                                                            \
-    __timer.stop();                                                            \
-    return;                                                                    \
-  }
+#define PROFILE_RETURN \
+{ \
+__timer.stop(); \
+return; \
+}
 
 #define PROFILE_FLOPS(n) do_flops(n)
 
@@ -48,53 +48,53 @@
 
 class Timer;
 
-class Interval {
-  friend class Timer;
-  friend void do_flops(long long flops);
-  friend void do_memops(long long memops);
-  friend Interval toc();
-  friend Interval cputoc();
+class Interval
+{
+    friend class Timer;
+    friend void do_flops(long long flops);
+    friend void do_memops(long long memops);
+    friend Interval toc();
+    friend Interval cputoc();
 
-protected:
-  double dt;
-  long long flops;
-  long long memops;
+    protected:
+        double dt;
+        long long flops;
+        long long memops;
 
-  Interval(double start, long long flops, long long memops)
-      : dt(start), flops(flops), memops(memops) {}
+        Interval(double start, long long flops, long long memops) : dt(start), flops(flops), memops(memops) {}
 
-public:
-  Interval() : dt(0), flops(0), memops(0) {}
+    public:
+        Interval() : dt(0), flops(0), memops(0) {}
 
-  static Interval time();
+        static Interval time();
 
-  static Interval cputime();
+        static Interval cputime();
 
-  bool operator<(const Interval &other) const;
+        bool operator<(const Interval& other) const;
 
-  Interval &operator+=(const Interval &other);
+        Interval& operator+=(const Interval& other);
 
-  Interval &operator-=(const Interval &other);
+        Interval& operator-=(const Interval& other);
 
-  Interval &operator*=(int m);
+        Interval& operator*=(int m);
 
-  Interval &operator/=(int m);
+        Interval& operator/=(int m);
 
-  Interval operator+(const Interval &other) const;
+        Interval operator+(const Interval& other) const;
 
-  Interval operator-(const Interval &other) const;
+        Interval operator-(const Interval& other) const;
 
-  Interval operator*(int m) const;
+        Interval operator*(int m) const;
 
-  Interval operator/(int m) const;
+        Interval operator/(int m) const;
 
-  double seconds() const;
+        double seconds() const;
 
-  long long nflops() const;
+        long long nflops() const;
 
-  double gflops() const;
+        double gflops() const;
 
-  double gmemops() const;
+        double gmemops() const;
 };
 
 void tic();
@@ -109,52 +109,54 @@ void do_flops(long long flops);
 
 void do_memops(long long memops);
 
-class Timer {
-protected:
-  static std::list<Timer> timers;
+class Timer
+{
+    protected:
+        static std::list<Timer> timers;
 
-  std::string name;
-  Interval interval;
-  long long count;
+        std::string name;
+        Interval interval;
+        long long count;
 
-public:
-  Timer(const std::string &name) : name(name), interval(), count(0) {}
+    public:
+        Timer(const std::string& name) : name(name), interval(), count(0) {}
 
-  bool operator<(const Timer &other) const;
+        bool operator<(const Timer& other) const;
 
-  static Timer &timer(const std::string &name);
+        static Timer& timer(const std::string& name);
 
-  void start() { tic(); }
+        void start() { tic(); }
 
-  void stop() {
-    //            #ifdef _OPENMP
-    //            if (!omp_in_parallel())
-    //          {
+        void stop()
+        {
+//            #ifdef _OPENMP
+//            if (!omp_in_parallel())
+  //          {
     //            interval += toc()*omp_get_max_threads();
-    //          count++;
-    //    }
-    //  else
-    //            #pragma omp critical
-    //            #endif
-    //            {
-    interval += toc();
-    count++;
-    //          }
-  }
+      //          count++;
+        //    }
+          //  else
+//            #pragma omp critical
+//            #endif
+//            {
+                interval += toc();
+                count++;
+  //          }
+        }
 
-  static void printTimers();
+        static void printTimers();
 
-  static void clearTimers();
+        static void clearTimers();
 
-  double seconds() const { return interval.seconds(); }
+        double seconds() const { return interval.seconds(); }
 
-  double gflops() const { return interval.gflops(); }
+        double gflops() const { return interval.gflops(); }
 
-  static long long nflops(const std::string &name);
+        static long long nflops(const std::string& name);
 
-  std::string getName() const { return name; }
+        std::string getName() const {return name;}
 
-  double gmemops() const { return interval.gmemops(); }
+        double gmemops() const { return interval.gmemops(); }
 };
 
 #endif

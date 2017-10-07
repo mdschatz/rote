@@ -11,46 +11,32 @@
 #define ROTE_BTAS_CONTRACT_HPP
 
 #include "../level1/Permute.hpp"
+#include "rote/util/vec_util.hpp"
+#include "rote/util/btas_util.hpp"
 #include "rote/core/view_decl.hpp"
 #include "rote/io/Print.hpp"
 #include "rote/util/btas_util.hpp"
-#include "rote/util/vec_util.hpp"
 
-namespace rote {
+namespace rote{
 
 ////////////////////////////////////
 // LocalContract Workhorse
 ////////////////////////////////////
+
 template <typename T>
-void LocalContract(T alpha, const Tensor<T> &A, const IndexArray &indicesA,
-                   const bool permuteA, const Tensor<T> &B,
-                   const IndexArray &indicesB, const bool permuteB, T beta,
-                   Tensor<T> &C, const IndexArray &indicesC,
-                   const bool permuteC);
+void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
 
 ////////////////////////////////////
 // Local Interfaces
 ////////////////////////////////////
 template <typename T>
-void LocalContract(T alpha, const Tensor<T> &A, const IndexArray &indicesA,
-                   const Tensor<T> &B, const IndexArray &indicesB, T beta,
-                   Tensor<T> &C, const IndexArray &indicesC);
+void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
 
 template <typename T>
-void LocalContractAndLocalEliminate(T alpha, const Tensor<T> &A,
-                                    const IndexArray &indicesA,
-                                    const Tensor<T> &B,
-                                    const IndexArray &indicesB, T beta,
-                                    Tensor<T> &C, const IndexArray &indicesC);
+void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
 
 template <typename T>
-void LocalContractAndLocalEliminate(T alpha, const Tensor<T> &A,
-                                    const IndexArray &indicesA,
-                                    const bool permuteA, const Tensor<T> &B,
-                                    const IndexArray &indicesB,
-                                    const bool permuteB, T beta, Tensor<T> &C,
-                                    const IndexArray &indicesC,
-                                    const bool permuteC);
+void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
 
 } // namespace rote
 
