@@ -10,11 +10,6 @@
 #ifndef ROTE_UTIL_HPP
 #define ROTE_UTIL_HPP
 
-#include <vector>
-#include <numeric>
-#include <functional>
-
-// Declare the intertwined core parts of our library
 #include "rote/util/vec_util.hpp"
 #include "rote/util/btas_util.hpp"
 #include "rote/util/ten_dist_util.hpp"

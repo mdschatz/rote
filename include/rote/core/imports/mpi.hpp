@@ -3,16 +3,15 @@
                       2013, Jeff Hammond
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_CORE_MPI_HPP
 #define ROTE_CORE_MPI_HPP
 
-#include "mpi.h"
-#include <map>
+// TODO: Fix dependencies
 #include "rote/core/types_decl.hpp"
 #include "rote/core/error_decl.hpp"
 
@@ -109,7 +108,7 @@ void ErrorHandlerSet( Comm comm, ErrorHandler errorHandler );
 
 // Cartesian communicator routines
 void CartCreate
-( Comm comm, int numDims, const int* dimensions, const int* periods, 
+( Comm comm, int numDims, const int* dimensions, const int* periods,
   bool reorder, Comm& cartComm );
 void CartSub
 ( Comm comm, const int* remainingDims, Comm& subComm );
@@ -122,7 +121,7 @@ void GroupIncl( Group group, int n, const int* ranks, Group& subGroup );
 void GroupDifference( Group parent, Group subset, Group& complement );
 void GroupFree( Group& group );
 void GroupTranslateRanks
-( Group origGroup, int size, const int* origRanks, 
+( Group origGroup, int size, const int* origRanks,
   Group newGroup,                  int* newRanks );
 
 // Utilities

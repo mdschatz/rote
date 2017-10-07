@@ -10,11 +10,6 @@
 #ifndef ROTE_CORE_ENVIRONMENT_DECL_HPP
 #define ROTE_CORE_ENVIRONMENT_DECL_HPP
 
-#include <vector>
-#include "rote/core/imports/mpi.hpp"
-#include "rote/core/imports/mpi_choice.hpp"
-#include <stdlib.h>
-
 namespace rote {
 
 #define NOT_USED(x) ( (void)(x) )

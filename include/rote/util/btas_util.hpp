@@ -11,7 +11,7 @@
 #ifndef ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
 #define ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
 
-// TODO: Remove dependency on rote.hpp
+// TODO: Fix dependency
 #include "rote.hpp"
 
 namespace rote{

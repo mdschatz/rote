@@ -10,10 +10,12 @@
 #ifndef ROTE_CORE_HPP
 #define ROTE_CORE_HPP
 
+// TODO: Fix dependency
 #include "mpi.h"
+#include <map>
 #include <algorithm>
 #include <cmath>
-// #include <complex>
+#include <complex>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -103,13 +105,9 @@
 #include "rote/core/grid_view_decl.hpp"
 #include "rote/core/dist_tensor.hpp"
 #include "rote/core/imports/choice.hpp"
-#include "rote/core/imports/mpi_choice.hpp"
 #include "rote/core/environment_decl.hpp"
 #include "rote/core/indexing_decl.hpp"
 
-#include "rote/core/imports/blas.hpp"
-
-// Implement the intertwined parts of the library
 #include "rote/core/memory_impl.hpp"
 #include "rote/core/complex_impl.hpp"
 #include "rote/core/grid_impl.hpp"
@@ -117,8 +115,6 @@
 #include "rote/core/environment_impl.hpp"
 #include "rote/core/indexing_impl.hpp"
 
-// Declare and implement the decoupled parts of the core of the library
-// (perhaps these should be moved into their own directory?)
 #include "rote/core/view_impl.hpp"
 #include "rote/core/partition_decl.hpp"
 #include "rote/core/partition_impl.hpp"

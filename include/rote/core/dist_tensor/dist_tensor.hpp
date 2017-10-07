@@ -10,8 +10,6 @@
 #ifndef ROTE_CORE_DISTTENSORBASE_DECL_HPP
 #define ROTE_CORE_DISTTENSORBASE_DECL_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 template<typename T>

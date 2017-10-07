@@ -10,8 +10,6 @@
 #ifndef ROTE_BTAS_GEMM_HPP
 #define ROTE_BTAS_GEMM_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 template<typename T>

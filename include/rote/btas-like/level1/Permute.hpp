@@ -10,8 +10,6 @@
 #ifndef ROTE_BTAS_PERMUTE_HPP
 #define ROTE_BTAS_PERMUTE_HPP
 
-#include "rote.hpp"
-
 namespace rote{
 
 ////////////////////////////////////

@@ -4,17 +4,13 @@
 
    This file is a modification of Choice, a simple command-line option library.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_CORE_CHOICE_HPP
 #define ROTE_CORE_CHOICE_HPP
-
-#include <typeinfo>
-#include <iostream>
-#include <algorithm>
 
 namespace rote {
 
@@ -81,25 +77,25 @@ protected:
     void HandleBuild( std::ostream& os=std::cout ) const { os << "1.0" <<  std::endl; }
 
     struct RequiredArg
-    { 
-        std::string name, desc, typeInfo, usedVal; 
+    {
+        std::string name, desc, typeInfo, usedVal;
         bool found;
 
         RequiredArg
-        ( std::string n, std::string d, std::string t, std::string uv, bool f ) 
+        ( std::string n, std::string d, std::string t, std::string uv, bool f )
         : name(n), desc(d), typeInfo(t), usedVal(uv), found(f) { };
     };
 
     struct OptionalArg
-    { 
-        std::string name, desc, typeInfo, defaultVal, usedVal; 
+    {
+        std::string name, desc, typeInfo, defaultVal, usedVal;
         bool found;
 
         OptionalArg
-        ( std::string n, std::string d, std::string t, 
+        ( std::string n, std::string d, std::string t,
           std::string dv, std::string uv, bool f )
-        : name(n), desc(d), typeInfo(t), 
-          defaultVal(dv), usedVal(uv), found(f) { } 
+        : name(n), desc(d), typeInfo(t),
+          defaultVal(dv), usedVal(uv), found(f) { }
     };
 
     std::vector<RequiredArg> requiredArgs_;
@@ -269,7 +265,7 @@ Args::PrintReport( std::ostream& os ) const
            << "    " << optArg.desc << "\n\n";
     }
 
-    os << "Out of " << numRequired << " required arguments, " 
+    os << "Out of " << numRequired << " required arguments, "
        << numReqFailed << " were not specified." << std::endl;
 
     os << "Out of " << numOptional << " optional arguments, "

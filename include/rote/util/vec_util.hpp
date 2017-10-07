@@ -10,7 +10,7 @@
 #ifndef ROTE_UTIL_VECUTIL_HPP
 #define ROTE_UTIL_VECUTIL_HPP
 
-// TODO: Remove dependencies
+// TODO: Fix dependency
 #include <vector>
 #include "rote/core/types_decl.hpp"
 #include "rote/core/permutation.hpp"

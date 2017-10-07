@@ -10,8 +10,6 @@
 #ifndef ROTE_BTAS_GEN_YAXPPX_HPP
 #define ROTE_BTAS_GEN_YAXPPX_HPP
 
-#include "rote.hpp"
-
 namespace rote{
 
 ////////////////////////////////////

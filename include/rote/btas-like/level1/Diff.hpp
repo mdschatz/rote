@@ -10,8 +10,6 @@
 #ifndef ROTE_BTAS_DIFF_HPP
 #define ROTE_BTAS_DIFF_HPP
 
-#include "rote.hpp"
-
 namespace rote{
 
 ////////////////////////////////////

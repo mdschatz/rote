@@ -10,7 +10,7 @@
 #ifndef ROTE_UTIL_TENDISTUTIL_HPP
 #define ROTE_UTIL_TENDISTUTIL_HPP
 
-// TODO: Remove dependency on rote.hpp
+// TODO: Fix dependency
 #include "rote.hpp"
 
 namespace rote {

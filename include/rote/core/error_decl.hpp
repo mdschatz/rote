@@ -9,7 +9,6 @@
 #pragma once
 #ifndef ROTE_CORE_ERROR_DECL_HPP
 #define ROTE_CORE_ERROR_DECL_HPP
-#include <stdexcept>
 
 namespace rote{
 

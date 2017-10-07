@@ -10,8 +10,6 @@
 #ifndef ROTE_BTAS_ZERO_HPP
 #define ROTE_BTAS_ZERO_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 ////////////////////////////////////

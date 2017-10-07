@@ -11,8 +11,6 @@
 #ifndef ROTE_CORE_MODE_DISTRIBUTION_HPP
 #define ROTE_CORE_MODE_DISTRIBUTION_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 class ModeDistribution

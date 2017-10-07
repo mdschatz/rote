@@ -10,8 +10,6 @@
 #ifndef ROTE_CORE_ENVIRONMENT_IMPL_HPP
 #define ROTE_CORE_ENVIRONMENT_IMPL_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 inline void Args::HandleVersion( std::ostream& os ) const

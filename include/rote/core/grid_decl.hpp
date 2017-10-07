@@ -11,8 +11,6 @@
 #ifndef ROTE_CORE_GRID_DECL_HPP
 #define ROTE_CORE_GRID_DECL_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 class Grid

@@ -11,8 +11,6 @@
 #ifndef ROTE_CORE_GRID_IMPL_HPP
 #define ROTE_CORE_GRID_IMPL_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 inline void

@@ -10,7 +10,7 @@
 #ifndef ROTE_CORE_MEMORY_DECL_HPP
 #define ROTE_CORE_MEMORY_DECL_HPP
 
-// TODO: Figure out why this import is required and cannot be done with rote.hpp
+// TODO: Fix dependencies
 #include "rote/core/imports/mpi.hpp"
 
 namespace rote {
