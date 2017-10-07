@@ -10,6 +10,8 @@
 #ifndef TENSORMENTAL_HPP
 #define TENSORMENTAL_HPP
 
+#include "rote/builtin.hpp"
+
 #include "rote/config.h"
 #ifdef HAVE_F90_INTERFACE
 # include "rote/FCMangle.h"
@@ -18,7 +20,6 @@
 #include "rote/core.hpp"
 #include "rote/tensors.hpp"
 #include "rote/btas-like.hpp"
-#include "rote/util.hpp"
 
 #include "rote/io.hpp"
 #endif // ifndef TENSORMENTAL_HPP

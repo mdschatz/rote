@@ -7,7 +7,6 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
-#include "rote/util/vec_util.hpp"
 
 namespace rote {
 

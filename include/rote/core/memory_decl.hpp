@@ -10,9 +10,6 @@
 #ifndef ROTE_CORE_MEMORY_DECL_HPP
 #define ROTE_CORE_MEMORY_DECL_HPP
 
-// TODO: Fix dependencies
-#include "rote/core/imports/mpi.hpp"
-
 namespace rote {
 
 template<typename G>

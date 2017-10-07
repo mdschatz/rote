@@ -10,9 +10,6 @@
 #ifndef ROTE_UTIL_TENDISTUTIL_HPP
 #define ROTE_UTIL_TENDISTUTIL_HPP
 
-// TODO: Fix dependency
-#include "rote.hpp"
-
 namespace rote {
 
 bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder);

@@ -7,11 +7,11 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_UTIL_HPP
-#define ROTE_UTIL_HPP
+#ifndef ROTE_CORE_UTIL_HPP
+#define ROTE_CORE_UTIL_HPP
 
-#include "rote/util/vec_util.hpp"
-#include "rote/util/btas_util.hpp"
-#include "rote/util/ten_dist_util.hpp"
+#include "rote/core/util/vec_util.hpp"
+#include "rote/core/util/btas_util.hpp"
+#include "rote/core/util/ten_dist_util.hpp"
 
-#endif // ifndef ROTE_CORE_HPP
+#endif // ifndef ROTE_CORE_UTIL_HPP

@@ -10,27 +10,6 @@
 #ifndef ROTE_CORE_HPP
 #define ROTE_CORE_HPP
 
-// TODO: Fix dependency
-#include "mpi.h"
-#include <map>
-#include <algorithm>
-#include <cmath>
-#include <complex>
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <stack>
-#include <stdexcept>
-#include <string>
-//#include <random>
-#include <stdlib.h>
-#include <vector>
-
 //Define the max tensor order for this library build
 #ifndef ROTE_MAX_ORDER
 # define ROTE_MAX_ORDER 10
@@ -86,10 +65,11 @@
 #endif
 
 // Declare the intertwined core parts of our library
-#include "rote/core/memory_decl.hpp"
-#include "rote/core/error_decl.hpp"
-#include "rote/core/complex_decl.hpp"
 #include "rote/core/types_decl.hpp"
+#include "rote/core/error_decl.hpp"
+#include "rote/core/imports/mpi.hpp"
+#include "rote/core/memory_decl.hpp"
+#include "rote/core/complex_decl.hpp"
 #include "rote/core/permutation.hpp"
 #include "rote/core/mode_distribution.hpp"
 #include "rote/core/tensor_distribution.hpp"
@@ -98,13 +78,13 @@
 #include "rote/core/dist_tensor_forward_decl.hpp"
 #include "rote/core/view_decl.hpp"
 #include "rote/core/tensor.hpp"
+#include "rote/core/util.hpp"
+// #include "rote/util/vec_util.hpp"
+// #include "rote/util/ten_dist_util.hpp"
 #include "rote/core/imports.hpp"
-#include "rote/util/vec_util.hpp"
-#include "rote/util/ten_dist_util.hpp"
 #include "rote/core/grid_decl.hpp"
 #include "rote/core/grid_view_decl.hpp"
 #include "rote/core/dist_tensor.hpp"
-#include "rote/core/imports/choice.hpp"
 #include "rote/core/environment_decl.hpp"
 #include "rote/core/indexing_decl.hpp"
 

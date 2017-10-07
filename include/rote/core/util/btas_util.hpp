@@ -8,11 +8,8 @@
 */
 
 #pragma once
-#ifndef ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
-#define ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
-
-// TODO: Fix dependency
-#include "rote.hpp"
+#ifndef ROTE_CORE_UTIL_BTAS_UTIL_HPP
+#define ROTE_CORE_UTIL_BTAS_UTIL_HPP
 
 namespace rote{
 
@@ -22,4 +19,4 @@ IndexArray DetermineContractIndices(const IndexArray& indicesA, const IndexArray
 void SetTensorShapeToMatch(const ObjShape& matchAgainst, const IndexArray& indicesMatchAgainst, ObjShape& toMatch, const IndexArray& indicesToMatch);
 
 }
-#endif // ifndef ROTE_CORE_UTIL_REDISTRIBUTE_UTIL_DECL_HPP
+#endif // ifndef ROTE_CORE_UTIL_REDISTRIBUTE_UTIL_HPP

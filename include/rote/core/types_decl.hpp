@@ -10,9 +10,6 @@
 #ifndef ROTE_CORE_TYPES_DECL_HPP
 #define ROTE_CORE_TYPES_DECL_HPP
 
-// TODO: Figure out why <complex> is needed and can't just have blank
-#include <complex>
-
 namespace rote {
 
 typedef unsigned char byte;

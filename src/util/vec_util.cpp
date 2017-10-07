@@ -1,9 +1,4 @@
-
-#include "rote/util/vec_util.hpp"
-#include "rote/core/error_decl.hpp"
-#include <algorithm>
-#include <numeric>
-#include <functional>
+#include "rote.hpp"
 
 namespace rote{
 

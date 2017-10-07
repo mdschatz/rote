@@ -11,10 +11,6 @@
 #ifndef ROTE_CORE_MPI_HPP
 #define ROTE_CORE_MPI_HPP
 
-// TODO: Fix dependencies
-#include "rote/core/types_decl.hpp"
-#include "rote/core/error_decl.hpp"
-
 namespace rote {
 namespace mpi {
 
