@@ -12,15 +12,12 @@
 
 namespace rote {
 
-template<typename T>
-class DistTensorBase;
+template <typename T> class DistTensorBase;
 
-template<typename T>
-class DistTensor;
+template <typename T> class DistTensor;
 
 // TODO: Move this
-template<typename T>
-class Hadamard;
+template <typename T> class Hadamard;
 
 } // namespace rote
 

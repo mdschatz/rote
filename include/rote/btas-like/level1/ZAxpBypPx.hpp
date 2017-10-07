@@ -12,14 +12,19 @@
 
 namespace rote {
 
-template<typename T>
-void ZAxpBypPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, const Tensor<T>& PX, Tensor<T>& Z );
+template <typename T>
+void ZAxpBypPx(T alpha, const Tensor<T> &X, T beta, const Tensor<T> &Y,
+               const Tensor<T> &PX, Tensor<T> &Z);
 
-template<typename T>
-void ZAxpBypPx( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const Tensor<T>& Y, const Permutation& permYToZ, const Tensor<T>& PX, const Permutation& permPXToZ, Tensor<T>& Z );
+template <typename T>
+void ZAxpBypPx(T alpha, const Tensor<T> &X, const Permutation &permXToZ, T beta,
+               const Tensor<T> &Y, const Permutation &permYToZ,
+               const Tensor<T> &PX, const Permutation &permPXToZ, Tensor<T> &Z);
 
-template<typename T>
-void ZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const DistTensor<T>& PX, const Permutation& perm, DistTensor<T>& Z );
+template <typename T>
+void ZAxpBypPx(T alpha, const DistTensor<T> &X, T beta, const DistTensor<T> &Y,
+               const DistTensor<T> &PX, const Permutation &perm,
+               DistTensor<T> &Z);
 
 ////////////////////////////////////
 // Workhorse routines

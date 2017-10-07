@@ -11,76 +11,79 @@
 #include "rote.hpp"
 #include <algorithm>
 
-namespace rote{
+namespace rote {
 
-//TODO: Properly Check indices and distributions match between input and output
-//TODO: FLESH OUT THIS CHECK
+// TODO: Properly Check indices and distributions match between input and output
+// TODO: FLESH OUT THIS CHECK
 template <typename T>
-bool DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T>& A){
-	const TensorDistribution outDist = this->TensorDist();
-	const TensorDistribution inDist = A.TensorDist();
+bool DistTensor<T>::CheckGatherToOneCommRedist(const DistTensor<T> &A) {
+  const TensorDistribution outDist = this->TensorDist();
+  const TensorDistribution inDist = A.TensorDist();
 
-	bool ret = true;
-	ret &= CheckOrder(this->Order(), A.Order());
-	ret &= CheckOutIsPrefix(outDist, inDist);
-	ret &= CheckSameCommModes(outDist, inDist);
+  bool ret = true;
+  ret &= CheckOrder(this->Order(), A.Order());
+  ret &= CheckOutIsPrefix(outDist, inDist);
+  ret &= CheckSameCommModes(outDist, inDist);
 
-    return ret;
+  return ret;
 }
 
 template <typename T>
-void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
-    if(!CheckGatherToOneCommRedist(A))
-      LogicError("GatherToOneRedist: Invalid redistribution request");
+void DistTensor<T>::GatherToOneCommRedist(const DistTensor<T> &A,
+                                          const ModeArray &commModes,
+                                          const T alpha) {
+  if (!CheckGatherToOneCommRedist(A))
+    LogicError("GatherToOneRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
+  const mpi::Comm comm = this->GetCommunicatorForModes(commModes, A.Grid());
 
-    if(!A.Participating())
-        return;
+  if (!A.Participating())
+    return;
 
-    //Determine buffer sizes for communication
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
-    const ObjShape commDataShape = A.MaxLocalShape();
+  // Determine buffer sizes for communication
+  const Unsigned nRedistProcs =
+      Max(1, prod(FilterVector(A.Grid().Shape(), commModes)));
+  const ObjShape commDataShape = A.MaxLocalShape();
 
-    const Unsigned sendSize = prod(commDataShape);
-    const Unsigned recvSize = sendSize;
+  const Unsigned sendSize = prod(commDataShape);
+  const Unsigned recvSize = sendSize;
 
-    T* auxBuf = this->auxMemory_.Require(sendSize + nRedistProcs*recvSize);
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
+  T *auxBuf = this->auxMemory_.Require(sendSize + nRedistProcs * recvSize);
+  T *sendBuf = &(auxBuf[0]);
+  T *recvBuf = &(auxBuf[sendSize]);
 
-    //Pack the data
-    PROFILE_SECTION("GTOPack");
-    this->PackAGCommSendBuf(A, sendBuf);
-    PROFILE_STOP;
+  // Pack the data
+  PROFILE_SECTION("GTOPack");
+  this->PackAGCommSendBuf(A, sendBuf);
+  PROFILE_STOP;
 
-    //Communicate the data
-    PROFILE_SECTION("GTOComm");
-    //Realignment
-    T* alignSendBuf = &(auxBuf[0]);
-    T* alignRecvBuf = &(auxBuf[sendSize]);
+  // Communicate the data
+  PROFILE_SECTION("GTOComm");
+  // Realignment
+  T *alignSendBuf = &(auxBuf[0]);
+  T *alignRecvBuf = &(auxBuf[sendSize]);
 
-    bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+  bool didAlign = this->AlignCommBufRedist(A, alignSendBuf, sendSize,
+                                           alignRecvBuf, sendSize);
 
-    if(didAlign){
-		sendBuf = &(alignRecvBuf[0]);
-		recvBuf = &(alignSendBuf[0]);
-    }
+  if (didAlign) {
+    sendBuf = &(alignRecvBuf[0]);
+    recvBuf = &(alignSendBuf[0]);
+  }
 
-    mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
-    PROFILE_STOP;
+  mpi::Gather(sendBuf, sendSize, recvBuf, recvSize, 0, comm);
+  PROFILE_STOP;
 
-    //Unpack the data (if participating)
-    PROFILE_SECTION("GTOUnpack");
-    if(this->Participating())
-    	this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
-    PROFILE_STOP;
+  // Unpack the data (if participating)
+  PROFILE_SECTION("GTOUnpack");
+  if (this->Participating())
+    this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
+  PROFILE_STOP;
 
-    this->auxMemory_.Release();
+  this->auxMemory_.Release();
 }
 
-#define FULL(T) \
-    template class DistTensor<T>;
+#define FULL(T) template class DistTensor<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT
@@ -95,4 +98,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace rote
+} // namespace rote

@@ -15,21 +15,21 @@ namespace rote {
 ////////////////////////////////////
 // Global interfaces
 ////////////////////////////////////
+template <typename T>
+void YAxpBy_fast(T alpha, T beta, T const *const srcBuf, T *const dstBuf,
+                 const YAxpByData &data);
 
-template<typename T>
-void YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAxpByData& data );
+template <typename T>
+void YAxpy(T alpha, const DistTensor<T> &X, DistTensor<T> &Y);
 
-template<typename T>
-void YAxpy( T alpha, const DistTensor<T>& X, DistTensor<T>& Y );
+template <typename T>
+void YxpBy(const DistTensor<T> &X, T beta, DistTensor<T> &Y);
 
-template<typename T>
-void YxpBy( const DistTensor<T>& X, T beta, DistTensor<T>& Y );
+template <typename T>
+void Yxpy(const DistTensor<T> &X, DistTensor<T> &Y);
 
-template<typename T>
-void Yxpy( const DistTensor<T>& X, DistTensor<T>& Y );
-
-template<typename T>
-void YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y );
+template <typename T>
+void YAxpBy(T alpha, const DistTensor<T> &X, T beta, DistTensor<T> &Y);
 
 } // namespace rote
 

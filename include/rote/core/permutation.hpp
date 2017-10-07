@@ -14,29 +14,32 @@
 
 namespace rote {
 
-class Permutation{
+class Permutation {
 public:
-	Permutation();
-	Permutation(Unsigned order);
-	Permutation(std::initializer_list<Unsigned> list);
-	Permutation(const std::vector<Unsigned>& perm); //Needed for methods that dynamically determine permutations
-	Permutation(const Permutation& perm);
-	~Permutation();
+  Permutation();
+  Permutation(Unsigned order);
+  Permutation(std::initializer_list<Unsigned> list);
+  Permutation(const std::vector<Unsigned> &perm); // Needed for methods that
+                                                  // dynamically determine
+                                                  // permutations
+  Permutation(const Permutation &perm);
+  ~Permutation();
 
-	Permutation& operator=(const Permutation& perm);
-	const Unsigned& operator[](std::size_t idx) const;
-	Unsigned size() const;
+  Permutation &operator=(const Permutation &perm);
+  const Unsigned &operator[](std::size_t idx) const;
+  Unsigned size() const;
 
-    friend std::ostream& operator<<(std::ostream& o, const Permutation& perm);
-    friend bool operator!=(const Permutation& lhs, const Permutation& rhs);
+  friend std::ostream &operator<<(std::ostream &o, const Permutation &perm);
+  friend bool operator!=(const Permutation &lhs, const Permutation &rhs);
 
-    Permutation InversePermutation() const;
-    Permutation PermutationTo(const Permutation& perm) const;
-    std::vector<Unsigned> Entries() const;
+  Permutation InversePermutation() const;
+  Permutation PermutationTo(const Permutation &perm) const;
+  std::vector<Unsigned> Entries() const;
+
 private:
-	std::vector<Unsigned> perm_;
+  std::vector<Unsigned> perm_;
 
-	void CheckIsValid() const;
+  void CheckIsValid() const;
 };
 
 } // namespace rote

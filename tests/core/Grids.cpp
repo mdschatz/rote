@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 // NOTE: It is possible to simply include "rote.hpp" instead
@@ -11,87 +11,85 @@
 #include "unistd.h"
 using namespace rote;
 
-void Usage(){
-	std::cout << "./Grids <order> <gridDim0> <gridDim1> ...\n";
-	std::cout << "<order>     : order of the grid ( >0 )\n";
-	std::cout << "<gridDimK>  : dimension of mode-K of grid\n";
+void Usage() {
+  std::cout << "./Grids <order> <gridDim0> <gridDim1> ...\n";
+  std::cout << "<order>     : order of the grid ( >0 )\n";
+  std::cout << "<gridDimK>  : dimension of mode-K of grid\n";
 }
 
-typedef struct Arguments{
+typedef struct Arguments {
   Unsigned order;
   Unsigned size;
   ObjShape gridShape;
 } Params;
 
-void ProcessInput(const Unsigned argc,  char** const argv, Params& args){
-    Unsigned i;
-	if(argc < 2){
-		std::cerr << "Missing required order argument\n";
-		Usage();
-		throw ArgException();
-	}
+void ProcessInput(const Unsigned argc, char **const argv, Params &args) {
+  Unsigned i;
+  if (argc < 2) {
+    std::cerr << "Missing required order argument\n";
+    Usage();
+    throw ArgException();
+  }
 
-	Unsigned order = atoi(argv[1]);
-	args.order = order;
-	if(order <= 0){
-		std::cerr << "grid order must be greater than 0\n";
-		Usage();
-		throw ArgException();
-	}
+  Unsigned order = atoi(argv[1]);
+  args.order = order;
+  if (order <= 0) {
+    std::cerr << "grid order must be greater than 0\n";
+    Usage();
+    throw ArgException();
+  }
 
-	if(argc != order + 2){
-		std::cerr << "Missing required grid dimensions\n";
-		Usage();
-		throw ArgException();
-	}
+  if (argc != order + 2) {
+    std::cerr << "Missing required grid dimensions\n";
+    Usage();
+    throw ArgException();
+  }
 
-	args.size = 1;
-	args.gridShape.resize(order);
-	for(i = 0; i < order; i++){
-		int gridDim = atoi(argv[i+2]);
-		if(gridDim <= 0){
-			std::cerr << "grid dim must be greater than 0\n";
-			Usage();
-			throw ArgException();
-		}
-		args.size *= gridDim;
-		args.gridShape[i] = gridDim;
-	}
+  args.size = 1;
+  args.gridShape.resize(order);
+  for (i = 0; i < order; i++) {
+    int gridDim = atoi(argv[i + 2]);
+    if (gridDim <= 0) {
+      std::cerr << "grid dim must be greater than 0\n";
+      Usage();
+      throw ArgException();
+    }
+    args.size *= gridDim;
+    args.gridShape[i] = gridDim;
+  }
 }
 
-int 
-main( int argc, char* argv[] )
-{
-    Unsigned i;
-    Initialize( argc, argv );
-    mpi::Comm comm = mpi::COMM_WORLD;
-    const Int commSize = mpi::CommSize( comm );
-    const Int commRank = mpi::CommRank( comm );    
-    try
-    {
-        Params args;
+int main(int argc, char *argv[]) {
+  Unsigned i;
+  Initialize(argc, argv);
+  mpi::Comm comm = mpi::COMM_WORLD;
+  const Int commSize = mpi::CommSize(comm);
+  const Int commRank = mpi::CommRank(comm);
+  try {
+    Params args;
 
-        ProcessInput(argc, argv, args);
+    ProcessInput(argc, argv, args);
 
-        printf("Comm size: %d rank: %d", commSize, commRank);
-        std::cout << "Input processed\n";
+    printf("Comm size: %d rank: %d", commSize, commRank);
+    std::cout << "Input processed\n";
 
-        if(args.size != ((Unsigned)commSize)){
-            std::cerr << "program not started with correct number of processes\n";
-            Usage();
-            throw ArgException();
-        }
-
-        std::cout << "creating grid\n";
-        printf("Args order: %d\n", args.order);
-        printf("Args dims: [%d", args.gridShape[0]);
-        for(i = 1; i < args.order; i++)
-            printf(", %d", args.gridShape[i]);
-        printf("]\n");
-        const Grid grid( comm, args.gridShape );
+    if (args.size != ((Unsigned)commSize)) {
+      std::cerr << "program not started with correct number of processes\n";
+      Usage();
+      throw ArgException();
     }
-    catch( std::exception& e ) { ReportException(e); }
 
-    Finalize();
-    return 0;
+    std::cout << "creating grid\n";
+    printf("Args order: %d\n", args.order);
+    printf("Args dims: [%d", args.gridShape[0]);
+    for (i = 1; i < args.order; i++)
+      printf(", %d", args.gridShape[i]);
+    printf("]\n");
+    const Grid grid(comm, args.gridShape);
+  } catch (std::exception &e) {
+    ReportException(e);
+  }
+
+  Finalize();
+  return 0;
 }

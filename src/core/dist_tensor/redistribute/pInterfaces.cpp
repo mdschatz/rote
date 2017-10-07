@@ -11,26 +11,28 @@
 #include "rote.hpp"
 #include <algorithm>
 
-namespace rote{
+namespace rote {
 
 ////////////////////////////////
 // Workhorse interface
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha){
-	NOT_USED(redistModes);
-    PROFILE_SECTION("PermuteRedist");
-    this->ResizeTo(A);
-    ModeArray commModes = GetCommonSuffix(A.TensorDist(), this->TensorDist()).UsedModes().Entries();
+void DistTensor<T>::PermutationRedistFrom(const DistTensor<T> &A,
+                                          const ModeArray &redistModes,
+                                          const T alpha) {
+  NOT_USED(redistModes);
+  PROFILE_SECTION("PermuteRedist");
+  this->ResizeTo(A);
+  ModeArray commModes =
+      GetCommonSuffix(A.TensorDist(), this->TensorDist()).UsedModes().Entries();
 
-    commModes = Unique(commModes);
-    PermutationCommRedist(A, commModes, alpha);
-    PROFILE_STOP;
+  commModes = Unique(commModes);
+  PermutationCommRedist(A, commModes, alpha);
+  PROFILE_STOP;
 }
 
-#define FULL(T) \
-    template class DistTensor<T>;
+#define FULL(T) template class DistTensor<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT
@@ -45,4 +47,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace rote
+} // namespace rote

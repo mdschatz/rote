@@ -11,27 +11,28 @@
 #include "rote.hpp"
 #include <algorithm>
 
-namespace rote{
+namespace rote {
 
 ////////////////////////////////
 // Workhorse interface
 ////////////////////////////////
 
-//TODO: MAKE SURE ALL REDISTS WORK WITH blank commModes (size=0)
+// TODO: MAKE SURE ALL REDISTS WORK WITH blank commModes (size=0)
 template <typename T>
-void DistTensor<T>::ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
-    PROFILE_SECTION("ScatterRedist");
-    this->ResizeTo(A);
-    ModeArray sortedCommModes = commModes;
-    SortVector(sortedCommModes);
+void DistTensor<T>::ScatterRedistFrom(const DistTensor<T> &A,
+                                      const ModeArray &commModes,
+                                      const T alpha) {
+  PROFILE_SECTION("ScatterRedist");
+  this->ResizeTo(A);
+  ModeArray sortedCommModes = commModes;
+  SortVector(sortedCommModes);
 
-	ScatterCommRedist(A, sortedCommModes, alpha);
+  ScatterCommRedist(A, sortedCommModes, alpha);
 
-    PROFILE_STOP;
+  PROFILE_STOP;
 }
 
-#define FULL(T) \
-    template class DistTensor<T>;
+#define FULL(T) template class DistTensor<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT
@@ -46,4 +47,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace rote
+} // namespace rote

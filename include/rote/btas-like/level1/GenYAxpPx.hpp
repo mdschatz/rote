@@ -11,23 +11,30 @@
 #define ROTE_BTAS_GEN_YAXPPX_HPP
 
 #include "../level1/Permute.hpp"
-#include "rote/util/btas_util.hpp"
-#include "rote/util/vec_util.hpp"
-#include "rote/util/btas_util.hpp"
 #include "rote/core/view_decl.hpp"
 #include "rote/io/Print.hpp"
+#include "rote/util/btas_util.hpp"
+#include "rote/util/vec_util.hpp"
 
-namespace rote{
+namespace rote {
 
 ////////////////////////////////////
 // DistContract Workhorse
 ////////////////////////////////////
 
 template <typename T>
-bool CheckYAxpPxArgs(const DistTensor<T>& X, const Permutation& perm, const DistTensor<T>& Y);
+bool CheckYAxpPxArgs(
+  const DistTensor<T> &X,
+  const Permutation &perm,
+  const DistTensor<T> &Y
+);
 
 template <typename T>
-void GenYAxpPx( T alpha, const DistTensor<T>& X, T beta, const Permutation& perm, DistTensor<T>& Y );
+void GenYAxpPx(
+  T alpha, const DistTensor<T> &X,
+  T beta, const Permutation &perm,
+  DistTensor<T> &Y
+);
 
 } // namespace rote
 

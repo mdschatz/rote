@@ -13,8 +13,9 @@
 #include "rote/io/Print.hpp"
 namespace rote {
 
-template<typename T>
-void YAxpPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& PX, const Permutation& perm, DistTensor<T>& Y );
+template <typename T>
+void YAxpPx(T alpha, const DistTensor<T> &X, T beta, const DistTensor<T> &PX,
+            const Permutation &perm, DistTensor<T> &Y);
 
 } // namespace rote
 

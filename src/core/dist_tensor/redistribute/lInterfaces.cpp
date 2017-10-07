@@ -11,22 +11,21 @@
 #include "rote.hpp"
 #include <algorithm>
 
-namespace rote{
+namespace rote {
 
 ////////////////////////////////
 // Workhorse interface
 ////////////////////////////////
 
-template<typename T>
-void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const T alpha){
-    PROFILE_SECTION("LocalRedist");
-    this->ResizeTo(A);
-    LocalCommRedist(A, alpha);
-    PROFILE_STOP;
+template <typename T>
+void DistTensor<T>::LocalRedistFrom(const DistTensor<T> &A, const T alpha) {
+  PROFILE_SECTION("LocalRedist");
+  this->ResizeTo(A);
+  LocalCommRedist(A, alpha);
+  PROFILE_STOP;
 }
 
-#define FULL(T) \
-    template class DistTensor<T>;
+#define FULL(T) template class DistTensor<T>;
 
 FULL(Int)
 #ifndef DISABLE_FLOAT
@@ -41,4 +40,4 @@ FULL(std::complex<float>)
 FULL(std::complex<double>)
 #endif
 
-} //namespace rote
+} // namespace rote
