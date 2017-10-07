@@ -8,7 +8,6 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
-#include "rote/core/dist_tensor_forward_decl.hpp"
 
 namespace rote{
 

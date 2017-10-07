@@ -63,8 +63,7 @@ inline void ViewHelper
 {
 #ifndef RELEASE
     const ObjShape shapeB = B.Shape();
-    Location maxLoc(shape.size());
-    ElemwiseSum(loc, shape, maxLoc);
+    Location maxLoc = ElemwiseSum(loc, shape);
 
     if( AnyElemwiseGreaterThan(maxLoc, shapeB) )
     {

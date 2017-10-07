@@ -10,6 +10,33 @@
 #ifndef ROTE_BUILTIN_HPP
 #define ROTE_BUILTIN_HPP
 
+// If defined, the _OPENMP macro contains the date of the specification
+#ifdef HAVE_OPENMP
+# include <omp.h>
+# if _OPENMP >= 200805
+#  define COLLAPSE(N) collapse(N)
+# else
+#  define COLLAPSE(N)
+# endif
+# define PARALLEL_FOR _Pragma("omp parallel for")
+#else
+# define PARALLEL_FOR
+# define COLLAPSE(N)
+#endif
+
+#ifdef AVOID_OMP_FMA
+# define FMA_PARALLEL_FOR
+#else
+# define FMA_PARALLEL_FOR PARALLEL_FOR
+#endif
+#ifdef PARALLELIZE_INNER_LOOPS
+# define INNER_PARALLEL_FOR PARALLEL_FOR
+# define OUTER_PARALLEL_FOR
+#else
+# define INNER_PARALLEL_FOR
+# define OUTER_PARALLEL_FOR PARALLEL_FOR
+#endif
+
 #include "mpi.h"
 #include <map>
 #include <algorithm>

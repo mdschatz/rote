@@ -68,8 +68,7 @@ DistTensorBase<T>::AssertValidSubtensor
     if( AnyNegativeElem(shape) )
         LogicError("Dimensions of subtensor must not be negative");
 
-    Location maxLoc(order);
-    ElemwiseSum(loc, shape, maxLoc);
+    Location maxLoc = ElemwiseSum(loc, shape);
 
     if( AnyElemwiseGreaterThan(maxLoc, shape_) )
     {

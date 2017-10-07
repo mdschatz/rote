@@ -13,43 +13,22 @@
 namespace rote {
 
 template<typename T>
-T sum(const std::vector<T>& a, const Unsigned startIndex = 0);
-
-template<typename T>
-T sum(const std::vector<T>& a, const Unsigned startIndex, const Unsigned nElem);
+T sum(const std::vector<T>& a);
 
 template<typename T>
 T prod(const std::vector<T>& a, const Unsigned startIndex = 0);
 
 template<typename T>
-T prod(const std::vector<T>& a, const Unsigned startIndex, const Unsigned nElem);
-
-template<typename T>
-void ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
-
-template<typename T>
 std::vector<T> ElemwiseSum(const std::vector<T>& src1, const std::vector<T>& src2);
-
-template<typename T>
-void ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>
 std::vector<T> ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2);
 
 template<typename T>
-void ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
-
-template<typename T>
 std::vector<T> ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2);
 
 template<typename T>
-void ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
-
-template<typename T>
 std::vector<T> ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2);
-
-template<typename T>
-void ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2, std::vector<T>& out);
 
 template<typename T>
 std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2);
@@ -81,14 +60,13 @@ bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec);
 
-bool AnyFalseElem(const std::vector<bool>& vec);
-
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
+// TODO: Move to Permutation::apply()
 template<typename T>
 std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm);
 
@@ -99,28 +77,13 @@ template<typename T>
 std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter);
 
 template<typename T>
-bool IsSame(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
-std::vector<T> GetSuffix_(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
 std::vector<T> GetSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
-std::vector<T> GetPrefix_(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 std::vector<T> GetPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 std::vector<T> Unique(const std::vector<T>& vec);
-
-template<typename T>
-bool IsSuffix(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
-bool IsPrefix(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 bool Contains(const std::vector<T>& vec, const T& val);
@@ -142,11 +105,6 @@ std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<
 
 template<typename T>
 Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
-
-template<typename T>
-Permutation DetermineSubPermutation(const std::vector<T>& ref, const std::vector<T>& vec);
-
-//Permutation DetermineInversePermutation(const Permutation& perm);
 
 template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2);

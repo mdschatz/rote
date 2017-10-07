@@ -12,34 +12,28 @@
 
 namespace rote {
 
+//
+// Check
+//
 bool CheckOrder(const Unsigned& outOrder, const Unsigned& inOrder);
-
 bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution& inDist);
-
 bool CheckNonDistOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
 bool CheckNonDistInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
 bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistribution& inDist);
-
 bool CheckSameCommModes(const TensorDistribution& outDist, const TensorDistribution& inDist);
-
 bool CheckInIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
-
 bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistribution& inDist);
-
 bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape);
-
 bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm);
 
+//
+// Util
+//
 ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist);
-
 Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist);
-
 ModeArray GetCommonSuffixModes(const ModeDistribution& lhs, const ModeDistribution& rhs);
-
 ModeArray GetCommonSuffixModes(const TensorDistribution& lhs, const TensorDistribution& rhs);
-
 ModeDistribution GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
-
 TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
 
 } // namespace rote
