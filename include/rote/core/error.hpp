@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_ERROR_DECL_HPP
-#define ROTE_CORE_ERROR_DECL_HPP
+#ifndef ROTE_CORE_ERROR_HPP
+#define ROTE_CORE_ERROR_HPP
 
 namespace rote{
 

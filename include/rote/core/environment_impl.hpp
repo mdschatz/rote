@@ -107,16 +107,6 @@ MemSwap( T* a, T* b, T* temp, std::size_t numEntries )
 
 template<typename T>
 inline void
-StridedMemCopy
-(       T* dest,   std::size_t destStride,
-  const T* source, std::size_t sourceStride, std::size_t numEntries )
-{
-    // For now, use the BLAS wrappers/generalization
-    blas::Copy( numEntries, source, sourceStride, dest, destStride );
-}
-
-template<typename T>
-inline void
 MemZero( T* buffer, std::size_t numEntries )
 {
     // This can be optimized/generalized later

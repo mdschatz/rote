@@ -12,6 +12,7 @@
 
 namespace rote {
 
+#define MAX_ELEM_PER_PROC 10000000
 #define NOT_USED(x) ( (void)(x) )
 
 void PrintVersion( std::ostream& os=std::cout );
@@ -80,41 +81,12 @@ void MemCopy( T* dest, const T* source, std::size_t numEntries );
 template<typename T>
 void MemSwap( T* a, T* b, T* temp, std::size_t numEntries );
 
-// Generalization of std::memcpy so that unit strides are not required
-template<typename T>
-void StridedMemCopy
-(       T* dest,   std::size_t destStride,
-  const T* source, std::size_t sourceStride, std::size_t numEntries );
-
 // Replacement for std::memset, which is likely suboptimal and hard to extend
 // to non-POD datatypes. Notice that sizeof(T) is no longer required.
 template<typename T>
 void MemZero( T* buffer, std::size_t numEntries );
 
-// An exception which signifies that a matrix was unexpectedly singular.
-class SingularMatrixException : public std::runtime_error
-{
-public:
-    SingularMatrixException( const char* msg="Matrix was singular" )
-    : std::runtime_error( msg ) { }
-};
-
-// An exception which signifies that a matrix was unexpectedly non-HPD
-class NonHPDMatrixException  : public std::runtime_error
-{
-public:
-    NonHPDMatrixException( const char* msg="Matrix was not HPD" )
-    : std::runtime_error( msg ) { }
-};
-
-// An exception which signifies that a matrix was unexpectedly non-HPSD
-class NonHPSDMatrixException  : public std::runtime_error
-{
-public:
-    NonHPSDMatrixException( const char* msg="Matrix was not HPSD" )
-    : std::runtime_error( msg ) { }
-};
-
+// TODO: Remove CallStackEntry
 #ifndef RELEASE
 void PushCallStack( std::string s );
 void PopCallStack();

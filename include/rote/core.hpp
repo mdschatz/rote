@@ -10,11 +10,6 @@
 #ifndef ROTE_CORE_HPP
 #define ROTE_CORE_HPP
 
-//Define the max tensor order for this library build
-#ifndef ROTE_MAX_ORDER
-# define ROTE_MAX_ORDER 10
-#endif
-
 // If defined, the _OPENMP macro contains the date of the specification
 #ifdef HAVE_OPENMP
 # include <omp.h>
@@ -65,16 +60,16 @@
 #endif
 
 // Declare the intertwined core parts of our library
-#include "rote/core/types_decl.hpp"
-#include "rote/core/error_decl.hpp"
+#include "rote/core/types.hpp"
+#include "rote/core/error.hpp"
 #include "rote/core/imports.hpp"
 
-#include "rote/core/memory_decl.hpp"
+#include "rote/core/memory.hpp"
 #include "rote/core/complex_decl.hpp"
 #include "rote/core/permutation.hpp"
 #include "rote/core/mode_distribution.hpp"
 #include "rote/core/tensor_distribution.hpp"
-#include "rote/core/structs_decl.hpp"
+#include "rote/core/structs.hpp"
 #include "rote/core/tensor_forward_decl.hpp"
 #include "rote/core/dist_tensor_forward_decl.hpp"
 #include "rote/core/view_decl.hpp"
@@ -82,16 +77,13 @@
 
 #include "rote/core/util.hpp"
 
-#include "rote/core/grid_decl.hpp"
-#include "rote/core/grid_view_decl.hpp"
+#include "rote/core/grid.hpp"
+#include "rote/core/grid_view.hpp"
 #include "rote/core/dist_tensor.hpp"
 #include "rote/core/environment_decl.hpp"
 #include "rote/core/indexing_decl.hpp"
 
-#include "rote/core/memory_impl.hpp"
 #include "rote/core/complex_impl.hpp"
-#include "rote/core/grid_impl.hpp"
-#include "rote/core/grid_view_impl.hpp"
 #include "rote/core/environment_impl.hpp"
 #include "rote/core/indexing_impl.hpp"
 

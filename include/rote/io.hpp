@@ -10,21 +10,8 @@
 #ifndef ROTE_IO_HPP
 #define ROTE_IO_HPP
 
-#define MAX_ELEM_PER_PROC 10000000
-
-namespace rote{
-
-// TODO: Move this..
-std::ifstream::pos_type FileSize( std::ifstream& file );
-FileFormat DetectFormat( const std::string filename );
-
-template<typename T>
-void Read
-( DistTensor<T>& A, const std::string filename, FileFormat format,
-  bool sequential );
-}
-
+#include "rote/io/read.hpp"
 #include "rote/io/Print.hpp"
-#include "rote/io/Write.hpp"
+#include "rote/io/write.hpp"
 
 #endif // ifndef ROTE_IO_HPP

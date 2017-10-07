@@ -7,19 +7,18 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_IO_WRITE_HPP
-#define ROTE_IO_WRITE_HPP
+#ifndef ROTE_IO_READ_HPP
+#define ROTE_IO_READ_HPP
 
 namespace rote {
+  std::ifstream::pos_type FileSize( std::ifstream& file );
+  FileFormat DetectFormat( const std::string filename );
 
   template<typename T>
-  void Write( const Tensor<T>& A, std::string title="", std::string filename="Tensor" );
+  void Read
+  ( DistTensor<T>& A, const std::string filename, FileFormat format,
+    bool sequential );
 
-  template<typename T>
-  void
-  Write
-  ( const DistTensor<T>& A, std::string title="",
-    std::string filename="DistTensor" );
 } // namespace rote
 
-#endif // ifndef ROTE_IO_WRITE_HPP
+#endif // ifndef ROTE_IO_READ_HPP

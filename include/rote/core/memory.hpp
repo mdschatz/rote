@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_MEMORY_DECL_HPP
-#define ROTE_CORE_MEMORY_DECL_HPP
+#ifndef ROTE_CORE_MEMORY_HPP
+#define ROTE_CORE_MEMORY_HPP
 
 namespace rote {
 
@@ -22,10 +22,6 @@ public:
     Memory( std::size_t size );
     ~Memory();
 
-#ifndef SWIG
-//    Memory( Memory<G>&& mem );
-//    Memory<G>& operator=( Memory<G>&& mem );
-#endif
     void Swap( Memory<G>& mem );
 
     G* Buffer() const;
@@ -38,4 +34,4 @@ public:
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_MEMORY_DECL_HPP
+#endif // ifndef ROTE_CORE_MEMORY_HPP
