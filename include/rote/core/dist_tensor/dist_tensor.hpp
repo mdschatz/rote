@@ -231,7 +231,6 @@ public:
     Unsigned ModeStride(Mode mode) const;
     std::vector<Unsigned> ModeStrides() const;
     Unsigned ModeRank(Mode mode) const;
-    rote::DistData DistData() const;
 
     //
     // Routines needed for indexing
@@ -245,9 +244,7 @@ public:
     void ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides );
 
     // Distribution alignment
-    void AlignWith( const rote::DistData& data );
     void AlignWith( const DistTensorBase<T>& A );
-    void AlignModeWith( Mode mode, const rote::DistData& data );
     void AlignModeWith( Mode mode, const DistTensorBase<T>& A );
     void AlignModeWith( Mode mode, const DistTensorBase<T>& A, Mode modeA );
     void AlignModesWith( const ModeArray& modes, const DistTensorBase<T>& A, const ModeArray& modesA );

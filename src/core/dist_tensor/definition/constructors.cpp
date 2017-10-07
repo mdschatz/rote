@@ -460,20 +460,6 @@ DistTensorBase<T>::Swap( DistTensorBase<T>& A )
     auxMemory_.Swap( A.auxMemory_ );
 }
 
-template<typename T>
-rote::DistData
-DistTensorBase<T>::DistData() const
-{
-    rote::DistData data;
-    //data.colDist = MC;
-    //data.rowDist = MR;
-    data.modeAlignments = modeAlignments_;
-    data.distribution = dist_;
-    data.grid = grid_;
-    return data;
-}
-
-
 //
 // Utility functions, e.g., TransposeFrom
 //
