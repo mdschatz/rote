@@ -10,6 +10,8 @@
 #ifndef ROTE_BTAS_YAXPBY_HPP
 #define ROTE_BTAS_YAXPBY_HPP
 
+#include "rote.hpp"
+
 namespace rote {
 
 ////////////////////////////////////

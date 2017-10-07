@@ -10,10 +10,7 @@
 #ifndef ROTE_BTAS_DIFF_HPP
 #define ROTE_BTAS_DIFF_HPP
 
-#include "rote/util/vec_util.hpp"
-#include "rote/util/btas_util.hpp"
-#include "rote/core/view_decl.hpp"
-#include "rote/core/tensor_forward_decl.hpp"
+#include "rote.hpp"
 
 namespace rote{
 

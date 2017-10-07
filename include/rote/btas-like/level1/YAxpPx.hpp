@@ -10,7 +10,8 @@
 #ifndef ROTE_BTAS_YAXPPX_HPP
 #define ROTE_BTAS_YAXPPX_HPP
 
-#include "rote/io/Print.hpp"
+#include "rote.hpp"
+
 namespace rote {
 
 template<typename T>

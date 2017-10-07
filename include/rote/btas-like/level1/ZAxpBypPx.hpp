@@ -10,6 +10,8 @@
 #ifndef ROTE_BTAS_ZAXPBYPPX_HPP
 #define ROTE_BTAS_ZAXPBYPPX_HPP
 
+#include "rote.hpp"
+
 namespace rote {
 
 template<typename T>

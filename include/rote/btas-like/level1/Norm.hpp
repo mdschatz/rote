@@ -10,9 +10,7 @@
 #ifndef ROTE_BTAS_NORM_HPP
 #define ROTE_BTAS_NORM_HPP
 
-#include "rote/util/vec_util.hpp"
-#include "rote/util/btas_util.hpp"
-#include "rote/core/view_decl.hpp"
+#include "rote.hpp"
 
 namespace rote{
 
@@ -32,7 +30,7 @@ BASE(T) Norm(const Tensor<T>& A){
     Unsigned order = loopEnd.size();
     Location curLoc(order, 0);
     Unsigned ptr = 0;
-    
+
     BASE(T) norm = 0;
 
     if(loopEnd.size() == 0){
@@ -45,7 +43,7 @@ BASE(T) Norm(const Tensor<T>& A){
     while(!done){
 
         norm += srcBuf[srcBufPtr] * srcBuf[srcBufPtr];
-        
+
         //Update
         curLoc[ptr]++;
         srcBufPtr += srcBufStrides[ptr];

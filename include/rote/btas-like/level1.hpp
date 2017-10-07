@@ -15,6 +15,7 @@
 #include "./level1/Elemscal.hpp"
 #include "./level1/Norm.hpp"
 #include "./level1/Reduce.hpp"
+#include "./level1/Permute.hpp"
 #include "./level1/Scal.hpp"
 #include "./level1/YAxpBy.hpp"
 #include "./level1/GenYAxpPx.hpp"
