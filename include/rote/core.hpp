@@ -69,9 +69,7 @@
 #include "rote/core/environment_impl.hpp"
 
 #include "rote/core/memory.hpp"
-// TODO: Fix complex_* headers
-#include "rote/core/complex_decl.hpp"
-#include "rote/core/complex_impl.hpp"
+#include "rote/core/complex.hpp"
 #include "rote/core/permutation.hpp"
 
 #include "rote/core/mode_distribution.hpp"
@@ -86,9 +84,7 @@
 #include "rote/core/indexing_decl.hpp"
 #include "rote/core/indexing_impl.hpp"
 #include "rote/core/view.hpp"
-// TODO: Fix random_* headers
-#include "rote/core/random_decl.hpp"
-#include "rote/core/random_impl.hpp"
+#include "rote/core/random.hpp"
 #include "rote/core/tensor.hpp"
 
 #include "rote/core/dist_tensor.hpp"
