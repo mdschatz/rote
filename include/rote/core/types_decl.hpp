@@ -6,11 +6,12 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
+#pragma once
 #ifndef ROTE_CORE_TYPES_DECL_HPP
 #define ROTE_CORE_TYPES_DECL_HPP
 
+// TODO: Figure out why <complex> is needed and can't just have blank
 #include <complex>
-#include <vector>
 
 namespace rote {
 

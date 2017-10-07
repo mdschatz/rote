@@ -11,10 +11,7 @@
 #ifndef ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
 #define ROTE_CORE_UTIL_BTAS_UTIL_DECL_HPP
 
-#include <vector>
-#include <iostream>
-#include "rote/core/types_decl.hpp"
-#include "rote/util/vec_util.hpp"
+// TODO: Remove dependency on rote.hpp
 #include "rote.hpp"
 
 namespace rote{

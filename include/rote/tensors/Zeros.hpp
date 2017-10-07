@@ -2,19 +2,18 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_TENSORS_ZEROS_HPP
 #define ROTE_TENSORS_ZEROS_HPP
 
-#include "rote/btas-like/level1/Zero.hpp"
 
 namespace rote {
 
-template<typename T> 
+template<typename T>
 inline void
 MakeZeros( Tensor<T>& A )
 {
@@ -50,7 +49,7 @@ inline Tensor<T>
 Zeros( const ObjShape& shape )
 {
     Tensor<T> A( shape );
-    MakeZeros( A ); 
+    MakeZeros( A );
     return A;
 }
 

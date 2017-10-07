@@ -2,7 +2,6 @@
 #ifndef ROTE_TESTS_PREDIST_HPP
 #define ROTE_TESTS_PREDIST_HPP
 
-#include "rote/tests/AllRedists.hpp"
 using namespace rote;
 
 void

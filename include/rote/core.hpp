@@ -13,7 +13,7 @@
 #include "mpi.h"
 #include <algorithm>
 #include <cmath>
-#include <complex>
+// #include <complex>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -130,5 +130,4 @@
 #include "rote/core/random_impl.hpp"
 
 #include "rote/core/time.hpp"
-
 #endif // ifndef ROTE_CORE_HPP

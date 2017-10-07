@@ -10,12 +10,8 @@
 #ifndef ROTE_UTIL_TENDISTUTIL_HPP
 #define ROTE_UTIL_TENDISTUTIL_HPP
 
-#include <vector>
-#include <iostream>
+// TODO: Remove dependency on rote.hpp
 #include "rote.hpp"
-//#include "rote/core/error_decl.hpp"
-//#include "rote/core/types_decl.hpp"
-//#include "rote/core/tensor_distribution.hpp"
 
 namespace rote {
 

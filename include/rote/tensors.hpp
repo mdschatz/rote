@@ -10,6 +10,12 @@
 #ifndef ROTE_TENSORS_HPP
 #define ROTE_TENSORS_HPP
 
-#include "rote/tensors_decl.hpp"
-#include "rote/tensors_impl.hpp"
+//
+// Deterministic
+//
+
+#include "./tensors/Zeros.hpp"
+
+// Uniform
+#include "./tensors/Uniform.hpp"
 #endif // ifndef ROTE_TENSORS_HPP

@@ -2,7 +2,6 @@
 #ifndef ROTE_TESTS_ARREDIST_HPP
 #define ROTE_TESTS_ARREDIST_HPP
 
-#include "rote/tests/AllRedists.hpp"
 using namespace rote;
 
 std::vector<RedistTest >

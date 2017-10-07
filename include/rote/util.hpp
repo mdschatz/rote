@@ -14,7 +14,6 @@
 #include <numeric>
 #include <functional>
 
-
 // Declare the intertwined core parts of our library
 #include "rote/util/vec_util.hpp"
 #include "rote/util/btas_util.hpp"

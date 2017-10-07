@@ -10,7 +10,7 @@
 #ifndef ROTE_BTAS_LEVEL1_HPP
 #define ROTE_BTAS_LEVEL1_HPP
 
-
+#include "./level1/Zero.hpp"
 #include "./level1/Diff.hpp"
 #include "./level1/Elemscal.hpp"
 #include "./level1/Norm.hpp"
@@ -25,6 +25,5 @@
 #include "./level1/ZAxpBypPx.hpp"
 #include "./level1/GenZAxpBypPx.hpp"
 #include "./level1/SetAllVal.hpp"
-#include "./level1/Zero.hpp"
 
 #endif // ifndef ROTE_BTAS_LEVEL1_HPP

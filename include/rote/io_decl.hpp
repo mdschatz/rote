@@ -12,10 +12,6 @@
 
 #define MAX_ELEM_PER_PROC 10000000
 
-#include "rote/core/tensor_forward_decl.hpp"
-#include "rote/core/environment_decl.hpp"
-#include "rote/core/types_decl.hpp"
-
 namespace rote{
 
 std::ifstream::pos_type FileSize( std::ifstream& file );
