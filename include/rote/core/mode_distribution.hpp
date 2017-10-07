@@ -11,8 +11,7 @@
 #ifndef ROTE_CORE_MODE_DISTRIBUTION_HPP
 #define ROTE_CORE_MODE_DISTRIBUTION_HPP
 
-#include <iostream>
-#include <vector>
+#include "rote.hpp"
 
 namespace rote {
 

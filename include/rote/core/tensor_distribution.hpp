@@ -11,9 +11,6 @@
 #ifndef ROTE_CORE_TENSOR_DISTRIBUTION_HPP
 #define ROTE_CORE_TENSOR_DISTRIBUTION_HPP
 
-#include <iostream>
-#include <vector>
-
 namespace rote {
 
 class TensorDistribution

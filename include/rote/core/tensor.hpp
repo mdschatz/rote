@@ -2,18 +2,13 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_CORE_TENSOR_HPP
 #define ROTE_CORE_TENSOR_HPP
-
-#include <iostream>
-#include <map>
-#include <set>
-#include "rote/core/view_decl.hpp"
 
 namespace rote {
 
@@ -21,18 +16,18 @@ namespace rote {
 template<typename T>
 class Tensor
 {
-public:    
+public:
     //
     // Assertions
     //
-    
+
     void AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& strides ) const;
     void AssertValidEntry( const Location& loc ) const;
     void AssertMergeableModes( const std::vector<ModeArray>& oldModes ) const;
-    
+
     //
     // Constructors
-    // 
+    //
 
     Tensor( bool fixed=false );
     Tensor( const Unsigned order, bool fixed = false);
@@ -140,8 +135,8 @@ public:
     void LockedAttach
     ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides );
 
-    // Use this memory *as if it were not a view*, but do not take control of 
-    // its deallocation. If Resize() forces reallocation, this buffer is 
+    // Use this memory *as if it were not a view*, but do not take control of
+    // its deallocation. If Resize() forces reallocation, this buffer is
     // released from control but not deleted.
     //void Control( Int height, Int width, T* buffer, Int stride );
 
@@ -180,10 +175,10 @@ private:
     void Control_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides );
     void Attach_( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides );
     void LockedAttach_( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides );
-    
-    template <typename F> 
+
+    template <typename F>
     friend class Tensor;
-    template <typename F> 
+    template <typename F>
     friend class DistTensor;
     friend class DistTensorBase<T>;
 

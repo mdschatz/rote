@@ -9,8 +9,6 @@
 #ifndef ROTE_CORE_COMPLEX_DECL_HPP
 #define ROTE_CORE_COMPLEX_DECL_HPP
 
-#include "rote.hpp"
-
 namespace rote {
 
 template<typename Real>

@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #ifndef ROTE_CORE_TYPES_DECL_HPP
@@ -16,7 +16,7 @@ namespace rote {
 
 typedef unsigned char byte;
 
-// If these are changes, you must make sure that they have 
+// If these are changes, you must make sure that they have
 // existing MPI datatypes. This is only sometimes true for 'long long'
 typedef int Int;
 typedef unsigned Unsigned;
@@ -40,13 +40,13 @@ enum RedistType {AG, A2A, Local, RS, RTO, AR, GTO, BCast, Scatter, Perm};
 typedef std::complex<float>  scomplex;
 typedef std::complex<double> dcomplex;
 
-// For extracting the underlying real datatype, 
+// For extracting the underlying real datatype,
 // e.g., typename Base<Scalar>::type a = 3.0;
 template<typename Real>
 struct Base { typedef Real type; };
 template<typename Real>
 struct Base<std::complex<Real> > { typedef Real type; };
-#define BASE(F) typename Base<F>::type 
+#define BASE(F) typename Base<F>::type
 #define COMPLEX(F) std::complex<BASE(F)>
 
 template<typename Real>
@@ -78,7 +78,7 @@ struct ValueIntPair
 {
     Real value;
     Int indices[2];
-    
+
     static bool Lesser( const ValueInt<Real>& a, const ValueInt<Real>& b )
     { return a.value < b.value; }
     static bool Greater( const ValueInt<Real>& a, const ValueInt<Real>& b )
@@ -90,7 +90,7 @@ struct ValueIntPair<std::complex<Real> >
 {
     std::complex<Real> value;
     Int indices[2];
-    
+
     static bool Lesser
     ( const ValueIntPair<Real>& a, const ValueIntPair<Real>& b )
     { return Abs(a.value) < Abs(b.value); }
@@ -111,7 +111,7 @@ enum ViewType
     LOCKED_OWNER_FIXED = 0x6, // unused
     LOCKED_VIEW_FIXED = 0x7
 };
-static inline bool IsOwner( ViewType v ) 
+static inline bool IsOwner( ViewType v )
 { return ( v & VIEW  ) == 0; }
 static inline bool IsViewing( ViewType v )
 { return ( v & VIEW  ) != 0; }

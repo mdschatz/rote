@@ -9,9 +9,6 @@
 #ifndef ROTE_CORE_STRUCTS_DECL_HPP
 #define ROTE_CORE_STRUCTS_DECL_HPP
 
-#include <complex>
-#include <vector>
-
 namespace rote {
 
 //Structs for performing general redistributions

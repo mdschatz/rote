@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -13,7 +13,6 @@
 #include <vector>
 #include "rote/core/imports/mpi.hpp"
 #include "rote/core/imports/mpi_choice.hpp"
-//#include <random>
 #include <stdlib.h>
 
 namespace rote {
@@ -98,10 +97,10 @@ template<typename T>
 void MemZero( T* buffer, std::size_t numEntries );
 
 // An exception which signifies that a matrix was unexpectedly singular.
-class SingularMatrixException : public std::runtime_error 
+class SingularMatrixException : public std::runtime_error
 {
 public:
-    SingularMatrixException( const char* msg="Matrix was singular" ) 
+    SingularMatrixException( const char* msg="Matrix was singular" )
     : std::runtime_error( msg ) { }
 };
 
@@ -126,18 +125,18 @@ void PushCallStack( std::string s );
 void PopCallStack();
 void DumpCallStack( std::ostream& os=std::cerr );
 
-class CallStackEntry 
+class CallStackEntry
 {
 public:
-    CallStackEntry( std::string s ) 
-    { 
+    CallStackEntry( std::string s )
+    {
         if( !std::uncaught_exception() )
-            PushCallStack(s); 
+            PushCallStack(s);
     }
-    ~CallStackEntry() 
-    { 
+    ~CallStackEntry()
+    {
         if( !std::uncaught_exception() )
-            PopCallStack(); 
+            PopCallStack();
     }
 };
 #endif // ifndef RELEASE

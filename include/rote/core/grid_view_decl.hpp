@@ -11,12 +11,7 @@
 #ifndef ROTE_CORE_GRID_VIEW_DECL_HPP
 #define ROTE_CORE_GRID_VIEW_DECL_HPP
 
-#include <iostream>
-#include <vector>
-#include "rote/core/imports/mpi.hpp"
-#include "rote/core/environment_decl.hpp"
-#include "rote/core/grid_decl.hpp"
-#include "rote/core/types_decl.hpp"
+#include "rote.hpp"
 
 namespace rote {
 

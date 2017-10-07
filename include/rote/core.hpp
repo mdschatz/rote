@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -40,22 +40,22 @@
 # if _OPENMP >= 200805
 #  define COLLAPSE(N) collapse(N)
 # else
-#  define COLLAPSE(N) 
+#  define COLLAPSE(N)
 # endif
 # define PARALLEL_FOR _Pragma("omp parallel for")
 #else
-# define PARALLEL_FOR 
-# define COLLAPSE(N) 
+# define PARALLEL_FOR
+# define COLLAPSE(N)
 #endif
 
 #ifdef AVOID_OMP_FMA
-# define FMA_PARALLEL_FOR 
+# define FMA_PARALLEL_FOR
 #else
 # define FMA_PARALLEL_FOR PARALLEL_FOR
 #endif
 #ifdef PARALLELIZE_INNER_LOOPS
 # define INNER_PARALLEL_FOR PARALLEL_FOR
-# define OUTER_PARALLEL_FOR 
+# define OUTER_PARALLEL_FOR
 #else
 # define INNER_PARALLEL_FOR
 # define OUTER_PARALLEL_FOR PARALLEL_FOR
@@ -84,7 +84,6 @@
 #endif
 
 // Declare the intertwined core parts of our library
-//#include "rote/core/timer_decl.hpp"
 #include "rote/core/memory_decl.hpp"
 #include "rote/core/error_decl.hpp"
 #include "rote/core/complex_decl.hpp"
@@ -97,7 +96,7 @@
 #include "rote/core/dist_tensor_forward_decl.hpp"
 #include "rote/core/view_decl.hpp"
 #include "rote/core/tensor.hpp"
-#include "rote/core/imports/mpi.hpp"
+#include "rote/core/imports.hpp"
 #include "rote/util/vec_util.hpp"
 #include "rote/util/ten_dist_util.hpp"
 #include "rote/core/grid_decl.hpp"
@@ -109,12 +108,8 @@
 #include "rote/core/indexing_decl.hpp"
 
 #include "rote/core/imports/blas.hpp"
-//#include "rote/core/imports/lapack.hpp"
-//#include "rote/core/imports/flame.hpp"
-//#include "rote/core/imports/pmrrr.hpp"
 
 // Implement the intertwined parts of the library
-//#include "rote/core/timer_impl.hpp"
 #include "rote/core/memory_impl.hpp"
 #include "rote/core/complex_impl.hpp"
 #include "rote/core/grid_impl.hpp"
@@ -133,10 +128,6 @@
 #include "rote/core/slide_partition_impl.hpp"
 #include "rote/core/random_decl.hpp"
 #include "rote/core/random_impl.hpp"
-//#include "rote/core/axpy_interface_decl.hpp"
-//#include "rote/core/axpy_interface_impl.hpp"
-
-//#include "rote/core/ReduceComm.hpp"
 
 #include "rote/core/time.hpp"
 

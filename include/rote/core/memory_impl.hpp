@@ -2,40 +2,29 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_CORE_MEMORY_IMPL_HPP
 #define ROTE_CORE_MEMORY_IMPL_HPP
 
-#include "rote/core/memory_decl.hpp"
+#include "rote.hpp"
 
 namespace rote {
 
 template<typename G>
-inline 
+inline
 Memory<G>::Memory()
 : size_(0), buffer_(0)
 { Require( 1 ); }
 
 template<typename G>
-inline 
+inline
 Memory<G>::Memory( std::size_t size )
 : size_(0), buffer_(0)
 { Require( size ); }
-
-//template<typename G>
-//inline
-//Memory<G>::Memory( Memory<G>&& mem )
-//: size_(mem.size_), buffer_(nullptr)
-//{ Swap(mem); }
-
-//template<typename G>
-//inline Memory<G>&
-//Memory<G>::operator=( Memory<G>&& mem )
-//{ Swap( mem ); return *this; }
 
 template<typename G>
 inline void
@@ -46,17 +35,17 @@ Memory<G>::Swap( Memory<G>& mem )
 }
 
 template<typename G>
-inline 
+inline
 Memory<G>::~Memory()
 { delete[] buffer_; }
 
 template<typename G>
-inline G* 
+inline G*
 Memory<G>::Buffer() const
 { return buffer_; }
 
 template<typename G>
-inline std::size_t 
+inline std::size_t
 Memory<G>::Size() const
 { return size_; }
 
@@ -72,11 +61,11 @@ Memory<G>::Require( std::size_t size )
 #endif
         buffer_ = new G[size];
 #ifndef RELEASE
-        } 
+        }
         catch( std::bad_alloc& e )
         {
             std::ostringstream os;
-            os << "Failed to allocate " << size*sizeof(G) 
+            os << "Failed to allocate " << size*sizeof(G)
                << " bytes on process " << mpi::WorldRank() << std::endl;
             std::cerr << os.str();
             throw e;
@@ -88,7 +77,7 @@ Memory<G>::Require( std::size_t size )
 }
 
 template<typename G>
-inline void 
+inline void
 Memory<G>::Release()
 {
 #ifndef POOL_MEMORY
@@ -97,7 +86,7 @@ Memory<G>::Release()
 }
 
 template<typename G>
-inline void 
+inline void
 Memory<G>::Empty()
 {
     delete[] buffer_;

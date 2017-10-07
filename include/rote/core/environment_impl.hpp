@@ -2,15 +2,15 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_CORE_ENVIRONMENT_IMPL_HPP
 #define ROTE_CORE_ENVIRONMENT_IMPL_HPP
 
-#include "rote/core/environment_decl.hpp"
+#include "rote.hpp"
 
 namespace rote {
 
@@ -88,7 +88,7 @@ inline void ComplainIfDebug()
 }
 
 template<typename T>
-inline void 
+inline void
 MemCopy( T* dest, const T* source, std::size_t numEntries )
 {
     // This can be optimized/generalized later
@@ -110,7 +110,7 @@ MemSwap( T* a, T* b, T* temp, std::size_t numEntries )
 template<typename T>
 inline void
 StridedMemCopy
-(       T* dest,   std::size_t destStride, 
+(       T* dest,   std::size_t destStride,
   const T* source, std::size_t sourceStride, std::size_t numEntries )
 {
     // For now, use the BLAS wrappers/generalization
@@ -118,7 +118,7 @@ StridedMemCopy
 }
 
 template<typename T>
-inline void 
+inline void
 MemZero( T* buffer, std::size_t numEntries )
 {
     // This can be optimized/generalized later

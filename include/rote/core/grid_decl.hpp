@@ -1,20 +1,17 @@
 /*
    Copyright (c) 2009-2013, Jack Poulson
-                      2013, Jed Brown 
+                      2013, Jed Brown
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
 #ifndef ROTE_CORE_GRID_DECL_HPP
 #define ROTE_CORE_GRID_DECL_HPP
 
-#include <iostream>
-#include <vector>
-#include "rote/core/imports/mpi.hpp"
-#include "rote/core/environment_decl.hpp"
+#include "rote.hpp"
 
 namespace rote {
 
@@ -48,9 +45,9 @@ private:
     Unsigned linearRank_;
     Location gridLoc_;
 
-    // Keep track of whether or not our process is in the grid. This is 
+    // Keep track of whether or not our process is in the grid. This is
     // necessary to avoid calls like MPI_Comm_size when we're not in the
-    // communicator's group. Note that we _can_ call MPI_Group_rank when not 
+    // communicator's group. Note that we _can_ call MPI_Group_rank when not
     // in the group and that the result is MPI_UNDEFINED.
     bool inGrid_;
 

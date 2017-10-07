@@ -6,15 +6,13 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
+#pragma once
 #ifndef ROTE_CORE_PERMUTATION_HPP
 #define ROTE_CORE_PERMUTATION_HPP
 
-#include <complex>
-#include <vector>
-
 namespace rote {
 
-class Permutation{
+class Permutation {
 public:
 	Permutation();
 	Permutation(Unsigned order);

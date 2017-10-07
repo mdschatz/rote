@@ -13,9 +13,6 @@
 #ifndef ROTE_CORE_GRID_VIEW_IMPL_HPP
 #define ROTE_CORE_GRID_VIEW_IMPL_HPP
 
-#include "rote/core/grid_decl.hpp"
-#include "rote/util/vec_util.hpp"
-
 namespace rote {
 
 inline
@@ -242,4 +239,3 @@ operator!=( const GridView& A, const GridView& B )
 
 } // namespace rote
 #endif
-
