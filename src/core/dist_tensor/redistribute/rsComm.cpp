@@ -141,9 +141,9 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
 //        Location procGridLoc = myGridLoc;
         Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
-        Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
+        Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
         std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
-        Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
+        Location sendGridLoc = gvA.ToGridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA));
         Location procGridLoc = sendGridLoc;
 
         for(j = 0; j < sortedCommModes.size(); j++){

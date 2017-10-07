@@ -142,6 +142,67 @@ namespace rote {
   }
 
   //
+  // Util
+  //
+
+  Unsigned GridView::ToParticipatingLinearLoc(const Location& loc) const {
+    //Get the lin loc of the owner
+    Unsigned i, j;
+    int ownerLinearLoc = 0;
+    const TensorDistribution dist = Distribution();
+    const rote::Grid* g = Grid();
+    const Unsigned participatingOrder = ParticipatingOrder();
+    ModeArray participatingComms = UsedModes();
+    SortVector(participatingComms);
+
+    const Location gvParticipatingLoc = ParticipatingLoc();
+
+    ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
+    Location participatingGridLoc(gridSlice.size());
+
+    for(i = 0; i < participatingOrder; i++){
+        ModeDistribution modeDist = dist[i];
+        ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist.Entries());
+        const Location modeSliceLoc = LinearLoc2Loc(loc[i], modeSliceShape);
+
+        for(j = 0; j < modeDist.size(); j++){
+            int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
+            participatingGridLoc[indexOfMode] = modeSliceLoc[j];
+        }
+    }
+    ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
+    return ownerLinearLoc;
+  }
+
+  Location GridView::ToGridLoc(const Location& gvLoc) const {
+    #ifndef RELEASE
+      if(gvLoc.size() != ParticipatingOrder())
+          LogicError("Supplied loc must be same order as gridView");
+    #endif
+
+    const Unsigned gvOrder = ParticipatingOrder();
+    const TensorDistribution tDist = Distribution();
+
+    const rote::Grid* g = Grid();
+    const Unsigned gOrder = g->Order();
+    const ObjShape gShape = g->Shape();
+    Unsigned i, j;
+
+    Location gLoc(gOrder);
+    for(i = 0; i < gvOrder; i++){
+
+        const ModeDistribution mDist = tDist[i];
+        const ObjShape gSliceShape = FilterVector(gShape, mDist.Entries());
+        Location gSliceLoc = LinearLoc2Loc(gvLoc[i], gSliceShape);
+
+        for(j = 0; j < gSliceLoc.size(); j++){
+            gLoc[mDist[j]] = gSliceLoc[j];
+        }
+    }
+
+    return gLoc;
+  }
+  //
   // Comparison functions
   //
 

@@ -87,10 +87,10 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
     const Location myFirstElemB = this->DetermineFirstElem(gvB.ParticipatingLoc());
     const Location ownergvA = A.DetermineOwner(myFirstElemB);
 
-    const Location sendLoc = GridViewLoc2GridLoc(ownergvB, gvB);
+    const Location sendLoc = gvB.ToGridLoc(ownergvB);
     const Unsigned sendLinLoc = Loc2LinearLoc(FilterVector(sendLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
-    const Location recvLoc = GridViewLoc2GridLoc(ownergvA, gvA);
+    const Location recvLoc = gvA.ToGridLoc(ownergvA);
     const Unsigned recvLinLoc = Loc2LinearLoc(FilterVector(recvLoc, actualCommModes), FilterVector(g.Shape(), actualCommModes));
 
 		// PrintVector(actualCommModes, "actualCommModes", true);

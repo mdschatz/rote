@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -401,83 +401,6 @@ LinearLoc2Loc_(const Unsigned linearLoc, const ObjShape& shape, const Permutatio
         }
     }
     return ret;
-}
-
-inline
-Location
-GridViewLoc2GridLoc(const Location& gridViewLoc, const GridView& gridView)
-{
-    if(gridViewLoc.size() != gridView.ParticipatingOrder())
-        LogicError("Supplied loc must be same order as gridView");
-    return GridViewLoc2GridLoc_(gridViewLoc, gridView);
-}
-
-
-inline
-Location
-GridViewLoc2GridLoc_(const Location& gridViewLoc, const GridView& gridView)
-{
-
-    const Unsigned gvOrder = gridView.ParticipatingOrder();
-    const TensorDistribution tensorDist = gridView.Distribution();
-
-    const rote::Grid* grid = gridView.Grid();
-    const Unsigned gridOrder = grid->Order();
-    const ObjShape gridShape = grid->Shape();
-    Unsigned i, j;
-
-    Location gridLoc(gridOrder);
-    for(i = 0; i < gvOrder; i++){
-
-        const ModeDistribution modeDist = tensorDist[i];
-        const ObjShape gridSliceShape = FilterVector(gridShape, modeDist.Entries());
-        Location gridSliceLoc = LinearLoc2Loc(gridViewLoc[i], gridSliceShape);
-
-        for(j = 0; j < gridSliceLoc.size(); j++){
-            gridLoc[modeDist[j]] = gridSliceLoc[j];
-        }
-    }
-
-    return gridLoc;
-}
-
-inline
-Unsigned
-GridViewLoc2ParticipatingLinearLoc(const Location& gridViewLoc, const GridView& gridView)
-{
-    return GridViewLoc2ParticipatingLinearLoc_(gridViewLoc, gridView);
-}
-
-inline
-Unsigned
-GridViewLoc2ParticipatingLinearLoc_(const Location& gridViewLoc, const GridView& gridView)
-{
-    //Get the lin loc of the owner
-    Unsigned i, j;
-    int ownerLinearLoc = 0;
-    const TensorDistribution dist = gridView.Distribution();
-    const rote::Grid* g = gridView.Grid();
-    const Unsigned participatingOrder = gridView.ParticipatingOrder();
-    ModeArray participatingComms = gridView.UsedModes();
-    SortVector(participatingComms);
-
-    const Location gvParticipatingLoc = gridView.ParticipatingLoc();
-
-    ObjShape gridSlice = FilterVector(g->Shape(), participatingComms);
-    Location participatingGridLoc(gridSlice.size());
-
-    for(i = 0; i < participatingOrder; i++){
-        ModeDistribution modeDist = dist[i];
-        ObjShape modeSliceShape = FilterVector(g->Shape(), modeDist.Entries());
-        const Location modeSliceLoc = LinearLoc2Loc(gridViewLoc[i], modeSliceShape);
-
-        for(j = 0; j < modeDist.size(); j++){
-            int indexOfMode = std::find(participatingComms.begin(), participatingComms.end(), modeDist[j]) - participatingComms.begin();
-            participatingGridLoc[indexOfMode] = modeSliceLoc[j];
-        }
-    }
-    ownerLinearLoc = Loc2LinearLoc(participatingGridLoc, gridSlice);
-    return ownerLinearLoc;
 }
 
 inline

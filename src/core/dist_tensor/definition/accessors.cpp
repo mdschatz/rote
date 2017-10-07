@@ -265,14 +265,14 @@ DistTensorBase<T>::Get( const Location& loc ) const
     const rote::GridView& gv = GetGridView();
     T u = T(0);
     if(Participating()){
-        const Location ownerGridLoc = GridViewLoc2GridLoc(owningProc, gv);
+        const Location ownerGridLoc = gv.ToGridLoc(owningProc);
 
         if(!AnyElemwiseNotEqual(g.Loc(), ownerGridLoc)){
             const Location localLoc = Global2LocalIndex(loc);
             u = GetLocal(PermuteVector(localLoc, localPerm_));
         }
 
-        int ownerLinearLoc = GridViewLoc2ParticipatingLinearLoc(owningProc, gv);
+        int ownerLinearLoc = gv.ToParticipatingLinearLoc(owningProc);
         mpi::Broadcast( u, ownerLinearLoc, participatingComm_);
     }
 

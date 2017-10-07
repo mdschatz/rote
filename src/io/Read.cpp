@@ -2,8 +2,8 @@
    Copyright (c) 2009-2015, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
@@ -56,7 +56,7 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
         fileStream.read((char*)&value, sizeof(T));
         Location procGVLoc = A.DetermineOwner(gblDataLoc);
 
-        Unsigned whichProc = GridViewLoc2ParticipatingLinearLoc(procGVLoc, A.GetGridView());
+        Unsigned whichProc = A.GetGridView().ToParticipatingLinearLoc(procGVLoc);
         sendBuf[whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]] = value;
 //        PrintVector(gblDataLoc, "packing gblDataLoc");
 //        printf("packing to loc: %d\n", whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]);
@@ -132,7 +132,7 @@ ReadAsciiSeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSha
         T value;
         dataStream >> value;
         Location procGVLoc = A.DetermineOwner(gblDataLoc);
-        Unsigned whichProc = GridViewLoc2ParticipatingLinearLoc(procGVLoc, A.GetGridView());
+        Unsigned whichProc = A.GetGridView().ToParticipatingLinearLoc(procGVLoc);
         sendBuf[whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]] = value;
 
         //Update
@@ -564,7 +564,7 @@ void Read
   bool sequential )
 {
     if( format == AUTO )
-        format = DetectFormat( filename ); 
+        format = DetectFormat( filename );
 
     //Everyone accesses data
     if(!sequential)

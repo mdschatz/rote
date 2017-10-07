@@ -137,9 +137,9 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
         //Invert the process order based on the communicator used, to the actual process location
         Location sortedCommLoc = LinearLoc2Loc(i, commShape);
         Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
-        Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
+        Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
         std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
-        Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
+        Location sendGridLoc = gvA.ToGridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA));
         Location procGridLoc = sendGridLoc;
 
         for(j = 0; j < sortedCommModes.size(); j++){
@@ -249,11 +249,11 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
 
         //Determine what grid location p_i corresponds to BEFORE alignment has been performed
         //so we correctly determine what elements to unpack
-        Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
+        Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
         Location unpackProcGVA = GridLoc2ParticipatingGridViewLoc(procGridLoc, g.Shape(), A.TensorDist());
         std::vector<Unsigned> alignBinA = GridLoc2ParticipatingGridViewLoc(firstOwnerB, g.Shape(), A.TensorDist());
         Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(unpackProcGVA, alignBinA);
-        Location procLocBeforeRealign = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
+        Location procLocBeforeRealign = gvA.ToGridLoc(A.DetermineOwner(myFirstElemLocAligned));
 
         Location procFirstLoc = A.DetermineFirstElem(GridLoc2ParticipatingGridViewLoc(procLocBeforeRealign, gridShape, A.TensorDist()));
 

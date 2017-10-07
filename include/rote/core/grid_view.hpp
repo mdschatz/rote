@@ -37,11 +37,14 @@ public:
     ModeArray FreeModes() const;
 
     Unsigned LinearRank() const;
-    void SetMyGridViewLoc();
-
-    void IntroduceUnitModes(const ModeArray& unitModes);
 
     bool Participating() const;
+
+    // Util
+    void SetMyGridViewLoc();
+    void IntroduceUnitModes(const ModeArray& unitModes);
+    Unsigned ToParticipatingLinearLoc(const Location& loc) const;
+    Location ToGridLoc(const Location& loc) const;
 
 private:
     TensorDistribution dist_;

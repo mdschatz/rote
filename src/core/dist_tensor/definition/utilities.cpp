@@ -201,8 +201,8 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     GridView gvA = A.GetGridView();
     GridView gvB = this->GetGridView();
 
-    Location firstOwnerA = GridViewLoc2GridLoc(A.Alignments(), gvA);
-    Location firstOwnerB = GridViewLoc2GridLoc(this->Alignments(), gvB);
+    Location firstOwnerA = gvA.ToGridLoc(A.Alignments());
+    Location firstOwnerB = gvB.ToGridLoc(this->Alignments());
 
     if(!AnyElemwiseNotEqual(firstOwnerA, firstOwnerB))
     	return false;
@@ -216,8 +216,8 @@ DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSend
     Location myFirstElemLocA = A.DetermineFirstElem(gvA.ParticipatingLoc());
     Location myFirstElemLocAligned = A.DetermineFirstUnalignedElem(gvA.ParticipatingLoc(), alignBinA);
 
-    Location sendGridLoc = GridViewLoc2GridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA), gvA);
-    Location recvGridLoc = GridViewLoc2GridLoc(A.DetermineOwner(myFirstElemLocAligned), gvA);
+    Location sendGridLoc = gvA.ToGridLoc(A.DetermineOwnerNewAlignment(myFirstElemLocA, alignBinA));
+    Location recvGridLoc = gvA.ToGridLoc(A.DetermineOwner(myFirstElemLocAligned));
 
     //Create the communicator to involve all processes we need to fix misalignment
     ModeDistribution misalignedModesDist;
