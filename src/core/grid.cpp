@@ -38,9 +38,6 @@ namespace rote {
 
   Grid::Grid( mpi::Comm comm, const ObjShape& shape )
   {
-  #ifndef RELEASE
-      CallStackEntry entry("Grid::Grid");
-  #endif
       inGrid_ = true; // this is true by assumption for this constructor
 
       mpi::CommDup(comm, owningComm_);
@@ -57,9 +54,6 @@ namespace rote {
   void
   Grid::SetUpGrid()
   {
-  #ifndef RELEASE
-      CallStackEntry entry("Grid::SetUpGrid");
-  #endif
       const Unsigned order = Order();
       Unsigned i;
       if( size_ != prod(shape_))

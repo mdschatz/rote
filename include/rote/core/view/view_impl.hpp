@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -18,9 +18,6 @@ namespace rote {
 //////////////////////////////////////
 template<typename T>
 inline void ViewHelper( Tensor<T>& A, const Tensor<T>& B, bool isLocked){
-#ifndef RELEASE
-    CallStackEntry entry("ViewHelper");
-#endif
     A.memory_.Empty();
     A.shape_ = B.shape_;
     A.strides_     = B.strides_;
@@ -33,9 +30,6 @@ inline void ViewHelper( Tensor<T>& A, const Tensor<T>& B, bool isLocked){
 
 template<typename T>
 inline void ViewHelper( DistTensor<T>& A, const DistTensor<T>& B, bool isLocked){
-#ifndef RELEASE
-    CallStackEntry entry("ViewHelper");
-#endif
     A.Empty();
     A.grid_ = B.grid_;
     A.gridView_ = B.gridView_;
@@ -68,7 +62,6 @@ inline void ViewHelper
   const Location& loc, const ObjShape& shape, bool isLocked )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ViewHelper");
     const ObjShape shapeB = B.Shape();
     Location maxLoc(shape.size());
     ElemwiseSum(loc, shape, maxLoc);
@@ -114,7 +107,6 @@ inline void ViewHelper
   const Location& loc, const ObjShape& shape, bool isLocked )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ViewHelper");
     B.AssertValidSubtensor( loc, shape );
 #endif
     A.Empty();
@@ -164,8 +156,6 @@ inline void View2x1Helper
 ( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Mode mode, bool isLocked )
 {
 #ifndef RELEASE
-    CallStackEntry entry("View2x1Helper");
-
     std::vector<Mode> negFilter(1);
     negFilter[0] = mode;
 
@@ -194,7 +184,6 @@ inline void View2x1Helper
         const DistTensor<T>& BB, Mode mode, bool isLocked )
 {
 #ifndef RELEASE
-    CallStackEntry entry("View2x1Helper");
     AssertConforming2x1( BT, BB, mode );
     BT.AssertSameGrid( BB.Grid() );
 #endif
@@ -232,7 +221,6 @@ inline void ViewAsLowerOrderHelper
   const std::vector<ModeArray>& oldModes, bool isLocked )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ViewAsLowerOrderHelper");
     B.AssertMergeableModes(oldModes);
 #endif
     Unsigned i;
@@ -265,9 +253,6 @@ inline void ViewAsHigherOrderHelper
   const std::vector<ObjShape>& splitShape,
   bool isLocked)
 {
-#ifndef RELEASE
-    CallStackEntry entry("ViewAsHigherOrderHelper");
-#endif
     Unsigned i, j;
     Unsigned newOrder = 0;
     for(i = 0; i < splitShape.size(); i++)
@@ -304,10 +289,6 @@ inline void ViewAsMatrixHelper
   const Tensor<T>& B,
   const Unsigned& nModesMergeCol, bool isLocked )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ViewAsMartixHelper");
-    //B.AssertMergeableModes(oldModes);
-#endif
     Unsigned order = B.Order();
     Unsigned i;
     std::vector<ModeArray> mergeModes(2);
@@ -403,9 +384,6 @@ inline void ViewAsMatrixHelper
 template<typename T>
 inline void View( Tensor<T>& A, Tensor<T>& B )
 {
-#ifndef RELEASE
-    CallStackEntry entry("View");
-#endif
     ViewHelper(A, B, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -422,9 +400,6 @@ inline Tensor<T> View( Tensor<T>& B )
 template<typename T>
 inline void View( DistTensor<T>& A, DistTensor<T>& B )
 {
-#ifndef RELEASE
-    CallStackEntry entry("View");
-#endif
     ViewHelper(A, B, false);
     //Set the data we can't set in helper
     if(A.Participating() )
@@ -444,9 +419,6 @@ inline DistTensor<T> View( DistTensor<T>& B )
 template<typename T>
 inline void LockedView( Tensor<T>& A, const Tensor<T>& B )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedView");
-#endif
     ViewHelper(A, B, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -463,9 +435,6 @@ inline Tensor<T> LockedView( const Tensor<T>& B )
 template<typename T>
 inline void LockedView( DistTensor<T>& A, const DistTensor<T>& B )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedView");
-#endif
     ViewHelper(A, B, true);
     //Set the data we can't set in helper
     if(A.Participating()){
@@ -487,9 +456,6 @@ inline void View
 ( Tensor<T>& A, Tensor<T>& B,
   const Location& loc, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry entry("View");
-#endif
     ViewHelper(A, B, loc, shape, false);
     //Set the data we can't set in helper
     A.data_ = B.Buffer(loc);
@@ -508,9 +474,6 @@ inline void View
 ( DistTensor<T>& A, DistTensor<T>& B,
   const Location& loc, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry entry("View");
-#endif
     ViewHelper(A, B, loc, shape, false);
     //Set the data we can't set in helper
     if(A.Participating()){
@@ -536,9 +499,6 @@ inline void LockedView
 ( Tensor<T>& A, const Tensor<T>& B,
   const Location& loc, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedView");
-#endif
     ViewHelper(A, B, loc, shape, true);
     //Set the data we can't set in helper
     A.data_ = B.LockedBuffer(loc);
@@ -558,9 +518,6 @@ inline void LockedView
 ( DistTensor<T>& A, const DistTensor<T>& B,
   const Location& loc, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedView");
-#endif
     ViewHelper(A, B, loc, shape, true);
     //Set the data we can't set in helper
     if(A.Participating()){
@@ -584,9 +541,6 @@ inline DistTensor<T> LockedView
 template<typename T>
 inline void View2x1( Tensor<T>& A, Tensor<T>& BT, Tensor<T>& BB, Mode mode )
 {
-#ifndef RELEASE
-    CallStackEntry entry("View2x1");
-#endif
     View2x1Helper(A, BT, BB, mode, false);
     //Set the data we can't set in helper
     A.data_ = BT.data_;
@@ -604,9 +558,6 @@ template<typename T>
 inline void View2x1
 ( DistTensor<T>& A, DistTensor<T>& BT, DistTensor<T>& BB, Mode mode )
 {
-#ifndef RELEASE
-    CallStackEntry entry("View2x1");
-#endif
     View2x1Helper(A, BT, BB, mode, false);
     //Set the data we can't set in helper
     if(A.Participating()){
@@ -626,9 +577,6 @@ template<typename T>
 inline void LockedView2x1
 ( Tensor<T>& A, const Tensor<T>& BT, const Tensor<T>& BB, Mode mode )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedView2x1");
-#endif
     View2x1Helper(A, BT, BB, mode, true);
     //Set the data we can't set in helper
     A.data_ = BT.data_;
@@ -649,9 +597,6 @@ inline void LockedView2x1
   const DistTensor<T>& BT,
   const DistTensor<T>& BB, Mode mode )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedView2x1");
-#endif
     View2x1Helper(A, BT, BB, mode, true);
     //Set the data we can't set in helper
     if(A.Participating()){
@@ -674,9 +619,6 @@ inline void ViewAsLowerOrder
   Tensor<T>& B,
   const std::vector<ModeArray>& oldModes )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ViewAsLowerOrder");
-#endif
     ViewAsLowerOrderHelper(A, B, oldModes, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -698,9 +640,6 @@ inline void LockedViewAsLowerOrder
   const Tensor<T>& B,
   const std::vector<ModeArray>& oldModes )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedViewAsLowerOrder");
-#endif
     ViewAsLowerOrderHelper(A, B, oldModes, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -722,9 +661,6 @@ inline void ViewAsHigherOrder
   Tensor<T>& B,
   const std::vector<ObjShape>& splitShape)
 {
-#ifndef RELEASE
-    CallStackEntry entry("ViewAsHigherOrder");
-#endif
     ViewAsHigherOrderHelper(A, splitShape, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -746,9 +682,6 @@ inline void LockedViewAsHigherOrder
   const Tensor<T>& B,
   const std::vector<ObjShape>& splitShape)
 {
-#ifndef RELEASE
-    CallStackEntry entry("ViewAsHigherOrder");
-#endif
     ViewAsHigherOrderHelper(A, B, splitShape, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -770,9 +703,6 @@ inline void ViewAsMatrix
   const Tensor<T>& B,
   const Unsigned& nModesMergeCol )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ViewAsMatrix");
-#endif
     ViewAsMatrixHelper(A, B, nModesMergeCol, false);
     //Set the data we can't set in helper
     A.data_ = B.data_;
@@ -794,9 +724,6 @@ inline void LockedViewAsMatrix
   const Tensor<T>& B,
   const Unsigned& nModesMergeCol )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedViewAsLowerOrder");
-#endif
     ViewAsMatrixHelper(A, B, nModesMergeCol, true);
     //Set the data we can't set in helper
     A.data_ = B.data_;

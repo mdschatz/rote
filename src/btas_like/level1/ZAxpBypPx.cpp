@@ -187,9 +187,6 @@ template<typename T>
 inline void
 ZAxpBypPx( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const Tensor<T>& Y, const Permutation& permYToZ, const Tensor<T>& PX, const Permutation& permPXToZ, Tensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBypPx");
-#endif
     ZAxpBypPxData data;
     data.loopShape = Z.Shape();
     data.src1Strides = PermuteVector(X.Strides(), permXToZ);
@@ -214,7 +211,6 @@ inline void
 ZAxpBypPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, const DistTensor<T>& PX, const Permutation& perm, DistTensor<T>& Z )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ZAxpBypPx");
     if( X.Grid() != Y.Grid() )
         LogicError
         ("X and Y must be distributed over the same grid");

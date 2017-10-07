@@ -18,7 +18,6 @@ Gemm
 ( T alpha, const Tensor<T>& A, const Tensor<T>& B, T beta, Tensor<T>& C )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Gemm");
     if(A.Order() != 2 || B.Order() != 2 || C.Order() != 2)
         LogicError("Performing Gemm on non-matrix objects");
 #endif
@@ -37,9 +36,6 @@ inline void
 Gemm
 ( T alpha, const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Gemm");
-#endif
     Zeros( C );
     Gemm( alpha, A, B, T(0), C );
 }

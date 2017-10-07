@@ -75,9 +75,6 @@ Diff_fast(T const * const src1Buf, T const * const src2Buf,  T * const dstBuf, c
 //NOTE: Fix this loop to be correct
 template <typename T>
 void Diff(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
-#ifndef RELEASE
-    CallStackEntry("Diff");
-#endif
     DiffData data;
     data.loopShape = C.Shape();
     data.src1Strides = A.Strides();
@@ -96,9 +93,6 @@ void Diff(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 ////////////////////////////////////
 template <typename T>
 void Diff(const DistTensor<T>& A, const DistTensor<T>& B, DistTensor<T>& C){
-#ifndef RELEASE
-    CallStackEntry("Diff");
-#endif
     Diff(A.LockedTensor(), B.LockedTensor(), C.Tensor());
 }
 

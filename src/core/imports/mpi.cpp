@@ -4,19 +4,19 @@
                       2013, Jed Brown
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
 
 namespace {
 
-inline void 
+inline void
 SafeMpi( int mpiError )
 {
 #ifndef RELEASE
-    if( mpiError != MPI_SUCCESS )    
+    if( mpiError != MPI_SUCCESS )
     {
         char errorString[200];
         int lengthOfErrorString;
@@ -39,10 +39,10 @@ void Initialize( int& argc, char**& argv )
 { MPI_Init( &argc, &argv ); }
 
 int InitializeThread( int& argc, char**& argv, int required )
-{ 
-    int provided; 
+{
+    int provided;
 #ifdef HAVE_MPI_INIT_THREAD
-    MPI_Init_thread( &argc, &argv, required, &provided ); 
+    MPI_Init_thread( &argc, &argv, required, &provided );
 #else
     MPI_Init( &argc, &argv );
     provided = 0; // equivalent to MPI_THREAD_SINGLE
@@ -54,7 +54,7 @@ void Finalize()
 { MPI_Finalize(); }
 
 bool Initialized()
-{ 
+{
     int initialized;
     MPI_Initialized( &initialized );
     return initialized;
@@ -83,17 +83,11 @@ double Time()
 
 void OpCreate( UserFunction* func, bool commutes, Op& op )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::OpCreate");
-#endif
     SafeMpi( MPI_Op_create( func, commutes, &op ) );
 }
 
 void OpFree( Op& op )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::OpFree");
-#endif
     SafeMpi( MPI_Op_free( &op ) );
 }
 
@@ -103,9 +97,6 @@ void OpFree( Op& op )
 
 int WorldRank()
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::WorldRank");
-#endif
     int rank;
     SafeMpi( MPI_Comm_rank( COMM_WORLD, &rank ) );
     return rank;
@@ -113,9 +104,6 @@ int WorldRank()
 
 int CommRank( Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommRank");
-#endif
     int rank;
     SafeMpi( MPI_Comm_rank( comm, &rank ) );
     return rank;
@@ -123,9 +111,6 @@ int CommRank( Comm comm )
 
 int CommSize( Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommSize");
-#endif
     int size;
     SafeMpi( MPI_Comm_size( comm, &size ) );
     return size;
@@ -133,41 +118,26 @@ int CommSize( Comm comm )
 
 void CommCreate( Comm parentComm, Group subsetGroup, Comm& subsetComm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommCreate");
-#endif
     SafeMpi( MPI_Comm_create( parentComm, subsetGroup, &subsetComm ) );
 }
 
 void CommDup( Comm original, Comm& duplicate )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommDup");
-#endif
     SafeMpi( MPI_Comm_dup( original, &duplicate ) );
 }
 
 void CommSplit( Comm comm, int color, int key, Comm& newComm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommSplit");
-#endif
     SafeMpi( MPI_Comm_split( comm, color, key, &newComm ) );
 }
 
 void CommFree( Comm& comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommFree");
-#endif
     SafeMpi( MPI_Comm_free( &comm ) );
 }
 
 bool CongruentComms( Comm comm1, Comm comm2 )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CongruentComms");
-#endif
     int result;
     SafeMpi( MPI_Comm_compare( comm1, comm2, &result ) );
     return ( result == MPI_IDENT || result == MPI_CONGRUENT );
@@ -175,9 +145,6 @@ bool CongruentComms( Comm comm1, Comm comm2 )
 
 void ErrorHandlerSet( Comm comm, ErrorHandler errorHandler )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ErrorHandlerSet");
-#endif
 #ifdef HAVE_MPI_COMM_SET_ERRHANDLER
     SafeMpi( MPI_Comm_set_errhandler( comm, errorHandler ) );
 #else
@@ -190,23 +157,17 @@ void ErrorHandlerSet( Comm comm, ErrorHandler errorHandler )
 //---------------------------------//
 
 void CartCreate
-( Comm comm, int numDims, const int* dimensions, const int* periods, 
+( Comm comm, int numDims, const int* dimensions, const int* periods,
   bool reorder, Comm& cartComm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CartCreate");
-#endif
     SafeMpi
     ( MPI_Cart_create
-      ( comm, numDims, const_cast<int*>(dimensions), 
+      ( comm, numDims, const_cast<int*>(dimensions),
         const_cast<int*>(periods), reorder, &cartComm ) );
 }
 
 void CartSub( Comm comm, const int* remainingDims, Comm& subComm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CartSub");
-#endif
     SafeMpi( MPI_Cart_sub( comm, const_cast<int*>(remainingDims), &subComm ) );
 }
 
@@ -216,9 +177,6 @@ void CartSub( Comm comm, const int* remainingDims, Comm& subComm )
 
 int GroupRank( Group group )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GroupRank");
-#endif
     int rank;
     SafeMpi( MPI_Group_rank( group, &rank ) );
     return rank;
@@ -226,9 +184,6 @@ int GroupRank( Group group )
 
 int GroupSize( Group group )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GroupSize");
-#endif
     int size;
     SafeMpi( MPI_Group_size( group, &size ) );
     return size;
@@ -236,43 +191,28 @@ int GroupSize( Group group )
 
 void CommGroup( Comm comm, Group& group )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::CommGroup");
-#endif
     SafeMpi( MPI_Comm_group( comm, &group ) );
 }
 
 void GroupIncl( Group group, int n, const int* ranks, Group& subGroup )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GroupIncl");
-#endif
     SafeMpi( MPI_Group_incl( group, n, const_cast<int*>(ranks), &subGroup ) );
 }
 
 void GroupDifference( Group parent, Group subset, Group& complement )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GroupDifference");
-#endif
     SafeMpi( MPI_Group_difference( parent, subset, &complement ) );
 }
 
 void GroupFree( Group& group )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GroupFree");
-#endif
     SafeMpi( MPI_Group_free( &group ) );
 }
 
 void GroupTranslateRanks
-( Group origGroup, int size, const int* origRanks, 
+( Group origGroup, int size, const int* origRanks,
   Group newGroup,                  int* newRanks )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GroupTranslateRanks");
-#endif
     SafeMpi
     ( MPI_Group_translate_ranks
       ( origGroup, size, const_cast<int*>(origRanks), newGroup, newRanks ) );
@@ -281,18 +221,12 @@ void GroupTranslateRanks
 // Wait until every process in comm reaches this statement
 void Barrier( Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Barrier");
-#endif
     SafeMpi( MPI_Barrier( comm ) );
 }
 
 // Test for completion
 bool Test( Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Test");
-#endif
     Status status;
     int flag;
     SafeMpi( MPI_Test( &request, &flag, &status ) );
@@ -302,9 +236,6 @@ bool Test( Request& request )
 // Ensure that the request finishes before continuing
 void Wait( Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Wait");
-#endif
     Status status;
     SafeMpi( MPI_Wait( &request, &status ) );
 }
@@ -312,18 +243,12 @@ void Wait( Request& request )
 // Ensure that the request finishes before continuing
 void Wait( Request& request, Status& status )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Wait");
-#endif
     SafeMpi( MPI_Wait( &request, &status ) );
 }
 
 // Ensure that several requests finish before continuing
 void WaitAll( int numRequests, Request* requests )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::WaitAll");
-#endif
     std::vector<Status> statuses( numRequests );
     SafeMpi( MPI_Waitall( numRequests, requests, statuses.data() ) );
 }
@@ -331,18 +256,12 @@ void WaitAll( int numRequests, Request* requests )
 // Ensure that several requests finish before continuing
 void WaitAll( int numRequests, Request* requests, Status* statuses )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::WaitAll");
-#endif
     SafeMpi( MPI_Waitall( numRequests, requests, statuses ) );
 }
 
 // Nonblocking test for message completion
 bool IProbe( int source, int tag, Comm comm, Status& status )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IProbe");
-#endif
     int flag;
     SafeMpi( MPI_Iprobe( source, tag, comm, &flag, &status ) );
     return flag;
@@ -353,9 +272,6 @@ bool IProbe( int source, Comm comm, Status& status )
 template<typename T>
 int GetCount( Status& status )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::GetCount");
-#endif
     int count;
     SafeMpi( MPI_Get_count( &status, TypeMap<T>(), &count ) );
     return count;
@@ -376,10 +292,7 @@ template int GetCount<std::complex<double> >( Status& status );
 
 template<typename R>
 void TaggedSend( const R* buf, int count, int to, int tag, Comm comm )
-{ 
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Send");
-#endif
+{
     SafeMpi
     ( MPI_Send( const_cast<R*>(buf), count, TypeMap<R>(), to, tag, comm ) );
 }
@@ -387,9 +300,6 @@ void TaggedSend( const R* buf, int count, int to, int tag, Comm comm )
 template<typename R>
 void TaggedSend( const std::complex<R>* buf, int count, int to, int tag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Send");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Send
@@ -474,13 +384,10 @@ template void Send( std::complex<double> b, int to, Comm comm );
 template<typename R>
 void TaggedISend
 ( const R* buf, int count, int to, int tag, Comm comm, Request& request )
-{ 
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ISend");
-#endif
+{
     SafeMpi
     ( MPI_Isend
-      ( const_cast<R*>(buf), count, TypeMap<R>(), to, 
+      ( const_cast<R*>(buf), count, TypeMap<R>(), to,
         tag, comm, &request ) );
 }
 
@@ -489,9 +396,6 @@ void TaggedISend
 ( const std::complex<R>* buf, int count, int to, int tag, Comm comm,
   Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ISend");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Isend
@@ -522,7 +426,7 @@ template void TaggedISend( const std::complex<double>* buf, int count, int to, i
 template<typename T>
 void ISend
 ( const T* buf, int count, int to, Comm comm, Request& request )
-{ TaggedISend( buf, count, to, 0, comm, request ); } 
+{ TaggedISend( buf, count, to, 0, comm, request ); }
 
 template void ISend( const byte* buf, int count, int to, Comm comm, Request& request );
 template void ISend( const int* buf, int count, int to, Comm comm, Request& request );
@@ -578,12 +482,9 @@ template<typename R>
 void TaggedISSend
 ( const R* buf, int count, int to, int tag, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ISSend");
-#endif
     SafeMpi
     ( MPI_Issend
-      ( const_cast<R*>(buf), count, TypeMap<R>(), to, 
+      ( const_cast<R*>(buf), count, TypeMap<R>(), to,
         tag, comm, &request ) );
 }
 
@@ -592,9 +493,6 @@ void TaggedISSend
 ( const std::complex<R>* buf, int count, int to, int tag, Comm comm,
   Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ISSend");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Issend
@@ -661,9 +559,6 @@ template void TaggedISSend( std::complex<double> b, int to, int tag, Comm comm, 
 template<typename R>
 void TaggedRecv( R* buf, int count, int from, int tag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Recv");
-#endif
     Status status;
     SafeMpi
     ( MPI_Recv( buf, count, TypeMap<R>(), from, tag, comm, &status ) );
@@ -672,9 +567,6 @@ void TaggedRecv( R* buf, int count, int from, int tag, Comm comm )
 template<typename R>
 void TaggedRecv( std::complex<R>* buf, int count, int from, int tag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Recv");
-#endif
     Status status;
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
@@ -758,9 +650,6 @@ template<typename R>
 void TaggedIRecv
 ( R* buf, int count, int from, int tag, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IRecv");
-#endif
     SafeMpi
     ( MPI_Irecv( buf, count, TypeMap<R>(), from, tag, comm, &request ) );
 }
@@ -769,9 +658,6 @@ template<typename R>
 void TaggedIRecv
 ( std::complex<R>* buf, int count, int from, int tag, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IRecv");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Irecv( buf, 2*count, TypeMap<R>(), from, tag, comm, &request ) );
@@ -855,14 +741,11 @@ void TaggedSendRecv
 ( const R* sbuf, int sc, int to,   int stag,
         R* rbuf, int rc, int from, int rtag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::SendRecv");
-#endif
     Status status;
     SafeMpi
     ( MPI_Sendrecv
       ( const_cast<R*>(sbuf), sc, TypeMap<R>(), to,   stag,
-        rbuf,                 rc, TypeMap<R>(), from, rtag, 
+        rbuf,                 rc, TypeMap<R>(), from, rtag,
         comm, &status ) );
 }
 
@@ -871,54 +754,51 @@ void TaggedSendRecv
 ( const std::complex<R>* sbuf, int sc, int to,   int stag,
         std::complex<R>* rbuf, int rc, int from, int rtag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::SendRecv");
-#endif
     Status status;
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Sendrecv
       ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(), to,   stag,
-        rbuf,                          2*rc, TypeMap<R>(), from, rtag, 
+        rbuf,                          2*rc, TypeMap<R>(), from, rtag,
         comm, &status ) );
 #else
     SafeMpi
     ( MPI_Sendrecv
       ( const_cast<std::complex<R>*>(sbuf),
         sc, TypeMap<std::complex<R> >(), to,   stag,
-        rbuf,                          
+        rbuf,
         rc, TypeMap<std::complex<R> >(), from, rtag, comm, &status ) );
 #endif
 }
 
 template void TaggedSendRecv
-( const byte* sbuf, int sc, int to, int stag, 
+( const byte* sbuf, int sc, int to, int stag,
         byte* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const int* sbuf, int sc, int to, int stag, 
+( const int* sbuf, int sc, int to, int stag,
         int* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const unsigned* sbuf, int sc, int to, int stag, 
+( const unsigned* sbuf, int sc, int to, int stag,
         unsigned* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const long int* sbuf, int sc, int to, int stag, 
+( const long int* sbuf, int sc, int to, int stag,
         long int* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const unsigned long* sbuf, int sc, int to, int stag, 
+( const unsigned long* sbuf, int sc, int to, int stag,
         unsigned long* rbuf, int rc, int from, int rtag, Comm comm );
 #ifdef HAVE_MPI_LONG_LONG
 template void TaggedSendRecv
-( const long long int* sbuf, int sc, int to, int stag, 
+( const long long int* sbuf, int sc, int to, int stag,
         long long int* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const unsigned long long* sbuf, int sc, int to, int stag, 
+( const unsigned long long* sbuf, int sc, int to, int stag,
         unsigned long long* rbuf, int rc, int from, int rtag, Comm comm );
 #endif
 template void TaggedSendRecv
-( const float* sbuf, int sc, int to, int stag, 
+( const float* sbuf, int sc, int to, int stag,
         float* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
-( const double* sbuf, int sc, int to, int stag, 
+( const double* sbuf, int sc, int to, int stag,
         double* rbuf, int rc, int from, int rtag, Comm comm );
 template void TaggedSendRecv
 ( const std::complex<float>* sbuf, int sc, int to, int stag,
@@ -929,31 +809,31 @@ template void TaggedSendRecv
 
 template<typename T>
 void SendRecv
-( const T* sbuf, int sc, int to, 
+( const T* sbuf, int sc, int to,
         T* rbuf, int rc, int from, Comm comm )
 { TaggedSendRecv( sbuf, sc, to, 0, rbuf, rc, from, mpi::ANY_TAG, comm ); }
 
 template void SendRecv
-( const byte* sbuf, int sc, int to, 
+( const byte* sbuf, int sc, int to,
         byte* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const int* sbuf, int sc, int to, 
+( const int* sbuf, int sc, int to,
         int* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const unsigned* sbuf, int sc, int to, 
+( const unsigned* sbuf, int sc, int to,
         unsigned* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const long int* sbuf, int sc, int to, 
+( const long int* sbuf, int sc, int to,
         long int* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const unsigned long* sbuf, int sc, int to, 
+( const unsigned long* sbuf, int sc, int to,
         unsigned long* rbuf, int rc, int from, Comm comm );
 #ifdef HAVE_MPI_LONG_LONG
 template void SendRecv
-( const long long int* sbuf, int sc, int to, 
+( const long long int* sbuf, int sc, int to,
         long long int* rbuf, int rc, int from, Comm comm );
 template void SendRecv
-( const unsigned long long* sbuf, int sc, int to, 
+( const unsigned long long* sbuf, int sc, int to,
         unsigned long long* rbuf, int rc, int from, Comm comm );
 #endif
 template void SendRecv
@@ -971,10 +851,10 @@ template void SendRecv
 
 template<typename T>
 T TaggedSendRecv( T sb, int to, int stag, int from, int rtag, Comm comm )
-{ 
-    T rb; 
-    TaggedSendRecv( &sb, 1, to, stag, &rb, 1, from, rtag, comm ); 
-    return rb; 
+{
+    T rb;
+    TaggedSendRecv( &sb, 1, to, stag, &rb, 1, from, rtag, comm );
+    return rb;
 }
 
 template byte TaggedSendRecv
@@ -1026,9 +906,6 @@ template<typename R>
 void TaggedSendRecv
 ( R* buf, int count, int to, int stag, int from, int rtag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::SendRecv");
-#endif
     Status status;
     SafeMpi
     ( MPI_Sendrecv_replace
@@ -1039,9 +916,6 @@ template<typename R>
 void TaggedSendRecv
 ( std::complex<R>* buf, int count, int to, int stag, int from, int rtag, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::SendRecv");
-#endif
     Status status;
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
@@ -1114,18 +988,12 @@ template void SendRecv
 template<typename R>
 void Broadcast( R* buf, int count, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Broadcast");
-#endif
     SafeMpi( MPI_Bcast( buf, count, TypeMap<R>(), root, comm ) );
 }
 
 template<typename R>
 void Broadcast( std::complex<R>* buf, int count, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Broadcast");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi( MPI_Bcast( buf, 2*count, TypeMap<R>(), root, comm ) );
 #else
@@ -1169,9 +1037,6 @@ template void Broadcast( std::complex<double>& b, int root, Comm comm );
 template<typename R>
 void IBroadcast( R* buf, int count, int root, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IBroadcast");
-#endif
     SafeMpi( MPI_Ibcast( buf, count, TypeMap<R>(), root, comm, &request ) );
 }
 
@@ -1179,9 +1044,6 @@ template<typename R>
 void IBroadcast
 ( std::complex<R>* buf, int count, int root, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IBroadcast");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Ibcast( buf, 2*count, TypeMap<R>(), root, comm, &request ) );
@@ -1230,9 +1092,6 @@ void Gather
 ( const R* sbuf, int sc,
         R* rbuf, int rc, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Gather");
-#endif
     SafeMpi
     ( MPI_Gather
       ( const_cast<R*>(sbuf), sc, TypeMap<R>(),
@@ -1244,9 +1103,6 @@ void Gather
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, int rc, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Gather");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Gather
@@ -1281,9 +1137,6 @@ void IGather
 ( const R* sbuf, int sc,
         R* rbuf, int rc, int root, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IGather");
-#endif
     SafeMpi
     ( MPI_Igather
       ( const_cast<R*>(sbuf), sc, TypeMap<R>(),
@@ -1295,14 +1148,11 @@ void IGather
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, int rc, int root, Comm comm, Request& request )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::IGather");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Igather
       ( const_cast<std::complex<R>*>(sbuf), 2*sc, TypeMap<R>(),
-        rbuf,                          2*rc, TypeMap<R>(), 
+        rbuf,                          2*rc, TypeMap<R>(),
         root, comm, &request ) );
 #else
     SafeMpi
@@ -1314,19 +1164,19 @@ void IGather
 }
 
 template void IGather
-( const byte* sbuf, int sc, 
+( const byte* sbuf, int sc,
         byte* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const int* sbuf, int sc, 
+( const int* sbuf, int sc,
         int* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const unsigned* sbuf, int sc, 
+( const unsigned* sbuf, int sc,
         unsigned* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const long int* sbuf, int sc, 
+( const long int* sbuf, int sc,
         long int* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const unsigned long* sbuf, int sc, 
+( const unsigned long* sbuf, int sc,
         unsigned long* rbuf, int rc, int root, Comm comm, Request& request );
 #ifdef HAVE_MPI_LONG_LONG
 template void IGather
@@ -1337,10 +1187,10 @@ template void IGather
         unsigned long long* rbuf, int rc, int root, Comm comm, Request& request );
 #endif
 template void IGather
-( const float* sbuf, int sc, 
+( const float* sbuf, int sc,
         float* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
-( const double* sbuf, int sc, 
+( const double* sbuf, int sc,
         double* rbuf, int rc, int root, Comm comm, Request& request );
 template void IGather
 ( const std::complex<float>* sbuf, int sc,
@@ -1355,19 +1205,16 @@ void Gather
 ( const R* sbuf, int sc,
         R* rbuf, const int* rcs, const int* rds, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Gather");
-#endif
     SafeMpi
     ( MPI_Gatherv
-      ( const_cast<R*>(sbuf), 
-        sc,       
+      ( const_cast<R*>(sbuf),
+        sc,
         TypeMap<R>(),
-        rbuf,                    
-        const_cast<int*>(rcs), 
-        const_cast<int*>(rds), 
+        rbuf,
+        const_cast<int*>(rcs),
+        const_cast<int*>(rds),
         TypeMap<R>(),
-        root, 
+        root,
         comm ) );
 }
 
@@ -1376,9 +1223,6 @@ void Gather
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, const int* rcs, const int* rds, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Gather");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     const int commRank = CommRank( comm );
     const int commSize = CommSize( comm );
@@ -1402,45 +1246,45 @@ void Gather
     SafeMpi
     ( MPI_Gatherv
       ( const_cast<std::complex<R>*>(sbuf),
-        sc,       
+        sc,
         TypeMap<std::complex<R> >(),
-        rbuf,  
-        const_cast<int*>(rcs), 
-        const_cast<int*>(rds), 
+        rbuf,
+        const_cast<int*>(rcs),
+        const_cast<int*>(rds),
         TypeMap<std::complex<R> >(),
-        root, 
+        root,
         comm ) );
 #endif
 }
 
 template void Gather
-( const byte* sbuf, int sc, 
+( const byte* sbuf, int sc,
         byte* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const int* sbuf, int sc, 
+( const int* sbuf, int sc,
         int* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const unsigned* sbuf, int sc, 
+( const unsigned* sbuf, int sc,
         unsigned* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const long int* sbuf, int sc, 
+( const long int* sbuf, int sc,
         long int* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const unsigned long* sbuf, int sc, 
+( const unsigned long* sbuf, int sc,
         unsigned long* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 #ifdef HAVE_MPI_LONG_LONG
 template void Gather
-( const long long int* sbuf, int sc, 
+( const long long int* sbuf, int sc,
         long long int* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const unsigned long long* sbuf, int sc, 
+( const unsigned long long* sbuf, int sc,
         unsigned long long* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 #endif
 template void Gather
-( const float* sbuf, int sc, 
+( const float* sbuf, int sc,
         float* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
-( const double* sbuf, int sc, 
+( const double* sbuf, int sc,
         double* rbuf, const int* rcs, const int* rds, int root, Comm comm );
 template void Gather
 ( const std::complex<float>* sbuf, int sc,
@@ -1456,18 +1300,15 @@ void AllGather
 ( const R* sbuf, int sc,
         R* rbuf, int rc, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllGather");
-#endif
 #ifdef USE_BYTE_ALLGATHERS
     SafeMpi
     ( MPI_Allgather
-      ( const_cast<R*>(sbuf), sizeof(R)*sc, MPI_UNSIGNED_CHAR, 
+      ( const_cast<R*>(sbuf), sizeof(R)*sc, MPI_UNSIGNED_CHAR,
         rbuf,                 sizeof(R)*rc, MPI_UNSIGNED_CHAR, comm ) );
 #else
     SafeMpi
     ( MPI_Allgather
-      ( const_cast<R*>(sbuf), sc, TypeMap<R>(), 
+      ( const_cast<R*>(sbuf), sc, TypeMap<R>(),
         rbuf,                 rc, TypeMap<R>(), comm ) );
 #endif
 }
@@ -1477,14 +1318,11 @@ void AllGather
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, int rc, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllGather");
-#endif
 #ifdef USE_BYTE_ALLGATHERS
     SafeMpi
     ( MPI_Allgather
       ( const_cast<std::complex<R>*>(sbuf), 2*sizeof(R)*sc, MPI_UNSIGNED_CHAR,
-        rbuf,                          2*sizeof(R)*rc, MPI_UNSIGNED_CHAR, 
+        rbuf,                          2*sizeof(R)*rc, MPI_UNSIGNED_CHAR,
         comm ) );
 #else
  #ifdef AVOID_COMPLEX_MPI
@@ -1520,9 +1358,6 @@ void AllGather
 ( const R* sbuf, int sc,
         R* rbuf, const int* rcs, const int* rds, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllGather");
-#endif
 #ifdef USE_BYTE_ALLGATHERS
     const int commSize = CommSize( comm );
     std::vector<int> byteRcs( commSize ), byteRds( commSize );
@@ -1533,18 +1368,18 @@ void AllGather
     }
     SafeMpi
     ( MPI_Allgatherv
-      ( const_cast<R*>(sbuf), sizeof(R)*sc,   MPI_UNSIGNED_CHAR, 
+      ( const_cast<R*>(sbuf), sizeof(R)*sc,   MPI_UNSIGNED_CHAR,
         rbuf, byteRcs.data(), byteRds.data(), MPI_UNSIGNED_CHAR, comm ) );
 #else
     SafeMpi
     ( MPI_Allgatherv
-      ( const_cast<R*>(sbuf), 
-        sc, 
-        TypeMap<R>(), 
-        rbuf,   
-        const_cast<int*>(rcs), 
-        const_cast<int*>(rds), 
-        TypeMap<R>(), 
+      ( const_cast<R*>(sbuf),
+        sc,
+        TypeMap<R>(),
+        rbuf,
+        const_cast<int*>(rcs),
+        const_cast<int*>(rds),
+        TypeMap<R>(),
         comm ) );
 #endif
 }
@@ -1554,9 +1389,6 @@ void AllGather
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, const int* rcs, const int* rds, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllGather");
-#endif
 #ifdef USE_BYTE_ALLGATHERS
     const int commSize = CommSize( comm );
     std::vector<int> byteRcs( commSize ), byteRds( commSize );
@@ -1586,11 +1418,11 @@ void AllGather
     SafeMpi
     ( MPI_Allgatherv
       ( const_cast<std::complex<R>*>(sbuf),
-        sc, 
+        sc,
         TypeMap<std::complex<R> >(),
-        rbuf, 
-        const_cast<int*>(rcs), 
-        const_cast<int*>(rds), 
+        rbuf,
+        const_cast<int*>(rcs),
+        const_cast<int*>(rds),
         TypeMap<std::complex<R> >(),
         comm ) );
  #endif
@@ -1598,33 +1430,33 @@ void AllGather
 }
 
 template void AllGather
-( const byte* sbuf, int sc, 
+( const byte* sbuf, int sc,
         byte* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const int* sbuf, int sc, 
+( const int* sbuf, int sc,
         int* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const unsigned* sbuf, int sc, 
+( const unsigned* sbuf, int sc,
         unsigned* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const long int* sbuf, int sc, 
+( const long int* sbuf, int sc,
         long int* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const unsigned long* sbuf, int sc, 
+( const unsigned long* sbuf, int sc,
         unsigned long* rbuf, const int* rcs, const int* rds, Comm comm );
 #ifdef HAVE_MPI_LONG_LONG
 template void AllGather
-( const long long int* sbuf, int sc, 
+( const long long int* sbuf, int sc,
         long long int* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const unsigned long long* sbuf, int sc, 
+( const unsigned long long* sbuf, int sc,
         unsigned long long* rbuf, const int* rcs, const int* rds, Comm comm );
 #endif
 template void AllGather
-( const float* sbuf, int sc, 
+( const float* sbuf, int sc,
         float* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
-( const double* sbuf, int sc, 
+( const double* sbuf, int sc,
         double* rbuf, const int* rcs, const int* rds, Comm comm );
 template void AllGather
 ( const std::complex<float>* sbuf, int sc,
@@ -1638,9 +1470,6 @@ void Scatter
 ( const R* sbuf, int sc,
         R* rbuf, int rc, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Scatter");
-#endif
     SafeMpi
     ( MPI_Scatter
       ( const_cast<R*>(sbuf), sc, TypeMap<R>(),
@@ -1652,9 +1481,6 @@ void Scatter
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, int rc, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Scatter");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Scatter
@@ -1670,33 +1496,33 @@ void Scatter
 }
 
 template void Scatter
-( const byte* sbuf, int sc, 
+( const byte* sbuf, int sc,
         byte* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const int* sbuf, int sc, 
+( const int* sbuf, int sc,
         int* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const unsigned* sbuf, int sc, 
+( const unsigned* sbuf, int sc,
         unsigned* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const long int* sbuf, int sc, 
+( const long int* sbuf, int sc,
         long int* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const unsigned long* sbuf, int sc, 
+( const unsigned long* sbuf, int sc,
         unsigned long* rbuf, int rc, int root, Comm comm );
 #ifdef HAVE_MPI_LONG_LONG
 template void Scatter
-( const long long int* sbuf, int sc, 
+( const long long int* sbuf, int sc,
         long long int* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const unsigned long long* sbuf, int sc, 
+( const unsigned long long* sbuf, int sc,
         unsigned long long* rbuf, int rc, int root, Comm comm );
 #endif
 template void Scatter
-( const float* sbuf, int sc, 
+( const float* sbuf, int sc,
         float* rbuf, int rc, int root, Comm comm );
 template void Scatter
-( const double* sbuf, int sc, 
+( const double* sbuf, int sc,
         double* rbuf, int rc, int root, Comm comm );
 template void Scatter
 ( const std::complex<float>* sbuf, int sc,
@@ -1708,16 +1534,13 @@ template void Scatter
 template<typename R>
 void Scatter( R* buf, int sc, int rc, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Scatter");
-#endif
     const int commRank = CommRank( comm );
     if( commRank == root )
     {
 #ifdef HAVE_MPI_IN_PLACE
         SafeMpi
         ( MPI_Scatter
-          ( buf,          sc, TypeMap<R>(), 
+          ( buf,          sc, TypeMap<R>(),
             MPI_IN_PLACE, rc, TypeMap<R>(), root, comm ) );
 #else
         const int commSize = CommSize( comm );
@@ -1725,7 +1548,7 @@ void Scatter( R* buf, int sc, int rc, int root, Comm comm )
         MemCopy( sendBuf.data(), buf, sc*commSize );
         SafeMpi
         ( MPI_Scatter
-          ( sendBuf.data(), sc, TypeMap<R>(), 
+          ( sendBuf.data(), sc, TypeMap<R>(),
             buf,            rc, TypeMap<R>(), root, comm ) );
 #endif
     }
@@ -1733,7 +1556,7 @@ void Scatter( R* buf, int sc, int rc, int root, Comm comm )
     {
         SafeMpi
         ( MPI_Scatter
-          ( 0,   sc, TypeMap<R>(), 
+          ( 0,   sc, TypeMap<R>(),
             buf, rc, TypeMap<R>(), root, comm ) );
     }
 }
@@ -1741,9 +1564,6 @@ void Scatter( R* buf, int sc, int rc, int root, Comm comm )
 template<typename R>
 void Scatter( std::complex<R>* buf, int sc, int rc, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Scatter");
-#endif
     const int commRank = CommRank( comm );
     if( commRank == root )
     {
@@ -1751,7 +1571,7 @@ void Scatter( std::complex<R>* buf, int sc, int rc, int root, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
         SafeMpi
         ( MPI_Scatter
-          ( buf,          2*sc, TypeMap<R>(), 
+          ( buf,          2*sc, TypeMap<R>(),
             MPI_IN_PLACE, 2*rc, TypeMap<R>(), root, comm ) );
 # else
         const int commSize = CommSize( comm );
@@ -1759,7 +1579,7 @@ void Scatter( std::complex<R>* buf, int sc, int rc, int root, Comm comm )
         MemCopy( sendBuf.data(), buf, sc*commSize );
         SafeMpi
         ( MPI_Scatter
-          ( sendBuf.data(), 2*sc, TypeMap<R>(),          
+          ( sendBuf.data(), 2*sc, TypeMap<R>(),
             buf,            2*rc, TypeMap<R>(), root, comm ) );
 # endif
 #else
@@ -1784,7 +1604,7 @@ void Scatter( std::complex<R>* buf, int sc, int rc, int root, Comm comm )
 #ifdef AVOID_COMPLEX_MPI
         SafeMpi
         ( MPI_Scatter
-          ( 0,   2*sc, TypeMap<R>(), 
+          ( 0,   2*sc, TypeMap<R>(),
             buf, 2*rc, TypeMap<R>(), root, comm ) );
 #else
         SafeMpi
@@ -1814,9 +1634,6 @@ void AllToAll
 ( const R* sbuf, int sc,
         R* rbuf, int rc, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllToAll");
-#endif
     SafeMpi
     ( MPI_Alltoall
       ( const_cast<R*>(sbuf), sc, TypeMap<R>(),
@@ -1828,9 +1645,6 @@ void AllToAll
 ( const std::complex<R>* sbuf, int sc,
         std::complex<R>* rbuf, int rc, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllToAll");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     SafeMpi
     ( MPI_Alltoall
@@ -1845,33 +1659,33 @@ void AllToAll
 }
 
 template void AllToAll
-( const byte* sbuf, int sc, 
+( const byte* sbuf, int sc,
         byte* rbuf, int rc, Comm comm );
 template void AllToAll
-( const int* sbuf, int sc, 
+( const int* sbuf, int sc,
         int* rbuf, int rc, Comm comm );
 template void AllToAll
-( const unsigned* sbuf, int sc, 
+( const unsigned* sbuf, int sc,
         unsigned* rbuf, int rc, Comm comm );
 template void AllToAll
-( const long int* sbuf, int sc, 
+( const long int* sbuf, int sc,
         long int* rbuf, int rc, Comm comm );
 template void AllToAll
-( const unsigned long* sbuf, int sc, 
+( const unsigned long* sbuf, int sc,
         unsigned long* rbuf, int rc, Comm comm );
 #ifdef HAVE_MPI_LONG_LONG
 template void AllToAll
-( const long long int* sbuf, int sc, 
+( const long long int* sbuf, int sc,
         long long int* rbuf, int rc, Comm comm );
 template void AllToAll
-( const unsigned long long* sbuf, int sc, 
+( const unsigned long long* sbuf, int sc,
         unsigned long long* rbuf, int rc, Comm comm );
 #endif
 template void AllToAll
-( const float* sbuf, int sc, 
+( const float* sbuf, int sc,
         float* rbuf, int rc, Comm comm );
 template void AllToAll
-( const double* sbuf, int sc, 
+( const double* sbuf, int sc,
         double* rbuf, int rc, Comm comm );
 template void AllToAll
 ( const std::complex<float>* sbuf, int sc,
@@ -1882,21 +1696,18 @@ template void AllToAll
 
 template<typename R>
 void AllToAll
-( const R* sbuf, const int* scs, const int* sds, 
+( const R* sbuf, const int* scs, const int* sds,
         R* rbuf, const int* rcs, const int* rds, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllToAll");
-#endif
     SafeMpi
     ( MPI_Alltoallv
-      ( const_cast<R*>(sbuf), 
-        const_cast<int*>(scs), 
-        const_cast<int*>(sds), 
+      ( const_cast<R*>(sbuf),
+        const_cast<int*>(scs),
+        const_cast<int*>(sds),
         TypeMap<R>(),
-        rbuf, 
-        const_cast<int*>(rcs), 
-        const_cast<int*>(rds), 
+        rbuf,
+        const_cast<int*>(rcs),
+        const_cast<int*>(rds),
         TypeMap<R>(),
         comm ) );
 }
@@ -1906,9 +1717,6 @@ void AllToAll
 ( const std::complex<R>* sbuf, const int* scs, const int* sds,
         std::complex<R>* rbuf, const int* rcs, const int* rds, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllToAll");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     int p;
     MPI_Comm_size( comm, &p );
@@ -1933,12 +1741,12 @@ void AllToAll
     SafeMpi
     ( MPI_Alltoallv
       ( const_cast<std::complex<R>*>(sbuf),
-        const_cast<int*>(scs), 
-        const_cast<int*>(sds), 
+        const_cast<int*>(scs),
+        const_cast<int*>(sds),
         TypeMap<std::complex<R> >(),
-        rbuf, 
-        const_cast<int*>(rcs), 
-        const_cast<int*>(rds), 
+        rbuf,
+        const_cast<int*>(rcs),
+        const_cast<int*>(rds),
         TypeMap<std::complex<R> >(),
         comm ) );
 #endif
@@ -1984,9 +1792,6 @@ template<typename T>
 void Reduce
 ( const T* sbuf, T* rbuf, int count, Op op, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Reduce");
-#endif
     if( count != 0 )
     {
         SafeMpi
@@ -2001,9 +1806,6 @@ void Reduce
 ( const std::complex<R>* sbuf,
         std::complex<R>* rbuf, int count, Op op, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Reduce");
-#endif
     if( count != 0 )
     {
 #ifdef AVOID_COMPLEX_MPI
@@ -2076,7 +1878,7 @@ template void Reduce( const ValueIntPair<double>* sbuf, ValueIntPair<double>* rb
 
 template<typename T>
 T Reduce( T sb, Op op, int root, Comm comm )
-{ 
+{
     T rb;
     Reduce( &sb, &rb, 1, op, root, comm );
     return rb;
@@ -2104,7 +1906,7 @@ template ValueIntPair<double> Reduce( ValueIntPair<double> sb, Op op, int root, 
 
 template<typename T>
 T Reduce( T sb, int root, Comm comm )
-{ 
+{
     T rb;
     Reduce( &sb, &rb, 1, mpi::SUM, root, comm );
     return rb;
@@ -2133,9 +1935,6 @@ template ValueIntPair<double> Reduce( ValueIntPair<double> sb, int root, Comm co
 template<typename T>
 void Reduce( T* buf, int count, Op op, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Reduce");
-#endif
     if( count != 0 )
     {
         const int commRank = CommRank( comm );
@@ -2162,9 +1961,6 @@ void Reduce( T* buf, int count, Op op, int root, Comm comm )
 template<typename R>
 void Reduce( std::complex<R>* buf, int count, Op op, int root, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::Reduce");
-#endif
     if( count != 0 )
     {
         const int commRank = CommRank( comm );
@@ -2176,14 +1972,14 @@ void Reduce( std::complex<R>* buf, int count, Op op, int root, Comm comm )
 # ifdef HAVE_MPI_IN_PLACE
                 SafeMpi
                 ( MPI_Reduce
-                  ( MPI_IN_PLACE, buf, 2*count, TypeMap<R>(), op, 
+                  ( MPI_IN_PLACE, buf, 2*count, TypeMap<R>(), op,
                     root, comm ) );
 # else
                 std::vector<std::complex<R> > sendBuf( count );
                 MemCopy( sendBuf.data(), buf, count );
                 SafeMpi
                 ( MPI_Reduce
-                  ( sendBuf.data(), buf, 2*count, TypeMap<R>(), op, 
+                  ( sendBuf.data(), buf, 2*count, TypeMap<R>(), op,
                     root, comm ) );
 # endif
             }
@@ -2288,9 +2084,6 @@ template void Reduce( ValueIntPair<double>* buf, int count, int root, Comm comm 
 template<typename T>
 void AllReduce( const T* sbuf, T* rbuf, int count, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllReduce");
-#endif
     if( count != 0 )
     {
         SafeMpi
@@ -2303,9 +2096,6 @@ template<typename R>
 void AllReduce
 ( const std::complex<R>* sbuf, std::complex<R>* rbuf, int count, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllReduce");
-#endif
     if( count != 0 )
     {
 #ifdef AVOID_COMPLEX_MPI
@@ -2427,9 +2217,6 @@ template ValueIntPair<double> AllReduce( ValueIntPair<double> sb, Comm comm );
 template<typename T>
 void AllReduce( T* buf, int count, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllReduce");
-#endif
     if( count != 0 )
     {
 #ifdef HAVE_MPI_IN_PLACE
@@ -2448,9 +2235,6 @@ void AllReduce( T* buf, int count, Op op, Comm comm )
 template<typename R>
 void AllReduce( std::complex<R>* buf, int count, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::AllReduce");
-#endif
     if( count != 0 )
     {
 #ifdef AVOID_COMPLEX_MPI
@@ -2547,9 +2331,6 @@ template void AllReduce( ValueIntPair<double>* buf, int count, Comm comm );
 template<typename R>
 void ReduceScatter( R* sbuf, R* rbuf, int rc, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ReduceScatter");
-#endif
 #ifdef REDUCE_SCATTER_BLOCK_VIA_ALLREDUCE
     const int commSize = CommSize( comm );
     const int commRank = CommRank( comm );
@@ -2569,9 +2350,6 @@ template<typename R>
 void ReduceScatter
 ( std::complex<R>* sbuf, std::complex<R>* rbuf, int rc, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ReduceScatter");
-#endif
 #ifdef REDUCE_SCATTER_BLOCK_VIA_ALLREDUCE
     const int commSize = CommSize( comm );
     const int commRank = CommRank( comm );
@@ -2664,9 +2442,6 @@ template std::complex<double> ReduceScatter( std::complex<double> sb, Comm comm 
 template<typename R>
 void ReduceScatter( R* buf, int rc, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ReduceScatter");
-#endif
 #ifdef REDUCE_SCATTER_BLOCK_VIA_ALLREDUCE
     const int commSize = CommSize( comm );
     const int commRank = CommRank( comm );
@@ -2697,9 +2472,6 @@ void ReduceScatter( R* buf, int rc, Op op, Comm comm )
 template<typename R>
 void ReduceScatter( std::complex<R>* buf, int rc, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ReduceScatter");
-#endif
 #ifdef REDUCE_SCATTER_BLOCK_VIA_ALLREDUCE
     const int commSize = CommSize( comm );
     const int commRank = CommRank( comm );
@@ -2712,7 +2484,7 @@ void ReduceScatter( std::complex<R>* buf, int rc, Op op, Comm comm )
     SafeMpi
     ( MPI_Reduce_scatter_block
       ( MPI_IN_PLACE, buf, 2*rc, TypeMap<R>(), op, comm ) );
-#  else 
+#  else
     const int commSize = CommSize( comm );
     std::vector<std::complex<R> > sendBuf( rc*commSize );
     MemCopy( sendBuf.data(), buf, rc*commSize );
@@ -2777,12 +2549,9 @@ template<typename R>
 void ReduceScatter
 ( const R* sbuf, R* rbuf, const int* rcs, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ReduceScatter");
-#endif
     SafeMpi
     ( MPI_Reduce_scatter
-      ( const_cast<R*>(sbuf), 
+      ( const_cast<R*>(sbuf),
         rbuf, const_cast<int*>(rcs), TypeMap<R>(), op, comm ) );
 }
 
@@ -2790,9 +2559,6 @@ template<typename R>
 void ReduceScatter
 ( const std::complex<R>* sbuf, std::complex<R>* rbuf, const int* rcs, Op op, Comm comm )
 {
-#ifndef RELEASE
-    CallStackEntry entry("mpi::ReduceScatter");
-#endif
 #ifdef AVOID_COMPLEX_MPI
     if( op == SUM )
     {

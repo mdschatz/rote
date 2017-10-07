@@ -30,7 +30,6 @@ template<typename T>
 void
 DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::AllGatherCommRedist");
     if(!CheckAllGatherCommRedist(A))
         LogicError("AllGatherRedist: Invalid redistribution request");
 #endif

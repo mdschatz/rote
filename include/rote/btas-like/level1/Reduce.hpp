@@ -75,7 +75,6 @@ void LocalReduceElemSelect_merged(const Unsigned nReduceModes, const ObjShape& r
 template <typename T>
 void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, const ModeArray& reduceModes){
 #ifndef RELEASE
-    CallStackEntry("LocalReduce");
     if(reduceModes.size() > A.Order())
         LogicError("LocalReduce: modes must be of length <= order");
 

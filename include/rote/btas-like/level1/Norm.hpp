@@ -18,9 +18,6 @@ namespace rote{
 
 template <typename T>
 BASE(T) Norm(const Tensor<T>& A){
-#ifndef RELEASE
-    CallStackEntry("Norm");
-#endif
     const std::vector<Unsigned> loopEnd = A.Shape();
     const std::vector<Unsigned> srcBufStrides = A.Strides();
     const T* srcBuf = A.LockedBuffer();
@@ -71,9 +68,6 @@ BASE(T) Norm(const Tensor<T>& A){
 //TODO: Fix this.  Norm is not calculated correctly :(
 template<typename T>
 BASE(T) Norm(const DistTensor<T>& A){
-#ifndef RELEASE
-    CallStackEntry("Norm");
-#endif
     BASE(T) local_norm = 0;
     if(A.Participating())
         local_norm = Norm(A.LockedTensor());

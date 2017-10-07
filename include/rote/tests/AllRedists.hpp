@@ -116,9 +116,6 @@ Set(DistTensor<T>& A)
 
 template<typename T>
 bool CheckResult(const DistTensor<T>& A){
-#ifndef RELEASE
-    CallStackEntry entry("CheckResult");
-#endif
     mpi::Barrier(mpi::COMM_WORLD);
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
 
@@ -205,9 +202,6 @@ bool CheckResult(const DistTensor<T>& A){
 
 template<typename T>
 bool CheckReduceResult(const DistTensor<T>& A, const DistTensor<T>& orig, const ModeArray& commModes){
-#ifndef RELEASE
-    CallStackEntry entry("CheckResult");
-#endif
     mpi::Barrier(mpi::COMM_WORLD);
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
 

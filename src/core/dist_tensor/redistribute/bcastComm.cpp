@@ -30,7 +30,6 @@ template<typename T>
 void
 DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::BroadcastCommRedist");
     if(!this->CheckBroadcastCommRedist(A))
         LogicError("BroadcastRedist: Invalid redistribution request");
 #endif

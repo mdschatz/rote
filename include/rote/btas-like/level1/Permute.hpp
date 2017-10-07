@@ -18,9 +18,6 @@ namespace rote{
 
 template<typename T>
 void PackCommHelper_fast(const PackData& packData, T const * const srcBuf, T * const dstBuf){
-#ifndef RELEASE
-    CallStackEntry cse("PackCommHelper_fast");
-#endif
     if(packData.loopShape.size() == 0){
         dstBuf[0] = srcBuf[0];
         return;
@@ -100,9 +97,6 @@ void PackCommHelper_fast(const PackData& packData, T const * const srcBuf, T * c
 
 template<typename T>
 void PackCommHelper(const PackData& packData, T const * const srcBuf, T * const dstBuf){
-#ifndef RELEASE
-    CallStackEntry cse("PackCommHelper");
-#endif
 //    PROFILE_SECTION("Pack");
     PackData modifiedData = packData;
     modifiedData.loopShape = packData.loopShape;

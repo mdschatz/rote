@@ -75,9 +75,6 @@ void SetRealPart( std::complex<Real>& alpha, const Real& beta ){
 template<typename Real>
 inline
 void SetImagPart( Real& alpha, const Real& beta ){
-  #ifndef RELEASE
-      CallStackEntry cse("SetImagPart");
-  #endif
       NOT_USED(alpha); NOT_USED(beta);
       LogicError("Nonsensical assignment");
 };
@@ -114,9 +111,6 @@ void UpdateRealPart( std::complex<Real>& alpha, const Real& beta ) {
 template<typename Real>
 inline
 void UpdateImagPart( Real& alpha, const Real& beta ) {
-#ifndef RELEASE
-    CallStackEntry cse("UpdateImagPart");
-#endif
     (void) alpha; (void) beta;
     LogicError("Nonsensical update");
 };

@@ -3,8 +3,8 @@
                       2013, Jeff Hammond
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
@@ -112,7 +112,7 @@ void Initialize( int& argc, char**& argv )
             ("Cannot initialize rote after finalizing MPI");
         }
 #ifdef HAVE_OPENMP
-        const Int provided = 
+        const Int provided =
             mpi::InitializeThread
             ( argc, argv, mpi::THREAD_MULTIPLE );
         const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
@@ -176,16 +176,13 @@ void Initialize( int& argc, char**& argv )
 
 void Finalize()
 {
-#ifndef RELEASE
-    CallStackEntry entry("Finalize");
-#endif
     if( ::numElemInits <= 0 )
         LogicError("Finalized Elemental more than initialized");
     --::numElemInits;
 
     if( mpi::Finalized() )
     {
-        std::cerr << "Warning: MPI was finalized before Elemental." 
+        std::cerr << "Warning: MPI was finalized before Elemental."
                   << std::endl;
     }
     if( ::numElemInits == 0 )
@@ -228,10 +225,10 @@ void Finalize()
 }
 
 Args& GetArgs()
-{ 
+{
     if( args == 0 )
         throw std::runtime_error("No available instance of Args");
-    return *::args; 
+    return *::args;
 }
 
 Int Blocksize()
@@ -240,17 +237,8 @@ Int Blocksize()
 void SetBlocksize( Int blocksize )
 { ::blocksizeStack.top() = blocksize; }
 
-void PushBlocksizeStack( Int blocksize )
-{ ::blocksizeStack.push( blocksize ); }
-
-void PopBlocksizeStack()
-{ ::blocksizeStack.pop(); }
-
 ModeArray OrderedModes(Unsigned order)
 {
-#ifndef RELEASE
-    CallStackEntry entry("OrderedModes");
-#endif
     Unsigned i;
     ModeArray ret(order);
     for(i = 0; i < order; i++)
@@ -261,7 +249,6 @@ ModeArray OrderedModes(Unsigned order)
 const Grid& DefaultGrid()
 {
 #ifndef RELEASE
-    CallStackEntry entry("DefaultGrid");
     if( ::defaultGrid == 0 )
         LogicError
         ("Attempted to return a non-existant default grid. Please ensure that "
@@ -273,7 +260,6 @@ const Grid& DefaultGrid()
 mpi::CommMap& DefaultCommMap()
 {
 #ifndef RELEASE
-    CallStackEntry entry("DefaultCommMap");
     if( ::defaultCommMap == 0 )
         LogicError
         ("Attempted to return a non-existant default grid. Please ensure that "
@@ -281,41 +267,5 @@ mpi::CommMap& DefaultCommMap()
 #endif
     return *::defaultCommMap;
 }
-
-//std::mt19937& Generator()
-//{ return ::generator; }
-
-// If we are not in RELEASE mode, then implement wrappers for a CallStack
-#ifndef RELEASE
-void PushCallStack( std::string s )
-{ 
-#ifdef HAVE_OPENMP
-    if( omp_get_thread_num() != 0 )
-        return;
-#endif // HAVE_OPENMP
-    ::callStack.push(s); 
-}
-
-void PopCallStack()
-{ 
-#ifdef HAVE_OPENMP
-    if( omp_get_thread_num() != 0 )
-        return;
-#endif // HAVE_OPENMP
-    ::callStack.pop(); 
-}
-
-void DumpCallStack( std::ostream& os )
-{
-    std::ostringstream msg;
-    while( ! ::callStack.empty() )
-    {
-        msg << "[" << ::callStack.size() << "]: " << ::callStack.top() << "\n";
-        ::callStack.pop();
-    }
-    os << msg.str();
-    os.flush();
-}
-#endif // RELEASE
 
 } // namespace rote

@@ -18,9 +18,6 @@ template<typename T>
 void
 Tensor<T>::AssertValidDimensions( const ObjShape& shape, const std::vector<Unsigned>& strides ) const
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertValidDimensions");
-#endif
     if(shape.size() != strides.size())
         LogicError("shape order must match strides order");
     if( !ElemwiseLessThan(shape, strides) )
@@ -33,9 +30,6 @@ template<typename T>
 void
 Tensor<T>::AssertValidEntry( const Location& loc ) const
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertValidEntry");
-#endif
     const Unsigned order = Order();
     if(order != loc.size())
         LogicError("Index must be of same order as object");
@@ -63,9 +57,6 @@ template<typename T>
 void
 Tensor<T>::AssertMergeableModes(const std::vector<ModeArray>& oldModes) const
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::AssertMergeableModes");
-#endif
     Unsigned i, j;
     for(i = 0; i < oldModes.size(); i++){
         for(j = 0; j < oldModes[i].size(); j++){
@@ -99,9 +90,6 @@ Tensor<T>::Tensor( const ObjShape& shape, bool fixed )
 : shape_(shape), strides_(Dimensions2Strides(shape)),
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor");
-#endif
     const Unsigned order = Order();
     Unsigned numElem = order > 0 ? strides_[order-1] * shape_[order-1] : 1;
 
@@ -117,7 +105,6 @@ Tensor<T>::Tensor
   viewType_( fixed ? OWNER_FIXED : OWNER )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, strides );
 #endif
     const Unsigned order = Order();
@@ -134,10 +121,7 @@ Tensor<T>::Tensor
   viewType_( fixed ? LOCKED_VIEW_FIXED: LOCKED_VIEW ),
   data_(buffer), memory_()
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor");
-#endif
-    //Nothing left to do
+    // TODO: Nothing left to do
 }
 
 template<typename T>
@@ -148,10 +132,9 @@ Tensor<T>::Tensor
   data_(buffer), memory_()
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor");
     AssertValidDimensions( shape, strides );
 #endif
-    //Nothing left to do
+    // TODO: Nothing left to do
 }
 
 template<typename T>
@@ -160,9 +143,6 @@ Tensor<T>::Tensor( const Tensor<T>& A )
   viewType_( OWNER ),
   data_(0), memory_()
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::Tensor( const Tensor& )");
-#endif
     if( &A != this )
         *this = A;
     else
@@ -274,7 +254,6 @@ T*
 Tensor<T>::Buffer()
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Buffer");
     if( Locked() )
         LogicError("Cannot return non-const buffer of locked Tensor");
 #endif
@@ -293,7 +272,6 @@ T*
 Tensor<T>::Buffer( const Location& loc )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Buffer");
     if( Locked() )
         LogicError("Cannot return non-const buffer of locked Tensor");
 #endif
@@ -307,9 +285,6 @@ template<typename T>
 const T*
 Tensor<T>::LockedBuffer( const Location& loc ) const
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::LockedBuffer");
-#endif
     Unsigned linearOffset = LinearLocFromStrides(loc, strides_);
     return &data_[linearOffset];
 }
@@ -321,9 +296,6 @@ Tensor<T>::LockedBuffer( const Location& loc ) const
 template<typename T>
 void
 Tensor<T>::RemoveUnitModes(const ModeArray& modes){
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::LockedBuffer");
-#endif
     Unsigned i;
     ModeArray sorted = modes;
     SortVector(sorted);
@@ -338,9 +310,6 @@ Tensor<T>::RemoveUnitModes(const ModeArray& modes){
 template<typename T>
 void
 Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::IntroduceUnitModes");
-#endif
     Unsigned i;
     ModeArray sorted = modes;
     SortVector(sorted);
@@ -389,7 +358,6 @@ T
 Tensor<T>::Get( const Location& loc ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Get");
     AssertValidEntry( loc );
 #endif
     return Get_( loc );
@@ -400,7 +368,6 @@ void
 Tensor<T>::Set( const Location& loc, T alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Set");
     AssertValidEntry( loc );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -413,7 +380,6 @@ void
 Tensor<T>::Update( const Location& loc, T alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Update");
     AssertValidEntry( loc );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -434,7 +400,6 @@ BASE(T)
 Tensor<T>::GetRealPart( const Location& loc ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::GetRealPart");
     AssertValidEntry( loc );
 #endif
     return rote::RealPart( Get_( loc ) );
@@ -445,7 +410,6 @@ BASE(T)
 Tensor<T>::GetImagPart( const Location& loc ) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::GetImagPart");
     AssertValidEntry( loc );
 #endif
     return rote::ImagPart( Get_( loc ) );
@@ -456,7 +420,6 @@ void
 Tensor<T>::SetRealPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::SetRealPart");
     AssertValidEntry( loc );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -469,7 +432,6 @@ void
 Tensor<T>::SetImagPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::SetImagPart");
     AssertValidEntry( loc );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -483,7 +445,6 @@ void
 Tensor<T>::UpdateRealPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::UpdateRealPart");
     AssertValidEntry( loc );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -496,7 +457,6 @@ void
 Tensor<T>::UpdateImagPart( const Location& loc, BASE(T) alpha )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::UpdateImagPart");
     AssertValidEntry( loc );
     if( Locked() )
         LogicError("Cannot modify data of locked matrices");
@@ -521,7 +481,6 @@ void
 Tensor<T>::Attach( const ObjShape& shape, T* buffer, const std::vector<Unsigned>& strides )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Attach");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
@@ -545,7 +504,6 @@ Tensor<T>::LockedAttach
 ( const ObjShape& shape, const T* buffer, const std::vector<Unsigned>& strides )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::LockedAttach");
     if( FixedSize() )
         LogicError( "Cannot attach a new buffer to a view with fixed size" );
 #endif
@@ -561,7 +519,6 @@ const Tensor<T>&
 Tensor<T>::operator=( const Tensor<T>& A )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::operator=");
     if( Locked() )
         LogicError("Cannot assign to a locked view");
     if( viewType_ != OWNER && AnyElemwiseNotEqual(A.shape_, shape_) )
@@ -594,7 +551,6 @@ void
 Tensor<T>::Empty()
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::Empty()");
     if ( FixedSize() )
         LogicError("Cannot empty a fixed-size matrix" );
 #endif
@@ -613,8 +569,6 @@ void
 Tensor<T>::ResizeTo( const Tensor<T>& A )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::ResizeTo(Tensor)");
-
     if ( FixedSize() && AnyElemwiseNotEqual(A.shape_, shape_) )
         LogicError("Cannot change the size of this tensor");
     if ( Viewing() && AnyElemwiseNotEqual(A.shape_, shape_) )
@@ -630,8 +584,6 @@ void
 Tensor<T>::ResizeTo( const ObjShape& shape )
 {
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::ResizeTo(dimensions)");
-
     if ( FixedSize() && AnyElemwiseNotEqual(shape, shape_) )
         LogicError("Cannot change the size of this tensor");
     if ( Viewing() && AnyElemwiseNotEqual(shape, shape_) )
@@ -666,7 +618,6 @@ Tensor<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides
 {
     //TODO: IMPLEMENT CORRECTLY
 #ifndef RELEASE
-    CallStackEntry cse("Tensor::ResizeTo(dims,strides)");
     AssertValidDimensions( shape, strides );
     if( FixedSize() &&
         ( AnyElemwiseNotEqual(shape, shape_) || AnyElemwiseNotEqual(strides, strides_) ) )
@@ -683,9 +634,6 @@ template<typename T>
 void
 Tensor<T>::CopyBuffer(const Tensor<T>& A)
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::CopyBuffer");
-#endif
     Permutation perm(A.Order());
     CopyBuffer(A, perm, perm);
 }
@@ -694,9 +642,6 @@ template<typename T>
 void
 Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Permutation& dstPerm)
 {
-#ifndef RELEASE
-    CallStackEntry cse("Tensor::CopyBuffer");
-#endif
     const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
 

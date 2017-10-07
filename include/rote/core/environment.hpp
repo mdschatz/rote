@@ -87,10 +87,6 @@ void PrintInputReport(){ GetArgs().PrintReport(); };
 Int Blocksize();
 void SetBlocksize( Int blocksize );
 
-// For manipulating the algorithmic blocksize as a stack
-void PushBlocksizeStack( Int blocksize );
-void PopBlocksizeStack();
-
 //std::mt19937& Generator();
 
 inline Unsigned IntCeil(Unsigned m, Unsigned n)
@@ -136,28 +132,6 @@ void MemZero( T* buffer, std::size_t numEntries ){
     std::memset( buffer, 0, numEntries*sizeof(T) );
 };
 
-// TODO: Remove CallStackEntry
-#ifndef RELEASE
-void PushCallStack( std::string s );
-void PopCallStack();
-void DumpCallStack( std::ostream& os=std::cerr );
-
-class CallStackEntry
-{
-public:
-    CallStackEntry( std::string s )
-    {
-        if( !std::uncaught_exception() )
-            PushCallStack(s);
-    }
-    ~CallStackEntry()
-    {
-        if( !std::uncaught_exception() )
-            PopCallStack();
-    }
-};
-#endif // ifndef RELEASE
-
 inline
 void ReportException( const std::exception& e, std::ostream& os=std::cerr ){
     if( std::string(e.what()) != "" )
@@ -165,9 +139,6 @@ void ReportException( const std::exception& e, std::ostream& os=std::cerr ){
         os << "Process " << mpi::WorldRank() << " caught error message:\n"
            << e.what() << std::endl;
     }
-#ifndef RELEASE
-    DumpCallStack( os );
-#endif
 };
 
 class ArgException;

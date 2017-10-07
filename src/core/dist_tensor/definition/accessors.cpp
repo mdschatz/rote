@@ -39,7 +39,6 @@ ModeDistribution
 DistTensorBase<T>::ModeDist(Mode mode) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ModeDist");
     if(mode < 0 || mode >= tensor_.Order())
         LogicError("0 <= mode < object order must be true");
 #endif
@@ -59,7 +58,6 @@ bool
 DistTensorBase<T>::ConstrainedModeAlignment(Mode mode) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ConstrainedModeAlignment");
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
@@ -72,7 +70,6 @@ Unsigned
 DistTensorBase<T>::ModeAlignment(Mode mode) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ModeAlignment");
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
@@ -92,7 +89,6 @@ Unsigned
 DistTensorBase<T>::ModeShift(Mode mode) const
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ModeShift");
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
@@ -210,10 +206,6 @@ template<typename T>
 T
 DistTensorBase<T>::GetLocal( const Location& loc ) const
 {
-#ifndef RELEASE
-    CallStackEntry entry("[MC,MR]::GetLocal");
-//    AssertValidEntry( loc );
-#endif
     return tensor_.Get(loc);
 }
 
@@ -256,7 +248,6 @@ T
 DistTensorBase<T>::Get( const Location& loc ) const
 {
 #ifndef RELEASE
-    CallStackEntry entry("[MC,MR]::Get");
     AssertValidEntry( loc );
 #endif
     const rote::Grid& g = Grid();
@@ -341,9 +332,6 @@ template<typename T>
 Permutation
 DistTensorBase<T>::LocalPermutation() const
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::LocalPermutation");
-#endif
     return localPerm_;
 }
 

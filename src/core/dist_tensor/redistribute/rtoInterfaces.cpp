@@ -21,9 +21,6 @@ template<typename T>
 void
 DistTensor<T>::ReduceToOneUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceToOneUpdateRedistFrom");
-#endif
     PROFILE_SECTION("RTORedist");
     ReduceUpdateRedistFrom(RTO, alpha, A, beta, rModes);
     PROFILE_STOP;
@@ -51,10 +48,6 @@ template<typename T>
 void
 DistTensor<T>::ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceToOneUpdateRedistFrom");
-#endif
-
     ReduceToOneUpdateRedistFrom(T(1), A, beta, reduceModes);
 }
 

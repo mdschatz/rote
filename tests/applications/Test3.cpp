@@ -13,7 +13,7 @@
   DxTer is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.               
+  GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
   along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,7 +26,7 @@ using namespace std;
 #define GRIDORDER 4
 
 template <typename T>
-void PrintLocalSizes(const DistTensor<T>& A) 
+void PrintLocalSizes(const DistTensor<T>& A)
 {
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   if (commRank == 0) {
@@ -42,7 +42,7 @@ void GatherAllModes(const DistTensor<T>& A, DistTensor<T>& B)
   DistTensor<T> *tmp = NULL;
   //  DistTensor<T> *tmp = new DistTensor<T>(A.TensorDist(), A.Grid());
   //  *tmp = A;
-  
+
   const TensorDistribution dist = A.TensorDist();
 
   for (Unsigned mode = 0; mode < A.Order(); ++mode) {
@@ -67,7 +67,7 @@ void GatherAllModes(const DistTensor<T>& A, DistTensor<T>& B)
   }
 
   if (tmp) {
-    
+
     if (TensorDistToString(B.TensorDist()) != TensorDistToString(tmp->TensorDist())) {
       cout << TensorDistToString(B.TensorDist()) << endl;
       cout << TensorDistToString(tmp->TensorDist()) << endl;
@@ -126,9 +126,6 @@ template<typename T>
 void
 DistTensorTest( const Grid& g )
 {
-#ifndef RELEASE
-  CallStackEntry entry("DistTensorTest");
-#endif
   Unsigned i;
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   const Unsigned gridOrder = 4;
@@ -564,10 +561,10 @@ DistTensorTest( const Grid& g )
 				 Accum_local.LockedTensor(), indices_abij,
 				 0.0, epsilon_local.Tensor(), blank_indices);
 
-  DistTensor<T> epsilon_local_comparison( rote::StringToTensorDist("[]|(0,1,2,3)"), g );    
+  DistTensor<T> epsilon_local_comparison( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
   GatherAllModes(epsilon____N_D_0_1_2_3, epsilon_local_comparison);
 
-  DistTensor<T> diffTensor( rote::StringToTensorDist("[]|(0,1,2,3)"), g );    
+  DistTensor<T> diffTensor( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
   diffTensor.ResizeTo(epsilon_local_comparison);
   Diff( epsilon_local_comparison.LockedTensor(), epsilon_local.LockedTensor(), diffTensor.Tensor() );
 
@@ -581,7 +578,7 @@ DistTensorTest( const Grid& g )
   }
 }
 
-int 
+int
 main( int argc, char* argv[] )
 {
   Initialize( argc, argv );
@@ -627,4 +624,3 @@ main( int argc, char* argv[] )
   //printf("Completed\n");
   return 0;
 }
-

@@ -15,9 +15,6 @@ namespace rote {
 	inline void
 	Write( const Tensor<T>& A, std::string title, std::string filename )
 	{
-	#ifndef RELEASE
-	    CallStackEntry entry("Write");
-	#endif
 	    std::ofstream file( filename.c_str() );
 	    file.setf( std::ios::scientific );
 	    Print( A, title, false );
@@ -31,9 +28,6 @@ namespace rote {
 	( const DistTensor<T>& A, std::string title,
 	  std::string filename )
 	{
-	#ifndef RELEASE
-	    CallStackEntry entry("Write");
-	#endif
 	    if( A.Grid().LinearRank() == 0 )
 	        Write( A.LockedTensor(), title, filename );
 	}

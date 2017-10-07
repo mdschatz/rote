@@ -14,9 +14,6 @@ template<typename T>
 void
 Print( const Tensor<T>& A, std::string title, bool all )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Print");
-#endif
     std::ostream& os = std::cout;
     if( title != "" )
       os << title << " ";
@@ -83,9 +80,6 @@ void
 Print
 ( const DistTensor<T>& A, std::string title)
 {
-#ifndef RELEASE
-    CallStackEntry entry("Print");
-#endif
     std::ostream& os = std::cout;
     if( A.Grid().LinearRank() == 0 && title != "" )
         os << title << std::endl;

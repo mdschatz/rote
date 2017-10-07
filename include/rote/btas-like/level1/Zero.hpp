@@ -68,10 +68,6 @@ template<typename T>
 inline void
 Zero( Tensor<T>& A )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Zero");
-#endif
-
     Zero_fast(A.Shape(), A.Strides(), A.Buffer());
 }
 
@@ -83,9 +79,6 @@ template<typename T>
 inline void
 Zero( DistTensor<T>& A )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Zero");
-#endif
     Zero( A.Tensor() );
 }
 

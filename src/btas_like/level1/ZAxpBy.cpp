@@ -165,9 +165,6 @@ template<typename T>
 inline void
 ZAxpBy( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& Y, Tensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-#endif
     Permutation perm(X.Order());
     ZAxpBy(alpha, X, perm, beta, Y, perm, Z);
 }
@@ -176,9 +173,6 @@ template<typename T>
 inline void
 ZAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, const Tensor<T>& Y, const Permutation& permYToZ, Tensor<T>& Z )
 {
-#ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
-#endif
     ZAxpByData data;
     data.loopShape = Z.Shape();
     data.src1Strides = PermuteVector(X.Strides(), permXToZ);
@@ -201,7 +195,6 @@ inline void
 ZAxpBy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y, DistTensor<T>& Z )
 {
 #ifndef RELEASE
-    CallStackEntry entry("ZAxpBy");
     if( X.Grid() != Y.Grid() )
         LogicError
         ("X and Y must be distributed over the same grid");

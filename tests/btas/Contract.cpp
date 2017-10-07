@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 // NOTE: It is possible to simply include "rote.hpp" instead
@@ -206,9 +206,6 @@ template<typename T>
 std::vector<LocalTest>
 CreateLocalTests(const Tensor<T>& A, const Tensor<T>& B, const IndexArray& AIndices, const IndexArray& BIndices, const IndexArray& CIndices)
 {
-#ifndef RELEASE
-    CallStackEntry entry("CreateLocalTests");
-#endif
     Unsigned i, j;
     std::vector<LocalTest> ret;
     ModeArray testModes(CIndices.size());
@@ -238,9 +235,6 @@ template<typename T>
 void
 LocalContractTest( const Params& args )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LocalContractTest");
-#endif
     Unsigned i, j;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
 
@@ -308,7 +302,7 @@ LocalContractTest( const Params& args )
     }
 }
 
-int 
+int
 main( int argc, char* argv[] )
 {
     Initialize( argc, argv );

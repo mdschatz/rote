@@ -13,7 +13,7 @@
   DxTer is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.               
+  GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
   along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,7 +26,7 @@ using namespace std;
 #define GRIDORDER 4
 
 template <typename T>
-void PrintLocalSizes(const DistTensor<T>& A) 
+void PrintLocalSizes(const DistTensor<T>& A)
 {
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   if (commRank == 0) {
@@ -251,9 +251,6 @@ template<typename T>
 void
 DistTensorTest( const Grid& g, Unsigned tenDimFive, Unsigned tenDimFiftyThree )
 {
-#ifndef RELEASE
-  CallStackEntry entry("DistTensorTest");
-#endif
   Unsigned i;
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   const Unsigned gridOrder = 4;
@@ -750,7 +747,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //  GatherAllModes( cont1_temp__D_0__D_1__D_2__D_3, cont1_temp_local );
 //  GatherAllModes( accum_temp__D_0__D_1__D_2__D_3, accum_temp_local );
 //  GatherAllModes( E_MP3____N_D_0_1_2_3, E_MP3_local );
-  
+
 //******************************
 //* Load tensors
 //******************************
@@ -1140,7 +1137,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
 //****
 
 //Print(E_MP3____N_D_0_1_2_3, "E_MP3");
-  
+
 
   //****
     if(commRank == 0){
@@ -1151,7 +1148,7 @@ DistTensor<T> E_MP3_local( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
     E_MP3____N_D_0_1_2_3.ClearCommMap();
 }
 
-int 
+int
 main( int argc, char* argv[] )
 {
     Initialize( argc, argv );

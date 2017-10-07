@@ -125,9 +125,6 @@ HadamardScalAC_fast(T const * const bufA, T const * const bufB,  T * const bufC,
 //NOTE: Convert to incorporate blocked tensors.
 template <typename T>
 void HadamardScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C, HadamardScalData data){
-#ifndef RELEASE
-    CallStackEntry("HadamardScal");
-#endif
     const T* bufA = A.LockedBuffer();
     const T* bufB = B.LockedBuffer();
     T* bufC = C.Buffer();

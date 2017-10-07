@@ -13,7 +13,7 @@
   DxTer is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.               
+  GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
   along with DxTer.  If not, see <http://www.gnu.org/licenses/>.
@@ -26,7 +26,7 @@ using namespace std;
 #define GRIDORDER 4
 
 template <typename T>
-void PrintLocalSizes(const DistTensor<T>& A) 
+void PrintLocalSizes(const DistTensor<T>& A)
 {
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   if (commRank == 0) {
@@ -43,7 +43,7 @@ void GatherAllModes(const DistTensor<T>& A, DistTensor<T>& B)
   DistTensor<T> *tmp = NULL;
   //  DistTensor<T> *tmp = new DistTensor<T>(A.TensorDist(), A.Grid());
   //  *tmp = A;
-  
+
   const TensorDistribution dist = A.TensorDist();
 
   for (Unsigned mode = 0; mode < A.Order(); ++mode) {
@@ -68,7 +68,7 @@ void GatherAllModes(const DistTensor<T>& A, DistTensor<T>& B)
   }
 
   if (tmp) {
-    
+
     if (TensorDistToString(B.TensorDist()) != TensorDistToString(tmp->TensorDist())) {
       cout << TensorDistToString(B.TensorDist()) << endl;
       cout << TensorDistToString(tmp->TensorDist()) << endl;
@@ -167,9 +167,6 @@ template<typename T>
 void
 DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
 {
-#ifndef RELEASE
-  CallStackEntry entry("DistTensorTest");
-#endif
   Unsigned i;
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   const Unsigned gridOrder = 4;
@@ -769,7 +766,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
     mpi::Barrier(g.OwningComm());
     runTime = mpi::Time() - startTime;
 
-    
+
     YAxpPx(2.0, t_efmn_local, -1.0, t_efmn_local, perm_0_1_3_2, axppx4_temp_local);
     ZAxpBy(2.0, v_oegm_local, -1.0, v2_oegm_local, axppx3_temp_local);
     YAxpPx( 2.0, t_gfon_local, -1.0, t_gfon_local, perm_0_1_3_2, axppx2_temp_local );
@@ -798,7 +795,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
 
   //****
 
-    DistTensor<T> diffTensor( rote::StringToTensorDist("[]|(0,1,2,3)"), g );    
+    DistTensor<T> diffTensor( rote::StringToTensorDist("[]|(0,1,2,3)"), g );
     diffTensor.ResizeTo(E_MP3____N_D_0_1_2_3);
     Diff( E_MP3____N_D_0_1_2_3.LockedTensor(), E_MP3_local.LockedTensor(), diffTensor.Tensor() );
 
@@ -811,7 +808,7 @@ DistTensorTest( Unsigned tenDimFive, Unsigned tenDimFiftyThree, const Grid& g )
     }
 }
 
-int 
+int
 main( int argc, char* argv[] )
 {
     Initialize( argc, argv );

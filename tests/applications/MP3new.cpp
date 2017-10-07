@@ -260,9 +260,6 @@ template<typename T>
 void
 DistTensorTest( const Grid& g, Unsigned n_o, Unsigned n_v, Unsigned blkSize )
 {
-#ifndef RELEASE
-  CallStackEntry entry("DistTensorTest");
-#endif
   Unsigned i;
   const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
   ObjShape tempShape;
@@ -1717,4 +1714,3 @@ main( int argc, char* argv[] )
     //printf("Completed\n");
     return 0;
 }
-

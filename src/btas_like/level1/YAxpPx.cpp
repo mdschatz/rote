@@ -71,9 +71,6 @@ template<typename T>
 void
 YAxpPx( T alpha, const Tensor<T>& X, T beta, const Tensor<T>& PX, const Permutation& perm, Tensor<T>& Y )
 {
-#ifndef RELEASE
-    CallStackEntry entry("YAxpPx");
-#endif
     Permutation permXToY(X.Order());
     YAxpPx(alpha, X, permXToY, beta, PX, perm, Y);
 }
@@ -82,9 +79,6 @@ template<typename T>
 void
 YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const Tensor<T>& PX, const Permutation& permPXToY, Tensor<T>& Y )
 {
-#ifndef RELEASE
-    CallStackEntry entry("YAxpPx");
-#endif
     YAxpPxData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);
@@ -109,7 +103,6 @@ void
 YAxpPx( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& PX, const Permutation& perm, DistTensor<T>& Y )
 {
 #ifndef RELEASE
-    CallStackEntry entry("YAxpPx");
     if( X.Grid() != Y.Grid() )
         LogicError
         ("X and Y must be distributed over the same grid");

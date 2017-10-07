@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -27,9 +27,6 @@ RepartitionUp
          TEN& A1,
   TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("RepartitionUp [Tensor]");
-#endif
     PartitionUp( AT, A0, A1, mode, A1Dimension );
     View( A2, AB );
 }
@@ -41,9 +38,6 @@ RepartitionUp
           DTEN& A1,
   DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("RepartitionUp [DistTensor]");
-#endif
     PartitionUp( AT, A0, A1, mode, A1Dimension );
     View( A2, AB );
 }
@@ -55,9 +49,6 @@ LockedRepartitionUp
                TEN& A1,
   const TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("LockedRepartitionUp [Tensor]");
-#endif
     LockedPartitionUp( AT, A0, A1, mode, A1Dimension );
     LockedView( A2, AB );
 }
@@ -69,9 +60,6 @@ LockedRepartitionUp
                 DTEN& A1,
   const DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("LockedRepartitionUp [DistTensor]");
-#endif
     LockedPartitionUp( AT, A0, A1, mode, A1Dimension );
     LockedView( A2, AB );
 }
@@ -87,9 +75,6 @@ RepartitionDown
          TEN& A1,
   TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("RepartitionDown [Tensor]");
-#endif
     View( A0, AT );
     PartitionDown( AB, A1, A2, mode, A1Dimension );
 }
@@ -101,9 +86,6 @@ RepartitionDown
           DTEN& A1,
   DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("RepartitionDown [DistTensor]");
-#endif
     View( A0, AT );
     PartitionDown( AB, A1, A2, mode, A1Dimension );
 }
@@ -115,9 +97,6 @@ LockedRepartitionDown
                TEN& A1,
   const TEN& AB, TEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("LockedRepartitionDown [Tensor]");
-#endif
     LockedView( A0, AT );
     LockedPartitionDown( AB, A1, A2, mode, A1Dimension );
 }
@@ -129,9 +108,6 @@ LockedRepartitionDown
                 DTEN& A1,
   const DTEN& AB, DTEN& A2, Mode mode, Unsigned A1Dimension )
 {
-#ifndef RELEASE
-    CallStackEntry cse("LockedRepartitionDown [DistTensor]");
-#endif
     LockedView( A0, AT );
     LockedPartitionDown( AB, A1, A2, mode, A1Dimension );
 }

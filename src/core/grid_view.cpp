@@ -135,9 +135,6 @@ namespace rote {
   ModeArray GridView::FreeModes() const { return freeModes_.Entries(); }
 
   bool GridView::Participating() const {
-  #ifndef RELEASE
-    CallStackEntry cse("GridView::Participating");
-  #endif
     return loc_[ParticipatingOrder()] == 0;
   }
 

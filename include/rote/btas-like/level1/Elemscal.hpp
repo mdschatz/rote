@@ -76,9 +76,6 @@ ElemScal_fast(T const * const src1Buf, T const * const src2Buf,  T * const dstBu
 //NOTE: Convert to incorporate blocked tensors.
 template <typename T>
 void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
-#ifndef RELEASE
-    CallStackEntry("Elemscal");
-#endif
     ElemScalData data;
     data.loopShape = C.Shape();
     data.src1Strides = A.Strides();
@@ -99,9 +96,6 @@ void ElemScal(const Tensor<T>& A, const Tensor<T>& B, Tensor<T>& C){
 //NOTE: Add checks for conforming dists and shapes
 template<typename T>
 void ElemScal(const DistTensor<T>& A, const DistTensor<T>& B, DistTensor<T>& C){
-#ifndef RELEASE
-    CallStackEntry("Elemscal");
-#endif
     ElemScal(A.LockedTensor(), B.LockedTensor(), C.Tensor());
 }
 

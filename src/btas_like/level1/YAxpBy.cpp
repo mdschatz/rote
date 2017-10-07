@@ -235,9 +235,6 @@ YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAx
 template<typename T>
 inline void
 YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
-#ifndef RELEASE
-    CallStackEntry entry("YxpBy");
-#endif
     YAxpByData data;
     data.loopShape = Y.Shape();
     data.srcStrides = PermuteVector(X.Strides(), permXToY);
@@ -280,7 +277,6 @@ inline void
 YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Yxpy");
     if( X.Grid() != Y.Grid() )
         LogicError
         ("X and Y must be distributed over the same grid");

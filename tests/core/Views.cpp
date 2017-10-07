@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 // NOTE: It is possible to simply include "rote.hpp" instead
@@ -147,9 +147,6 @@ PrintView(const char* msg, const DistTensor<T>& A){
 template<typename T>
 void
 TestConstViews(DistTensor<T>& A){
-#ifndef RELEASE
-    CallStackEntry entry("TestConstViews");
-#endif
     const rote::Grid& g = A.Grid();
     Unsigned i;
     const Unsigned order = A.Order();
@@ -240,9 +237,6 @@ TestConstViews(DistTensor<T>& A){
 template<typename T>
 void
 TestNonConstViews(DistTensor<T>& A){
-#ifndef RELEASE
-    CallStackEntry entry("TestNonConstViews");
-#endif
     const rote::Grid& g = A.Grid();
     Unsigned i;
     const Unsigned order = A.Order();
@@ -334,40 +328,12 @@ void
 Set(DistTensor<T>& A)
 {
     MakeUniform(A);
-//    Unsigned order = A.Order();
-//    Location loc(order, 0);
-
-//    Unsigned ptr = 0;
-//    Unsigned counter = 0;
-//    bool stop = false;
-//
-//    while(!stop){
-//        A.Set(loc, counter);
-//
-//        //Update
-//        counter++;
-//        loc[ptr]++;
-//        while(loc[ptr] == A.Dimension(ptr)){
-//            loc[ptr] = 0;
-//            ptr++;
-//            if(ptr == order){
-//                stop = true;
-//                break;
-//            }else{
-//                loc[ptr]++;
-//            }
-//        }
-//        ptr = 0;
-//    }
 }
 
 template<typename T>
 void
 DistTensorTest( const Params& args, const Grid& g )
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensorTest");
-#endif
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
 
     DistTensor<T> A(args.tensorShape, args.tensorDist, g);
@@ -388,7 +354,7 @@ DistTensorTest( const Params& args, const Grid& g )
     TestNonConstViews(A);
 }
 
-int 
+int
 main( int argc, char* argv[] )
 {
     Initialize( argc, argv );

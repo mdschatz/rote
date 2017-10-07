@@ -14,8 +14,6 @@ namespace rote{
 template <typename T>
 void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
 #ifndef RELEASE
-    CallStackEntry("LocalContract");
-
     if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
         LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
 #endif
@@ -82,8 +80,6 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 template <typename T>
 void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
 #ifndef RELEASE
-    CallStackEntry("LocalContract");
-
     if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
         LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
 #endif

@@ -21,9 +21,6 @@ template<typename T>
 void
 DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ReduceUpdateRedistFrom");
-#endif
     Unsigned i, j;
     const rote::GridView gv = A.GetGridView();
     const rote::Grid& g = A.Grid();

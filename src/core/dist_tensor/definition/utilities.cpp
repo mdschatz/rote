@@ -22,10 +22,6 @@ template<typename T>
 Location
 DistTensorBase<T>::DetermineOwner(const Location& loc) const
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::DetermineOwner");
-//    AssertValidEntry( loc );
-#endif
     Unsigned i;
     const rote::GridView gv = GetGridView();
     Location ownerLoc = Alignments();
@@ -40,10 +36,6 @@ template<typename T>
 Location
 DistTensorBase<T>::DetermineOwnerNewAlignment(const Location& loc, std::vector<Unsigned>& newAlignment) const
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::DetermineOwnerNewAlignment");
-//    AssertValidEntry( loc );
-#endif
     Unsigned i;
     const rote::GridView gv = GetGridView();
     Location ownerLoc = Alignments();
@@ -60,7 +52,6 @@ Location
 DistTensorBase<T>::Global2LocalIndex(const Location& globalLoc) const
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::Global2LocalIndex");
     AssertValidEntry( globalLoc );
 #endif
     Unsigned i;
@@ -105,9 +96,6 @@ template<typename T>
 void
 DistTensorBase<T>::SetParticipatingComm()
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::GetParticipatingComm");
-#endif
     ModeArray commModes = gridView_.UsedModes();
     SortVector(commModes);
 
@@ -119,9 +107,6 @@ template<typename T>
 void
 DistTensorBase<T>::CopyLocalBuffer(const DistTensorBase<T>& A)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::CopyBuffer");
-#endif
     tensor_.CopyBuffer(A.LockedTensor(), A.localPerm_, localPerm_);
 }
 
@@ -129,9 +114,6 @@ template<typename T>
 void
 DistTensorBase<T>::ClearCommMap()
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ClearCommMap");
-#endif
     rote::mpi::CommMap::iterator it;
     for(it = commMap_->begin(); it != commMap_->end(); it++){
         mpi::CommFree(it->second);
@@ -143,9 +125,6 @@ template<typename T>
 Unsigned
 DistTensorBase<T>::CommMapSize()
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ClearCommMap");
-#endif
     return commMap_->size();
 }
 
@@ -153,9 +132,6 @@ template<typename T>
 Location
 DistTensorBase<T>::DetermineFirstElem(const Location& gridViewLoc) const
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::DetermineFirstElem");
-#endif
     Unsigned i;
 
     const GridView gv = GetGridView();
@@ -179,9 +155,6 @@ template<typename T>
 Location
 DistTensorBase<T>::DetermineFirstUnalignedElem(const Location& gridViewLoc, const std::vector<Unsigned>& alignmentDiff) const
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::DetermineFirstUnalignedElem");
-#endif
     Unsigned i;
     Location ret(gridViewLoc.size());
     for(i = 0; i < gridViewLoc.size(); i++){
@@ -194,9 +167,6 @@ template<typename T>
 bool
 DistTensor<T>::AlignCommBufRedist(const DistTensor<T>& A, const T* unalignedSendBuf, const Unsigned sendSize, T* alignedSendBuf, const Unsigned recvSize)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::AlignCommBufRedist");
-#endif
     const rote::Grid& g = this->Grid();
     GridView gvA = A.GetGridView();
     GridView gvB = this->GetGridView();

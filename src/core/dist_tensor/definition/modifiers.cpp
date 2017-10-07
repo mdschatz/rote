@@ -16,9 +16,6 @@ template<typename T>
 void
 DistTensorBase<T>::Align( const std::vector<Unsigned>& modeAlignments )
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::Align");
-#endif
     Unsigned i;
     Empty();
     modeAlignments_ = modeAlignments;
@@ -32,7 +29,6 @@ void
 DistTensorBase<T>::AlignMode( Mode mode, Unsigned modeAlignment )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::AlignMode");
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
@@ -76,9 +72,6 @@ template<typename T>
 void
 DistTensorBase<T>::AlignModeWith(Mode mode, const DistTensorBase<T>& A, Mode modeA)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::AlignModeWith");
-#endif
     ModeArray modes(1);
     modes[0] = mode;
     ModeArray modesA(1);
@@ -90,9 +83,6 @@ template<typename T>
 void
 DistTensorBase<T>::AlignModesWith(const ModeArray& modes, const DistTensorBase<T>& A, const ModeArray& modesA)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::AlignModesWith");
-#endif
     Unsigned i;
     for(i = 0; i < modes.size(); i++){
         Mode mode = modes[i];
@@ -109,9 +99,6 @@ DistTensorBase<T>::Attach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::Attach");
-#endif
     Empty();
 
     grid_ = &g;
@@ -132,9 +119,6 @@ DistTensorBase<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::LockedAttach");
-#endif
     grid_ = &g;
     shape_ = shape;
     modeAlignments_ = modeAlignments;
@@ -151,9 +135,6 @@ DistTensorBase<T>::LockedAttach
 ( const ObjShape& shape, const std::vector<Unsigned>& modeAlignments,
   const T* buffer, const Permutation& perm, const std::vector<Unsigned>& strides, const rote::Grid& g )
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor::LockedAttach");
-#endif
     grid_ = &g;
     shape_ = shape;
     modeAlignments_ = modeAlignments;
@@ -170,7 +151,6 @@ template<typename T>
 void DistTensorBase<T>::ResizeTo( const DistTensorBase<T>& A)
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::ResizeTo");
     AssertNotLocked();
 #endif
     ResizeTo(A.Shape());
@@ -182,7 +162,6 @@ void
 DistTensorBase<T>::ResizeTo( const ObjShape& shape )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::ResizeTo");
     AssertNotLocked();
 #endif
     if(AnyElemwiseNotEqual(shape_, shape)){
@@ -200,7 +179,6 @@ void
 DistTensorBase<T>::ResizeTo( const ObjShape& shape, const std::vector<Unsigned>& strides )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::ResizeTo");
     AssertNotLocked();
 #endif
     shape_ = shape;
@@ -214,7 +192,6 @@ void
 DistTensorBase<T>::Set( const Location& loc, T u )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::Set");
     AssertValidEntry( loc );
 #endif
     if(!Participating())
@@ -233,7 +210,6 @@ void
 DistTensorBase<T>::Update( const Location& loc, T u )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor::Update");
     AssertValidEntry( loc );
 #endif
     const GridView gv = GetGridView();
@@ -297,9 +273,6 @@ void
 DistTensorBase<T>::SetAlignmentsAndResize
 ( const std::vector<Unsigned>& modeAligns, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::SetAlignmentsAndResize");
-#endif
     if( !Viewing() )
     {
         modeAlignments_ = modeAligns;
@@ -313,9 +286,6 @@ void
 DistTensorBase<T>::ForceAlignmentsAndResize
 ( const std::vector<Unsigned>& modeAligns, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::ForceAlignmentsAndResize");
-#endif
     SetAlignmentsAndResize( modeAligns, shape );
     if(AnyElemwiseNotEqual(modeAlignments_, modeAligns))
         LogicError("Could not set alignments");
@@ -327,7 +297,6 @@ DistTensorBase<T>::SetModeAlignmentAndResize
 ( Mode mode, Unsigned modeAlign, const ObjShape& shape )
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::SetModeAlignmentAndResize");
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
@@ -346,7 +315,6 @@ DistTensorBase<T>::ForceModeAlignmentAndResize
 (Mode mode, Unsigned modeAlign, const ObjShape& shape  )
 {
 #ifndef RELEASE
-    CallStackEntry cse("DistTensor::ForceColAlignmentAndResize");
     const Unsigned order = Order();
     if(mode < 0 || mode >= order)
         LogicError("0 <= mode < object order must be true");
@@ -371,61 +339,6 @@ template<typename T>
 void
 DistTensorBase<T>::MakeConsistent()
 {
-/*
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::MakeConsistent");
-#endif
-    const rote::Grid& g = Grid();
-    const Int root = g.VCToViewingMap(0);
-    Int message[7];
-    if( g.ViewingRank() == root )
-    {
-        message[0] = viewType_;
-        message[1] = height_;
-        message[2] = width_;
-        message[3] = constrainedColAlignment_;
-        message[4] = constrainedRowAlignment_;
-        message[5] = colAlignment_;
-        message[6] = rowAlignment_;
-    }
-    mpi::Broadcast( message, 7, root, g.ViewingComm() );
-    const ViewType newViewType = static_cast<ViewType>(message[0]);
-    const Int newHeight = message[1];
-    const Int newWidth = message[2];
-    const bool newConstrainedCol = message[3];
-    const bool newConstrainedRow = message[4];
-    const Int newColAlignment = message[5];
-    const Int newRowAlignment = message[6];
-    if( !Participating() )
-    {
-        viewType_ = newViewType;
-        height_ = newHeight;
-        width_ = newWidth;
-        constrainedColAlignment_ = newConstrainedCol;
-        constrainedRowAlignment_ = newConstrainedRow;
-        colAlignment_ = newColAlignment;
-        rowAlignment_ = newRowAlignment;
-        colShift_ = 0;
-        rowShift_ = 0;
-    }
-#ifndef RELEASE
-    else
-    {
-        if( viewType_ != newViewType )
-            LogicError("Inconsistent ViewType");
-        if( height_ != newHeight )
-            LogicError("Inconsistent height");
-        if( width_ != newWidth )
-            LogicError("Inconsistent width");
-        if( constrainedColAlignment_ != newConstrainedCol ||
-            colAlignment_ != newColAlignment )
-            LogicError("Inconsistent column constraint");
-        if( constrainedRowAlignment_ != newConstrainedRow ||
-            rowAlignment_ != newRowAlignment )
-            LogicError("Inconsistent row constraint");
-    }
-#endif
-*/
 }
 
 template<typename T>
@@ -535,9 +448,6 @@ template<typename T>
 void
 DistTensorBase<T>::SetLocalPermutation(const Permutation& perm)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::SetLocalPermutation");
-#endif
     Permutation permOldToNew = localPerm_.PermutationTo(perm);
     tensor_.ResizeTo(PermuteVector(tensor_.Shape(), permOldToNew));
     localPerm_ = perm;
@@ -547,9 +457,6 @@ template<typename T>
 void
 DistTensorBase<T>::SetDefaultPermutation()
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::SetDefaultPermutation");
-#endif
     Permutation defaultPerm(Order());
     localPerm_ = defaultPerm;
 }

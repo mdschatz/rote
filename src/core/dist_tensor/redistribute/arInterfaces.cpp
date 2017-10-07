@@ -21,9 +21,6 @@ template<typename T>
 void
 DistTensor<T>::AllReduceUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& rModes)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::AllReduceUpdateRedistFrom");
-#endif
     PROFILE_SECTION("ARRedist");
     ReduceUpdateRedistFrom(AR, alpha, A, beta, rModes);
     PROFILE_STOP;
@@ -55,9 +52,6 @@ template<typename T>
 void
 DistTensor<T>::AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::AllReduceUpdateRedistFrom");
-#endif
     AllReduceUpdateRedistFrom(T(1), A, beta, reduceModes);
 }
 
@@ -65,9 +59,6 @@ template<typename T>
 void
 DistTensor<T>::AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode)
 {
-#ifndef RELEASE
-    CallStackEntry cse("DistTensor::AllReduceUpdateRedistFrom");
-#endif
     ModeArray reduceModes(1);
     reduceModes[0] = reduceMode;
     AllReduceUpdateRedistFrom(A, beta, reduceModes);

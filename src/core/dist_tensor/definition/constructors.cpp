@@ -423,9 +423,6 @@ DistTensorBase<T>::DistTensorBase( const DistTensorBase<T>& A )
   viewType_(OWNER),
   auxMemory_()
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensor[MC,MR]::DistTensor");
-#endif
     SetShifts();
     if( &A != this )
         *this = A;
@@ -472,7 +469,6 @@ const DistTensorBase<T>&
 DistTensorBase<T>::operator=( const DistTensorBase<T>& A )
 {
 #ifndef RELEASE
-    CallStackEntry entry("DistTensor = DistTensor");
     AssertNotLocked();
 #endif
     if( Grid() == A.Grid() )

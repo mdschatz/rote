@@ -64,10 +64,6 @@ template<typename T>
 inline void
 SetAllVal( Tensor<T>& A, T val )
 {
-#ifndef RELEASE
-    CallStackEntry entry("SetAllVal");
-#endif
-
     SetAllVal_fast(A.Shape(), A.Strides(), A.Buffer(), val);
 }
 
@@ -79,9 +75,6 @@ template<typename T>
 inline void
 SetAllVal( DistTensor<T>& A, T val )
 {
-#ifndef RELEASE
-    CallStackEntry entry("SetAllVal");
-#endif
     SetAllVal( A.Tensor(), val );
 }
 

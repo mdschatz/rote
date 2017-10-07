@@ -13,13 +13,11 @@
 
 namespace rote {
 
+// TODO: Remove MakeZeros (redundant name)
 template<typename T>
 inline void
 MakeZeros( Tensor<T>& A )
 {
-#ifndef RELEASE
-    CallStackEntry cse("MakeZeros");
-#endif
     Zero( A );
 }
 
@@ -27,9 +25,6 @@ template<typename T>
 inline void
 MakeZeros( DistTensor<T>& A )
 {
-#ifndef RELEASE
-    CallStackEntry cse("MakeZeros");
-#endif
     Zero( A.Tensor() );
 }
 
@@ -37,9 +32,6 @@ template<typename T>
 inline void
 Zeros( Tensor<T>& A, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry cse("Zeros");
-#endif
     A.ResizeTo( shape );
     MakeZeros( A );
 }
@@ -57,9 +49,6 @@ template<typename T>
 inline void
 Zeros( DistTensor<T>& A, const ObjShape& shape )
 {
-#ifndef RELEASE
-    CallStackEntry cse("Zeros");
-#endif
     A.ResizeTo( shape );
     MakeZeros( A );
 }

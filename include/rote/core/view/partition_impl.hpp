@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -26,9 +26,6 @@ PartitionUp
 ( TEN& A, TEN& AT,
         TEN& AB, Mode mode, Unsigned dimensionAB )
 {
-#ifndef RELEASE
-    CallStackEntry entry("PartitionUp [Tensor]");
-#endif
     PartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
@@ -38,9 +35,6 @@ PartitionUp
 ( DTEN& A, DTEN& AT,
          DTEN& AB, Mode mode, Unsigned dimensionAB )
 {
-#ifndef RELEASE
-    CallStackEntry entry("PartitionUp [DistTensor]");
-#endif
     PartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
@@ -50,9 +44,6 @@ LockedPartitionUp
 ( const TEN& A, TEN& AT,
               TEN& AB, Mode mode, Unsigned dimensionAB )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedPartitionUp [Tensor]");
-#endif
     LockedPartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
@@ -62,9 +53,6 @@ LockedPartitionUp
 ( const DTEN& A, DTEN& AT,
                DTEN& AB, Mode mode, Unsigned dimensionAB )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedPartitionUp [DistTensor]");
-#endif
     LockedPartitionDown( A, AT, AB, A.Dimension(mode)-dimensionAB );
 }
 
@@ -78,9 +66,6 @@ PartitionDown
 ( TEN& A, TEN& AT,
         TEN& AB, Mode mode, Unsigned dimensionAT )
 {
-#ifndef RELEASE
-    CallStackEntry entry("PartitionDown [Tensor]");
-#endif
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
@@ -102,9 +87,6 @@ PartitionDown
 ( DTEN& A, DTEN& AT,
          DTEN& AB, Mode mode, Unsigned dimensionAT )
 {
-#ifndef RELEASE
-    CallStackEntry entry("PartitionDown [DistTensor]");
-#endif
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
@@ -126,9 +108,6 @@ LockedPartitionDown
 ( const TEN& A, TEN& AT,
               TEN& AB, Mode mode, Unsigned dimensionAT )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedPartitionDown [Tensor]");
-#endif
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 
@@ -150,9 +129,6 @@ LockedPartitionDown
 ( const DTEN& A, DTEN& AT,
                DTEN& AB, Mode mode, Unsigned dimensionAT )
 {
-#ifndef RELEASE
-    CallStackEntry entry("LockedPartitionDown [DistTensor]");
-#endif
     ObjShape viewShape = A.Shape();
     Location viewLoc(A.Order());
 

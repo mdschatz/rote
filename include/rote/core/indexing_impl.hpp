@@ -43,7 +43,6 @@ Unsigned
 Length( Unsigned n, Unsigned shift, Unsigned wrap )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Length");
     if( shift >= wrap )
     {
         std::ostringstream msg;
@@ -61,9 +60,6 @@ inline
 Unsigned
 Length( Unsigned n, Int rank, Unsigned alignment, Unsigned wrap )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Length");
-#endif
     Unsigned shift = Shift( rank, alignment, wrap );
     return Length( n, shift, wrap );
 }
@@ -75,7 +71,6 @@ Lengths( const ObjShape& objShape, const std::vector<Unsigned>& shifts, const Ob
   Unsigned i;
 #ifndef RELEASE
 	Unsigned order;
-    CallStackEntry entry("Length");
     if(!(objShape.size() == shifts.size() && objShape.size() == wrapShape.size())){
     	LogicError("dimensions, shifts, modulos must contain same number of elements.");
     }
@@ -101,7 +96,6 @@ Unsigned
 MaxLength( Unsigned n, Unsigned wrap )
 {
 #ifndef RELEASE
-    CallStackEntry entry("MaxLength");
     if( wrap == 0 )
         LogicError("Modulus must be positive");
 #endif
@@ -113,7 +107,6 @@ std::vector<Unsigned>
 MaxLengths( const ObjShape& shape, const ObjShape& wrapShape)
 {
 #ifndef RELEASE
-    CallStackEntry entry("MaxLengths");
     if(wrapShape.size() != shape.size())
         LogicError("shape order and wrapShape order must be the same");
     if( AnyZeroElem(wrapShape) )
@@ -131,7 +124,6 @@ Unsigned
 Shift( Int rank, Unsigned alignment, Unsigned wrap )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Shift");
     if( rank < 0 || rank >= Int(wrap) )
     {
         std::ostringstream msg;
@@ -156,7 +148,6 @@ std::vector<Unsigned>
 Shifts( const std::vector<Unsigned>& modeRanks, const std::vector<Unsigned> alignments, const std::vector<Unsigned>& wrapShape )
 {
 #ifndef RELEASE
-    CallStackEntry entry("Shift");
     if(modeRanks.size() != alignments.size() || alignments.size() != wrapShape.size() || modeRanks.size() != wrapShape.size())
         LogicError("modeRanks, alignments, and wrapShape must be of same order");
     if( !ElemwiseLessThan(modeRanks, wrapShape) )

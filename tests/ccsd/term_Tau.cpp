@@ -93,9 +93,6 @@ void ProcessInput(int argc, char** const argv, Params& args) {
 template<typename T>
 void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
         Unsigned blkSize, Unsigned testIter) {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensorTest");
-#endif
     Unsigned i;
     const Int commRank = mpi::CommRank(mpi::COMM_WORLD);
 
@@ -464,5 +461,3 @@ int main(int argc, char* argv[]) {
     //printf("Completed\n");
     return 0;
 }
-
-

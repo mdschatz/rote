@@ -73,9 +73,6 @@ template<typename T>
 void
 Scal( T alpha, Tensor<T>& X )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Scal");
-#endif
     ScalData data;
     data.loopShape = X.Shape();
     data.srcStrides = X.Strides();
@@ -93,9 +90,6 @@ template<typename T>
 void
 Scal( T alpha, DistTensor<T>& X )
 {
-#ifndef RELEASE
-    CallStackEntry entry("Scal");
-#endif
     Scal(alpha, X.Tensor());
 }
 

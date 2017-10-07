@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 // NOTE: It is possible to simply include "rote.hpp" instead
@@ -111,9 +111,6 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
 template<typename T>
 void
 PerformSingleTest( const RedistType& commType, const TensorDistribution& resDist, const DistTensor<T>& A, const Permutation& outputPerm, const ModeArray& commModes){
-#ifndef RELEASE
-    CallStackEntry entry("PerformSingleTest");
-#endif
 	Unsigned i;
     Unsigned order = A.Order();
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
@@ -191,9 +188,6 @@ CreatePerms(const Unsigned& order){
 template<typename T>
 void
 PerformRedistTests( const RedistType& commType, const std::vector<Permutation>& perms1, const ObjShape& tenShape, const TensorDistribution& inputDist, const Grid& g){
-#ifndef RELEASE
-    CallStackEntry entry("PerformRedistTests");
-#endif
     Unsigned i, j, k;
     const Unsigned inputOrder = inputDist.size() - 1;
     const Int commRank = mpi::CommRank( mpi::COMM_WORLD );
@@ -248,10 +242,6 @@ template<typename T>
 void
 DistTensorTest( std::vector<RedistType>& redistsToTest, const Params& args, const Grid& g )
 {
-#ifndef RELEASE
-    CallStackEntry entry("DistTensorTest");
-#endif
-
     std::vector<Permutation> perms = CreatePerms(args.tenOrder);
     Unsigned i;
 
@@ -298,7 +288,7 @@ PerformTest( DistTensor<T>& A, const Params& args, const Grid& g ){
     }
 }
 
-int 
+int
 main( int argc, char* argv[] )
 {
     Initialize( argc, argv );
