@@ -64,9 +64,7 @@
 #include "rote/core/error.hpp"
 #include "rote/core/imports.hpp"
 
-// TODO: Fix environment_* headers
-#include "rote/core/environment_decl.hpp"
-#include "rote/core/environment_impl.hpp"
+#include "rote/core/environment.hpp"
 
 #include "rote/core/memory.hpp"
 #include "rote/core/complex.hpp"

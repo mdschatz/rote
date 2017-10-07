@@ -36,18 +36,52 @@ public:
     { }
     ~Args() { }
 protected:
-    void HandleVersion( std::ostream& os=std::cout ) const;
-    void HandleBuild( std::ostream& os=std::cout ) const;
+    void HandleVersion( std::ostream& os=std::cout ) const{
+        std::string version = "--version";
+        char** arg = std::find( argv_, argv_+argc_, version );
+        const bool foundVersion = ( arg != argv_+argc_ );
+        if( foundVersion )
+        {
+            if( mpi::WorldRank() == 0 )
+                PrintVersion(os);
+            throw ArgException();
+        }
+    };
+
+    void HandleBuild( std::ostream& os=std::cout ) const{
+        std::string build = "--build";
+        char** arg = std::find( argv_, argv_+argc_, build );
+        const bool foundBuild = ( arg != argv_+argc_ );
+        if( foundBuild )
+        {
+            if( mpi::WorldRank() == 0 )
+            {
+                PrintVersion(os);
+                //PrintConfig();
+                PrintCCompilerInfo(os);
+                PrintCxxCompilerInfo(os);
+            }
+            throw ArgException();
+        }
+    };
 };
 Args& GetArgs();
 
 // For processing command-line arguments
 template<typename T>
-T Input( std::string name, std::string desc );
+T Input( std::string name, std::string desc )
+{ return GetArgs().Input<T>( name, desc ); };
+
 template<typename T>
-T Input( std::string name, std::string desc, T defaultVal );
-void ProcessInput();
-void PrintInputReport();
+inline
+T Input( std::string name, std::string desc, T defaultVal )
+{ return GetArgs().Input( name, desc, defaultVal ); };
+
+inline
+void ProcessInput(){ GetArgs().Process(); };
+
+inline
+void PrintInputReport(){ GetArgs().PrintReport(); };
 
 // For getting and setting the algorithmic blocksize
 Int Blocksize();
@@ -76,15 +110,31 @@ inline Int Min( Int m, Int n )
 // Replacement for std::memcpy, which is known to often be suboptimal.
 // Notice the sizeof(T) is no longer required.
 template<typename T>
-void MemCopy( T* dest, const T* source, std::size_t numEntries );
+inline
+void MemCopy( T* dest, const T* source, std::size_t numEntries ){
+    // This can be optimized/generalized later
+    std::memcpy( dest, source, numEntries*sizeof(T) );
+};
 
 template<typename T>
-void MemSwap( T* a, T* b, T* temp, std::size_t numEntries );
+inline
+void MemSwap( T* a, T* b, T* temp, std::size_t numEntries ){
+    // temp := a
+    std::memcpy( temp, a, numEntries*sizeof(T) );
+    // a := b
+    std::memcpy( a, b, numEntries*sizeof(T) );
+    // b := temp
+    std::memcpy( b, temp, numEntries*sizeof(T) );
+};
 
 // Replacement for std::memset, which is likely suboptimal and hard to extend
 // to non-POD datatypes. Notice that sizeof(T) is no longer required.
 template<typename T>
-void MemZero( T* buffer, std::size_t numEntries );
+inline
+void MemZero( T* buffer, std::size_t numEntries ){
+    // This can be optimized/generalized later
+    std::memset( buffer, 0, numEntries*sizeof(T) );
+};
 
 // TODO: Remove CallStackEntry
 #ifndef RELEASE
@@ -108,10 +158,31 @@ public:
 };
 #endif // ifndef RELEASE
 
-void ReportException( const std::exception& e, std::ostream& os=std::cerr );
+inline
+void ReportException( const std::exception& e, std::ostream& os=std::cerr ){
+    if( std::string(e.what()) != "" )
+    {
+        os << "Process " << mpi::WorldRank() << " caught error message:\n"
+           << e.what() << std::endl;
+    }
+#ifndef RELEASE
+    DumpCallStack( os );
+#endif
+};
+
 class ArgException;
 
-void ComplainIfDebug();
+inline
+void ComplainIfDebug(){
+#ifndef RELEASE
+    if( mpi::WorldRank() == 0 )
+    {
+        std::cout << "==========================================\n"
+                  << " In debug mode! Performance will be poor! \n"
+                  << "==========================================" << std::endl;
+    }
+#endif
+};
 
 } // namespace rote
 
