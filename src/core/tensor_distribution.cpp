@@ -71,7 +71,7 @@ TensorDistribution::SetToMatch(const TensorDistribution& other, const IndexArray
 void
 TensorDistribution::AppendToMatchForGridModes(const ModeArray& gridModes, const TensorDistribution& other, const IndexArray& otherIndices, const IndexArray& myIndices){
 	Unsigned i;
-	TensorDistribution gridModeDistFinal = GetTensorDistForGridModes(other, gridModes);
+	TensorDistribution gridModeDistFinal = other.TensorDistForGridModes(gridModes);
 	for(i = 0; i < myIndices.size(); i++){
 		int index = IndexOf(otherIndices, myIndices[i]);
 		if(index >= 0)
@@ -214,12 +214,12 @@ GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs){
 }
 
 TensorDistribution
-GetTensorDistForGridModes(const TensorDistribution& tenDist, const ModeDistribution& gridModes){
+TensorDistribution::TensorDistForGridModes(const ModeDistribution& modes) const {
 	Unsigned i;
-	ModeDistribution findModes = gridModes;
-	TensorDistribution ret(tenDist.size() - 1);
-	for(i = 0; i < tenDist.entries_.size(); i++){
-		ModeDistribution overlap = tenDist.entries_[i].overlapWith(findModes);
+	ModeDistribution findModes = modes;
+	TensorDistribution ret(size() - 1);
+	for(i = 0; i < entries_.size(); i++){
+		ModeDistribution overlap = entries_[i].overlapWith(findModes);
 		ret.entries_[i] = overlap;
 		findModes -= overlap;
 	}
@@ -297,6 +297,15 @@ TensorDistribution::TensorModeForGridMode(const Mode& mode) const{
 		if(entries_[i].Contains(mode))
 			return i;
 	return entries_.size();
+}
+
+ModeArray
+TensorDistribution::TensorModesForGridModes(const ModeArray& modes) const {
+		ModeArray ret(modes.size());
+		for(Unsigned i = 0; i < modes.size(); i++) {
+			ret[i] = TensorModeForGridMode(modes[i]);
+		}
+		return ret;
 }
 
 //TODO: Figure out how to error check these without C++11

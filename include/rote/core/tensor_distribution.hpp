@@ -44,6 +44,8 @@ public:
     TensorDistribution Filter(const std::vector<Unsigned>& filterIndices) const;
 
     Mode TensorModeForGridMode(const Mode& mode) const;
+		ModeArray TensorModesForGridModes(const ModeArray& modes) const;
+		TensorDistribution TensorDistForGridModes(const ModeDistribution& modes) const;
 
     friend TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
     friend TensorDistribution GetCommonSuffix(const TensorDistribution& lhs, const TensorDistribution& rhs);

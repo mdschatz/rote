@@ -39,7 +39,7 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 
 	 redistData.gridModesRemoved = DiffVector(gridModesA, gridModesB);
 	 ModeDistribution gridModesRemovedDist(redistData.gridModesRemoved);
-	 redistData.gridModesRemovedSrcs = GetModeDistOfGridMode(redistData.gridModesRemoved, tenDistA);
+	 redistData.gridModesRemovedSrcs = tenDistA.TensorModesForGridModes(redistData.gridModesRemoved);
 
 	 //By default, we put AR modes to ten mode 0
 	 for(i = 0; i < redistData.gridModesRemoved.size(); i++){
@@ -50,7 +50,7 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 	 }
 
 	 redistData.gridModesAppeared = DiffVector(gridModesB, gridModesA);
-	 redistData.gridModesAppearedSinks = GetModeDistOfGridMode(redistData.gridModesAppeared, tenDistB);
+	 redistData.gridModesAppearedSinks = tenDistB.TensorModesForGridModes(redistData.gridModesAppeared);
 
 	 //Determine grid modes that moved mode distributions
 	 //Determine their Src tensor mode dist along the way
@@ -73,9 +73,9 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 		 }
 	 }
 
-	 TensorDistribution srcTenDist = GetTensorDistForGridModes(tenDistA, nonReducedGridModes);
+	 TensorDistribution srcTenDist = tenDistA.TensorDistForGridModes(nonReducedGridModes);
 	 srcTenDist.RemoveUnitModeDists(reduceModes);
-	 TensorDistribution sinkTenDist = GetTensorDistForGridModes(tenDistB, nonReducedGridModes);
+	 TensorDistribution sinkTenDist = tenDistB.TensorDistForGridModes(nonReducedGridModes);
 
 	//  std::cout << "Planning srcTenDist: " << srcTenDist << std::endl;
 	//  std::cout << "Planning sinkTenDist: " << sinkTenDist << std::endl;
@@ -89,11 +89,8 @@ RedistPlanInfo DistTensor<T>::CreateGenRedistData(const TensorDistribution& tenD
 	 redistData.gridModesMovedSrcs.resize(redistData.gridModesMoved.size());
 	 redistData.gridModesMovedSinks.resize(redistData.gridModesMoved.size());
 
-	 for(i = 0; i < redistData.gridModesMoved.size(); i++){
-		 Mode mode = redistData.gridModesMoved[i];
-		 redistData.gridModesMovedSrcs[i] = srcTenDist.TensorModeForGridMode(mode);
-		 redistData.gridModesMovedSinks[i] = sinkTenDist.TensorModeForGridMode(mode);
-	 }
+	 redistData.gridModesMovedSrcs = srcTenDist.TensorModesForGridModes(redistData.gridModesMoved);
+	 redistData.gridModesMovedSinks = sinkTenDist.TensorModesForGridModes(redistData.gridModesMoved);
 
 	//  PrintRedistPlanInfo(redistData, "RedistInfo pre return", true);
 	 return redistData;

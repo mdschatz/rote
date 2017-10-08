@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_UTIL_TENDISTUTIL_HPP
-#define ROTE_UTIL_TENDISTUTIL_HPP
+#ifndef ROTE_UTIL_TENDIST_HPP
+#define ROTE_UTIL_TENDIST_HPP
 
 namespace rote {
 
@@ -29,8 +29,6 @@ bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm);
 //
 // Util
 //
-ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist);
-Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist);
 ModeArray GetCommonSuffixModes(const ModeDistribution& lhs, const ModeDistribution& rhs);
 ModeArray GetCommonSuffixModes(const TensorDistribution& lhs, const TensorDistribution& rhs);
 ModeDistribution GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
@@ -38,4 +36,4 @@ TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDi
 
 } // namespace rote
 
-#endif // ifndef ROTE_UTIL_TENDISTUTIL_HPP
+#endif // ifndef ROTE_UTIL_TENDIST_HPP

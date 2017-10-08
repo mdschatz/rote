@@ -178,23 +178,4 @@ bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm){
 	return perm.size() == order;
 }
 
-//TODO: Error checking
-ModeArray GetModeDistOfGridMode(const ModeArray& gridModes, const TensorDistribution& tenDist){
-	Unsigned i;
-	ModeArray ret(gridModes.size());
-	for(i = 0; i < gridModes.size(); i++)
-		ret[i] = GetModeDistOfGridMode(gridModes[i], tenDist);
-	return ret;
-}
-
-Mode GetModeDistOfGridMode(const Mode& mode, const TensorDistribution& tenDist){
-	Unsigned i;
-	for(i = 0; i < tenDist.size(); i++){
-		ModeDistribution modeDist = tenDist[i];
-		if(modeDist.Contains(mode))
-			return i;
-	}
-	return tenDist.size();
-}
-
 }
