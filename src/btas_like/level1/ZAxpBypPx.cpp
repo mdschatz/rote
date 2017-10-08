@@ -189,9 +189,9 @@ ZAxpBypPx( T alpha, const Tensor<T>& X, const Permutation& permXToZ, T beta, con
 {
     ZAxpBypPxData data;
     data.loopShape = Z.Shape();
-    data.src1Strides = PermuteVector(X.Strides(), permXToZ);
-    data.src2Strides = PermuteVector(Y.Strides(), permYToZ);
-    data.permSrcStrides = PermuteVector(PX.Strides(), permPXToZ);
+    data.src1Strides = permXToZ.applyTo(X.Strides());
+    data.src2Strides = permYToZ.applyTo(Y.Strides());
+    data.permSrcStrides = permPXToZ.applyTo(PX.Strides());
     data.dstStrides = Z.Strides();
 
     const T* src1Buf = X.LockedBuffer();

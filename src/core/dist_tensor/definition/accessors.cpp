@@ -260,7 +260,7 @@ DistTensorBase<T>::Get( const Location& loc ) const
 
         if(!AnyElemwiseNotEqual(g.Loc(), ownerGridLoc)){
             const Location localLoc = Global2LocalIndex(loc);
-            u = GetLocal(PermuteVector(localLoc, localPerm_));
+            u = GetLocal(localPerm_.applyTo(localLoc));
         }
 
         int ownerLinearLoc = gv.ToParticipatingLinearLoc(owningProc);

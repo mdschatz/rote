@@ -157,7 +157,7 @@ void Permute(const Tensor<T>& A, Tensor<T>& B, const Permutation& perm){
     PackData data;
     data.loopShape = A.Shape();
     data.srcBufStrides = A.Strides();
-    data.dstBufStrides = PermuteVector(B.Strides(), invperm);
+    data.dstBufStrides = invperm.applyTo(B.Strides());
 
     PackCommHelper(data, &(srcBuf[0]), &(dstBuf[0]));
 }

@@ -137,9 +137,13 @@ void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& 
 		contractInfo.blkSizes = blkSizes;
 	}
 
-	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
-	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
-	contractInfo.permT = DeterminePermutation(indicesT, ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB));
+	Permutation permA(indicesA, ConcatenateVectors(indicesAC, indicesAB));
+	Permutation permB(indicesB, ConcatenateVectors(indicesAB, indicesBC));
+	Permutation permT(indicesT, ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB));
+
+	contractInfo.permA = permA;
+	contractInfo.permB = permB;
+	contractInfo.permT = permT;
 }
 
 template <typename T>

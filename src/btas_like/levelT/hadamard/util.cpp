@@ -32,8 +32,8 @@ void Hadamard<T>::runHelperPartitionBC(
 			intB.RedistFrom(B);
 
 			Hadamard<T>::run(
-				intA.LockedTensor(), PermuteVector(indicesA, hadamardInfo.permA),
-				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
+				intA.LockedTensor(), hadamardInfo.permA.applyTo(indicesA),
+				intB.LockedTensor(), hadamardInfo.permB.applyTo(indicesB),
 				C.Tensor(), indicesC
 			);
 		} else {
@@ -49,8 +49,8 @@ void Hadamard<T>::runHelperPartitionBC(
 
 			Hadamard<T>::run(
 				A.LockedTensor(), indicesA,
-				intB.LockedTensor(), PermuteVector(indicesB, hadamardInfo.permB),
-				intC.Tensor(), PermuteVector(indicesC, hadamardInfo.permC)
+				intB.LockedTensor(), hadamardInfo.permB.applyTo(indicesB),
+				intC.Tensor(), hadamardInfo.permB.applyTo(indicesC)
 			);
 			C.RedistFrom(intC);
 		}
@@ -259,9 +259,13 @@ void Hadamard<T>::setHadamardInfo(
 	}
 
 	//Set the local permutation info
-	hadamardInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesCA, indicesCBA));
-	hadamardInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesCBA, indicesCB));
-	hadamardInfo.permC = DeterminePermutation(indicesC, ConcatenateVectors(ConcatenateVectors(indicesCBA, indicesCB), indicesCA));
+	Permutation permA(indicesA, ConcatenateVectors(indicesCA, indicesCBA));
+	Permutation permB(indicesB, ConcatenateVectors(indicesCBA, indicesCB));
+	Permutation permC(indicesC, ConcatenateVectors(ConcatenateVectors(indicesCBA, indicesCB), indicesCA));
+
+	hadamardInfo.permA = permA;
+	hadamardInfo.permB = permB;
+	hadamardInfo.permC = permC;
 }
 
 #define PROTO(T) \

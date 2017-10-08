@@ -81,8 +81,8 @@ YAxpPx( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, const 
 {
     YAxpPxData data;
     data.loopShape = Y.Shape();
-    data.srcStrides = PermuteVector(X.Strides(), permXToY);
-    data.permSrcStrides = PermuteVector(PX.Strides(), permPXToY);
+    data.srcStrides = permXToY.applyTo(X.Strides());
+    data.permSrcStrides = permPXToY.applyTo(PX.Strides());
     data.dstStrides = Y.Strides();
 
     const T* srcBuf = X.LockedBuffer();

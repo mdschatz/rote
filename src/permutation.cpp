@@ -73,7 +73,8 @@ Permutation Permutation::InversePermutation() const
 
 Permutation Permutation::PermutationTo(const Permutation& perm) const
 {
-	return DeterminePermutation(perm_, perm.perm_);
+	Permutation ret(perm_, perm.perm_);
+	return ret;
 }
 
 std::vector<Unsigned> Permutation::Entries() const
@@ -83,3 +84,19 @@ Unsigned Permutation::size() const
 { return perm_.size(); }
 
 }
+//
+// #define FULL(T) \
+//     template Permutation::Permutation<T>;
+//
+// FULL(int)
+// #ifndef DISABLE_FLOAT
+// FULL(float)
+// #endif
+// FULL(double)
+//
+// #ifndef DISABLE_COMPLEX
+// #ifndef DISABLE_FLOAT
+// FULL(std::complex<float>)
+// #endif
+// FULL(std::complex<double>)
+// #endif

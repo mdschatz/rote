@@ -273,7 +273,7 @@ LinearLoc2Loc(const Unsigned linearLoc, const ObjShape& shape, const Permutation
                 remainder -= modeLoc * strides[i];
         }
     }else{
-        const ObjShape permutedShape = PermuteVector(shape, permutation);
+        const ObjShape permutedShape = permutation.applyTo(shape);
         const std::vector<Unsigned> strides = Dimensions2Strides(permutedShape);
 
         for(i = order - 1; i < order; i--){

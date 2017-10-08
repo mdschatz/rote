@@ -91,7 +91,7 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
 
     const ObjShape shapeA = A.Shape();
     const std::vector<Unsigned> srcStrides = A.Strides();
-    const std::vector<Unsigned> dstStrides = PermuteVector(B.Strides(), permBToA);
+    const std::vector<Unsigned> dstStrides = permBToA.applyTo(B.Strides());
 
 //    LocalReduceElemSelect_fast(nonReduceModes.size() - 1, nonReduceModes, reduceModes, A.Shape(), A.LockedBuffer(), srcStrides, B.Buffer(), dstStrides);
     std::vector<Unsigned> srcReduceStrides = FilterVector(srcStrides, reduceModes);
@@ -142,7 +142,7 @@ void LocalReduce(const DistTensor<T>& A, DistTensor<T>& B, const ModeArray& redu
     if(B.Participating()){
         //Account for the local data being permuted
 
-        Permutation permBToA = B.LocalPermutation().PermutationTo(A.LocalPermutation());//DeterminePermutation(B.LocalPermutation(), A.LocalPermutation());
+        Permutation permBToA = B.LocalPermutation().PermutationTo(A.LocalPermutation());
         LocalReduce(A.LockedTensor(), B.Tensor(), permBToA, FilterVector(A.LocalPermutation().InversePermutation().Entries(), reduceModes));
     }
     PROFILE_STOP;

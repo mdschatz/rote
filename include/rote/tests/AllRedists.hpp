@@ -143,7 +143,7 @@ bool CheckResult(const DistTensor<T>& A){
     }else{
     	const Tensor<T> tensorA = A.LockedTensor();
     	const Tensor<T> tensorActual = check.LockedTensor();
-    	const Permutation permCheckToA = DeterminePermutation(check.LocalPermutation(), A.LocalPermutation());
+    	const Permutation permCheckToA(check.LocalPermutation(), A.LocalPermutation());
     	const ObjShape checkShape = check.Shape();
         Location checkLoc(order, 0);
 
@@ -161,7 +161,7 @@ bool CheckResult(const DistTensor<T>& A){
 //        PrintVector(myFirstElem, "myFirstLoc");
         while(!stop){
 //            PrintVector(checkLoc, "checking Loc");
-            Location locA = PermuteVector(checkLoc, permCheckToA);
+            Location locA = permCheckToA.applyTo(checkLoc);
 
             if(A.Get(locA) != check.Get(checkLoc)){
                 printf("val: %d checkVal: %d\n", A.Get(locA), check.Get(checkLoc));
@@ -244,7 +244,7 @@ bool CheckReduceResult(const DistTensor<T>& A, const DistTensor<T>& orig, const 
     }else{
     	const Tensor<T> tensorA = A.LockedTensor();
     	const Tensor<T> tensorActual = check.LockedTensor();
-    	const Permutation permCheckToA = DeterminePermutation(check.LocalPermutation(), A.LocalPermutation());
+    	const Permutation permCheckToA(check.LocalPermutation(), A.LocalPermutation());
     	const ObjShape checkShape = check.Shape();
         Location checkLoc(order, 0);
 
@@ -262,7 +262,7 @@ bool CheckReduceResult(const DistTensor<T>& A, const DistTensor<T>& orig, const 
 //        PrintVector(myFirstElem, "myFirstLoc");
         while(!stop){
 //            PrintVector(checkLoc, "checking Loc");
-            Location locA = PermuteVector(checkLoc, permCheckToA);
+            Location locA = permCheckToA.applyTo(checkLoc);
 
             if(A.Get(locA) != check.Get(checkLoc)){
                 printf("val: %d checkVal: %d\n", A.Get(locA), check.Get(checkLoc));

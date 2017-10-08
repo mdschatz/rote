@@ -19,18 +19,35 @@ public:
 	Permutation(std::initializer_list<Unsigned> list);
 	Permutation(const std::vector<Unsigned>& perm); //Needed for methods that dynamically determine permutations
 	Permutation(const Permutation& perm);
+
+	template<typename T>
+	Permutation(const std::vector<T>& vFrom, const std::vector<T>& vTo): perm_(vFrom.size()) {
+		if(vFrom.size() != vTo.size())
+				LogicError("reference vector and permuted vector are of different sizes");
+
+		for(Unsigned i = 0; i < vTo.size(); i++){
+				perm_[i] = IndexOf(vFrom, vTo[i]);
+		}
+	};
+
 	~Permutation();
 
 	Permutation& operator=(const Permutation& perm);
 	const Unsigned& operator[](std::size_t idx) const;
 	Unsigned size() const;
 
-    friend std::ostream& operator<<(std::ostream& o, const Permutation& perm);
-    friend bool operator!=(const Permutation& lhs, const Permutation& rhs);
+  friend std::ostream& operator<<(std::ostream& o, const Permutation& perm);
+  friend bool operator!=(const Permutation& lhs, const Permutation& rhs);
 
-    Permutation InversePermutation() const;
-    Permutation PermutationTo(const Permutation& perm) const;
-    std::vector<Unsigned> Entries() const;
+  Permutation InversePermutation() const;
+  Permutation PermutationTo(const Permutation& perm) const;
+  std::vector<Unsigned> Entries() const;
+
+	template<typename T>
+	std::vector<T> applyTo(const std::vector<T>& v) const {
+		return FilterVector(v, Entries());
+	};
+
 private:
 	std::vector<Unsigned> perm_;
 

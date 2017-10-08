@@ -31,13 +31,15 @@
 
 #include "rote/core/memory.hpp"
 #include "rote/core/complex.hpp"
-#include "rote/core/permutation.hpp"
 
+#include "rote/core/forward_decl.hpp"
 #include "rote/core/mode_distribution.hpp"
 #include "rote/core/tensor_distribution.hpp"
 #include "rote/core/util.hpp"
+#include "rote/core/permutation.hpp"
+
 #include "rote/core/structs.hpp"
-#include "rote/core/forward_decl.hpp"
+
 #include "rote/core/grid.hpp"
 #include "rote/core/grid_view.hpp"
 // TODO: Fix indexing_* headers

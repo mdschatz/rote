@@ -1,6 +1,6 @@
 #include "rote.hpp"
 
-namespace rote{
+namespace rote {
 
 template<typename T>
 T sum(const std::vector<T>& src) {
@@ -72,7 +72,7 @@ bool AnyNegativeElem(const std::vector<T>& vec){
 template<typename T>
 bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-    rote::LogicError("Vector element-wise comparison must have matching sizes");
+    LogicError("Vector element-wise comparison must have matching sizes");
 
   Unsigned i;
   for(i = 0; i < vec1.size(); i++)
@@ -84,7 +84,7 @@ bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
 template<typename T>
 bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-    rote::LogicError("Vector element-wise comparison must have matching sizes");
+    LogicError("Vector element-wise comparison must have matching sizes");
 
   Unsigned i;
   for(i = 0; i < vec1.size(); i++)
@@ -96,7 +96,7 @@ bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& v
 template<typename T>
 bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2){
 	if(vec1.size() != vec2.size())
-		rote::LogicError("Vector element-wise comparison must have matching sizes");
+		LogicError("Vector element-wise comparison must have matching sizes");
 
 	Unsigned i;
 	for(i = 0; i < vec1.size(); i++)
@@ -117,18 +117,13 @@ bool AnyZeroElem(const std::vector<T>& vec){
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2){
   if(vec1.size() != vec2.size())
-	rote::LogicError("Vector element-wise comparison must have matching sizes");
+	  LogicError("Vector element-wise comparison must have matching sizes");
 
   Unsigned i;
   for(i = 0; i < vec1.size(); i++)
     if(vec1[i] != vec2[i])
       return true;
   return false;
-}
-
-template<typename T>
-std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm){
-    return FilterVector(vec, perm.Entries());
 }
 
 template<typename T>
@@ -254,21 +249,6 @@ T Max(const std::vector<T>& vec){
 }
 
 template<typename T>
-Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec){
-    if(ref.size() != vec.size())
-        LogicError("reference vector and permuted vector are of different sizes");
-    std::vector<Unsigned> permVec(ref.size());
-
-    Unsigned i;
-    for(i = 0; i < vec.size(); i++){
-        permVec[i] = IndexOf(ref, vec[i]);
-    }
-
-    Permutation ret(permVec);
-    return ret;
-}
-
-template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2){
 	Unsigned i;
 	std::vector<T> ret = vec1;
@@ -310,7 +290,6 @@ void SortVector(std::vector<T>& vec1) {
 	template bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-	template std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& filter); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template int  IndexOf(const std::vector<T>& vec, const T& val); \
@@ -322,7 +301,6 @@ void SortVector(std::vector<T>& vec1) {
 	template std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template T Min(const std::vector<T>& vec); \
 	template T Max(const std::vector<T>& vec); \
-  template Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec); \
   template std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2); \
   template std::vector<T> IsectVector(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template void SortVector(std::vector<T>& vec1);

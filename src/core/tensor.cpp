@@ -645,11 +645,11 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
     const T* srcBuf = A.LockedBuffer();
     T* thisBuf = Buffer();
 
-    Permutation out2inPerm = dstPerm.PermutationTo(srcPerm);//DeterminePermutation(dstPerm, srcPerm);
+    Permutation out2inPerm = dstPerm.PermutationTo(srcPerm);
     PackData packData;
     packData.loopShape = A.Shape();
 	packData.srcBufStrides = A.Strides();
-    packData.dstBufStrides = PermuteVector(Strides(), out2inPerm);
+    packData.dstBufStrides = out2inPerm.applyTo(Strides());
 
     PackCommHelper(packData, &(srcBuf[0]), &(thisBuf[0]));
 }

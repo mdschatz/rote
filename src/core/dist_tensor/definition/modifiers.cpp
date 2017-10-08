@@ -109,7 +109,7 @@ DistTensorBase<T>::Attach
     if( Participating() )
     {
         ObjShape localShape = Lengths(shape, ModeShifts(), ModeStrides());
-        tensor_.Attach( PermuteVector(localShape, localPerm_), buffer, strides );
+        tensor_.Attach( localPerm_.applyTo(localShape), buffer, strides );
     }
 }
 
@@ -142,7 +142,7 @@ DistTensorBase<T>::LockedAttach
     SetShifts();
     if(Participating() ){
         //Account for local permutation
-        ObjShape localShape = PermuteVector(Lengths(shape, ModeShifts(), ModeStrides()), localPerm_);
+        ObjShape localShape = localPerm_.applyTo(Lengths(shape, ModeShifts(), ModeStrides()));
         tensor_.LockedAttach(localShape, buffer, strides);
     }
 }
@@ -170,7 +170,7 @@ DistTensorBase<T>::ResizeTo( const ObjShape& shape )
     }
     if(Participating() && viewType_ == OWNER){
         //Account for local permutation
-        tensor_.ResizeTo(PermuteVector(Lengths(shape, modeShifts_, gridView_.ParticipatingShape()), localPerm_));
+        tensor_.ResizeTo(localPerm_.applyTo(Lengths(shape, modeShifts_, gridView_.ParticipatingShape())));
     }
 }
 
@@ -201,7 +201,7 @@ DistTensorBase<T>::Set( const Location& loc, T u )
 
     if(!AnyElemwiseNotEqual(gv.ParticipatingLoc(), owningProc)){
         const Location localLoc = Global2LocalIndex(loc);
-        SetLocal(PermuteVector(localLoc, localPerm_), u);
+        SetLocal(localPerm_.applyTo(localLoc), u);
     }
 }
 
@@ -449,7 +449,7 @@ void
 DistTensorBase<T>::SetLocalPermutation(const Permutation& perm)
 {
     Permutation permOldToNew = localPerm_.PermutationTo(perm);
-    tensor_.ResizeTo(PermuteVector(tensor_.Shape(), permOldToNew));
+    tensor_.ResizeTo(permOldToNew.applyTo(tensor_.Shape()));
     localPerm_ = perm;
 }
 

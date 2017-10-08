@@ -237,7 +237,7 @@ inline void
 YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
     YAxpByData data;
     data.loopShape = Y.Shape();
-    data.srcStrides = PermuteVector(X.Strides(), permXToY);
+    data.srcStrides = permXToY.applyTo(X.Strides());
     data.dstStrides = Y.Strides();
 
     const T* srcBuf = X.LockedBuffer();

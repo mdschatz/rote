@@ -124,11 +124,13 @@ void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArra
 	PrintVector(indicesA, "indicesA");
 	PrintVector(indicesAC, "indicesAC");
 	PrintVector(indicesAB, "indicesAB");
-	contractInfo.permA = DeterminePermutation(indicesA, ConcatenateVectors(indicesAC, indicesAB));
-	std::cout << "permB\n";
-	contractInfo.permB = DeterminePermutation(indicesB, ConcatenateVectors(indicesAB, indicesBC));
-	std::cout << "permC\n";
-	contractInfo.permC = DeterminePermutation(indicesC, ConcatenateVectors(indicesAC, indicesBC));
+	Permutation permA(indicesA, ConcatenateVectors(indicesAC, indicesAB));
+	Permutation permB(indicesB, ConcatenateVectors(indicesAB, indicesBC));
+	Permutation permC(indicesC, ConcatenateVectors(indicesAC, indicesBC));
+	
+	contractInfo.permA = permA;
+	contractInfo.permB = permB;
+	contractInfo.permC = permC;
 }
 
 template <typename T>

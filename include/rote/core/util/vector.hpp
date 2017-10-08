@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_UTIL_VECUTIL_HPP
-#define ROTE_UTIL_VECUTIL_HPP
+#ifndef ROTE_UTIL_VECTOR_HPP
+#define ROTE_UTIL_VECTOR_HPP
 
 namespace rote {
 
@@ -54,10 +54,6 @@ bool AnyZeroElem(const std::vector<T>& vec);
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
-// TODO: Move to Permutation::apply()
-template<typename T>
-std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& perm);
-
 template<typename T>
 std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter);
 
@@ -92,9 +88,6 @@ template<typename T>
 std::vector<T> ConcatenateVectors(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
-Permutation DeterminePermutation(const std::vector<T>& ref, const std::vector<T>& vec);
-
-template<typename T>
 std::vector<T> DiffVector(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
@@ -105,4 +98,4 @@ void SortVector(std::vector<T>& vec1);
 
 } // namespace rote
 
-#endif // ifndef ROTE_UTIL_VECUTIL_HPP
+#endif // ifndef ROTE_UTIL_VECTOR_HPP

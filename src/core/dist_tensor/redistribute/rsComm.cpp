@@ -218,21 +218,21 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
             //Determine where the initial piece of data is located.
             const Location localLoc = A.Global2LocalIndex(firstSendLoc);
 //            PrintVector(localLoc, "localLoc");
-            Unsigned dataBufPtr = LinearLocFromStrides(PermuteVector(localLoc, A.localPerm_), A.LocalStrides());
+            Unsigned dataBufPtr = LinearLocFromStrides(A.localPerm_.applyTo(localLoc), A.LocalStrides());
 
             PackData packData;
-            packData.loopShape = MaxLengths(ElemwiseSubtract(A.LocalShape(), PermuteVector(localLoc, A.localPerm_)), PermuteVector(modeStrideFactor, A.localPerm_));
-            packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), PermuteVector(modeStrideFactor, A.localPerm_));
+            packData.loopShape = MaxLengths(ElemwiseSubtract(A.LocalShape(), A.localPerm_.applyTo(localLoc)), A.localPerm_.applyTo(modeStrideFactor));
+            packData.srcBufStrides = ElemwiseProd(A.LocalStrides(), A.localPerm_.applyTo(modeStrideFactor));
 
             //Pack into permuted form to minimize striding when unpacking
-            ObjShape finalShape = PermuteVector(sendShape, this->localPerm_);
+            ObjShape finalShape = this->localPerm_.applyTo(sendShape);
             std::vector<Unsigned> finalStrides = Dimensions2Strides(finalShape);
 
             //Determine permutation from local output to local input
-            Permutation out2in = A.localPerm_.PermutationTo(this->localPerm_).InversePermutation();//DetermineInversePermutation(DeterminePermutation(A.localPerm_, this->localPerm_));
+            Permutation out2in = A.localPerm_.PermutationTo(this->localPerm_).InversePermutation();
 
             //Permute pack strides to match input local permutation (for correct packing)
-            packData.dstBufStrides = PermuteVector(finalStrides, out2in);
+            packData.dstBufStrides = out2in.applyTo(finalStrides);
 
 //            PrintPackData(packData, "rsPackData");
             PackCommHelper(packData, &(dataBuf[dataBufPtr]), &(sendBuf[i * nElemsPerProc]));
@@ -251,7 +251,7 @@ void DistTensor<T>::UnpackRSUCommRecvBuf(const T * const recvBuf, const T alpha,
 
     YAxpByData data;
     data.loopShape = this->LocalShape();
-    data.srcStrides = Dimensions2Strides(PermuteVector(this->MaxLocalShape(), this->localPerm_));
+    data.srcStrides = Dimensions2Strides(this->localPerm_.applyTo(this->MaxLocalShape()));
     data.dstStrides = this->LocalStrides();
 
     YAxpBy_fast(alpha, beta, &(recvBuf[0]), &(dataBuf[0]), data);
