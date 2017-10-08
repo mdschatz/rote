@@ -52,24 +52,6 @@ std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src
 }
 
 template<typename T>
-bool AnyNonNegativeElem(const std::vector<T>& vec){
-  Unsigned i;
-  for(i = 0; i < vec.size(); i++)
-    if(vec[i] >= 0)
-      return true;
-  return false;
-}
-
-template<typename T>
-bool AnyNonPositiveElem(const std::vector<T>& vec){
-  Unsigned i;
-  for(i = 0; i < vec.size(); i++)
-    if(vec[i] <= 0)
-      return true;
-  return false;
-}
-
-template<typename T>
 bool AnyPositiveElem(const std::vector<T>& vec){
   Unsigned i;
   for(i = 0; i < vec.size(); i++)
@@ -124,18 +106,6 @@ bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& ve
 }
 
 template<typename T>
-bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2){
-    if(vec1.size() != vec2.size())
-        rote::LogicError("Vector element-wise comparison must have matching sizes");
-
-    Unsigned i;
-    for(i = 0; i < vec1.size(); i++)
-        if(vec1[i] >= vec2[i])
-            return true;
-    return false;
-}
-
-template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec){
   Unsigned i;
   for(i = 0; i < vec.size(); i++)
@@ -154,23 +124,6 @@ bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2)
     if(vec1[i] != vec2[i])
       return true;
   return false;
-}
-
-template<typename T>
-bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2){
-    if(vec1.size() != vec2.size())
-        rote::LogicError("Vector Permutation check must have same sized vectors");
-
-    Unsigned i;
-    for(i = 0; i < vec1.size(); i++){
-        if(!Contains(vec2, vec1[i]))
-            LogicError("EqualUnderPermutation: element in vec1 not found in vec2");
-    }
-    for(i = 0; i < vec2.size(); i++){
-        if(!Contains(vec1, vec2[i]))
-            LogicError("EqualUnderPermutation: element in vec2 not found in vec1");
-    }
-    return true;
 }
 
 template<typename T>
@@ -350,17 +303,13 @@ void SortVector(std::vector<T>& vec1) {
 	template std::vector<T> ElemwiseSubtract(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template std::vector<T> ElemwiseProd(const std::vector<T>& src1, const std::vector<T>& src2); \
 	template std::vector<T> ElemwiseDivide(const std::vector<T>& src1, const std::vector<T>& src2); \
-	template bool AnyNonNegativeElem(const std::vector<T>& vec); \
-	template bool AnyNonPositiveElem(const std::vector<T>& vec); \
 	template bool AnyPositiveElem(const std::vector<T>& vec); \
 	template bool AnyNegativeElem(const std::vector<T>& vec); \
 	template bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-	template bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template bool AnyZeroElem(const std::vector<T>& vec); \
 	template bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2); \
-	template bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2); \
 	template std::vector<T> PermuteVector(const std::vector<T>& vec, const Permutation& filter); \
 	template std::vector<T> FilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \
 	template std::vector<T> NegFilterVector(const std::vector<T>& vec, const std::vector<Unsigned>& filter); \

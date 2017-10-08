@@ -34,10 +34,10 @@ template<typename T>
 std::vector<T> ElemwiseMod(const std::vector<T>& src1, const std::vector<T>& src2);
 
 template<typename T>
-bool AnyNonNegativeElem(const std::vector<T>& vec);
+bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
-bool AnyNonPositiveElem(const std::vector<T>& vec);
+bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 bool AnyPositiveElem(const std::vector<T>& vec);
@@ -46,25 +46,13 @@ template<typename T>
 bool AnyNegativeElem(const std::vector<T>& vec);
 
 template<typename T>
-bool ElemwiseLessThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
-bool ElemwiseLessThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
 bool AnyElemwiseGreaterThan(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
-bool AnyElemwiseGreaterThanEqualTo(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 template<typename T>
 bool AnyZeroElem(const std::vector<T>& vec);
 
 template<typename T>
 bool AnyElemwiseNotEqual(const std::vector<T>& vec1, const std::vector<T>& vec2);
-
-template<typename T>
-bool EqualUnderPermutation(const std::vector<T>& vec1, const std::vector<T>& vec2);
 
 // TODO: Move to Permutation::apply()
 template<typename T>
