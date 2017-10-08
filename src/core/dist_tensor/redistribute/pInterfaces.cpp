@@ -22,7 +22,7 @@ void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArra
 	NOT_USED(redistModes);
     PROFILE_SECTION("PermuteRedist");
     this->ResizeTo(A);
-    ModeArray commModes = GetCommonSuffix(A.TensorDist(), this->TensorDist()).UsedModes().Entries();
+    ModeArray commModes = A.TensorDist().GetCommonSuffix(this->TensorDist()).UsedModes().Entries();
 
     commModes = Unique(commModes);
     PermutationCommRedist(A, commModes, alpha);

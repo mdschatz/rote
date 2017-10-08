@@ -186,13 +186,13 @@ ModeDistribution::Filter(const std::vector<Unsigned>& filterIndices){
 }
 
 ModeDistribution
-GetCommonSuffix(const ModeDistribution& lhs, const ModeDistribution& rhs){
-	return GetSuffix(lhs.entries_, rhs.entries_);
+ModeDistribution::GetCommonSuffix(const ModeDistribution& other) const {
+	return GetSuffix(entries_, other.entries_);
 }
 
 ModeDistribution
-GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs){
-	return GetPrefix(lhs.entries_, rhs.entries_);
+ModeDistribution::GetCommonPrefix(const ModeDistribution& other) const {
+	return GetPrefix(entries_, other.entries_);
 }
 
 void

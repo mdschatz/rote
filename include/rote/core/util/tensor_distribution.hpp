@@ -26,14 +26,6 @@ bool CheckOutIsPrefix(const TensorDistribution& outDist, const TensorDistributio
 bool CheckSameGridViewShape(const ObjShape& outShape, const ObjShape& inShape);
 bool CheckIsValidPermutation(const Unsigned& order, const Permutation& perm);
 
-//
-// Util
-//
-ModeArray GetCommonSuffixModes(const ModeDistribution& lhs, const ModeDistribution& rhs);
-ModeArray GetCommonSuffixModes(const TensorDistribution& lhs, const TensorDistribution& rhs);
-ModeDistribution GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
-TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
-
 } // namespace rote
 
 #endif // ifndef ROTE_UTIL_TENDIST_HPP

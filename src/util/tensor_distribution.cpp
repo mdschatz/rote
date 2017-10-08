@@ -58,7 +58,7 @@ bool CheckSameNonDist(const TensorDistribution& outDist, const TensorDistributio
 }
 
 bool CheckSameCommModes(const TensorDistribution& outDist, const TensorDistribution& inDist){
-    TensorDistribution commonPrefix = GetCommonPrefix(inDist, outDist);
+    TensorDistribution commonPrefix = inDist.GetCommonPrefix(outDist);
     TensorDistribution remainderIn = inDist - commonPrefix;
     TensorDistribution remainderOut = outDist - commonPrefix;
 

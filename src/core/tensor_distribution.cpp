@@ -188,28 +188,28 @@ operator+(const TensorDistribution& lhs, const TensorDistribution& rhs){
 }
 
 TensorDistribution
-GetCommonSuffix(const TensorDistribution& lhs, const TensorDistribution& rhs){
-	if(lhs.entries_.size() != rhs.entries_.size())
+TensorDistribution::GetCommonSuffix(const TensorDistribution& other) const {
+	if(entries_.size() != other.entries_.size())
 		LogicError("Tensor distributions must be of equal size to extract common suffix");
 
 	Unsigned i;
 	TensorDistribution ret;
-	ret.entries_.resize(lhs.entries_.size());
-	for(i = 0; i < lhs.entries_.size(); i++)
-		ret.entries_[i] = GetCommonSuffix(lhs.entries_[i], rhs.entries_[i]);
+	ret.entries_.resize(entries_.size());
+	for(i = 0; i < entries_.size(); i++)
+		ret.entries_[i] = entries_[i].GetCommonSuffix(other.entries_[i]);
 	return ret;
 }
 
 TensorDistribution
-GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs){
-	if(lhs.entries_.size() != rhs.entries_.size())
+TensorDistribution::GetCommonPrefix(const TensorDistribution& other) const {
+	if(entries_.size() != other.entries_.size())
 		LogicError("Tensor distributions must be of equal size to extract common prefix");
 
 	Unsigned i;
 	TensorDistribution ret;
-	ret.entries_.resize(lhs.entries_.size());
-	for(i = 0; i < lhs.entries_.size(); i++)
-		ret.entries_[i] = GetCommonPrefix(lhs.entries_[i], rhs.entries_[i]);
+	ret.entries_.resize(entries_.size());
+	for(i = 0; i < entries_.size(); i++)
+		ret.entries_[i] = entries_[i].GetCommonPrefix(other.entries_[i]);
 	return ret;
 }
 

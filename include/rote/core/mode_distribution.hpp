@@ -40,8 +40,8 @@ public:
     ModeDistribution Filter(const std::vector<Unsigned>& filterIndices);
 
     bool Contains(const Mode& mode) const;
-    friend ModeDistribution GetCommonPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
-    friend ModeDistribution GetCommonSuffix(const ModeDistribution& lhs, const ModeDistribution& rhs);
+    ModeDistribution GetCommonPrefix(const ModeDistribution& other) const;
+    ModeDistribution GetCommonSuffix(const ModeDistribution& other) const;
 
     friend bool IsPrefix(const ModeDistribution& lhs, const ModeDistribution& rhs);
     friend bool operator<(const ModeDistribution& lhs, const ModeDistribution& rhs);

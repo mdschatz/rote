@@ -46,10 +46,8 @@ public:
     Mode TensorModeForGridMode(const Mode& mode) const;
 		ModeArray TensorModesForGridModes(const ModeArray& modes) const;
 		TensorDistribution TensorDistForGridModes(const ModeDistribution& modes) const;
-
-    friend TensorDistribution GetCommonPrefix(const TensorDistribution& lhs, const TensorDistribution& rhs);
-    friend TensorDistribution GetCommonSuffix(const TensorDistribution& lhs, const TensorDistribution& rhs);
-    friend TensorDistribution GetTensorDistForGridModes(const TensorDistribution& tenDist, const ModeDistribution& gridModes);
+		TensorDistribution GetCommonSuffix(const TensorDistribution& other) const;
+		TensorDistribution GetCommonPrefix(const TensorDistribution& other) const;
 
     friend bool operator<(const TensorDistribution& lhs, const TensorDistribution& rhs);
     friend bool operator>(const TensorDistribution& lhs, const TensorDistribution& rhs);
