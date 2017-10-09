@@ -10,9 +10,9 @@
 #ifndef ROTE_BTAS_LEVELT_HPP
 #define ROTE_BTAS_LEVELT_HPP
 
-#include "./levelT/Contract.hpp"
-#include "./levelT/GenContract.hpp"
-#include "./levelT/Hadamard.hpp"
-#include "./levelT/HadamardScal.hpp"
+#include "levelT/Contract.hpp"
+#include "levelT/GenContract.hpp"
+#include "levelT/Hadamard.hpp"
+#include "levelT/HadamardScal.hpp"
 
 #endif // ifndef ROTE_BTAS_LEVELT_HPP

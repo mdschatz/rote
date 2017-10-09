@@ -10,6 +10,10 @@
 #ifndef ROTE_BTASLIKE_HPP
 #define ROTE_BTASLIKE_HPP
 
+// Dependencies
+#include "core.hpp"
+
+// New
 #include "btas-like/level1.hpp"
 #include "btas-like/level3.hpp"
 #include "btas-like/levelT.hpp"

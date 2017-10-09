@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_DISTTENSOR_HPP
-#define ROTE_CORE_DISTTENSOR_HPP
+#ifndef ROTE_CORE_DISTTENSOR_DISTTENSOR_HPP
+#define ROTE_CORE_DISTTENSOR_DISTTENSOR_HPP
 
 namespace rote {
 
@@ -256,4 +256,4 @@ private:
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_DISTTENSOR_HPP
+#endif // ifndef ROTE_CORE_DISTTENSOR_DISTTENSOR_HPP

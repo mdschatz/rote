@@ -10,13 +10,13 @@
 #ifndef ROTE_HPP
 #define ROTE_HPP
 
-#include "rote/io.hpp"
-#include "rote/btas-like.hpp"
-#include "rote/tensors.hpp"
-#include "rote/core.hpp"
-#include "rote/config.h"
-#include "rote/forward_decl.hpp"
-#include "rote/types.hpp"
 #include "rote/builtin.hpp"
+#include "rote/config.h"
+#include "rote/types.hpp"
+#include "rote/forward_decl.hpp"
+#include "rote/core.hpp"
+#include "rote/io.hpp"
+#include "rote/tensors.hpp"
+#include "rote/btas-like.hpp"
 
 #endif // ifndef ROTE_HPP

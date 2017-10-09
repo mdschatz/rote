@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_DISTTENSORBASE_HPP
-#define ROTE_CORE_DISTTENSORBASE_HPP
+#ifndef ROTE_CORE_DISTTENSOR_DISTTENSORBASE_HPP
+#define ROTE_CORE_DISTTENSOR_DISTTENSORBASE_HPP
 
 namespace rote {
 
@@ -369,4 +369,4 @@ ModeArray OrderedModes(Unsigned order);
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_DISTTENSORBASE_HPP
+#endif // ifndef ROTE_CORE_DISTTENSOR_DISTTENSORBASE_HPP
