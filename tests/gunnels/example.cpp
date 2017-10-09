@@ -140,6 +140,34 @@ void Example6(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
   Print(A, "A");
 }
 
+void Example7(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
+  std::cout << "Running Example 3\n";
+  // TensorC["dbc"] = TensorA["ab"] * TensorB["acd"];
+
+  // Init
+  std::cout << "Init\n";
+  ObjShape shapeA(2, tensorDim);
+  ObjShape shapeB(3, tensorDim);
+  ObjShape shapeC(3, tensorDim);
+
+  const Grid g(comm, gridShape);
+  DistTensor<double> A(shapeA, "[(0,1),(2,3)]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2,3)]", g);
+  DistTensor<double> C(shapeC, "[(0),(1),(3,2)]", g);
+  SetAllVal(A, 2.0);
+  SetAllVal(B, 3.0);
+  SetAllVal(C, 2.0);
+
+  // Compute
+  const std::vector<Unsigned> blkSizes(3, blkSize);
+  std::cout << "Computing\n";
+  mpi::Barrier(g.OwningComm());
+
+  GenContract(1.0, A, "ab", B, "acd", 1.0, C, "dbc", blkSizes);
+  Print(C, "C");
+}
+
+
 int main(int argc, char* argv[]) {
   Initialize(argc, argv);
   mpi::Comm comm = mpi::COMM_WORLD;
@@ -161,9 +189,10 @@ int main(int argc, char* argv[]) {
       case 1: Example1(comm, args.gridShape, args.tensorDim, args.blkSize); break;
       case 2: Example2(comm, args.gridShape, args.tensorDim, args.blkSize); break;
       case 3: Example3(comm, args.gridShape, args.tensorDim, args.blkSize); break;
-      case 4: Example4(comm, args.gridShape, args.tensorDim);
+      case 4: Example4(comm, args.gridShape, args.tensorDim); break;
       case 5: Example5(comm, args.gridShape, args.tensorDim, args.blkSize); break;
-      case 6: Example6(comm, args.gridShape, args.tensorDim);
+      case 6: Example6(comm, args.gridShape, args.tensorDim); break;
+      case 7: Example7(comm, args.gridShape, args.tensorDim, args.blkSize); break;
     }
     std::cout << "OKAY!\n";
   } catch (std::exception& e) {
