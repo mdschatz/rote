@@ -1,8 +1,4 @@
-#include "rote/core/time.hpp"
-#ifdef __MACH__
-#include <mach/mach_time.h>
-#endif
-#include <sys/time.h>
+#include "rote.hpp"
 
 using namespace std;
 

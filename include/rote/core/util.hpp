@@ -10,8 +10,9 @@
 #ifndef ROTE_CORE_UTIL_HPP
 #define ROTE_CORE_UTIL_HPP
 
-#include "rote/core/util/vector.hpp"
-#include "rote/core/util/btas.hpp"
+// New
 #include "rote/core/util/tensor_distribution.hpp"
+#include "rote/core/util/btas.hpp"
+#include "rote/core/util/vector.hpp"
 
 #endif // ifndef ROTE_CORE_UTIL_HPP

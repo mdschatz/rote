@@ -10,6 +10,8 @@
 #ifndef ROTE_CORE_TENSOR_HPP
 #define ROTE_CORE_TENSOR_HPP
 
+#include "view.hpp"
+
 namespace rote {
 
 // Tensor base for arbitrary rings

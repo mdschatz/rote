@@ -7,8 +7,11 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_ENVIRONMENT_DECL_HPP
-#define ROTE_CORE_ENVIRONMENT_DECL_HPP
+#ifndef ROTE_CORE_ENVIRONMENT_HPP
+#define ROTE_CORE_ENVIRONMENT_HPP
+
+#include "error.hpp"
+#include "imports.hpp"
 
 namespace rote {
 
@@ -157,4 +160,4 @@ void ComplainIfDebug(){
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_ENVIRONMENT_DECL_HPP
+#endif // ifndef ROTE_CORE_ENVIRONMENT_HPP

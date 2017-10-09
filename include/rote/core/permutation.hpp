@@ -10,6 +10,9 @@
 #ifndef ROTE_CORE_PERMUTATION_HPP
 #define ROTE_CORE_PERMUTATION_HPP
 
+#include "error.hpp"
+#include "util.hpp"
+
 namespace rote {
 
 class Permutation {

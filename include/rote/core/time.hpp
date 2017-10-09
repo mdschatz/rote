@@ -1,11 +1,6 @@
+#pragma once
 #ifndef _TIME_HPP_
 #define _TIME_HPP_
-
-#include <string>
-#include <vector>
-#include <list>
-#include <mpi.h>
-#include <time.h>
 
 #ifdef PROFILE
 

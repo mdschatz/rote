@@ -12,6 +12,9 @@
 #ifndef ROTE_CORE_MPI_CHOICE_HPP
 #define ROTE_CORE_MPI_CHOICE_HPP
 
+#include "choice.hpp"
+#include "mpi.hpp"
+
 namespace rote {
 namespace choice {
 

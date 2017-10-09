@@ -6,8 +6,11 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#ifndef ROTE_CORE_COMPLEX_DECL_HPP
-#define ROTE_CORE_COMPLEX_DECL_HPP
+#pragma once
+#ifndef ROTE_CORE_COMPLEX_HPP
+#define ROTE_CORE_COMPLEX_HPP
+
+#include "environment.hpp"
 
 namespace rote {
 
@@ -282,4 +285,4 @@ F Log( const F& alpha ){ return std::log(alpha); };
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_COMPLEX_DECL_HPP
+#endif // ifndef ROTE_CORE_COMPLEX_HPP

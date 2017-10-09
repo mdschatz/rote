@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_FORWARD_DECL_HPP
-#define ROTE_CORE_FORWARD_DECL_HPP
+#ifndef ROTE_FORWARD_DECL_HPP
+#define ROTE_FORWARD_DECL_HPP
 
 namespace rote {
 
@@ -25,8 +25,9 @@ class Hadamard;
 class GridView;
 class Grid;
 
-class TensorDistribution;
 class ModeDistribution;
+class TensorDistribution;
+
 class Permutation;
 
 template<typename T>
@@ -37,4 +38,4 @@ class Tensor;
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_FORWARD_DECL_HPP
+#endif // ifndef ROTE_FORWARD_DECL_HPP

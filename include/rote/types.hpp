@@ -7,8 +7,8 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_TYPES_HPP
-#define ROTE_CORE_TYPES_HPP
+#ifndef ROTE_TYPES_HPP
+#define ROTE_TYPES_HPP
 
 namespace rote {
 
@@ -161,4 +161,4 @@ using namespace FileFormatNS;
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_TYPES_HPP
+#endif // ifndef ROTE_TYPES_HPP

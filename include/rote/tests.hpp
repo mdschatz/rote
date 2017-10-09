@@ -10,15 +10,15 @@
 #ifndef ROTE_CORE_TESTS_HPP
 #define ROTE_CORE_TESTS_HPP
 
-#include "rote/core/tests/A2ARedist.hpp"
-#include "rote/core/tests/AGGRedist.hpp"
-#include "rote/core/tests/ARRedist.hpp"
-#include "rote/core/tests/BCastRedist.hpp"
-#include "rote/core/tests/GTOGRedist.hpp"
-#include "rote/core/tests/LGRedist.hpp"
-#include "rote/core/tests/PRedist.hpp"
-#include "rote/core/tests/RSGRedist.hpp"
-#include "rote/core/tests/RTOGRedist.hpp"
-#include "rote/core/tests/ScatterRedist.hpp"
+#include "tests/A2ARedist.hpp"
+#include "tests/AGGRedist.hpp"
+#include "tests/ARRedist.hpp"
+#include "tests/BCastRedist.hpp"
+#include "tests/GTOGRedist.hpp"
+#include "tests/LGRedist.hpp"
+#include "tests/PRedist.hpp"
+#include "tests/RSGRedist.hpp"
+#include "tests/RTOGRedist.hpp"
+#include "tests/ScatterRedist.hpp"
 
 #endif // ifndef ROTE_CORE_TESTS_HPP

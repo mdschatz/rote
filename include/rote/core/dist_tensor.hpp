@@ -10,7 +10,18 @@
 #ifndef ROTE_CORE_DISTTENSOR_HPP
 #define ROTE_CORE_DISTTENSOR_HPP
 
-#include "rote/core/dist_tensor/dist_tensor.hpp"
-#include "rote/core/dist_tensor/redist_tensor.hpp"
+// Dependencies
+#include "imports.hpp"
+#include "tensor_distribution.hpp"
+#include "mode_distribution.hpp"
+#include "permutation.hpp"
+#include "structs.hpp"
+#include "grid.hpp"
+#include "grid_view.hpp"
+#include "environment.hpp"
+
+// New
+#include "dist_tensor/redist_tensor.hpp"
+#include "dist_tensor/dist_tensor.hpp"
 
 #endif // ifndef ROTE_CORE_DISTTENSOR_HPP

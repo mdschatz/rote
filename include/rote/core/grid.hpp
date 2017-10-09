@@ -8,8 +8,10 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_GRID_DECL_HPP
-#define ROTE_CORE_GRID_DECL_HPP
+#ifndef ROTE_CORE_GRID_HPP
+#define ROTE_CORE_GRID_HPP
+
+#include "imports.hpp"
 
 namespace rote {
 
@@ -77,4 +79,4 @@ mpi::CommMap& DefaultCommMap();
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_GRID_DECL_HPP
+#endif // ifndef ROTE_CORE_GRID_HPP

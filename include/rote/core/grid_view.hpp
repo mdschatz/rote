@@ -8,8 +8,11 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_CORE_GRID_VIEW_DECL_HPP
-#define ROTE_CORE_GRID_VIEW_DECL_HPP
+#ifndef ROTE_CORE_GRID_VIEW_HPP
+#define ROTE_CORE_GRID_VIEW_HPP
+
+#include "tensor_distribution.hpp"
+#include "mode_distribution.hpp"
 
 namespace rote {
 
@@ -65,4 +68,4 @@ bool operator!= ( const GridView& A, const GridView& B );
 
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_GRID_VIEW_DECL_HPP
+#endif // ifndef ROTE_CORE_GRID_VIEW_HPP

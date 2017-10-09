@@ -56,5 +56,12 @@
 #include <string>
 #include <stdlib.h>
 #include <vector>
+#include <list>
+#include <time.h>
+
+#ifdef __MACH__
+#include <mach/mach_time.h>
+#endif
+#include <sys/time.h>
 
 #endif // ifndef ROTE_BUILTIN_HPP

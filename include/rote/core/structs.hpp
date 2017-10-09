@@ -6,8 +6,11 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-#ifndef ROTE_CORE_STRUCTS_DECL_HPP
-#define ROTE_CORE_STRUCTS_DECL_HPP
+#ifndef ROTE_CORE_STRUCTS_HPP
+#define ROTE_CORE_STRUCTS_HPP
+
+#include "permutation.hpp"
+#include "tensor_distribution.hpp"
 
 namespace rote {
 
@@ -168,6 +171,6 @@ struct ZAxpBypPxData{
     std::vector<Unsigned> permSrcStrides;
     std::vector<Unsigned> dstStrides;
 };
-
 }
-#endif
+
+#endif // ifndef ROTE_CORE_STRUCTS_HPP

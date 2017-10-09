@@ -22,35 +22,30 @@
 #define OPT false
 #endif
 
-// Declare the intertwined core parts of our library
-#include "rote/core/types.hpp"
-#include "rote/core/error.hpp"
-#include "rote/core/imports.hpp"
+// Dependencies
+#include "builtin.hpp"
+#include "forward_decl.hpp"
+#include "types.hpp"
 
-#include "rote/core/environment.hpp"
-
-#include "rote/core/memory.hpp"
-#include "rote/core/complex.hpp"
-
-#include "rote/core/forward_decl.hpp"
-#include "rote/core/mode_distribution.hpp"
-#include "rote/core/tensor_distribution.hpp"
-#include "rote/core/util.hpp"
-#include "rote/core/permutation.hpp"
-
-#include "rote/core/structs.hpp"
-
-#include "rote/core/grid.hpp"
-#include "rote/core/grid_view.hpp"
-// TODO: Fix indexing_* headers
-#include "rote/core/indexing.hpp"
+// Safe to reorder
+#include "core/error.hpp"
+#include "core/indexing.hpp"
+#include "core/imports.hpp"
+#include "core/environment.hpp"
+#include "core/memory.hpp"
+#include "core/complex.hpp"
+#include "core/mode_distribution.hpp"
+#include "core/tensor_distribution.hpp"
+#include "core/util.hpp"
+#include "core/permutation.hpp"
+#include "core/structs.hpp"
+#include "core/grid.hpp"
+#include "core/grid_view.hpp"
 // TODO: Fix view headers
-#include "rote/core/view.hpp"
-#include "rote/core/random.hpp"
-#include "rote/core/tensor.hpp"
-
-#include "rote/core/dist_tensor.hpp"
-
-#include "rote/core/time.hpp"
+#include "core/view.hpp"
+#include "core/random.hpp"
+#include "core/tensor.hpp"
+#include "core/dist_tensor.hpp"
+#include "core/time.hpp"
 
 #endif // ifndef ROTE_CORE_HPP

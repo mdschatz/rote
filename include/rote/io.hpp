@@ -10,8 +10,12 @@
 #ifndef ROTE_IO_HPP
 #define ROTE_IO_HPP
 
-#include "rote/io/read.hpp"
-#include "rote/io/print.hpp"
-#include "rote/io/write.hpp"
+// Dependencies
+#include "core.hpp"
+
+// New
+#include "io/write.hpp"
+#include "io/print.hpp"
+#include "io/read.hpp"
 
 #endif // ifndef ROTE_IO_HPP

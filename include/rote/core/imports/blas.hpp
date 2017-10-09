@@ -2,8 +2,8 @@
    Copyright (c) 2009-2013, Jack Poulson
    All rights reserved.
 
-   This file is part of Elemental and is under the BSD 2-Clause License, 
-   which can be found in the LICENSE file in the root directory, or at 
+   This file is part of Elemental and is under the BSD 2-Clause License,
+   which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
@@ -78,7 +78,7 @@ void Scal( int n, double alpha, double* x, int incx );
 void Scal( int n, scomplex alpha, scomplex* x, int incx );
 void Scal( int n, dcomplex alpha, dcomplex* x, int incx );
 template<typename F> void Scal( int n, F alpha, F* x, int incx );
-            
+
 //----------------------------------------------------------------//
 // Level 2 BLAS                                                   //
 //----------------------------------------------------------------//
@@ -226,7 +226,7 @@ void Her2
 template<typename T>
 void Her2
 ( char uplo, int m,
-  T alpha, const T* x, int incx, const T* y, int incy, 
+  T alpha, const T* x, int incx, const T* y, int incy,
                  T* A, int lda );
 
 void Symv
@@ -234,7 +234,7 @@ void Symv
   float alpha, const float* A, int lda, const float* x, int incx,
   float beta,        float* y, int incy );
 void Symv
-( char uplo, int m, 
+( char uplo, int m,
   double alpha, const double* A, int lda, const double* x, int incx,
   double beta,        double* y, int incy );
 void Symv
@@ -259,7 +259,7 @@ void Syr
   double alpha, const double* x, int incx, double* A, int lda );
 void Syr
 ( char uplo, int m,
-  scomplex alpha, const scomplex* x, int incx, scomplex* A, int lda ); 
+  scomplex alpha, const scomplex* x, int incx, scomplex* A, int lda );
 void Syr
 ( char uplo, int m,
   dcomplex alpha, const dcomplex* x, int incx, dcomplex* A, int lda );
@@ -572,7 +572,7 @@ inline void Scal( int n, T alpha, T* x, int incx )
         x[i*incx] *= alpha;
 }
 
-// 
+//
 // Level 2 BLAS
 //
 
@@ -587,24 +587,24 @@ inline void Gemv
         if( m > 0 && n == 0 && beta == 0 )
         {
             for( int i=0; i<m; ++i )
-                y[i*incy] = 0;   
+                y[i*incy] = 0;
             return;
         }
         Scal( m, beta, y, incy );
-        for( int i=0; i<m; ++i ) 
+        for( int i=0; i<m; ++i )
             for( int j=0; j<n; ++j )
                 y[i*incy] += alpha*A[i+j*lda]*x[j*incx];
     }
-    else if( trans == 'T' ) 
+    else if( trans == 'T' )
     {
         if( n > 0 && m == 0 && beta == 0 )
         {
             for( int i=0; i<n; ++i )
-                y[i*incy] = 0;   
+                y[i*incy] = 0;
             return;
         }
         Scal( n, beta, y, incy );
-        for( int i=0; i<n; ++i ) 
+        for( int i=0; i<n; ++i )
             for( int j=0; j<m; ++j )
                 y[i*incy] += alpha*A[j+i*lda]*x[j*incx];
     }
@@ -613,11 +613,11 @@ inline void Gemv
         if( n > 0 && m == 0 && beta == 0 )
         {
             for( int i=0; i<n; ++i )
-                y[i*incy] = 0;   
+                y[i*incy] = 0;
             return;
         }
         Scal( n, beta, y, incy );
-        for( int i=0; i<n; ++i ) 
+        for( int i=0; i<n; ++i )
             for( int j=0; j<m; ++j )
                 y[i*incy] += alpha*Conj(A[j+i*lda])*x[j*incx];
     }
@@ -742,16 +742,7 @@ inline void Gemm
     }
 }
 
-// TODO: templated Hemm
-// TODO: templated Her2k
-// TODO: templated Herk
-// TODO: templated Symm
-// TODO: templated Syr2k
-// TODO: templated Syrk
-// TODO: templated Trmm
-// TODO: templated Trsm
-
 } // namespace blas
 } // namespace rote
 
-#endif // ifndef ROTE_CORE_BLAS_DECL_HPP
+#endif // ifndef ROTE_CORE_BLAS_HPP

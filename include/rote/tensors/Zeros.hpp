@@ -10,7 +10,6 @@
 #ifndef ROTE_TENSORS_ZEROS_HPP
 #define ROTE_TENSORS_ZEROS_HPP
 
-
 namespace rote {
 
 // TODO: Remove MakeZeros (redundant name)

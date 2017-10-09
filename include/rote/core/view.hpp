@@ -10,13 +10,20 @@
 #ifndef ROTE_CORE_VIEW_HPP
 #define ROTE_CORE_VIEW_HPP
 
-#include "view/partition_decl.hpp"
-#include "view/partition_impl.hpp"
-#include "view/repartition_decl.hpp"
-#include "view/repartition_impl.hpp"
-#include "view/slide_partition_decl.hpp"
-#include "view/slide_partition_impl.hpp"
+// Dependencies
+#include "indexing.hpp"
+#include "error.hpp"
+#include "environment.hpp"
+#include "util.hpp"
+
+// New
 #include "view/view_decl.hpp"
 #include "view/view_impl.hpp"
+#include "view/slide_partition_decl.hpp"
+#include "view/slide_partition_impl.hpp"
+#include "view/repartition_decl.hpp"
+#include "view/repartition_impl.hpp"
+#include "view/partition_decl.hpp"
+#include "view/partition_impl.hpp"
 
 #endif // ifndef ROTE_CORE_VIEW_HPP
