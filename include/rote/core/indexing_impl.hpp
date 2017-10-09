@@ -254,33 +254,19 @@ LinearLocFromStrides(const Location& loc, const std::vector<Unsigned>& strides)
 
 inline
 Location
-LinearLoc2Loc(const Unsigned linearLoc, const ObjShape& shape, const Permutation& permutation)
+LinearLoc2Loc(const Unsigned linearLoc, const ObjShape& shape)
 {
-    if(permutation.size() > 0 && shape.size() != permutation.size())
-        LogicError("Shape and Permutation orders differ.");
     if(shape.size() == 0 && linearLoc != 0)
         LogicError("Combination of linearLoc=0 and strides incompatible");
-    Unsigned i;
     const Unsigned order = shape.size();
-    Location ret(order);
     Unsigned remainder = linearLoc;
-    if(permutation.size() == 0){
-        const std::vector<Unsigned> strides = Dimensions2Strides(shape);
+    const std::vector<Unsigned> strides = Dimensions2Strides(shape);
 
-        for(i = order - 1; i < order; i--){
-                const Unsigned modeLoc = remainder / strides[i];
-                ret[i] = modeLoc;
-                remainder -= modeLoc * strides[i];
-        }
-    }else{
-        const ObjShape permutedShape = permutation.applyTo(shape);
-        const std::vector<Unsigned> strides = Dimensions2Strides(permutedShape);
-
-        for(i = order - 1; i < order; i--){
-            const Unsigned modeLoc = remainder / strides[i];
-            ret[permutation[i]] = modeLoc;
-            remainder -= modeLoc * strides[i];
-        }
+    Location ret(order);
+    for(Unsigned i = order - 1; i < order; i--){
+      const Unsigned modeLoc = remainder / strides[i];
+      ret[i] = modeLoc;
+      remainder -= modeLoc * strides[i];
     }
     return ret;
 }
@@ -289,9 +275,8 @@ inline
 std::vector<Unsigned>
 IntCeils( const std::vector<Unsigned>& ms, const std::vector<Unsigned>& ns)
 {
-    Unsigned i;
     std::vector<Unsigned> ret(ms.size());
-    for(i = 0; i < ret.size(); i++)
+    for(Unsigned i = 0; i < ret.size(); i++)
         ret[i] = IntCeil(ms[i], ns[i]);
     return ret;
 }
