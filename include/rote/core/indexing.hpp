@@ -33,7 +33,7 @@ std::vector<Unsigned> IntCeils(const std::vector<Unsigned>& ms, const std::vecto
 
 // Other
 std::vector<Unsigned> Dimensions2Strides(const ObjShape& objShape);
-Unsigned Loc2LinearLoc(const Location& loc, const ObjShape& shape, const std::vector<Unsigned>& strides = std::vector<Unsigned>());
+Unsigned Loc2LinearLoc(const Location& loc, const ObjShape& shape);
 Location LinearLoc2Loc(Unsigned linearLoc, const ObjShape& objShape);
 Unsigned LinearLocFromStrides(const Location& loc, const std::vector<Unsigned>& strides);
 

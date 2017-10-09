@@ -43,8 +43,7 @@
 #include "rote/core/grid.hpp"
 #include "rote/core/grid_view.hpp"
 // TODO: Fix indexing_* headers
-#include "rote/core/indexing_decl.hpp"
-#include "rote/core/indexing_impl.hpp"
+#include "rote/core/indexing.hpp"
 // TODO: Fix view headers
 #include "rote/core/view.hpp"
 #include "rote/core/random.hpp"
