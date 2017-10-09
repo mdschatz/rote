@@ -9,7 +9,6 @@ x   Copyright (c) 2009-2013, Jack Poulson
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
-#include <algorithm>
 
 namespace rote{
 

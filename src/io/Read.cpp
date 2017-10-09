@@ -8,11 +8,6 @@
 */
 #include "rote.hpp"
 
-//#include "./Read/Ascii.hpp"
-//#include "./Read/AsciiMatlab.hpp"
-//#include "./Read/Binary.hpp"
-//#include "./Read/BinaryFlat.hpp"
-
 namespace rote {
 
 template<typename T>

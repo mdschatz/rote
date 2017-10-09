@@ -9,8 +9,7 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
-#include <algorithm>
-#include "rote/core/tensor.hpp"
+
 namespace rote{
 
 //TODO: Check that allToAllIndices and commGroups are valid

@@ -9,8 +9,6 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #include "rote.hpp"
-//#include "/rote/mc_mr.hpp"
-#include <algorithm>
 
 namespace rote{
 
