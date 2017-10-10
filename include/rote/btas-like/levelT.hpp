@@ -11,7 +11,7 @@
 #define ROTE_BTAS_LEVELT_HPP
 
 #include "levelT/Contract.hpp"
-#include "levelT/GenContract.hpp"
+#include "levelT/Contract-deprecate.hpp"
 #include "levelT/Hadamard.hpp"
 #include "levelT/HadamardScal.hpp"
 

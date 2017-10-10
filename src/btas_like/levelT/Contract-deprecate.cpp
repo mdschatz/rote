@@ -11,6 +11,7 @@
 
 namespace rote{
 
+// TODO: Deprecate
 template <typename T>
 void LocalContract(
   T alpha,
@@ -135,12 +136,14 @@ void LocalContract(
   T beta,
         Tensor<T>& C, const IndexArray& indicesC
 ) {
-#ifndef RELEASE
-    if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
-        LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
-#endif
-
-    LocalContract(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
+  LocalContractForRun(
+    alpha,
+    A, indicesA,
+    B, indicesB,
+    beta,
+    C, indicesC,
+    false, true
+  );
 }
 
 template <typename T>
@@ -174,6 +177,11 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
   );
 }
 
+template <typename T>
+void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes){
+	Contract<T>::run(alpha, A, indicesA, B, indicesB, beta, C, indicesC, blkSizes);
+}
+
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
@@ -181,7 +189,8 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
 	template void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC); \
   template void LocalContractForRun(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC, bool doEliminate, bool doPermute); \
 	template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC); \
-  template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
+  template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC); \
+  template void GenContract(T alpha, const DistTensor<T>& A, const std::string& indicesA, const DistTensor<T>& B, const std::string& indicesB, T beta, DistTensor<T>& C, const std::string& indicesC, const std::vector<Unsigned>& blkSizes);
 //PROTO(Unsigned)
 //PROTO(Int)
 PROTO(float)

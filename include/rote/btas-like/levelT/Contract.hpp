@@ -7,47 +7,75 @@
    http://opensource.org/licenses/BSD-2-Clause
 */
 #pragma once
-#ifndef ROTE_BTAS_CONTRACT_HPP
-#define ROTE_BTAS_CONTRACT_HPP
+#ifndef ROTE_BTAS_GEN_CONTRACT_HPP
+#define ROTE_BTAS_GEN_CONTRACT_HPP
 
 namespace rote{
 
-////////////////////////////////////
-// LocalContract Workhorse
-////////////////////////////////////
+template<typename T>
+class Contract {
+public:
+	// Main interface
+	static void run(
+		T alpha,
+		const DistTensor<T>& A, const std::string& indicesA,
+    const DistTensor<T>& B, const std::string& indicesB,
+    T beta,
+		      DistTensor<T>& C, const std::string& indicesC,
+    const std::vector<Unsigned>& blkSizes
+	);
 
-template <typename T>
-void LocalContract(
-  T alpha,
-  const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA,
-  const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB,
-  T beta,
-        Tensor<T>& C, const IndexArray& indicesC, const bool permuteC
-);
+private:
+	//Struct interface
+	static void setContractInfo(
+		const DistTensor<T>& A, const IndexArray& indicesA,
+    const DistTensor<T>& B, const IndexArray& indicesB,
+    const DistTensor<T>& C, const IndexArray& indicesC,
+    const std::vector<Unsigned>& blkSizes, bool isStatC,
+          BlkContractStatCInfo& contractInfo
+  );
 
-template <typename T>
-void LocalContractForRun(
-  T alpha,
-  const Tensor<T>& A, const IndexArray& indicesA,
-  const Tensor<T>& B, const IndexArray& indicesB,
-  T beta,
-        Tensor<T>& C, const IndexArray& indicesC,
-  bool doEliminate, bool doPermute
-);
+	// Partition helpers
+	static void runHelperPartitionAB(
+		Unsigned depth, BlkContractStatCInfo& contractInfo,
+		T alpha,
+		const DistTensor<T>& A, const IndexArray& indicesA,
+		const DistTensor<T>& B, const IndexArray& indicesB,
+		T beta,
+					DistTensor<T>& C, const IndexArray& indicesC
+	);
 
-////////////////////////////////////
-// Local Interfaces
-////////////////////////////////////
-// TODO: Deprecate. in doing so, deprecate 'doPermute' param from Contract::run (local)
-template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
+	static void runHelperPartitionBC(
+		Unsigned depth, BlkContractStatCInfo& contractInfo,
+		T alpha,
+		const DistTensor<T>& A, const IndexArray& indicesA,
+		const DistTensor<T>& B, const IndexArray& indicesB,
+		T beta,
+					DistTensor<T>& C, const IndexArray& indicesC
+	);
 
-template <typename T>
-void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
+	// Internal interface
+	static void run(
+		T alpha,
+		const DistTensor<T>& A, const IndexArray& indicesA,
+		const DistTensor<T>& B, const IndexArray& indicesB,
+		T beta,
+					DistTensor<T>& C, const IndexArray& indicesC,
+		const std::vector<Unsigned>& blkSizes,
+		bool isStatC
+	);
 
-template <typename T>
-void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
+	// Local interface
+	static void run(
+		T alpha,
+		const Tensor<T>& A, const IndexArray& indicesA,
+		const Tensor<T>& B, const IndexArray& indicesB,
+		T beta,
+					Tensor<T>& C, const IndexArray& indicesC,
+		bool  doEliminate, bool doPermute
+	);
+};
 
 } // namespace rote
 
-#endif // ifndef ROTE_BTAS_CONTRACT_HPP
+#endif // ifndef ROTE_BTAS_GEN_CONTRACT_HPP
