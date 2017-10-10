@@ -10,23 +10,31 @@ void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
 
   // Init
   std::cout << "init\n";
-  ObjShape shapeA(8, tensorDim);
+  ObjShape shapeA(16, tensorDim);
   ObjShape shapeC(4, tensorDim);
-  ObjShape shapeB(8, tensorDim);
+  ObjShape shapeB(16, tensorDim);
 
   const Grid g(comm, gridShape);
-  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),()]", g);
+  DistTensor<double> A(shapeA, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
   DistTensor<double> C(shapeC, "[(0),(1),(2),(3)]", g);
-  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),()]", g);
+  DistTensor<double> B(shapeB, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
 
 
   // Compute
-  const std::vector<Unsigned> blkSizes(4, blkSize);
+  const std::vector<Unsigned> blkSizes(16, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  Hadamard<double>::run(C, "cpgo", B, "abcdegop", A, "abcdegop", blkSizes);
-  // Print(A, "A");
+  SetAllVal(A, 1.0);
+  SetAllVal(C, 2.0);
+  SetAllVal(B, 3.0);
+  Hadamard<double>::run(
+    C, "cpgo",
+    B, "abcdefghijklmnop",
+    A, "abcdefghijklmnop",
+    blkSizes
+  );
+  Print(A, "A");
 }
 
 void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
@@ -46,7 +54,7 @@ void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   DistTensor<double> E(shapeE, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),()]", g);
 
   // Compute
-  const std::vector<Unsigned> blkSizes(6, blkSize);
+  const std::vector<Unsigned> blkSizes(16, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
@@ -76,7 +84,7 @@ void Example3(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   DistTensor<double> H(shapeH, "[(0),(1),(2),(3),(),(),(),(),(),(),(),(),(),(),(),()]", g);
 
   // Compute
-  const std::vector<Unsigned> blkSizes(6, blkSize);
+  const std::vector<Unsigned> blkSizes(16, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
@@ -127,14 +135,19 @@ void Example5(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   std::string indicesC = "cpgo";
 
   // Compute
-  const std::vector<Unsigned> blkSizes(12, blkSize);
+  const std::vector<Unsigned> blkSizes(16, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
   Print(A, "A");
   Print(B, "B");
   Print(C, "C");
-  Hadamard<double>::run(C, indicesC, B, indicesB, A, indicesA, blkSizes);
+  Hadamard<double>::run(
+    C, indicesC,
+    B, indicesB,
+    A, indicesA,
+    blkSizes
+  );
   Print(A, "A");
 }
 
@@ -173,14 +186,14 @@ void Example7(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   SetAllVal(C, 2.0);
 
   // Compute
-  const std::vector<Unsigned> blkSizes(3, blkSize);
+  const std::vector<Unsigned> blkSizes(16, blkSize);
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
   Contract<double>::run(
     1.0,
     A, "ab",
-    B, "acd", 
+    B, "acd",
     1.0,
     C, "dbc",
     blkSizes
