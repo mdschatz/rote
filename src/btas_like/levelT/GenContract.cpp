@@ -43,7 +43,7 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     }else if((isBiggerAB && isSmallerEqualAC) ||
     		 (isEqualAB && isSmallerEqualAC) ||
 			 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
-    	ContractStat(alpha, B, indicesB, A, indicesA, beta, C, indicesC, false, blkSizes);
+    	ContractStat(alpha, B, indicesB, A, indicesA, beta, C, indicesC, true, blkSizes);
     }else{
     	LogicError("Should never occur");
     }

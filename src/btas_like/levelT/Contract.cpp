@@ -12,7 +12,13 @@
 namespace rote{
 
 template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+void LocalContract(
+  T alpha,
+  const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA,
+  const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB,
+  T beta,
+        Tensor<T>& C, const IndexArray& indicesC, const bool permuteC
+) {
 #ifndef RELEASE
     if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
         LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
@@ -78,23 +84,15 @@ void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, cons
 }
 
 template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
-#ifndef RELEASE
-    if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
-        LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
-#endif
-
-    LocalContract(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
-}
-
-template <typename T>
-void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC){
-    LocalContractAndLocalEliminate(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
-}
-
-//NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
-template <typename T>
-void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+void LocalContractForRun(
+  T alpha,
+  const Tensor<T>& A, const IndexArray& indicesA,
+  const Tensor<T>& B, const IndexArray& indicesB,
+  T beta,
+        Tensor<T>& C, const IndexArray& indicesC,
+  bool doEliminate, bool doPermute
+) {
+  if (doEliminate) {
     Unsigned i;
     Unsigned order = C.Order();
     IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
@@ -108,10 +106,72 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
     //LocalContract leaves unit modes in result, so introduce them here
     C.IntroduceUnitModes(uModes);
 
-    LocalContract(alpha, A, indicesA, permuteA, B, indicesB, permuteB, beta, C, CIndices, permuteC);
+    LocalContract(
+      alpha,
+      A, indicesA, doPermute,
+      B, indicesB, doPermute,
+      beta,
+      C, CIndices, doPermute
+    );
 
     //Remove the unit modes
     C.RemoveUnitModes(uModes);
+  } else {
+    LocalContract(
+      alpha,
+      A, indicesA, doPermute,
+      B, indicesB, doPermute,
+      beta,
+      C, indicesC, doPermute
+    );
+  }
+}
+
+template <typename T>
+void LocalContract(
+  T alpha,
+  const Tensor<T>& A, const IndexArray& indicesA,
+  const Tensor<T>& B, const IndexArray& indicesB,
+  T beta,
+        Tensor<T>& C, const IndexArray& indicesC
+) {
+#ifndef RELEASE
+    if(indicesA.size() != A.Order() || indicesB.size() != B.Order() || indicesC.size() != C.Order())
+        LogicError("LocalContract: number of indices assigned to each tensor must be of same order");
+#endif
+
+    LocalContract(alpha, A, indicesA, true, B, indicesB, true, beta, C, indicesC, true);
+}
+
+template <typename T>
+void LocalContractAndLocalEliminate(
+  T alpha,
+  const Tensor<T>& A, const IndexArray& indicesA,
+  const Tensor<T>& B, const IndexArray& indicesB,
+  T beta,
+        Tensor<T>& C, const IndexArray& indicesC
+) {
+    LocalContractForRun(
+      alpha,
+      A, indicesA,
+      B, indicesB,
+      beta,
+      C, indicesC,
+      true, true
+    );
+}
+
+//NOTE: Assumes Local data of A, B, C are all tightly packed tensors (stride[i] = stride[i-1] * size[i-1] and stride[0] = 1;
+template <typename T>
+void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC){
+  LocalContractForRun(
+    alpha,
+    A, indicesA,
+    B, indicesB,
+    beta,
+    C, indicesC,
+    true, permuteA
+  );
 }
 
 //Non-template functions
@@ -119,9 +179,9 @@ void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArra
 #define PROTO(T) \
 	template void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC); \
 	template void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC); \
-	template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC); \
-	template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
-
+  template void LocalContractForRun(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC, bool doEliminate, bool doPermute); \
+	template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC); \
+  template void LocalContractAndLocalEliminate(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
 //PROTO(Unsigned)
 //PROTO(Int)
 PROTO(float)

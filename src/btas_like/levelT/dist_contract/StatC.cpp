@@ -24,7 +24,14 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 		intB.SetLocalPermutation(contractInfo.permB);
 		intB.RedistFrom(B);
 
-		LocalContractAndLocalEliminate(alpha, intA.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(1), C.Tensor(), indicesC, false);
+		LocalContractForRun(
+			alpha,
+			intA.LockedTensor(), indicesA,
+			intB.LockedTensor(), indicesB,
+			T(1),
+			C.Tensor(), indicesC,
+			true, false
+		);
 		return;
 	}
 	//Must partition and recur
@@ -96,8 +103,15 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatCInfo& contractInfo
 		intT.AlignModesWith(contractInfo.alignModesT, A, contractInfo.alignModesTTo);
 		intT.SetLocalPermutation(contractInfo.permT);
 		intT.ResizeTo(shapeT);
-
-		LocalContract(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), indicesT, false);
+		
+		LocalContractForRun(
+			alpha,
+			A.LockedTensor(), indicesA,
+			intB.LockedTensor(), indicesB,
+			T(0),
+			intT.Tensor(), indicesT,
+			false, false
+		);
 		C.RedistFrom(intT, contractInfo.reduceTensorModes, T(1), beta);
 		return;
 	}

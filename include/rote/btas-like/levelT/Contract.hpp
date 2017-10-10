@@ -17,7 +17,23 @@ namespace rote{
 ////////////////////////////////////
 
 template <typename T>
-void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA, const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB, T beta, Tensor<T>& C, const IndexArray& indicesC, const bool permuteC);
+void LocalContract(
+  T alpha,
+  const Tensor<T>& A, const IndexArray& indicesA, const bool permuteA,
+  const Tensor<T>& B, const IndexArray& indicesB, const bool permuteB,
+  T beta,
+        Tensor<T>& C, const IndexArray& indicesC, const bool permuteC
+);
+
+template <typename T>
+void LocalContractForRun(
+  T alpha,
+  const Tensor<T>& A, const IndexArray& indicesA,
+  const Tensor<T>& B, const IndexArray& indicesB,
+  T beta,
+        Tensor<T>& C, const IndexArray& indicesC,
+  bool doEliminate, bool doPermute
+);
 
 ////////////////////////////////////
 // Local Interfaces
