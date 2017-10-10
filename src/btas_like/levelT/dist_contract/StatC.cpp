@@ -73,6 +73,80 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 	}
 }
 
+template <typename T>
+void RecurContractStatA(Unsigned depth, const BlkContractStatCInfo& contractInfo, T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
+	if(depth == contractInfo.partModesB.size()){
+		//Perform the distributed computation
+		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
+
+		const rote::GridView gvA = A.GetGridView();
+		IndexArray contractIndices = DetermineContractIndices(indicesA, indicesB);
+		IndexArray indicesT = ConcatenateVectors(indicesC, contractIndices);
+		ObjShape shapeT(indicesT.size());
+		//NOTE: Overwrites values, but this is correct (initially sets to match gvA but then overwrites with C)
+		SetTensorShapeToMatch(gvA.ParticipatingShape(), indicesA, shapeT, indicesT);
+		SetTensorShapeToMatch(C.Shape(), indicesC, shapeT, indicesT);
+
+		DistTensor<T> intT(shapeT, contractInfo.distT, C.Grid());
+
+		intB.AlignModesWith(contractInfo.alignModesB, A, contractInfo.alignModesBTo);
+		intB.SetLocalPermutation(contractInfo.permB);
+		intB.RedistFrom(B);
+
+		intT.AlignModesWith(contractInfo.alignModesT, A, contractInfo.alignModesTTo);
+		intT.SetLocalPermutation(contractInfo.permT);
+		intT.ResizeTo(shapeT);
+
+		LocalContract(alpha, A.LockedTensor(), indicesA, false, intB.LockedTensor(), indicesB, false, T(0), intT.Tensor(), indicesT, false);
+		C.RedistFrom(intT, contractInfo.reduceTensorModes, T(1), beta);
+		return;
+	}
+	//Must partition and recur
+	//Note: pull logic out
+	Unsigned blkSize = contractInfo.blkSizes[depth];
+	Mode partModeB = contractInfo.partModesB[depth];
+	Mode partModeC = contractInfo.partModesC[depth];
+	DistTensor<T> B_T(B.TensorDist(), B.Grid());
+	DistTensor<T> B_B(B.TensorDist(), B.Grid());
+	DistTensor<T> B_0(B.TensorDist(), B.Grid());
+	DistTensor<T> B_1(B.TensorDist(), B.Grid());
+	DistTensor<T> B_2(B.TensorDist(), B.Grid());
+
+	DistTensor<T> C_T(C.TensorDist(), C.Grid());
+	DistTensor<T> C_B(C.TensorDist(), C.Grid());
+	DistTensor<T> C_0(C.TensorDist(), C.Grid());
+	DistTensor<T> C_1(C.TensorDist(), C.Grid());
+	DistTensor<T> C_2(C.TensorDist(), C.Grid());
+
+	//Do the partitioning and looping
+	LockedPartitionDown(B, B_T, B_B, partModeB, 0);
+	PartitionDown(C, C_T, C_B, partModeC, 0);
+	while(B_T.Dimension(partModeB) < B.Dimension(partModeB)){
+		LockedRepartitionDown(B_T, B_0,
+						/**/ /**/
+							 B_1,
+						B_B, B_2, partModeB, blkSize);
+		RepartitionDown(C_T, C_0,
+				        /**/ /**/
+				             C_1,
+				        C_B, C_2, partModeC, blkSize);
+
+
+		/*----------------------------------------------------------------*/
+		RecurContractStatA(depth+1, contractInfo, alpha, A, indicesA, B_1, indicesB, beta, C_1, indicesC);
+		/*----------------------------------------------------------------*/
+		SlideLockedPartitionDown(B_T, B_0,
+				                B_1,
+						   /**/ /**/
+						   B_B, B_2, partModeB);
+		SlidePartitionDown(C_T, C_0,
+				                C_1,
+						   /**/ /**/
+						   C_B, C_2, partModeC);
+
+	}
+}
+
 template<typename T>
 void SetBlkContractStatCInfo(
 	const DistTensor<T>& A, const IndexArray& indicesA,
@@ -196,27 +270,35 @@ void SetBlkContractStatCInfo(
 }
 
 template <typename T>
-void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes){
+void ContractStat(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, bool isStatC, const std::vector<Unsigned>& blkSizes){
 	//Determine how to partition
 	BlkContractStatCInfo contractInfo;
 	SetBlkContractStatCInfo(
 		A, indicesA,
 		B, indicesB,
 		C, indicesC,
-		blkSizes, true,
+		blkSizes, isStatC,
 		contractInfo
 	);
 
-	if(contractInfo.permC != C.LocalPermutation()){
-		DistTensor<T> tmpC(C.TensorDist(), C.Grid());
-		tmpC.SetLocalPermutation(contractInfo.permC);
-		Permute(C, tmpC);
-		Scal(beta, tmpC);
-		RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, tmpC, indicesC);
-		Permute(tmpC, C);
-	}else{
-		Scal(beta, C);
-		RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+	if (isStatC) {
+		if(contractInfo.permC != C.LocalPermutation()){
+			DistTensor<T> tmpC(C.TensorDist(), C.Grid());
+			tmpC.SetLocalPermutation(contractInfo.permC);
+			Permute(C, tmpC);
+			Scal(beta, tmpC);
+			RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, tmpC, indicesC);
+			Permute(tmpC, C);
+		}else{
+			Scal(beta, C);
+			RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
+		}
+	} else {
+		DistTensor<T> tmpA(A.TensorDist(), A.Grid());
+		tmpA.SetLocalPermutation(contractInfo.permA);
+		Permute(A, tmpA);
+
+		RecurContractStatA(0, contractInfo, alpha, tmpA, indicesA, B, indicesB, beta, C, indicesC);
 	}
 
 }
@@ -224,7 +306,7 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 //Non-template functions
 //bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, const std::vector<Unsigned>& blkSizes); \
+	template void ContractStat(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, bool isStatC, const std::vector<Unsigned>& blkSizes); \
 	template void SetBlkContractStatCInfo( \
 		const DistTensor<T>& A, const IndexArray& indicesA, \
 		const DistTensor<T>& B, const IndexArray& indicesB, \

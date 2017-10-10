@@ -36,14 +36,14 @@ void GenContract(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, co
     bool isBiggerEqualAC = numElemA >= numElemC;
 
     if(isBiggerEqualAB && isBiggerAC){
-    	ContractStatA(alpha, A, indicesA, B, indicesB, beta, C, indicesC, blkSizes);
+    	ContractStat(alpha, A, indicesA, B, indicesB, beta, C, indicesC, false, blkSizes);
     }else if((isSmallerAB && isBiggerEqualAC) ||
     		 (isSmallerAB && isSmallerAC && isBiggerBC)){
-    	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC, blkSizes);
+    	ContractStat(alpha, B, indicesB, A, indicesA, beta, C, indicesC, false, blkSizes);
     }else if((isBiggerAB && isSmallerEqualAC) ||
     		 (isEqualAB && isSmallerEqualAC) ||
 			 (isSmallerAB && isSmallerAC && isSmallerEqualBC)){
-    	ContractStatA(alpha, B, indicesB, A, indicesA, beta, C, indicesC, blkSizes);
+    	ContractStat(alpha, B, indicesB, A, indicesA, beta, C, indicesC, false, blkSizes);
     }else{
     	LogicError("Should never occur");
     }
