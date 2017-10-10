@@ -4,6 +4,8 @@
 using namespace rote;
 using namespace std;
 
+// TODO: Set BlkSizes variable to be max order of tensor objects.
+//       Error checking to guard against malformed objects isn't in place.
 void Example1(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
   std::cout << "Running Example 1\n";
   // TensorA["abcdefghijklmnop"] = Tensor["cpgo"] * TensorB["abcdefghijklmnop"]; // Mult without contract
