@@ -38,6 +38,7 @@ void LocalContractForRun(
 ////////////////////////////////////
 // Local Interfaces
 ////////////////////////////////////
+// TODO: Deprecate. in doing so, deprecate 'doPermute' param from Contract::run (local)
 template <typename T>
 void LocalContract(T alpha, const Tensor<T>& A, const IndexArray& indicesA, const Tensor<T>& B, const IndexArray& indicesB, T beta, Tensor<T>& C, const IndexArray& indicesC);
 

@@ -50,7 +50,14 @@ void Example2(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  GenContract(1.0, D, "abcdefgh123456", E, "ijklmnop615234", 1.0, C, "abcdefghijklmnop", blkSizes);
+  Contract<double>::run(
+    1.0,
+    D, "abcdefgh123456",
+    E, "ijklmnop615234",
+    1.0,
+    C, "abcdefghijklmnop",
+    blkSizes
+  );
 }
 
 void Example3(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Unsigned blkSize) {
@@ -73,7 +80,14 @@ void Example3(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  GenContract(1.0, G, "p6a1f3d5j2m4", H, "abcdefghijklmnop", 1.0, F, "1bc5e3ghi2kl4no6", blkSizes);
+  Contract<double>::run(
+    1.0,
+    G, "p6a1f3d5j2m4",
+    H, "abcdefghijklmnop",
+    1.0,
+    F, "1bc5e3ghi2kl4no6",
+    blkSizes
+  );
 }
 
 void Example4(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim) {
@@ -163,7 +177,14 @@ void Example7(const mpi::Comm& comm, ObjShape gridShape, Unsigned tensorDim, Uns
   std::cout << "Computing\n";
   mpi::Barrier(g.OwningComm());
 
-  GenContract(1.0, A, "ab", B, "acd", 1.0, C, "dbc", blkSizes);
+  Contract<double>::run(
+    1.0,
+    A, "ab",
+    B, "acd", 
+    1.0,
+    C, "dbc",
+    blkSizes
+  );
   Print(C, "C");
 }
 

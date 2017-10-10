@@ -11,9 +11,17 @@
 
 namespace rote{
 
+// Partition helpers
 template <typename T>
-void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	if(depth == contractInfo.partModesA.size()){
+void Contract<T>::runHelperPartitionAB(
+	Unsigned depth, BlkContractStatCInfo& contractInfo,
+	T alpha,
+  const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	T beta,
+        DistTensor<T>& C, const IndexArray& indicesC
+) {
+  if(depth == contractInfo.partModesA.size()){
 		DistTensor<T> intA(contractInfo.distIntA, A.Grid());
 		intA.SetLocalPermutation(contractInfo.permA);
 		intA.AlignModesWith(contractInfo.alignModesA, C, contractInfo.alignModesATo);
@@ -24,7 +32,7 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 		intB.SetLocalPermutation(contractInfo.permB);
 		intB.RedistFrom(B);
 
-		LocalContractForRun(
+		Contract<T>::run(
 			alpha,
 			intA.LockedTensor(), indicesA,
 			intB.LockedTensor(), indicesB,
@@ -66,7 +74,7 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 						B_B, B_2, partModeB, blkSize);
 
 		/*----------------------------------------------------------------*/
-		RecurContractStatC(depth+1, contractInfo, alpha, A_1, indicesA, B_1, indicesB, beta, C, indicesC);
+		Contract<T>::runHelperPartitionAB(depth+1, contractInfo, alpha, A_1, indicesA, B_1, indicesB, beta, C, indicesC);
 		count++;
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(A_T, A_0,
@@ -81,8 +89,15 @@ void RecurContractStatC(Unsigned depth, BlkContractStatCInfo& contractInfo, T al
 }
 
 template <typename T>
-void RecurContractStatA(Unsigned depth, const BlkContractStatCInfo& contractInfo, T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC){
-	if(depth == contractInfo.partModesB.size()){
+void Contract<T>::runHelperPartitionBC(
+	Unsigned depth, BlkContractStatCInfo& contractInfo,
+	T alpha,
+  const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	T beta,
+        DistTensor<T>& C, const IndexArray& indicesC
+) {
+  if(depth == contractInfo.partModesB.size()){
 		//Perform the distributed computation
 		DistTensor<T> intB(contractInfo.distIntB, B.Grid());
 
@@ -103,8 +118,8 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatCInfo& contractInfo
 		intT.AlignModesWith(contractInfo.alignModesT, A, contractInfo.alignModesTTo);
 		intT.SetLocalPermutation(contractInfo.permT);
 		intT.ResizeTo(shapeT);
-		
-		LocalContractForRun(
+
+		Contract<T>::run(
 			alpha,
 			A.LockedTensor(), indicesA,
 			intB.LockedTensor(), indicesB,
@@ -147,7 +162,7 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatCInfo& contractInfo
 
 
 		/*----------------------------------------------------------------*/
-		RecurContractStatA(depth+1, contractInfo, alpha, A, indicesA, B_1, indicesB, beta, C_1, indicesC);
+		Contract<T>::runHelperPartitionBC(depth+1, contractInfo, alpha, A, indicesA, B_1, indicesB, beta, C_1, indicesC);
 		/*----------------------------------------------------------------*/
 		SlideLockedPartitionDown(B_T, B_0,
 				                B_1,
@@ -161,15 +176,16 @@ void RecurContractStatA(Unsigned depth, const BlkContractStatCInfo& contractInfo
 	}
 }
 
+// Struct interface
 template<typename T>
-void SetBlkContractStatCInfo(
+void Contract<T>::setContractInfo(
 	const DistTensor<T>& A, const IndexArray& indicesA,
   const DistTensor<T>& B, const IndexArray& indicesB,
   const DistTensor<T>& C, const IndexArray& indicesC,
   const std::vector<Unsigned>& blkSizes, bool isStatC,
-	BlkContractStatCInfo& contractInfo
+        BlkContractStatCInfo& contractInfo
 ) {
-	Unsigned i;
+  Unsigned i;
 	IndexArray indicesAC = DiffVector(indicesC, indicesB);
 	IndexArray indicesBC = DiffVector(indicesC, indicesA);
 	IndexArray indicesAB = DiffVector(indicesA, indicesC);
@@ -283,50 +299,8 @@ void SetBlkContractStatCInfo(
 	contractInfo.permT = permT;
 }
 
-template <typename T>
-void ContractStat(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, bool isStatC, const std::vector<Unsigned>& blkSizes){
-	//Determine how to partition
-	BlkContractStatCInfo contractInfo;
-	SetBlkContractStatCInfo(
-		A, indicesA,
-		B, indicesB,
-		C, indicesC,
-		blkSizes, isStatC,
-		contractInfo
-	);
-
-	if (isStatC) {
-		if(contractInfo.permC != C.LocalPermutation()){
-			DistTensor<T> tmpC(C.TensorDist(), C.Grid());
-			tmpC.SetLocalPermutation(contractInfo.permC);
-			Permute(C, tmpC);
-			Scal(beta, tmpC);
-			RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, tmpC, indicesC);
-			Permute(tmpC, C);
-		}else{
-			Scal(beta, C);
-			RecurContractStatC(0, contractInfo, alpha, A, indicesA, B, indicesB, beta, C, indicesC);
-		}
-	} else {
-		DistTensor<T> tmpA(A.TensorDist(), A.Grid());
-		tmpA.SetLocalPermutation(contractInfo.permA);
-		Permute(A, tmpA);
-
-		RecurContractStatA(0, contractInfo, alpha, tmpA, indicesA, B, indicesB, beta, C, indicesC);
-	}
-
-}
-
-//Non-template functions
-//bool AnyFalseElem(const std::vector<bool>& vec);
 #define PROTO(T) \
-	template void ContractStat(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, const DistTensor<T>& B, const IndexArray& indicesB, T beta, DistTensor<T>& C, const IndexArray& indicesC, bool isStatC, const std::vector<Unsigned>& blkSizes); \
-	template void SetBlkContractStatCInfo( \
-		const DistTensor<T>& A, const IndexArray& indicesA, \
-		const DistTensor<T>& B, const IndexArray& indicesB, \
-		const DistTensor<T>& C, const IndexArray& indicesC, \
-		const std::vector<Unsigned>& blkSizes, bool isStatC, \
-		BlkContractStatCInfo& contractInfo);
+	template class Contract<T>;
 
 //PROTO(Unsigned)
 //PROTO(Int)

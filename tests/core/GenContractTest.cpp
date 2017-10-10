@@ -277,7 +277,23 @@ void RunTest(const Grid& g, const Params& args){
 
 	double alpha = 2.0;
 	double beta = 3.0;
-	GenContract(alpha, A, args.indicesA, B, args.indicesB, beta, C, args.indicesC);
+  IndexArray indicesAB = IsectVector(args.indicesA, args.indicesB);
+
+  std::string indA = "";
+  for(int i = 0; i < args.indicesA.size(); i++) {
+    indA += args.indicesA[i];
+  }
+  std::string indB = "";
+  for(int i = 0; i < args.indicesB.size(); i++) {
+    indB += args.indicesB[i];
+  }
+  std::string indC = "";
+  for(int i = 0; i < args.indicesC.size(); i++) {
+    indC += args.indicesC[i];
+  }
+
+  const std::vector<Unsigned> blkSizes(indicesAB.size(), 4);
+	Contract<double>::run(alpha, A, indA, B, indB, beta, C, indC, blkSizes);
 
 	TensorDistribution distFinalC(args.distC.size() - 1);
 
