@@ -36,41 +36,31 @@ struct Redist
 
 typedef std::vector<Redist> RedistPlan;
 
-struct 	BlkContractStatAInfo
+struct 	BlkContractStatCInfo
 {
+	// Stat A
 	ModeArray reduceTensorModes;
 	TensorDistribution distT;
 	ModeArray alignModesT;
 	ModeArray alignModesTTo;
 	Permutation permT;
 
-	ModeArray partModesB;
-	TensorDistribution distIntB;
-	ModeArray alignModesB;
-	ModeArray alignModesBTo;
-	Permutation permB;
-
-	ModeArray partModesC;
-
-	Permutation permA;
-	std::vector<Unsigned> blkSizes;
-};
-
-struct 	BlkContractStatCInfo
-{
+	// Stat C
 	ModeArray partModesA;
 	TensorDistribution distIntA;
 	ModeArray alignModesA;
 	ModeArray alignModesATo;
 	Permutation permA;
 
+	// Stat A+C
 	ModeArray partModesB;
 	TensorDistribution distIntB;
 	ModeArray alignModesB;
 	ModeArray alignModesBTo;
 	Permutation permB;
 
-	Permutation permC;
+	Permutation permC; // Stat C
+	ModeArray partModesC; // Stat A
 	std::vector<Unsigned> blkSizes;
 };
 

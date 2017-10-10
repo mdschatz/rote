@@ -15,18 +15,15 @@ namespace rote{
 ////////////////////////////////////
 // Utils
 ////////////////////////////////////
-void SetBlkContractStatAInfo(const TensorDistribution& distT, const IndexArray& indicesT,
-							 const IndexArray& indicesA,
-							 const TensorDistribution& distIntB, const IndexArray& indicesB,
-							 const IndexArray& indicesC,
-							 const std::vector<Unsigned>& blkSizes,
-							 BlkContractStatAInfo& contractInfo);
 
-void SetBlkContractStatCInfo(const TensorDistribution& distIntA, const IndexArray& indicesA,
-		           const TensorDistribution& distIntB, const IndexArray& indicesB,
-							 const IndexArray& indicesC,
-							 const std::vector<Unsigned>& blkSizes,
-							 BlkContractStatCInfo& contractInfo);
+template<typename T>
+void SetBlkContractStatCInfo(
+	const DistTensor<T>& A, const IndexArray& indicesA,
+	const DistTensor<T>& B, const IndexArray& indicesB,
+	const DistTensor<T>& C, const IndexArray& indicesC,
+	const std::vector<Unsigned>& blkSizes, bool isStatC,
+	BlkContractStatCInfo& contractInfo
+);
 
 ////////////////////////////////////
 // DistContract Workhorse

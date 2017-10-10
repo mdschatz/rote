@@ -78,57 +78,102 @@ void SetBlkContractStatCInfo(
 	const DistTensor<T>& A, const IndexArray& indicesA,
   const DistTensor<T>& B, const IndexArray& indicesB,
   const DistTensor<T>& C, const IndexArray& indicesC,
-  const std::vector<Unsigned>& blkSizes, BlkContractStatCInfo& contractInfo
+  const std::vector<Unsigned>& blkSizes, bool isStatC,
+	BlkContractStatCInfo& contractInfo
 ) {
 	Unsigned i;
 	IndexArray indicesAC = DiffVector(indicesC, indicesB);
 	IndexArray indicesBC = DiffVector(indicesC, indicesA);
 	IndexArray indicesAB = DiffVector(indicesA, indicesC);
+	IndexArray indicesT = ConcatenateVectors(indicesC, indicesAB);
 
 	TensorDistribution distA = A.TensorDist();
 	TensorDistribution distB = B.TensorDist();
 	TensorDistribution distC = C.TensorDist();
 
-	TensorDistribution distIntA(distA.size() - 1);
-	TensorDistribution distIntB(distB.size() - 1);
+	TensorDistribution distT(indicesT.size());
+	TensorDistribution distIntA(indicesA.size());
+	TensorDistribution distIntB(indicesB.size());
 
-	//Setup temp dist A
-	distIntA.SetToMatch(distC, indicesC, indicesA);
+	ModeArray reduceGridModes;
+	for(Unsigned i = 0; i < indicesAB.size(); i++){
+		int index = IndexOf(indicesA, indicesAB[i]);
+		if(index >= 0)
+			reduceGridModes = ConcatenateVectors(reduceGridModes, distA[index].Entries());
+	}
 
-	//Setup temp dist B
-	distIntB.SetToMatch(distC, indicesC, indicesB);
+	// Set up temp dists
+	if (isStatC) {
+		distIntA.SetToMatch(distC, indicesC, indicesA);
+		distIntB.SetToMatch(distC, indicesC, indicesB);
+	} else {
+		distIntB.SetToMatch(distA, indicesA, indicesB);
+		distT.SetToMatch(distA, indicesA, indicesT);
+	}
+
 
 	//Set the intermediate dists
 	contractInfo.distIntA = distIntA;
 	contractInfo.distIntB = distIntB;
+	contractInfo.distT = distT;
+
+	//Determine the reduce tensor modes
+	contractInfo.reduceTensorModes.resize(indicesAB.size());
+	for(i = 0; i < indicesAB.size(); i++){
+		contractInfo.reduceTensorModes[i] = indicesC.size() + i;
+	}
 
 	//Determine the modes to partition
-	contractInfo.partModesA.resize(indicesAB.size());
-	contractInfo.partModesB.resize(indicesAB.size());
-	for(i = 0; i < indicesAB.size(); i++){
-		contractInfo.partModesA[i] = IndexOf(indicesA, indicesAB[i]);
-		contractInfo.partModesB[i] = IndexOf(indicesB, indicesAB[i]);
+	if (isStatC) {
+		contractInfo.partModesA.resize(indicesAB.size());
+		contractInfo.partModesB.resize(indicesAB.size());
+		for(i = 0; i < indicesAB.size(); i++){
+			contractInfo.partModesA[i] = IndexOf(indicesA, indicesAB[i]);
+			contractInfo.partModesB[i] = IndexOf(indicesB, indicesAB[i]);
+		}
+	} else {
+		contractInfo.partModesB.resize(indicesBC.size());
+		contractInfo.partModesC.resize(indicesBC.size());
+		for(i = 0; i < indicesBC.size(); i++){
+			contractInfo.partModesB[i] = IndexOf(indicesB, indicesBC[i]);
+			contractInfo.partModesC[i] = IndexOf(indicesC, indicesBC[i]);
+		}
 	}
 
 	//Determine the final alignments needed
-	contractInfo.alignModesA.resize(indicesAC.size());
-	contractInfo.alignModesATo.resize(indicesAC.size());
-	for(i = 0; i < indicesAC.size(); i++){
-		contractInfo.alignModesA[i] = IndexOf(indicesA, indicesAC[i]);
-		contractInfo.alignModesATo[i] = IndexOf(indicesC, indicesAC[i]);
-	}
-	contractInfo.alignModesB.resize(indicesBC.size());
-	contractInfo.alignModesBTo.resize(indicesBC.size());
-	for(i = 0; i < indicesBC.size(); i++){
-		contractInfo.alignModesB[i] = IndexOf(indicesB, indicesBC[i]);
-		contractInfo.alignModesBTo[i] = IndexOf(indicesC, indicesBC[i]);
+	if (isStatC) {
+		contractInfo.alignModesA.resize(indicesAC.size());
+		contractInfo.alignModesATo.resize(indicesAC.size());
+		for(i = 0; i < indicesAC.size(); i++){
+			contractInfo.alignModesA[i] = IndexOf(indicesA, indicesAC[i]);
+			contractInfo.alignModesATo[i] = IndexOf(indicesC, indicesAC[i]);
+		}
+		contractInfo.alignModesB.resize(indicesBC.size());
+		contractInfo.alignModesBTo.resize(indicesBC.size());
+		for(i = 0; i < indicesBC.size(); i++){
+			contractInfo.alignModesB[i] = IndexOf(indicesB, indicesBC[i]);
+			contractInfo.alignModesBTo[i] = IndexOf(indicesC, indicesBC[i]);
+		}
+	} else {
+		contractInfo.alignModesB.resize(indicesAB.size());
+		contractInfo.alignModesBTo.resize(indicesAB.size());
+		for(i = 0; i < indicesAB.size(); i++){
+			contractInfo.alignModesB[i] = IndexOf(indicesB, indicesAB[i]);
+			contractInfo.alignModesBTo[i] = IndexOf(indicesA, indicesAB[i]);
+		}
+		contractInfo.alignModesT.resize(indicesAC.size());
+		contractInfo.alignModesTTo.resize(indicesAC.size());
+		for(i = 0; i < indicesAC.size(); i++){
+			contractInfo.alignModesT[i] = IndexOf(indicesT, indicesAC[i]);
+			contractInfo.alignModesTTo[i] = IndexOf(indicesA, indicesAC[i]);
+		}
 	}
 
 	//Set the Block-size info
 	//NOTE: There are better ways to do this
 	if(blkSizes.size() == 0){
-		contractInfo.blkSizes.resize(indicesAB.size());
-		for(i = 0; i < indicesAB.size(); i++)
+		contractInfo.blkSizes.resize(isStatC ? indicesAB.size() : indicesBC.size());
+		for(i = 0; i < contractInfo.blkSizes.size(); i++)
 			contractInfo.blkSizes[i] = 32;
 	}else{
 		contractInfo.blkSizes = blkSizes;
@@ -142,10 +187,12 @@ void SetBlkContractStatCInfo(
 	Permutation permA(indicesA, ConcatenateVectors(indicesAC, indicesAB));
 	Permutation permB(indicesB, ConcatenateVectors(indicesAB, indicesBC));
 	Permutation permC(indicesC, ConcatenateVectors(indicesAC, indicesBC));
+	Permutation permT(indicesT, ConcatenateVectors(ConcatenateVectors(indicesAC, indicesBC), indicesAB));
 
 	contractInfo.permA = permA;
 	contractInfo.permB = permB;
 	contractInfo.permC = permC;
+	contractInfo.permT = permT;
 }
 
 template <typename T>
@@ -156,7 +203,8 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 		A, indicesA,
 		B, indicesB,
 		C, indicesC,
-		blkSizes, contractInfo
+		blkSizes, true,
+		contractInfo
 	);
 
 	if(contractInfo.permC != C.LocalPermutation()){
@@ -181,7 +229,8 @@ void ContractStatC(T alpha, const DistTensor<T>& A, const IndexArray& indicesA, 
 		const DistTensor<T>& A, const IndexArray& indicesA, \
 		const DistTensor<T>& B, const IndexArray& indicesB, \
 		const DistTensor<T>& C, const IndexArray& indicesC, \
-		const std::vector<Unsigned>& blkSizes, BlkContractStatCInfo& contractInfo);
+		const std::vector<Unsigned>& blkSizes, bool isStatC, \
+		BlkContractStatCInfo& contractInfo);
 
 //PROTO(Unsigned)
 //PROTO(Int)
