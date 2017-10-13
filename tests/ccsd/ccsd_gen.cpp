@@ -1,4 +1,3 @@
-// NOTE: It is possible to simply include "rote.hpp" instead
 #include "rote.hpp"
 
 #ifdef PROFILE

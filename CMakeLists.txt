@@ -28,7 +28,7 @@ option(ROTE_EXPERIMENTAL "Build experimental code" OFF)
 ################################################################################
 
 # Since it is surprisingly common for MPI libraries to have bugs in their
-# support for complex data, the following option forces Elemental to cast
+# support for complex data, the following option forces ROTE to cast
 # all possible MPI communications in terms of twice as many real units of data.
 option(AVOID_COMPLEX_MPI "Avoid potentially buggy complex MPI routines" OFF)
 mark_as_advanced(AVOID_COMPLEX_MPI)
@@ -80,7 +80,7 @@ mark_as_advanced(CACHE_WARNINGS UNALIGNED_WARNINGS VECTOR_WARNINGS)
 ################################################################################
 
 # "CMAKE_BUILD_TYPE"
-#   Elemental requires it to be one of the following choices:
+#   ROTE requires it to be one of the following choices:
 #     1. "PureDebug": Vanilla MPI build meant for development and debugging
 #     2. "PureRelease": Vanilla MPI build meant for production runs
 #     3. "HybridDebug": MPI+OpenMP build meant for development and debugging
@@ -105,7 +105,7 @@ mark_as_advanced(CACHE_WARNINGS UNALIGNED_WARNINGS VECTOR_WARNINGS)
 # The build logic starts here                                                  #
 ################################################################################
 
-# Elemental must be built "out-of-source", so we start by ensuring that the
+# ROTE must be built "out-of-source", so we start by ensuring that the
 # source and build directories are different.
 if("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}")
   message(FATAL_ERROR "In-source build attempted; please clean the CMake cache and then switch to an out-of-source build, e.g., rm CMakeCache.txt && rm -Rf CMakeFiles/ && mkdir build/ && cd build/ && cmake ..")
@@ -468,14 +468,10 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 # Build the test drivers if necessary
 if(ROTE_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
-#  set(TEST_TYPES core btas applications ccsd)
   set(TEST_TYPES core ccsd ccsd_gen gunnels)
   set(core_TESTS Views Grids GenContractTest )#RedistCheckTest GenRedistTest )
   set(gunnels_TESTS example)
-#  set(btas_TESTS Level1 Contract)
-  set(ccsd_TESTS ccsd ccsd_gen)#term_Tau term_W term_X term_U term_P term_Q term_H term_F term_G term_z_small term_Z ccsd)
-#  set(ccsd_TESTS term_Tau term_H term_U)
-  set(applications_TESTS BlockMP3DoublePartPerm MP3new MP3Newer)
+  set(ccsd_TESTS ccsd_gen)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")
