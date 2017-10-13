@@ -6,7 +6,7 @@
    which can be found in the LICENSE file in the root directory, or at
    http://opensource.org/licenses/BSD-2-Clause
 */
-// NOTE: It is possible to simply include "rote.hpp" instead
+
 #include "rote.hpp"
 using namespace rote;
 
@@ -122,9 +122,6 @@ TestElemScal(const DistTensor<T>& A)
     MakeZeros(C);
 
     ElemScal(A, B, C);
-    Print(A, "\n\nScaling:");
-    Print(B, "Scaled by: ");
-    Print(C, "Scale result");
 }
 
 template<typename T>
@@ -141,9 +138,6 @@ TestYAxpPx(const DistTensor<T>& A)
 
         MakeZeros(B);
         YAxpPx(T(2), A, T(1), A, perm, B);
-        Print(A, "\n\nAxpPxing: ");
-        PrintVector(perm, "under permutation");
-        Print(B, "Result:");
     } while(std::next_permutation(perm.begin(), perm.end()));
 }
 
@@ -166,10 +160,7 @@ TestAxpy(const DistTensor<T>& A)
     DistTensor<T> B(A.Shape(), A.TensorDist(), A.Grid());
     MakeUniform(B);
 
-    Print(A, "\n\nAxpying:");
-    Print(B, "to:");
     Axpy(T(2), A, B);
-    Print(B, "result:");
 }
 
 int
@@ -179,7 +170,6 @@ main( int argc, char* argv[] )
     mpi::Comm comm = mpi::COMM_WORLD;
     const Int commRank = mpi::CommRank( comm );
     const Int commSize = mpi::CommSize( comm );
-    printf("My Rank: %d\n", commRank);
     try
     {
         Params args;
@@ -202,27 +192,8 @@ main( int argc, char* argv[] )
         }
         DistTensor<double> A(args.tensorShape, args.tensorDist, g);
         MakeUniform(A);
-//        TestElemScal(A);
         TestYAxpPx(A);
         TestZAxpBy(A);
-//        TestAxpy(A);
-
-//        if( commRank == 0 )
-//        {
-//            std::cout << "--------------------" << std::endl
-//                      << "Testing with floats:" << std::endl
-//                      << "--------------------" << std::endl;
-//        }
-//        DistTensorTest<float>( args, g );
-//
-//        if( commRank == 0 )
-//        {
-//            std::cout << "---------------------" << std::endl
-//                      << "Testing with doubles:" << std::endl
-//                      << "---------------------" << std::endl;
-//        }
-//        DistTensorTest<double>( args, g );
-
     }
     catch( std::exception& e ) { ReportException(e); }
 
