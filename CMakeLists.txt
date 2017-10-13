@@ -158,27 +158,6 @@ if(NOT WIN32) # I forget why we need this guard
   endforeach()
 endif()
 
-# Go ahead and check for Fortran, but keep in mind that CMake's 'OPTIONAL'
-# argument for enable_language is still completely broken as of 2.8.8
-#include(./cmake/language_support_v2.cmake)
-#workaround_9220(Fortran FORTRAN_WORKS)
-#if(FORTRAN_WORKS)
-#  enable_language(Fortran)
-#  set(HAVE_F90_INTERFACE FALSE)
-#  if(CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-#    include(FortranCInterface)
-#    FortranCInterface_VERIFY(CXX)
-#    if(FortranCInterface_VERIFIED_CXX)
-#      set(HAVE_F90_INTERFACE TRUE)
-#      FortranCInterface_HEADER(
-#        ${CMAKE_CURRENT_BINARY_DIR}/include/elemental/FCMangle.h
-#        MACRO_NAMESPACE "FC_")
-#      install(FILES ${PROJECT_BINARY_DIR}/include/elemental/FCMangle.h
-#              DESTINATION include/elemental/)
-#    endif()
-#  endif()
-#endif()
-
 # Make sure that MPI is available
 find_package(MPI)
 if(NOT MPI_CXX_FOUND)
@@ -408,33 +387,7 @@ if(ROTE_EXPERIMENTAL)
   include_directories(${MPI_C_INCLUDE_PATH})
   set(CMAKE_C_FLAGS_${UPPER_BUILD_TYPE} "${MPI_C_COMPILE_FLAGS}")
   set(ROTE_CPP "${ROTE_CPP};experimental/c/interface.cpp")
-  set(ROTE_HEADERS "${ROTE_HEADERS};experimental/c/elemental.h")
-
-#  if(HAVE_F90_INTERFACE)
-#    if(NOT MPI_Fortran_FOUND)
-#      message(FATAL_ERROR "Could not build F90 interface without Fortran MPI")
-#    endif()
-    # We cannot simply use check_function_exists, since MPI_Comm_f2c is
-    # a macro in some MPI implementations
-#    set(MPI_COMM_F2C_CODE
-#    "#include \"mpi.h\"
-#     int main( int argc, char* argv[] )
-#     {
-#         MPI_Init( &argc, &argv );
-#         MPI_Fint fint;
-#         MPI_Comm comm = MPI_Comm_f2c( fint );
-#         MPI_Finalize();
-#         return 0;
-#     }")
-#    check_c_source_compiles("${MPI_COMM_F2C_CODE}" HAVE_MPI_COMM_F2C)
-#    if(NOT HAVE_MPI_COMM_F2C)
-#      message(FATAL_ERROR
-#        "Could not find MPI_Comm_f2c, but it is needed for the F90 interface")
-#    endif()
-#    include_directories(${MPI_Fortran_INCLUDE_PATH})
-#    set(CMAKE_Fortran_FLAGS_${UPPER_BUILD_TYPE} "${MPI_Fortran_COMPILE_FLAGS}")
-#    set(ROTE_CPP "${ROTE_CPP};experimental/f90/interface.cpp")
-#  endif()
+  set(ROTE_HEADERS "${ROTE_HEADERS}")
 endif()
 set(ROTE_SRC "${ROTE_CPP};${ROTE_HEADERS};${ROTE_MOC_SRC}")
 
@@ -514,27 +467,6 @@ if(ROTE_EXAMPLES)
         DESTINATION bin/examples/${TYPE})
     endforeach()
   endforeach()
-endif()
-
-# Build experimental drivers that do not require an eigensolver
-if(ROTE_EXPERIMENTAL)
-  set(EXPERIMENTAL_DIR ${PROJECT_SOURCE_DIR}/experimental)
-  #set(G3D_EXPERS G3DGemm)
-
-  # Build the G3D example(s)
-  #set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/experimental/g3d")
-  #foreach(EXPER ${G3D_EXPERS})
-  #  add_executable(experimental-g3d-${EXPER}
-  #    ${EXPERIMENTAL_DIR}/g3d/${EXPER}.cpp)
-  #  target_link_libraries(experimental-g3d-${EXPER} elemental)
-  #  set_target_properties(experimental-g3d-${EXPER} PROPERTIES
-  #    OUTPUT_NAME ${EXPER} RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
-  #  if(MPI_LINK_FLAGS)
-  #    set_target_properties(experimental-g3d-${EXPER} PROPERTIES
-  #      LINK_FLAGS ${MPI_LINK_FLAGS})
-  #  endif()
-  #  install(TARGETS experimental-g3d-${EXPER} DESTINATION bin/experimental/g3d)
-  #endforeach()
 endif()
 
 # If Rote is a subproject, then pass some variables to the parent

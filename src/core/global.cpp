@@ -133,7 +133,7 @@ void Initialize( int& argc, char**& argv )
         if( provided != mpi::THREAD_MULTIPLE )
         {
             throw std::runtime_error
-            ("MPI initialized with inadequate thread support for Elemental");
+            ("MPI initialized with inadequate thread support for ROTE");
         }
 #endif
     }
@@ -177,12 +177,12 @@ void Initialize( int& argc, char**& argv )
 void Finalize()
 {
     if( ::numElemInits <= 0 )
-        LogicError("Finalized Elemental more than initialized");
+        LogicError("Finalized ROTE more than initialized");
     --::numElemInits;
 
     if( mpi::Finalized() )
     {
-        std::cerr << "Warning: MPI was finalized before Elemental."
+        std::cerr << "Warning: MPI was finalized before ROTE."
                   << std::endl;
     }
     if( ::numElemInits == 0 )
@@ -252,7 +252,7 @@ const Grid& DefaultGrid()
     if( ::defaultGrid == 0 )
         LogicError
         ("Attempted to return a non-existant default grid. Please ensure that "
-         "Elemental is initialized before creating a DistMatrix.");
+         "ROTE is initialized before creating a DistTensor.");
 #endif
     return *::defaultGrid;
 }
@@ -263,7 +263,7 @@ mpi::CommMap& DefaultCommMap()
     if( ::defaultCommMap == 0 )
         LogicError
         ("Attempted to return a non-existant default grid. Please ensure that "
-         "Elemental is initialized before creating a DistMatrix.");
+         "ROTE is initialized before creating a DistTensor.");
 #endif
     return *::defaultCommMap;
 }
