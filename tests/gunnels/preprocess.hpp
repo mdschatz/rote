@@ -54,7 +54,7 @@ void ProcessInput(int argc, char** const argv, Params& args) {
 
     Unsigned gridOrder = atoi(argv[++argCount]);
 
-    if (argCount + gridOrder >= argc) {
+    if (argCount + gridOrder >= (Unsigned) argc) {
         std::cerr << "Missing required grid dimensions\n";
         Usage();
         throw ArgException();
@@ -62,7 +62,7 @@ void ProcessInput(int argc, char** const argv, Params& args) {
 
     args.gridShape.resize(gridOrder);
     args.nProcs = 1;
-    for (int i = 0; i < gridOrder; i++) {
+    for (Unsigned i = 0; i < gridOrder; i++) {
         int gridDim = atoi(argv[++argCount]);
         if (gridDim <= 0) {
             std::cerr << "Grid dim must be greater than 0\n";

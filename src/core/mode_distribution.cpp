@@ -68,7 +68,7 @@ ModeDistribution::operator+=(const Mode& rhs){
 
 ModeDistribution&
 ModeDistribution::operator-=(const ModeDistribution& rhs){
-	for(int i = 0; i < rhs.entries_.size(); i++)
+	for(Unsigned i = 0; i < rhs.entries_.size(); i++)
 		(*this) -= rhs.entries_[i];
 	return *this;
 }
@@ -84,7 +84,7 @@ ModeDistribution::operator-=(const Mode& rhs){
 ModeDistribution
 operator-(const ModeDistribution& lhs, const ModeDistribution& rhs){
 	ModeDistribution ret(lhs);
-	for(int i = 0; i < rhs.entries_.size(); i++){
+	for(Unsigned i = 0; i < rhs.entries_.size(); i++){
 		Unsigned modeToRemove = rhs.entries_[i];
 		auto loc = std::find(ret.entries_.begin(), ret.entries_.end(), modeToRemove);
 		if(loc != ret.entries_.end())
@@ -175,7 +175,7 @@ ModeDistribution::operator[](size_t index) const{
 ModeDistribution
 ModeDistribution::Filter(const std::vector<Unsigned>& filterIndices){
 	std::vector<Unsigned> newVals;
-	for(int i = 0; i < filterIndices.size(); i++){
+	for(Unsigned i = 0; i < filterIndices.size(); i++){
 		Unsigned filterIndex = filterIndices[i];
 		if(filterIndex < entries_.size())
 			newVals.push_back(entries_[filterIndex]);
@@ -234,7 +234,7 @@ ModeDistToString( const ModeDistribution& distribution, bool endLine )
 }
 
 
-inline ModeDistribution
+ModeDistribution
 StringToModeDist( const std::string& s)
 {
 	std::vector<Unsigned> distVals;

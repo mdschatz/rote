@@ -38,7 +38,7 @@ void ProcessInput(int argc, char** const argv, Params& args) {
 
     Unsigned gridOrder = atoi(argv[++argCount]);
 
-    if (argCount + gridOrder >= argc) {
+    if (argCount + gridOrder >= (Unsigned) argc) {
         std::cerr << "Missing required grid dimensions\n";
         Usage();
         throw ArgException();
@@ -46,7 +46,7 @@ void ProcessInput(int argc, char** const argv, Params& args) {
 
     args.gridShape.resize(gridOrder);
     args.nProcs = 1;
-    for (int i = 0; i < gridOrder; i++) {
+    for (Unsigned i = 0; i < gridOrder; i++) {
         int gridDim = atoi(argv[++argCount]);
         if (gridDim <= 0) {
             std::cerr << "Grid dim must be greater than 0\n";
@@ -267,7 +267,6 @@ template<typename T>
 void DistTensorTest(const Grid& g, Unsigned n_o, Unsigned n_v,
         Unsigned blkSize, Unsigned testIter) {
     const Int commRank = mpi::CommRank(mpi::COMM_WORLD);
-
 //START_DECL
 Permutation perm_1_0_2_3 = {1, 0, 2, 3};
 Permutation perm_0_1_3_2 = {0, 1, 3, 2};

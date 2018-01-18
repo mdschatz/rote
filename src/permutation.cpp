@@ -51,7 +51,7 @@ const Unsigned& Permutation::operator[](std::size_t index) const
 std::ostream& operator<<(std::ostream& o, const Permutation &perm)
 {
 	o << "perm:";
-	for(int i = 0; i < perm.size(); i++)
+	for(Unsigned i = 0; i < perm.size(); i++)
 		o << perm[i];
 	o << std::endl;
 	return o;
@@ -65,7 +65,7 @@ bool operator!=(const Permutation& lhs, const Permutation& rhs)
 Permutation Permutation::InversePermutation() const
 {
 	std::vector<Unsigned> vals(perm_.size());
-	for(int i = 0; i < perm_.size(); i++)
+	for(Unsigned i = 0; i < perm_.size(); i++)
 		vals[perm_[i]] = i;
 	Permutation ret(vals);
 	return ret;
@@ -84,19 +84,3 @@ Unsigned Permutation::size() const
 { return perm_.size(); }
 
 }
-//
-// #define FULL(T) \
-//     template Permutation::Permutation<T>;
-//
-// FULL(int)
-// #ifndef DISABLE_FLOAT
-// FULL(float)
-// #endif
-// FULL(double)
-//
-// #ifndef DISABLE_COMPLEX
-// #ifndef DISABLE_FLOAT
-// FULL(std::complex<float>)
-// #endif
-// FULL(std::complex<double>)
-// #endif

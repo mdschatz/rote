@@ -61,7 +61,6 @@ inline void ViewHelper
 ( Tensor<T>& A, const Tensor<T>& B,
   const Location& loc, const ObjShape& shape, bool isLocked )
 {
-#ifndef RELEASE
     const ObjShape shapeB = B.Shape();
     Location maxLoc = ElemwiseSum(loc, shape);
 
@@ -89,7 +88,7 @@ inline void ViewHelper
         msg << " Tensor.";
         LogicError( msg.str() );
     }
-#endif
+
     A.memory_.Empty();
     A.shape_ = shape;
     A.strides_     = B.strides_;

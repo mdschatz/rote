@@ -85,7 +85,7 @@ void LocalReduce(const Tensor<T>& A, Tensor<T>& B, const Permutation& permBToA, 
     Unsigned order = A.Order();
 
     ModeArray tensorModes(order);
-    for(int i = 0; i < order; i++)
+    for(Unsigned i = 0; i < order; i++)
     	tensorModes[i] = i;
     ModeArray nonReduceModes = NegFilterVector(tensorModes, reduceModes);
 

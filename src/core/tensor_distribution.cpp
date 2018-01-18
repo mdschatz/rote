@@ -103,7 +103,7 @@ TensorDistribution::IntroduceUnitModeDists(const std::vector<Unsigned>& unitMode
 TensorDistribution
 TensorDistribution::Filter(const std::vector<Unsigned>& filterIndices) const{
 	TensorDistribution ret(filterIndices.size() + 1);
-	for(int i = 0; i < filterIndices.size(); i++){
+	for(Unsigned i = 0; i < filterIndices.size(); i++){
 		Unsigned filterIndex = filterIndices[i];
 		if(filterIndex < entries_.size())
 			ret.entries_[i] = entries_[filterIndex];
@@ -138,7 +138,7 @@ TensorDistribution::operator-=(const TensorDistribution& rhs){
 TensorDistribution
 operator-(const TensorDistribution& lhs, const TensorDistribution& rhs){
 	TensorDistribution ret(lhs);
-	for(int i = 0; i < rhs.entries_.size(); i++){
+	for(Unsigned i = 0; i < rhs.entries_.size(); i++){
 		ret.entries_[i] = lhs.entries_[i] - rhs.entries_[i];
 	}
 	return ret;
@@ -181,7 +181,7 @@ operator>(const TensorDistribution& lhs, const TensorDistribution& rhs){
 TensorDistribution
 operator+(const TensorDistribution& lhs, const TensorDistribution& rhs){
 	TensorDistribution ret(lhs);
-	for(int i = 0; i < rhs.entries_.size(); i++){
+	for(Unsigned i = 0; i < rhs.entries_.size(); i++){
 		ret.entries_[i] = lhs.entries_[i] + rhs.entries_[i];
 	}
 	return ret;
@@ -243,7 +243,7 @@ void
 TensorDistribution::CheckIsValid()
 {
 	std::vector<Unsigned> allEntries;
-	for(int i = 0; i < entries_.size(); i++){
+	for(Unsigned i = 0; i < entries_.size(); i++){
 		ModeArray modeEntries = entries_[i].Entries();
 		allEntries.insert(allEntries.end(), modeEntries.begin(), modeEntries.end());
 	}
@@ -257,7 +257,7 @@ bool operator==( const TensorDistribution& A, const TensorDistribution& B ){
 	if(A.entries_.size() != B.entries_.size())
 		return false;
 
-	for(int i = 0; i < A.entries_.size(); i++)
+	for(Unsigned i = 0; i < A.entries_.size(); i++)
 		if(A.entries_[i] != B.entries_[i])
 			return false;
 	return true;
@@ -309,7 +309,7 @@ TensorDistribution::TensorModesForGridModes(const ModeArray& modes) const {
 }
 
 //TODO: Figure out how to error check these without C++11
-inline TensorDistribution
+TensorDistribution
 StringToTensorDist( const std::string& s )
 {
     std::vector<ModeDistribution> distVals;

@@ -34,7 +34,7 @@ void GenZAxpBPy( T alpha, const DistTensor<T>& X, T beta, const DistTensor<T>& Y
 	TensorDistribution copy = Y.TensorDist();
 	std::vector<ModeDistribution> newDistEntries(copy.size());
 
-	for(int i = 0; i < X.Order(); i++)
+	for(Unsigned i = 0; i < X.Order(); i++)
 		newDistEntries[i] = copy[perm[i]];
 	newDistEntries[newDistEntries.size() - 1] = copy[copy.size() - 1];
 	TensorDistribution newDist(newDistEntries);

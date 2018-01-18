@@ -21,7 +21,7 @@ Print( const Tensor<T>& A, std::string title, bool all )
     const Unsigned order = A.Order();
     Location curLoc(order, 0);
 
-    int ptr = 0;
+    Unsigned ptr = 0;
     if(order == 0) {
       os.precision(16);
       if (all || mpi::CommRank(MPI_COMM_WORLD) == 0) {
@@ -93,7 +93,7 @@ Print
         return;
     }
 
-    int ptr = 0;
+    Unsigned ptr = 0;
     bool done = order > 0 && !ElemwiseLessThan(curLoc, A.Shape());
     T u = T(0);
     while(!done){

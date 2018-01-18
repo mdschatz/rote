@@ -23,15 +23,15 @@ void Contract<T>::run(
 ) {
   // Convert to index array
   IndexArray indA(indicesA.size());
-  for(int i = 0; i < indicesA.size(); i++)
+  for(Unsigned i = 0; i < indicesA.size(); i++)
     indA[i] = indicesA[i];
 
   IndexArray indB(indicesB.size());
-  for(int i = 0; i < indicesB.size(); i++)
+  for(Unsigned i = 0; i < indicesB.size(); i++)
     indB[i] = indicesB[i];
 
   IndexArray indC(indicesC.size());
-  for(int i = 0; i < indicesC.size(); i++)
+  for(Unsigned i = 0; i < indicesC.size(); i++)
     indC[i] = indicesC[i];
 
   //Determine Stationary variant.

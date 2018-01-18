@@ -280,15 +280,15 @@ void RunTest(const Grid& g, const Params& args){
   IndexArray indicesAB = IsectVector(args.indicesA, args.indicesB);
 
   std::string indA = "";
-  for(int i = 0; i < args.indicesA.size(); i++) {
+  for(Unsigned i = 0; i < args.indicesA.size(); i++) {
     indA += args.indicesA[i];
   }
   std::string indB = "";
-  for(int i = 0; i < args.indicesB.size(); i++) {
+  for(Unsigned i = 0; i < args.indicesB.size(); i++) {
     indB += args.indicesB[i];
   }
   std::string indC = "";
-  for(int i = 0; i < args.indicesC.size(); i++) {
+  for(Unsigned i = 0; i < args.indicesC.size(); i++) {
     indC += args.indicesC[i];
   }
 
@@ -324,9 +324,7 @@ main( int argc, char* argv[] )
     Initialize( argc, argv );
     Params args;
     ProcessInput(argc, argv, args);
-    Unsigned i;
     mpi::Comm comm = mpi::COMM_WORLD;
-    const Int commRank = mpi::CommRank( comm );
     try
     {
     	const Grid g(comm, args.gShape);
