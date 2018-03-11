@@ -211,7 +211,6 @@ int main(int argc, char* argv[]) {
   const Int commSize = mpi::CommSize(comm);
   try {
     Params args;
-
     ProcessInput(argc, argv, args);
 
     if (commRank == 0 && commSize != args.nProcs) {

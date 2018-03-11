@@ -421,10 +421,9 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 # Build the test drivers if necessary
 if(ROTE_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
-  set(TEST_TYPES core ccsd ccsd_gen gunnels)
-  set(core_TESTS Views Grids GenContractTest )#RedistCheckTest GenRedistTest )
+  set(TEST_TYPES core gunnels)
+  set(core_TESTS RedistTest)
   set(gunnels_TESTS example)
-  set(ccsd_TESTS ccsd_gen)
 
   foreach(TYPE ${TEST_TYPES})
     set(OUTPUT_DIR "${PROJECT_BINARY_DIR}/bin/tests/${TYPE}")
