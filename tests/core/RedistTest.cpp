@@ -8,54 +8,62 @@
 */
 // NOTE: It is possible to simply include "rote.hpp" instead
 #include "rote.hpp"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <fstream>
 
 using namespace rote;
 
 void Usage(){
-    std::cout << "./testRedist <orderG> <shapeG> <oorderT> <shapeT> <distB> <distA\n";
+    std::cout << "./testRedist <cfg>\n"
+      << "<cfg> format:\n"
+      << "<orderG> <shapeG> <orderT> <shapeT> <distB> <distA>\n";
 }
 
-typedef struct Arguments {
+typedef struct TestParameters {
     ObjShape sT;
     ObjShape sG;
     TensorDistribution dB;
     TensorDistribution dA;
 } Params;
 
-void ProcessShape(int& iArg, int nArg, char* arg[], ObjShape& s) {
-  int oS = atoi(arg[++iArg]);
-  if (iArg + oS >= nArg) {
-    std::cout << "Malformed Shape";
+void ProcessShape(const std::vector<std::string>& args, int& i, ObjShape& s) {
+  int o = atoi(args[i++].c_str());
+  // std::cout << "i: " << i << " o: " << o << " args.size(): " << args.size() << " " << args[0];
+  if (i + o >= args.size()) {
+    std::cout << "Malformed Shape\n";
     Usage();
     throw ArgException();
   }
 
-  s.resize(oS);
-  for(int i = 0; i < oS; i++) {
-    s[i] = atoi(arg[++iArg]);
+  s.resize(o);
+  for(int j = 0; j < o; j++) {
+    s[j] = atoi(args[i++].c_str());
   }
 }
 
-void ProcessTensorDistribution(int& iArg, int nArg, char* arg[], TensorDistribution& dist) {
-  if (iArg + 1 >= nArg) {
-    std::cout << "Malformed TensorDistribution";
+void ProcessTensorDistribution(const std::vector<std::string>& args, int& i, TensorDistribution& dist) {
+  if (i >= args.size()) {
+    std::cout << "Malformed TensorDistribution\n";
     Usage();
     throw ArgException();
   }
 
-  dist = StringToTensorDist(arg[++iArg]);
+  dist = StringToTensorDist(args[i++]);
 }
 
-void ProcessInput(int nArg, char* arg[], Params& args) {
-    int iArg = 0;
-    if (iArg + 1 >= nArg) {
+void ProcessInput(const std::vector<std::string>& args, Params& params) {
+    int i = 0;
+    if (i >= args.size()) {
         Usage();
         throw ArgException();
     }
-    ProcessShape(iArg, nArg, arg, args.sG);
-    ProcessShape(iArg, nArg, arg, args.sT);
-    ProcessTensorDistribution(iArg, nArg, arg, args.dB);
-    ProcessTensorDistribution(iArg, nArg, arg, args.dA);
+
+    ProcessShape(args, i, params.sG);
+    ProcessShape(args, i, params.sT);
+    ProcessTensorDistribution(args, i, params.dB);
+    ProcessTensorDistribution(args, i, params.dA);
 }
 
 void PrintLocation(const char* msg, const Location& l) {
@@ -143,46 +151,74 @@ bool TestRedist(const Grid& g, const ObjShape& sT, const TensorDistribution& dB,
   return Test<T>(B, A);
 }
 
+std::vector<std::string> SplitLine(const std::string& s, char delim='\t') {
+  std::vector<std::string> items;
+
+  std::stringstream ss(s);
+  std::string item;
+  while(std::getline(ss, item, delim)) {
+    items.push_back(item);
+  }
+  return items;
+}
+
 int
 main( int argc, char* argv[] )
 {
   bool test = true;
   Initialize(argc, argv);
-  mpi::Comm c = mpi::COMM_WORLD;
+  mpi::Comm comm = mpi::COMM_WORLD;
 
   try
   {
-    Params args;
-    ProcessInput(argc, argv, args);
-
-    const Int nC = mpi::CommSize(c);
-    const Int nG = nElem(args.sG);
-
-    if (nC != nG) {
-      std::cerr << "Started with incorrect number of processes\n";
-      std::cerr << "nGrid: " << nG << " vs  nComm: " << nC << std::endl;
+    if (argc < 2) {
       Usage();
       throw ArgException();
     }
 
-    const Grid g(mpi::COMM_WORLD, args.sG);
-    test &= TestRedist<double>(g, args.sT, args.dB, args.dA);
-    test &= TestRedist<float>(g, args.sT, args.dB, args.dA);
-    test &= TestRedist<int>(g, args.sT, args.dB, args.dA);
+    std::ifstream cfg(argv[1]);
+    std::string line;
 
-    if (mpi::CommRank(mpi::COMM_WORLD) == 0) {
-      std::cerr << "Redist "
-        << TensorDistToString(args.dB)
-        << " <-- "
-        << TensorDistToString(args.dA)
-        << " "
-        << (test ? "SUCCESS" : "FAILURE")
-        << "\n";
+    int testNum = 0;
+    while(std::getline(cfg, line)) {
+      testNum += 1;
+      Params params;
+      ProcessInput(SplitLine(line), params);
+
+      const Int nG = nElem(params.sG);
+
+      if (nG != mpi::CommSize(comm)) {
+        std::cerr << "Started with incorrect number of processes\n";
+        std::cerr << "nGrid: " << nG << " vs  nComm: " << mpi::CommSize(comm) << std::endl;
+        Usage();
+        throw ArgException();
+      }
+
+      const Grid g(comm, params.sG);
+      test &= TestRedist<double>(g, params.sT, params.dB, params.dA);
+      test &= TestRedist<float>(g, params.sT, params.dB, params.dA);
+      test &= TestRedist<int>(g, params.sT, params.dB, params.dA);
+
+      if (testNum % 100 == 0 && mpi::CommRank(comm) == 0) {
+        std::cout << "Finished " << testNum << " tests\n";
+      }
+      if (!test && mpi::CommRank(comm) == 0) {
+        std::cerr << "Redist "
+          << TensorDistToString(params.dB)
+          << " <-- "
+          << TensorDistToString(params.dA)
+          << " "
+          << (test ? "SUCCESS" : "FAILURE")
+          << "\n";
+      }
     }
   } catch( std::exception& e ) {
     test = false;
     ReportException(e);
   }
+  if(mpi::CommRank(comm) == 0) {
+    std::cout << "RedistTest: " << (test ? "SUCCESS" : "FAILURE") << "\n";
+  }
   Finalize();
-  return test ? 0 : 1;
+  return 0;
 }
