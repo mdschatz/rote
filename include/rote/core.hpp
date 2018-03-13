@@ -36,6 +36,7 @@
 #include "core/complex.hpp"
 #include "core/mode_distribution.hpp"
 #include "core/tensor_distribution.hpp"
+#include "core/redist_plan.hpp"
 #include "core/util.hpp"
 #include "core/permutation.hpp"
 #include "core/structs.hpp"

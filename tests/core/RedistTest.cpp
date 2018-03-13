@@ -185,11 +185,18 @@ main( int argc, char* argv[] )
       Params params;
       ProcessInput(SplitLine(line), params);
 
+      if (mpi::CommRank(comm) == 0) {
+        std::cout << "Starting Redist "
+          << TensorDistToString(params.dB)
+          << " <-- "
+          << TensorDistToString(params.dA)
+          << "\n";
+      }
       const Int nG = nElem(params.sG);
 
       if (nG != mpi::CommSize(comm)) {
-        std::cerr << "Started with incorrect number of processes\n";
-        std::cerr << "nGrid: " << nG << " vs  nComm: " << mpi::CommSize(comm) << std::endl;
+        std::cout << "Started with incorrect number of processes\n";
+        std::cout << "nGrid: " << nG << " vs  nComm: " << mpi::CommSize(comm) << std::endl;
         Usage();
         throw ArgException();
       }
@@ -203,7 +210,7 @@ main( int argc, char* argv[] )
         std::cout << "Finished " << testNum << " tests\n";
       }
       if (!test && mpi::CommRank(comm) == 0) {
-        std::cerr << "Redist "
+        std::cout << "Redist "
           << TensorDistToString(params.dB)
           << " <-- "
           << TensorDistToString(params.dA)

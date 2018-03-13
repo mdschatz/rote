@@ -269,12 +269,14 @@ PrintHadamardScalData
 
 void
 PrintRedistPlan
-( const TensorDistribution& startDist, const RedistPlan& redistPlan, std::string title) {
+( const RedistPlan& redistPlan, std::string title) {
+  if (mpi::CommRank(MPI_COMM_WORLD) != 0) {
+    return;
+  }
   std::cout << title << std::endl;
-  std::cout << "start: " << startDist << std::endl;
   for(Unsigned i = 0; i < redistPlan.size(); i++){
-   Redist intRedist = redistPlan[i];
-   switch(intRedist.redistType){
+   const Redist redist = redistPlan[i];
+   switch(redist.type()){
      case AG:    std::cout << "AG: "; break;
      case A2A:   std::cout << "A2A: "; break;
      case Perm:  std::cout << "Perm: "; break;
@@ -286,23 +288,32 @@ PrintRedistPlan
      case BCast:    std::cout << "BCast: "; break;
      case Scatter:    std::cout << "Scatter: "; break;
    }
-   std::cout << intRedist.dist << std::endl;
+   std::cout << redist.dB() << " <-- " << redist.dA() << std::endl;
   }
+  std::cout << std::endl;
 }
 
 void
 PrintRedistPlanInfo
 ( const RedistPlanInfo& redistPlanInfo, std::string title, bool all) {
+  if (mpi::CommRank(MPI_COMM_WORLD) != 0) {
+    return;
+  }
   std::ostream& os = std::cout;
   os << title << std::endl;
-  PrintVector(redistPlanInfo.tenModesReduced, "  T reduced", all);
-  PrintVector(redistPlanInfo.gridModesAppeared, "  G appeared", all);
-  PrintVector(redistPlanInfo.gridModesAppearedSinks, "  G appeared sinks", all);
-  PrintVector(redistPlanInfo.gridModesRemoved, "  G removed", all);
-  PrintVector(redistPlanInfo.gridModesRemovedSrcs, "  G removed srcs", all);
-  PrintVector(redistPlanInfo.gridModesMoved, "  G moved", all);
-  PrintVector(redistPlanInfo.gridModesMovedSrcs, "  G moved srcs", all);
-  PrintVector(redistPlanInfo.gridModesMovedSinks, "  G moved sinks", all);
+  PrintVector(redistPlanInfo.reduced(), "Reduced");
+  std::cout << "Added\n";
+  for (auto const& kv: redistPlanInfo.added()) {
+    std::cout << "  " << kv.first << ": " << kv.second << "\n";
+  }
+  std::cout << "Removed\n";
+  for (auto const& kv: redistPlanInfo.removed()) {
+    std::cout << "  " << kv.first << ": " << kv.second << "\n";
+  }
+  std::cout << "Moved\n";
+  for (auto const& kv: redistPlanInfo.moved()) {
+    std::cout << "  " << kv.first << ": (" << kv.second.first << ", " << kv.second.second << ")\n";
+  }
 }
 
 #define FULL(T) \

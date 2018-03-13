@@ -14,28 +14,6 @@
 
 namespace rote {
 
-//Structs for performing general redistributions
-struct RedistPlanInfo
-{
-	ModeArray tenModesReduced;
-	ModeArray gridModesAppeared;
-	ModeArray gridModesAppearedSinks;
-	ModeArray gridModesRemoved;
-	ModeArray gridModesRemovedSrcs;
-	ModeArray gridModesMoved;
-	ModeArray gridModesMovedSrcs;
-	ModeArray gridModesMovedSinks;
-};
-
-struct Redist
-{
-	RedistType redistType;
-	TensorDistribution dist;
-	ModeArray modes;
-};
-
-typedef std::vector<Redist> RedistPlan;
-
 struct 	BlkContractStatCInfo
 {
 	// Stat A

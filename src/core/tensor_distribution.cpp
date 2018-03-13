@@ -42,7 +42,12 @@ TensorDistribution::Entries() const
 { return entries_; }
 
 const ModeDistribution&
-TensorDistribution::operator[](size_t index) const{
+TensorDistribution::operator[](size_t index) const {
+	return entries_[index];
+}
+
+ModeDistribution&
+TensorDistribution::operator[](size_t index) {
 	return entries_[index];
 }
 

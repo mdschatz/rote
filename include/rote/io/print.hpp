@@ -64,7 +64,7 @@ PrintHadamardScalData
 
 void
 PrintRedistPlan
-( const TensorDistribution& startDist, const RedistPlan& redistPlan, std::string title="");
+( const RedistPlan& redistPlan, std::string title="");
 
 void
 PrintRedistPlanInfo

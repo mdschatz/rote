@@ -91,7 +91,6 @@ public:
 
 
     ///////////////////////////////////////
-
     //
     // Redist interface routines
     //
@@ -176,18 +175,6 @@ public:
     void ScatterRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha=T(0));
 
 private:
-    //
-    // Redist workhorse routines
-    //
-//    bool CheckAllToAllCommRedist(const DistTensor<T>& A);
-    void CommRedist(const TensorDistribution& finalDist, const TensorDistribution& startingDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists);
-    RedistPlanInfo CreateGenRedistData(const TensorDistribution& startDist, const TensorDistribution& endDist, const ModeArray& reduceModes = ModeArray());
-    void CommRedistReduce(const TensorDistribution& finalDist, const TensorDistribution& startingDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists);
-    void CommRedistAdd(const TensorDistribution& finalDist, const TensorDistribution& startingDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists);
-    void CommRedistMove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists);
-    void CommRedistP2P(const TensorDistribution& finalDist, const TensorDistribution& startingDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists);
-    void CommRedistRemove(const TensorDistribution& finalDist, const TensorDistribution& startingDist, RedistPlanInfo& redistData, std::vector<Redist>& intDists);
-
     //
     // All-to-all workhorse routines
     //

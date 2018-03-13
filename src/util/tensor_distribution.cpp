@@ -85,28 +85,28 @@ bool CheckPartition(const TensorDistribution& outDist, const TensorDistribution&
 
     for(i = 0; i < objOrder; i++){
     	if(inDist[i].size() != outDist[i].size()){
-			if(inDist[i] <= outDist[i]){
-				sinkModes.push_back(i);
+				if(inDist[i] <= outDist[i]){
+					sinkModes.push_back(i);
+				}
+				else if(outDist[i] <= inDist[i]){
+					sourceModes.push_back(i);
+				}
+	    	}else if(inDist[i] != outDist[i]){
+					std::stringstream msg;
+					msg << "Invalid redistribution\n"
+						<< outDist
+						<< " <-- "
+						<< inDist
+						<< std::endl
+						<< "Cannot form partition"
+						<< std::endl;
+					LogicError(msg.str());
 			}
-			else if(outDist[i] <= inDist[i]){
-				sourceModes.push_back(i);
-			}
-    	}else if(inDist[i] != outDist[i]){
-			std::stringstream msg;
-			msg << "Invalid redistribution\n"
-				<< outDist
-				<< " <-- "
-				<< inDist
-				<< std::endl
-				<< "Cannot form partition"
-				<< std::endl;
-			LogicError(msg.str());
-		}
     }
 
     for(i = 0; i < sourceModes.size() && j < sinkModes.size(); i++){
     	if(sourceModes[i] == sinkModes[j]){
-        	std::stringstream msg;
+      	std::stringstream msg;
     		msg << "Invalid redistribution\n"
     			<< outDist
     			<< " <-- "

@@ -36,6 +36,7 @@ public:
     TensorDistribution& operator-=(const TensorDistribution& rhs);
 
     const ModeDistribution& operator[](size_t index) const;
+		ModeDistribution& operator[](size_t index);
     void RemoveUnitModeDists(const std::vector<Unsigned>& unitModes);
     void IntroduceUnitModeDists(const std::vector<Unsigned>& unitModes);
 
