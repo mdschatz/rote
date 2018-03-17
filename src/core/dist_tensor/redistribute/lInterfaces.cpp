@@ -17,10 +17,10 @@ namespace rote{
 ////////////////////////////////
 
 template<typename T>
-void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const T alpha){
+void DistTensor<T>::LocalRedistFrom(const DistTensor<T>& A, const T alpha, const T beta){
     PROFILE_SECTION("LocalRedist");
     this->ResizeTo(A);
-    LocalCommRedist(A, alpha);
+    LocalCommRedist(A, alpha, beta);
     PROFILE_STOP;
 }
 

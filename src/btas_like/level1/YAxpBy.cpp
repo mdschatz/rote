@@ -12,220 +12,219 @@ namespace rote {
 template<typename T>
 inline void
 YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAxpByData& data ){
-    const std::vector<Unsigned> loopEnd = data.loopShape;
-    const std::vector<Unsigned> srcBufStrides = data.srcStrides;
-    const std::vector<Unsigned> dstBufStrides = data.dstStrides;
-    Unsigned srcBufPtr = 0;
-    Unsigned dstBufPtr = 0;
-    Unsigned order = loopEnd.size();
-    Location curLoc(order, 0);
-    Unsigned ptr = 0;
+  const std::vector<Unsigned> loopEnd = data.loopShape;
+  const std::vector<Unsigned> srcBufStrides = data.srcStrides;
+  const std::vector<Unsigned> dstBufStrides = data.dstStrides;
+  Unsigned srcBufPtr = 0;
+  Unsigned dstBufPtr = 0;
+  Unsigned order = loopEnd.size();
+  Location curLoc(order, 0);
+  Unsigned ptr = 0;
 
-    bool done = !ElemwiseLessThan(curLoc, loopEnd);
+  bool done = !ElemwiseLessThan(curLoc, loopEnd);
 
-    //Alpha cannot be zero (handled in parent call)
-    if(alpha == T(0)){
-        if(beta == T(0)){
-            Zero_fast(loopEnd, dstBufStrides, dstBuf);
-        }else if(beta == T(1)){
-
-        }else{
-            ScalData scal_data;
-            scal_data.loopShape = loopEnd;
-            scal_data.srcStrides = dstBufStrides;
-            Scal_fast(alpha, dstBuf, scal_data);
-        }
-    }else if(alpha == T(1)){
-        if(beta == T(0)){
-            if(loopEnd.size() == 0){
-                dstBuf[0] = srcBuf[0];
-                return;
-            }
-
-            while(!done){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
-                //Update
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
-                while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-                    srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-                    ptr++;
-                    if(ptr >= order){
-                        done = true;
-                        break;
-                    }else{
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if(done)
-                    break;
-                ptr = 0;
-            }
-        }else if(beta == T(1)){
-            if(loopEnd.size() == 0){
-                dstBuf[0] = srcBuf[0] + dstBuf[0];
-                return;
-            }
-
-            while(!done){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
-                //Update
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
-                while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-                    srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-                    ptr++;
-                    if(ptr >= order){
-                        done = true;
-                        break;
-                    }else{
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if(done)
-                    break;
-                ptr = 0;
-            }
-        }else{
-            if(loopEnd.size() == 0){
-                dstBuf[0] = srcBuf[0] + beta*dstBuf[0];
-                return;
-            }
-
-            while(!done){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta*dstBuf[dstBufPtr];
-                //Update
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
-                while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-                    srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-                    ptr++;
-                    if(ptr >= order){
-                        done = true;
-                        break;
-                    }else{
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if(done)
-                    break;
-                ptr = 0;
-            }
-        }
+  //Alpha cannot be zero (handled in parent call)
+  if(alpha == T(0)){
+    if(beta == T(0)){
+      Zero_fast(loopEnd, dstBufStrides, dstBuf);
+    }else if(beta == T(1)){
     }else{
-        if(beta == T(0)){
-            if(loopEnd.size() == 0){
-                dstBuf[0] = alpha*srcBuf[0];
-                return;
-            }
-
-            while(!done){
-                dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr];
-                //Update
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
-                while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-                    srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-                    ptr++;
-                    if(ptr >= order){
-                        done = true;
-                        break;
-                    }else{
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if(done)
-                    break;
-                ptr = 0;
-            }
-        }else if(beta == T(1)){
-            if(loopEnd.size() == 0){
-                dstBuf[0] = alpha*srcBuf[0] + dstBuf[0];
-                return;
-            }
-
-            while(!done){
-                dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
-                //Update
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
-                while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-                    srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-                    ptr++;
-                    if(ptr >= order){
-                        done = true;
-                        break;
-                    }else{
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if(done)
-                    break;
-                ptr = 0;
-            }
-        }else{
-            if(loopEnd.size() == 0){
-                dstBuf[0] = alpha*srcBuf[0] + beta*dstBuf[0];
-                return;
-            }
-
-            while(!done){
-                dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta*dstBuf[dstBufPtr];
-                //Update
-                curLoc[ptr]++;
-                dstBufPtr += dstBufStrides[ptr];
-                srcBufPtr += srcBufStrides[ptr];
-                while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
-                    curLoc[ptr] = 0;
-
-                    dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
-                    srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
-                    ptr++;
-                    if(ptr >= order){
-                        done = true;
-                        break;
-                    }else{
-                        curLoc[ptr]++;
-                        dstBufPtr += dstBufStrides[ptr];
-                        srcBufPtr += srcBufStrides[ptr];
-                    }
-                }
-                if(done)
-                    break;
-                ptr = 0;
-            }
-        }
+      ScalData scal_data;
+      scal_data.loopShape = loopEnd;
+      scal_data.srcStrides = dstBufStrides;
+      Scal_fast(alpha, dstBuf, scal_data);
     }
+  }else if(alpha == T(1)){
+    if(beta == T(0)){
+      if(loopEnd.size() == 0){
+        dstBuf[0] = srcBuf[0];
+        return;
+      }
+
+      while(!done){
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+          curLoc[ptr] = 0;
+
+          dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+          srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+          ptr++;
+          if(ptr >= order){
+            done = true;
+            break;
+          }else{
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+          }
+        }
+        if(done)
+            break;
+        ptr = 0;
+      }
+    }else if(beta == T(1)){
+      if(loopEnd.size() == 0){
+        dstBuf[0] = srcBuf[0] + dstBuf[0];
+        return;
+      }
+
+      while(!done){
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+          curLoc[ptr] = 0;
+
+          dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+          srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+          ptr++;
+          if(ptr >= order){
+            done = true;
+            break;
+          }else{
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+          }
+        }
+        if(done)
+          break;
+        ptr = 0;
+      }
+    }else{
+      if(loopEnd.size() == 0){
+        dstBuf[0] = srcBuf[0] + beta*dstBuf[0];
+        return;
+      }
+
+      while(!done){
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta*dstBuf[dstBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+          curLoc[ptr] = 0;
+
+          dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+          srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+          ptr++;
+          if(ptr >= order){
+            done = true;
+            break;
+          }else{
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+          }
+        }
+        if(done)
+          break;
+        ptr = 0;
+      }
+    }
+  }else{
+    if(beta == T(0)){
+      if(loopEnd.size() == 0){
+        dstBuf[0] = alpha*srcBuf[0];
+        return;
+      }
+
+      while(!done){
+        dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+          curLoc[ptr] = 0;
+
+          dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+          srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+          ptr++;
+          if(ptr >= order){
+            done = true;
+            break;
+          }else{
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+          }
+        }
+        if(done)
+          break;
+        ptr = 0;
+      }
+    }else if(beta == T(1)){
+      if(loopEnd.size() == 0){
+        dstBuf[0] = alpha*srcBuf[0] + dstBuf[0];
+        return;
+      }
+
+      while(!done){
+        dstBuf[dstBufPtr] = alpha*srcBuf[srcBufPtr] + dstBuf[dstBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+          curLoc[ptr] = 0;
+
+          dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+          srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+          ptr++;
+          if(ptr >= order){
+            done = true;
+            break;
+          }else{
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+          }
+        }
+        if(done)
+          break;
+        ptr = 0;
+      }
+    }else{
+      if(loopEnd.size() == 0){
+        dstBuf[0] = alpha*srcBuf[0] + beta*dstBuf[0];
+        return;
+      }
+
+      while(!done){
+        dstBuf[dstBufPtr] = srcBuf[srcBufPtr] + beta*dstBuf[dstBufPtr];
+        //Update
+        curLoc[ptr]++;
+        dstBufPtr += dstBufStrides[ptr];
+        srcBufPtr += srcBufStrides[ptr];
+        while(ptr < order && curLoc[ptr] >= loopEnd[ptr]){
+          curLoc[ptr] = 0;
+
+          dstBufPtr -= dstBufStrides[ptr] * (loopEnd[ptr]);
+          srcBufPtr -= srcBufStrides[ptr] * (loopEnd[ptr]);
+          ptr++;
+          if(ptr >= order){
+            done = true;
+            break;
+          }else{
+            curLoc[ptr]++;
+            dstBufPtr += dstBufStrides[ptr];
+            srcBufPtr += srcBufStrides[ptr];
+          }
+        }
+        if(done)
+          break;
+        ptr = 0;
+      }
+    }
+  }
 }
 
 ////////////////////////////////////
@@ -235,15 +234,15 @@ YAxpBy_fast(T alpha, T beta, T const * const srcBuf, T * const dstBuf, const YAx
 template<typename T>
 inline void
 YAxpBy( T alpha, const Tensor<T>& X, const Permutation& permXToY, T beta, Tensor<T>& Y){
-    YAxpByData data;
-    data.loopShape = Y.Shape();
-    data.srcStrides = permXToY.applyTo(X.Strides());
-    data.dstStrides = Y.Strides();
+  YAxpByData data;
+  data.loopShape = Y.Shape();
+  data.srcStrides = permXToY.applyTo(X.Strides());
+  data.dstStrides = Y.Strides();
 
-    const T* srcBuf = X.LockedBuffer();
-    T* dstBuf = Y.Buffer();
+  const T* srcBuf = X.LockedBuffer();
+  T* dstBuf = Y.Buffer();
 
-    YAxpBy_fast(alpha, beta, srcBuf, dstBuf, data);
+  YAxpBy_fast(alpha, beta, srcBuf, dstBuf, data);
 }
 
 
@@ -277,12 +276,12 @@ inline void
 YAxpBy( T alpha, const DistTensor<T>& X, T beta, DistTensor<T>& Y )
 {
 #ifndef RELEASE
-    if( X.Grid() != Y.Grid() )
-        LogicError
-        ("X and Y must be distributed over the same grid");
+  if( X.Grid() != Y.Grid() )
+    LogicError
+    ("X and Y must be distributed over the same grid");
 #endif
-    Permutation permXToY = X.LocalPermutation().PermutationTo(Y.LocalPermutation());
-    YAxpBy(alpha, X.LockedTensor(), permXToY, beta, Y.Tensor());
+  Permutation permXToY = X.LocalPermutation().PermutationTo(Y.LocalPermutation());
+  YAxpBy(alpha, X.LockedTensor(), permXToY, beta, Y.Tensor());
 }
 
 //Non-template functions

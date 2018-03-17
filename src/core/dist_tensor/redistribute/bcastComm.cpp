@@ -27,7 +27,7 @@ bool DistTensor<T>::CheckBroadcastCommRedist(const DistTensor<T>& A){
 
 template<typename T>
 void
-DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
 #ifndef RELEASE
     if(!this->CheckBroadcastCommRedist(A))
         LogicError("BroadcastRedist: Invalid redistribution request");
@@ -82,7 +82,7 @@ DistTensor<T>::BroadcastCommRedist(const DistTensor<T>& A, const ModeArray& comm
 
     //Unpack the data (if participating)
     PROFILE_SECTION("BCastUnpack");
-	this->UnpackPCommRecvBuf(recvBuf, alpha);
+	this->UnpackPCommRecvBuf(recvBuf, alpha, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();

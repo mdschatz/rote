@@ -18,13 +18,13 @@ namespace rote{
 
 //TODO: MAKE SURE ALL REDISTS WORK WITH blank commModes (size=0)
 template <typename T>
-void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+void DistTensor<T>::AllToAllRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
     PROFILE_SECTION("A2ARedist");
     this->ResizeTo(A);
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
 
-    AllToAllCommRedist(A, sortedCommModes, alpha);
+    AllToAllCommRedist(A, sortedCommModes, alpha, beta);
 
     PROFILE_STOP;
 }

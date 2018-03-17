@@ -91,10 +91,10 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
     ModeArray commModes = A.TensorDist().Filter(sortedRModes).UsedModes().Entries();
     SortVector(commModes);
 
-//    PrintData(tmp, "tmp data");
+   // PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");
 //    Print(tmp2, "tmp2 before RTO");
-//    Print(tmp, "tmp before RTO");
+   // Print(tmp, "tmp before RTO");
 
     switch(redistType){
 		case RS:  tmp2.ReduceScatterUpdateCommRedist(alpha, tmp, beta, sortedRModes, commModes); break;

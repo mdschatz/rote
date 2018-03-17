@@ -27,7 +27,7 @@ bool DistTensor<T>::CheckScatterCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
 	if(!CheckScatterCommRedist(A))
 		LogicError("ScatterRedist: Invalid redistribution request");
 
@@ -83,7 +83,7 @@ void DistTensor<T>::ScatterCommRedist(const DistTensor<T>& A, const ModeArray& c
 	//Unpack the data (if participating)
 	PROFILE_SECTION("ScatterUnpack");
 	PROFILE_MEMOPS(prod(this->MaxLocalShape()));
-	this->UnpackPCommRecvBuf(recvBuf, alpha);
+	this->UnpackPCommRecvBuf(recvBuf, alpha, beta);
 	PROFILE_STOP;
 
 //	const T* myBuf = LockedBuffer();

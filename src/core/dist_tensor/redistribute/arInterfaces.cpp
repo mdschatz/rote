@@ -49,18 +49,11 @@ void DistTensor<T>::AllReduceRedistFrom(const DistTensor<T>& A, const Mode reduc
 
 template<typename T>
 void
-DistTensor<T>::AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
-{
-    AllReduceUpdateRedistFrom(T(1), A, beta, reduceModes);
-}
-
-template<typename T>
-void
-DistTensor<T>::AllReduceUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode)
+DistTensor<T>::AllReduceUpdateRedistFrom(const T alpha, const DistTensor<T>& A, const T beta, const Mode reduceMode)
 {
     ModeArray reduceModes(1);
     reduceModes[0] = reduceMode;
-    AllReduceUpdateRedistFrom(A, beta, reduceModes);
+    AllReduceUpdateRedistFrom(alpha, A, beta, reduceModes);
 }
 
 #define FULL(T) \

@@ -301,7 +301,8 @@ PrintRedistPlanInfo
   }
   std::ostream& os = std::cout;
   os << title << std::endl;
-  PrintVector(redistPlanInfo.reduced(), "Reduced");
+  PrintVector(redistPlanInfo.reduceModes(), "Tensor modes reduced");
+  PrintVector(redistPlanInfo.reduceGModes(), "Grid modes reduced");
   std::cout << "Added\n";
   for (auto const& kv: redistPlanInfo.added()) {
     std::cout << "  " << kv.first << ": " << kv.second << "\n";

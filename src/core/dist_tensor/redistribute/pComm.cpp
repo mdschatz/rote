@@ -27,7 +27,7 @@ bool DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
     if(!CheckPermutationCommRedist(A))
 		LogicError("PermutationRedist: Invalid redistribution request");
 
@@ -103,7 +103,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 
     //Unpack the data (if participating)
     PROFILE_SECTION("PermutationUnpack");
-    this->UnpackPCommRecvBuf(recvBuf, alpha);
+    this->UnpackPCommRecvBuf(recvBuf, alpha, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -113,7 +113,7 @@ void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArra
 }
 
 template <typename T>
-void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const T alpha)
+void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const T alpha, const T beta)
 {
     T* dataBuf = this->Buffer();
 

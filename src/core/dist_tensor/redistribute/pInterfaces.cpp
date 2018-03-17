@@ -17,14 +17,14 @@ namespace rote{
 ////////////////////////////////
 
 template <typename T>
-void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha){
+void DistTensor<T>::PermutationRedistFrom(const DistTensor<T>& A, const ModeArray& redistModes, const T alpha, const T beta){
 	NOT_USED(redistModes);
     PROFILE_SECTION("PermuteRedist");
     this->ResizeTo(A);
     ModeArray commModes = A.TensorDist().GetCommonSuffix(this->TensorDist()).UsedModes().Entries();
 
     commModes = Unique(commModes);
-    PermutationCommRedist(A, commModes, alpha);
+    PermutationCommRedist(A, commModes, alpha, beta);
     PROFILE_STOP;
 }
 

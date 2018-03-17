@@ -46,17 +46,18 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
 	T* sendBuf = &(auxBuf[0]);
     T* recvBuf = &(auxBuf[sendSize]);
 
-//    const T* dataBuf = A.LockedBuffer();
-//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+   // const T* dataBuf = A.LockedBuffer();
+   // PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+	 // PrintVector(commModes, "commModes");
 
     //Pack the data
     PROFILE_SECTION("RSPack");
     PackRSCommSendBuf(A, reduceModes, commModes, sendBuf);
     PROFILE_STOP;
 
-//    ObjShape sendShape = commDataShape;
-//    sendShape.insert(sendShape.end(), nRedistProcs);
-//    PrintArray(sendBuf, sendShape, "sendBuf");
+   // ObjShape sendShape = commDataShape;
+   // sendShape.insert(sendShape.end(), nRedistProcs);
+   // PrintArray(sendBuf, sendShape, "sendBuf");
 
     //Communicate the data
     PROFILE_SECTION("RSComm");
@@ -73,8 +74,8 @@ void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTenso
     mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
     PROFILE_STOP;
 
-//    ObjShape recvShape = commDataShape;
-//    PrintArray(recvBuf, recvShape, "recvBuf");
+   // ObjShape recvShape = commDataShape;
+   // PrintArray(recvBuf, recvShape, "recvBuf");
 
     //Unpack the data (if participating)
     PROFILE_SECTION("RSUnpack");
@@ -123,7 +124,7 @@ void DistTensor<T>::PackRSCommSendBuf(const DistTensor<T>& A, const ModeArray& r
     const ObjShape gridShape = g.Shape();
     const Location myGridLoc = g.Loc();
 
-    const Unsigned nRedistProcsAll = prod(FilterVector(gridShape, commModes));
+    const Unsigned nRedistProcsAll = Max(1, prod(FilterVector(gridShape, commModes)));
 
     //Redistribute information
     ModeArray sortedCommModes = commModes;

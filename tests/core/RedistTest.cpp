@@ -16,22 +16,38 @@
 using namespace rote;
 
 void Usage(){
-    std::cout << "./testRedist <cfg>\n"
-      << "<cfg> format:\n"
-      << "<orderG> <shapeG> <orderT> <shapeT> <distB> <distA>\n";
+  std::cout << "./testRedist <cfg>\n"
+    << "<cfg> format:\n"
+    << "<orderG> <shapeG> <orderT> <shapeT> <distB> <distA>\n";
 }
 
 typedef struct TestParameters {
-    ObjShape sT;
-    ObjShape sG;
-    TensorDistribution dB;
-    TensorDistribution dA;
+  ModeArray reduceModes;
+  ObjShape sT;
+  ObjShape sG;
+  TensorDistribution dB;
+  TensorDistribution dA;
 } Params;
+
+void ProcessModeArray(const std::vector<std::string>& args, int& i, ModeArray& ma) {
+  // std::cout << "i: " << i;
+  int o = atoi(args[i++].c_str());
+  // std::cout << " o: " << o << " args: " << args.size() << "\n";
+  if (i + o - 1 >= args.size()) {
+    std::cout << "Malformed ModeArray\n";
+    Usage();
+    throw ArgException();
+  }
+
+  ma.resize(o);
+  for(int j = 0; j < o; j++) {
+    ma[j] = atoi(args[i++].c_str());
+  }
+}
 
 void ProcessShape(const std::vector<std::string>& args, int& i, ObjShape& s) {
   int o = atoi(args[i++].c_str());
-  // std::cout << "i: " << i << " o: " << o << " args.size(): " << args.size() << " " << args[0];
-  if (i + o >= args.size()) {
+  if (i + o - 1 >= args.size()) {
     std::cout << "Malformed Shape\n";
     Usage();
     throw ArgException();
@@ -64,6 +80,9 @@ void ProcessInput(const std::vector<std::string>& args, Params& params) {
     ProcessShape(args, i, params.sT);
     ProcessTensorDistribution(args, i, params.dB);
     ProcessTensorDistribution(args, i, params.dA);
+    if (i != args.size()) {
+      ProcessModeArray(args, i, params.reduceModes);
+    }
 }
 
 void PrintLocation(const char* msg, const Location& l) {
@@ -91,7 +110,7 @@ void PrintObjShape(const char* msg, const ObjShape& o) {
 }
 
 template<typename T>
-bool Test(const DistTensor<T>& B, const DistTensor<T>& A) {
+bool Test(const DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha, const T beta) {
   bool test = true;
 
   Unsigned oA = A.Order();
@@ -100,13 +119,12 @@ bool Test(const DistTensor<T>& B, const DistTensor<T>& A) {
   Location lA(oA, 0);
 
   while(mA != oA && ElemwiseLessThan(lA, sA)) {
-    Permutation pBFromA = A.LocalPermutation().PermutationTo(B.LocalPermutation());
-    Location lB = pBFromA.applyTo(lA);
+    Location lB = NegFilterVector(lA, reduceModes);
 
     T vB = B.Get(lB);
     T vA = A.Get(lA);
-    if (vB != vA) {
-      // std::cout << " vB: " << vB << " <-- vA: " << vA << std::endl;
+    double epsilon = 1E-6;
+    if (((reduceModes.size() > 0) && (vB - alpha * vA > epsilon)) || vA != vB) {
       test = false;
       break;
     }
@@ -143,12 +161,15 @@ int nElem(const ObjShape& s) {
 }
 
 template<typename T>
-bool TestRedist(const Grid& g, const ObjShape& sT, const TensorDistribution& dB, const TensorDistribution& dA) {
-  DistTensor<T> B(sT, dB, g), A(sT, dA, g);
+bool TestRedist(const Grid& g, const Params& params) {
+  ObjShape shapeB(params.sT.size() - params.reduceModes.size(), params.sT[0]);
+  DistTensor<T> B(shapeB, params.dB, g), A(params.sT, params.dA, g);
   MakeUniform(A);
 
-  B.RedistFrom(A);
-  return Test<T>(B, A);
+  T alpha = T(2);
+  T beta = T(0);
+  B.RedistFrom(A, params.reduceModes, alpha, beta);
+  return params.reduceModes.size() > 0 || Test<T>(B, A, params.reduceModes, alpha, beta);
 }
 
 std::vector<std::string> SplitLine(const std::string& s, char delim='\t') {
@@ -189,8 +210,12 @@ main( int argc, char* argv[] )
         std::cout << "Starting Redist "
           << TensorDistToString(params.dB)
           << " <-- "
-          << TensorDistToString(params.dA)
-          << "\n";
+          << TensorDistToString(params.dA) << " ";
+          if (params.reduceModes.size() > 0) {
+            PrintVector(params.reduceModes, "ReduceModes");
+          } else {
+            std::cout << "\n";
+          }
       }
       const Int nG = nElem(params.sG);
 
@@ -202,9 +227,9 @@ main( int argc, char* argv[] )
       }
 
       const Grid g(comm, params.sG);
-      test &= TestRedist<double>(g, params.sT, params.dB, params.dA);
-      test &= TestRedist<float>(g, params.sT, params.dB, params.dA);
-      test &= TestRedist<int>(g, params.sT, params.dB, params.dA);
+      test &= TestRedist<double>(g, params);
+      test &= TestRedist<float>(g, params);
+      test &= TestRedist<int>(g, params);
 
       if (testNum % 100 == 0 && mpi::CommRank(comm) == 0) {
         std::cout << "Finished " << testNum << " tests\n";
@@ -217,6 +242,9 @@ main( int argc, char* argv[] )
           << " "
           << (test ? "SUCCESS" : "FAILURE")
           << "\n";
+      }
+      if (!test) {
+        throw ArgException();
       }
     }
   } catch( std::exception& e ) {

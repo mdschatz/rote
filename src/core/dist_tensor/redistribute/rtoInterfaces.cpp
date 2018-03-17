@@ -43,21 +43,6 @@ void DistTensor<T>::ReduceToOneRedistFrom(const DistTensor<T>& A, const Mode rMo
     ReduceToOneRedistFrom(A, rModes);
 }
 
-template<typename T>
-void
-DistTensor<T>::ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
-{
-    ReduceToOneUpdateRedistFrom(T(1), A, beta, reduceModes);
-}
-
-template <typename T>
-void DistTensor<T>::ReduceToOneUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode rMode){
-    ModeArray rModes(1);
-    rModes[0] = rMode;
-
-    ReduceToOneUpdateRedistFrom(A, beta, rModes);
-}
-
 #define FULL(T) \
     template class DistTensor<T>;
 

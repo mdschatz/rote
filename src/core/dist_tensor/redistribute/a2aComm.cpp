@@ -28,7 +28,7 @@ bool DistTensor<T>::CheckAllToAllCommRedist(const DistTensor<T>& A){
 }
 
 template <typename T>
-void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
         if(!this->CheckAllToAllCommRedist(A))
             LogicError("AllToAllDoubleModeRedist: Invalid redistribution request");
 
@@ -88,7 +88,7 @@ void DistTensor<T>::AllToAllCommRedist(const DistTensor<T>& A, const ModeArray& 
 
         //Unpack the data (if participating)
         PROFILE_SECTION("A2AUnpack");
-        this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
+        this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha, beta);
         PROFILE_STOP;
 
 //        const T* myBuf = LockedBuffer();
@@ -199,7 +199,7 @@ void DistTensor<T>::PackA2ACommSendBuf(const DistTensor<T>& A, const ModeArray& 
 }
 
 template<typename T>
-void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A, const T alpha){
+void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArray& commModes, const ObjShape& recvShape, const DistTensor<T>& A, const T alpha, const T beta){
 
     const Unsigned order = A.Order();
     T* dataBuf = this->Buffer();
@@ -302,7 +302,7 @@ void DistTensor<T>::UnpackA2ACommRecvBuf(const T * const recvBuf, const ModeArra
             	data.loopShape = unpackData.loopShape;
             	data.dstStrides = unpackData.dstBufStrides;
             	data.srcStrides = unpackData.srcBufStrides;
-            	YAxpBy_fast(T(1), alpha, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]), data);
+            	YAxpBy_fast(alpha, beta, &(recvBuf[i * nElemsPerProc]), &(dataBuf[dataBufPtr]), data);
             }
         }
     }

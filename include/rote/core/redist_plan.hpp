@@ -46,8 +46,10 @@ public:
 
   ~RedistPlanInfo() {};
 
-  ModeArray& reduced() {return reduced_;}
-  const ModeArray& reduced() const {return reduced_;}
+  ModeArray& reduceModes() {return reduceModes_;}
+  const ModeArray& reduceModes() const {return reduceModes_;}
+  ModeArray& reduceGModes() {return reduceGModes_;}
+  const ModeArray& reduceGModes() const {return reduceGModes_;}
   std::map<Mode, Mode>& added() {return added_;}
   const std::map<Mode, Mode>& added() const {return added_;}
   std::map<Mode, Mode>& removed() {return removed_;}
@@ -56,7 +58,8 @@ public:
   const std::map<Mode, std::pair<Mode, Mode>>& moved() const {return moved_;}
 
 private:
-  ModeArray reduced_;
+  ModeArray reduceModes_;
+  ModeArray reduceGModes_;
 	std::map<Mode, Mode> added_;  // Val is tMode adding gMode
 	std::map<Mode, Mode> removed_;  // Val is tMode rmving gMode
 	std::map<Mode, std::pair<Mode, Mode>> moved_; // Val is (tMode add, tMode rmv)
@@ -84,6 +87,9 @@ public:
   void MoveComplex();
   void Add();
   void Move();
+  void Reduce();
+  void AllReduceOpt();
+  void ReduceScatter();
   void Remove();
   void ShuffleTo(const TensorDistribution& dB);
 

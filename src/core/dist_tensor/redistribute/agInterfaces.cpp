@@ -18,13 +18,13 @@ namespace rote{
 
 template <typename T>
 void
-DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, T alpha ){
+DistTensor<T>::AllGatherRedistFrom(const DistTensor<T>& A, const ModeArray& commModes, T alpha, T beta){
     PROFILE_SECTION("AGRedist");
     this->ResizeTo(A);
 
     ModeArray sortedCommModes = commModes;
     SortVector(sortedCommModes);
-    AllGatherCommRedist(A, sortedCommModes, alpha);
+    AllGatherCommRedist(A, sortedCommModes, alpha, beta);
     PROFILE_STOP;
 }
 

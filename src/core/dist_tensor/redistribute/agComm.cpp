@@ -27,7 +27,7 @@ bool DistTensor<T>::CheckAllGatherCommRedist(const DistTensor<T>& A){
 
 template<typename T>
 void
-DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha){
+DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
 #ifndef RELEASE
     if(!CheckAllGatherCommRedist(A))
         LogicError("AllGatherRedist: Invalid redistribution request");
@@ -75,13 +75,13 @@ DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& comm
 	mpi::AllGather(sendBuf, sendSize, recvBuf, sendSize, comm);
     PROFILE_STOP;
 
-//    printf("alpha: %.3f\n", alpha);
+//    printf("beta: %.3f\n", beta);
 //    ObjShape recvShape = commDataShape;
 //    recvShape.insert(recvShape.end(), nRedistProcs);
 //    PrintArray(recvBuf, recvShape, "recvBuf");
 
     PROFILE_SECTION("AGUnpack");
-    this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha);
+    this->UnpackA2ACommRecvBuf(recvBuf, commModes, commDataShape, A, alpha, beta);
     PROFILE_STOP;
 
 //    const T* myBuf = this->LockedBuffer();

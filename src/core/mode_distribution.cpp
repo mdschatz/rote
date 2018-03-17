@@ -241,8 +241,9 @@ StringToModeDist( const std::string& s)
 	size_t pos, lastPos;
 	pos = s.find_first_of("(");
 	lastPos = s.find_first_of(")");
-	if(pos != 0 || lastPos != s.size() - 1)
+	if(pos != 0 || lastPos != s.size() - 1) {
 		LogicError("Malformed mode distribution string");
+	}
 	pos = s.find_first_not_of("(,)", pos);
 	while(pos != std::string::npos){
 		lastPos = s.find_first_of(",)", pos);

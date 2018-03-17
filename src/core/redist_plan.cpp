@@ -33,8 +33,14 @@ RedistPlanInfo::RedistPlanInfo(
   const TensorDistribution& dA,
   const ModeArray& reduceModes
 ) {
-  // Determine tensor modes that are reduced
-  reduced_ = dA.Filter(reduceModes).UsedModes().Entries();
+  reduceModes_ = reduceModes;
+  SortVector(reduceModes_);
+
+  for(Mode rMode: reduceModes) {
+    for (Mode gMode: dA[rMode].Entries()) {
+      reduceGModes_.push_back(gMode);
+    }
+  }
 
   // Determine grid modes that are removed/moved
   ModeArray gModesA = dA.UsedModes().Entries();
@@ -47,15 +53,16 @@ RedistPlanInfo::RedistPlanInfo(
       removed_[m] = dA.TensorModeForGridMode(m);
     }
     // Check move
-    else if (tModeB != tModeA) {
+    else if (tModeB != tModeA || (reduceModes_.size() != 0)) {
+      // TODO: proper guard for mode elements < m
       std::pair<Mode, Mode> entry(tModeB, tModeA);
       moved_[m] = entry;
     }
   }
 
   // Determine grid modes added
-  ModeArray gridModesAdded = DiffVector(dB.UsedModes().Entries(), gModesA);
-  for (Mode m: gridModesAdded) {
+  ModeArray gModesAdded = DiffVector(dB.UsedModes().Entries(), gModesA);
+  for (Mode m: gModesAdded) {
     added_[m] = dB.TensorModeForGridMode(m);
   }
 }
@@ -64,10 +71,132 @@ RedistPlanInfo::RedistPlanInfo(
 // RedistPlan
 ////
 
-// void
-// RedistPlan::Reduce(const TensorDistribution& dA) {
-//     // TODO: Implement
-// }
+void
+RedistPlan::AllReduceOpt() {
+  if (info_.reduceGModes().size() == 0 || !info_.moved().empty()) {
+    return;
+  }
+
+  TensorDistribution dB = dCur_;
+  dB.RemoveUnitModeDists(info_.reduceModes());
+
+  for (const auto& kv: info_.removed()) {
+    for (int i = info_.reduceModes().size() - 1; i < info_.reduceModes().size(); i--) {
+      Mode m = info_.reduceModes()[i];
+      if (m > kv.second) {
+        continue;
+      } else if (m == kv.second) {
+        info_.removed()[kv.first] = 0;
+        break;
+      } else if (m < kv.second) {
+        info_.removed()[kv.first]--;
+      }
+    }
+  }
+  for (const auto& kv: info_.moved()) {
+    for (int i = info_.reduceModes().size() - 1; i < info_.reduceModes().size(); i--) {
+      Mode m = info_.reduceModes()[i];
+      if (m > kv.second.second) {
+        continue;
+      } else if (m == kv.second.second) {
+        info_.moved()[kv.first].second = 0;
+        break;
+      } else if (m < kv.second.second) {
+        info_.moved()[kv.first].second--;
+      }
+    }
+  }
+  ModeArray erased;
+  for (const auto& kv: info_.moved()) {
+    std::pair<Mode, Mode> moveInfo = info_.moved()[kv.first];
+    if (moveInfo.first == moveInfo.second) {
+      erased.push_back(kv.first);
+    }
+  }
+  for (Mode m: erased) {
+    info_.moved().erase(m);
+  }
+
+  Redist redist(dB, dCur_, AR, info_.reduceGModes());
+  plan_.push_back(redist);
+  dCur_ = dB;
+
+  for(Mode m: info_.reduceGModes()) {
+    info_.removed().erase(m);
+  }
+  info_.reduceModes().clear();
+  info_.reduceGModes().clear();
+}
+
+void RedistPlan::ReduceScatter() {
+  if (info_.reduceModes().size() == 0) {
+    return;
+  }
+
+  // Remove reduced mode distributions
+  TensorDistribution dB = dCur_;
+  dB.RemoveUnitModeDists(info_.reduceModes());
+
+  for (const auto& kv: info_.removed()) {
+    for (int i = info_.reduceModes().size() - 1; i < info_.reduceModes().size(); i--) {
+      Mode m = info_.reduceModes()[i];
+      if (m > kv.second) {
+        continue;
+      } else if (m == kv.second) {
+        info_.removed()[kv.first] = 0;
+        break;
+      } else if (m < kv.second) {
+        info_.removed()[kv.first]--;
+      }
+    }
+  }
+  for (const auto& kv: info_.moved()) {
+    for (int i = info_.reduceModes().size() - 1; i < info_.reduceModes().size(); i--) {
+      Mode m = info_.reduceModes()[i];
+      if (m > kv.second.second) {
+        continue;
+      } else if (m == kv.second.second) {
+        info_.moved()[kv.first].second = 0;
+        break;
+      } else if (m < kv.second.second) {
+        info_.moved()[kv.first].second--;
+      }
+    }
+  }
+  ModeArray erased;
+  for (const auto& kv: info_.moved()) {
+    std::pair<Mode, Mode> moveInfo = info_.moved()[kv.first];
+    if (moveInfo.first == moveInfo.second) {
+      erased.push_back(kv.first);
+    }
+  }
+  for (Mode m: erased) {
+    info_.moved().erase(m);
+  }
+
+  // Scatter grid modes
+  for (Mode gMode: info_.reduceGModes()) {
+    if (info_.moved().find(gMode) != info_.moved().end()) {
+      dB[info_.moved()[gMode].first] += gMode;
+    } else if (dB.size() >= 1) {
+      // Removed grid modes get added to tensor mode 0
+      dB[0] += gMode;
+    }
+    info_.moved().erase(gMode);
+  }
+  info_.reduceModes().clear();
+  info_.reduceGModes().clear();
+
+  Redist redist(dB, dCur_, RS, info_.reduceGModes());
+  plan_.push_back(redist);
+  dCur_ = dB;
+}
+
+void
+RedistPlan::Reduce() {
+  AllReduceOpt();
+  ReduceScatter();
+}
 
 void
 RedistPlan::Add() {
@@ -81,7 +210,9 @@ RedistPlan::Add() {
     dB[kv.second] += kv.first;
     commModes.push_back(kv.first);
   }
+
   info_.added().clear();
+
   Redist redist(dB, dCur_, Local, commModes);
   plan_.push_back(redist);
   dCur_ = dB;
@@ -353,7 +484,6 @@ RedistPlan::Move() {
 
   // Try to convert as many communications to point-to-point
   MoveOpt();
-
   while (info_.moved().size() > 0) {
     MoveSimple();
     MoveComplex();
@@ -370,8 +500,12 @@ RedistPlan::RedistPlan(
     return;
   }
 
-  // PrintRedistPlanInfo(info_, "RedistPlanInfo");
   Add();
+  RedistPlanInfo postAddInfo(dB, dCur_, reduceModes);
+  // PrintRedistPlanInfo(info_, "RedistPlanInfo");
+
+  info_ = postAddInfo;
+  Reduce();
   Move();
   Remove();
   ShuffleTo(dB_);

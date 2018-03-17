@@ -26,7 +26,7 @@ bool DistTensor<T>::CheckLocalCommRedist(const DistTensor<T>& A){
 }
 
 template<typename T>
-void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
+void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha, const T beta){
     if(!this->CheckLocalCommRedist(A))
         LogicError("LocalRedist: Invalid redistribution request");
 
@@ -70,7 +70,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
 
         //Packing is what is stored in memory
 	PROFILE_SECTION("LocalUnpack");
-	this->UnpackLocalCommRecvBuf(A, recvBuf, alpha);
+	this->UnpackLocalCommRecvBuf(A, recvBuf, alpha, beta);
 	PROFILE_STOP;
 
 //    const T* myBuf = LockedBuffer();
@@ -81,7 +81,7 @@ void DistTensor<T>::LocalCommRedist(const DistTensor<T>& A, const T alpha){
 //TODO: Optimize strides when unpacking
 //TODO: Check that logic works out (modeStrides being global info applied to local info)
 template <typename T>
-void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recvBuf, const T alpha)
+void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recvBuf, const T alpha, const T beta)
 {
 
 	const Location myFirstLocB = this->DetermineFirstElem(this->GetGridView().ParticipatingLoc());
@@ -122,7 +122,7 @@ void DistTensor<T>::UnpackLocalCommRecvBuf(const DistTensor<T>& A, const T* recv
     	data.loopShape = unpackData.loopShape;
     	data.dstStrides = unpackData.dstBufStrides;
     	data.srcStrides = unpackData.srcBufStrides;
-    	YAxpBy_fast(T(1), alpha, &(recvBuf[dataBufPtr]), &(dataBuf[0]), data);
+    	YAxpBy_fast(alpha, beta, &(recvBuf[dataBufPtr]), &(dataBuf[0]), data);
     }
 }
 

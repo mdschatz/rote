@@ -63,25 +63,9 @@ void DistTensor<T>::ReduceScatterRedistFrom(const T alpha, const DistTensor<T>& 
 
 template<typename T>
 void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const ModeArray& reduceModes)
-{
-    ReduceScatterUpdateRedistFrom(T(1), A, beta, reduceModes);
-}
-
-template<typename T>
-void
-DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const T beta, const Mode reduceMode)
-{
-    ModeArray reduceModes(1);
-    reduceModes[0] = reduceMode;
-    ReduceScatterUpdateRedistFrom(A, beta, reduceModes);
-}
-
-template<typename T>
-void
 DistTensor<T>::ReduceScatterUpdateRedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes)
 {
-    ReduceScatterUpdateRedistFrom(A, T(1), reduceModes);
+    ReduceScatterUpdateRedistFrom(T(1), A, T(0), reduceModes);
 }
 
 #define FULL(T) \

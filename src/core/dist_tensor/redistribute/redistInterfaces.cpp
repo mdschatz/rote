@@ -21,7 +21,6 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 	// PrintRedistPlan(redistPlan, "Plan");
 
 	if (redistPlan.size() == 0) {
-		// HACK
 		ModeArray blank;
 		this->PermutationRedistFrom(A, blank);
 		return;
@@ -48,11 +47,11 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 
 	Redist redist = redistPlan[-1];
 	switch(redist.type()){
-		case AG: AllGatherRedistFrom(tmp, redist.modes(), beta); break;
-		case A2A: AllToAllRedistFrom(tmp, redist.modes(), beta); break;
-		case Local: LocalRedistFrom(tmp); break;
-		case Perm: PermutationRedistFrom(tmp, redist.modes(), beta); break;
-		case RS: ReduceScatterUpdateRedistFrom(tmp, beta, reduceModes); break;
+		case AG: AllGatherRedistFrom(tmp, redist.modes(), alpha, beta); break;
+		case A2A: AllToAllRedistFrom(tmp, redist.modes(), alpha, beta); break;
+		case Local: LocalRedistFrom(tmp, alpha, beta); break;
+		case Perm: PermutationRedistFrom(tmp, redist.modes(), alpha, beta); break;
+		case RS: ReduceScatterUpdateRedistFrom(alpha, tmp, beta, reduceModes); break;
 		default: break;
 	}
 
