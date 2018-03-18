@@ -22,7 +22,7 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 
 	if (redistPlan.size() == 0) {
 		ModeArray blank;
-		this->PermutationRedistFrom(A, blank);
+		this->PermutationRedistFrom(A, blank, alpha, beta);
 		return;
 	}
 
@@ -38,8 +38,9 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
     	case A2A: tmp2.AllToAllRedistFrom(tmp, redist.modes()); break;
     	case Perm: tmp2.PermutationRedistFrom(tmp, redist.modes()); break;
     	case Local: tmp2.LocalRedistFrom(tmp); break;
-    	case RS: tmp2.ReduceScatterRedistFrom(alpha, tmp, reduceModes); break;
-    	default: break;
+    	case RS: tmp2.ReduceScatterRedistFrom(tmp, reduceModes); break;
+      case AR: tmp2.AllReduceRedistFrom(tmp, reduceModes); break;
+    	default: LogicError("Unsupported Communication");
   	}
   	tmp.Empty();
   	tmp = tmp2;
@@ -52,7 +53,8 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A, const ModeArray& reduceMo
 		case Local: LocalRedistFrom(tmp, alpha, beta); break;
 		case Perm: PermutationRedistFrom(tmp, redist.modes(), alpha, beta); break;
 		case RS: ReduceScatterUpdateRedistFrom(alpha, tmp, beta, reduceModes); break;
-		default: break;
+    case AR: AllReduceUpdateRedistFrom(alpha, tmp, beta, reduceModes); break;
+		default: LogicError("Unsupported Communication");
 	}
 
   PROFILE_STOP;

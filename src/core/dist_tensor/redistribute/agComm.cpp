@@ -29,26 +29,32 @@ template<typename T>
 void
 DistTensor<T>::AllGatherCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
 #ifndef RELEASE
-    if(!CheckAllGatherCommRedist(A))
-        LogicError("AllGatherRedist: Invalid redistribution request");
+  if(!CheckAllGatherCommRedist(A))
+    LogicError("AllGatherRedist: Invalid redistribution request");
 #endif
-    const rote::Grid& g = A.Grid();
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
-    if(!A.Participating())
-        return;
+	if (commModes.size() == 0) {
+		this->LocalCommRedist(A, alpha, beta);
+		return;
+	}
 
-    //Determine buffer sizes for communication
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape commDataShape = A.MaxLocalShape();
+  const rote::Grid& g = A.Grid();
+  const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
-    const Unsigned sendSize = prod(commDataShape);
-    const Unsigned recvSize = sendSize * nRedistProcs;
+  if(!A.Participating())
+      return;
 
-    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+  //Determine buffer sizes for communication
+  const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
+  const ObjShape commDataShape = A.MaxLocalShape();
 
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
+  const Unsigned sendSize = prod(commDataShape);
+  const Unsigned recvSize = sendSize * nRedistProcs;
+
+  T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+
+  T* sendBuf = &(auxBuf[0]);
+  T* recvBuf = &(auxBuf[sendSize]);
 
 //    const T* dataBuf = A.LockedBuffer();
 //    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");

@@ -29,7 +29,12 @@ bool DistTensor<T>::CheckPermutationCommRedist(const DistTensor<T>& A){
 template <typename T>
 void DistTensor<T>::PermutationCommRedist(const DistTensor<T>& A, const ModeArray& commModes, const T alpha, const T beta){
     if(!CheckPermutationCommRedist(A))
-		LogicError("PermutationRedist: Invalid redistribution request");
+			LogicError("PermutationRedist: Invalid redistribution request");
+
+		if (commModes.size() == 0) {
+			this->LocalCommRedist(A, alpha, beta);
+			return;
+		}
 
     const rote::Grid& g = A.Grid();
     const rote::GridView gvA = A.GetGridView();
@@ -129,7 +134,7 @@ void DistTensor<T>::UnpackPCommRecvBuf(const T * const recvBuf, const T alpha, c
     	data.loopShape = unpackData.loopShape;
     	data.dstStrides = unpackData.dstBufStrides;
     	data.srcStrides = unpackData.srcBufStrides;
-    	YAxpBy_fast(T(1), alpha, &(recvBuf[0]), &(dataBuf[0]), data);
+    	YAxpBy_fast(alpha, beta, &(recvBuf[0]), &(dataBuf[0]), data);
     }
 }
 

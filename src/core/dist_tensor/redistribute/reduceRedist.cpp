@@ -83,7 +83,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
         			tmpShape[sortedRModes[i]] = gv.Dimension(sortedRModes[i]);
         	tmp.ResizeTo(tmpShape);
         	Zero(tmp);
-            LocalReduce(A, tmp, sortedRModes);
+          LocalReduce(T(1), A, tmp, sortedRModes);
         }
     }
 
@@ -93,7 +93,7 @@ DistTensor<T>::ReduceUpdateRedistFrom(const RedistType& redistType, const T alph
 
    // PrintData(tmp, "tmp data");
 //    PrintData(tmp2, "tmp2 data");
-//    Print(tmp2, "tmp2 before RTO");
+   // Print(tmp2, "tmp2 before RTO");
    // Print(tmp, "tmp before RTO");
 
     switch(redistType){

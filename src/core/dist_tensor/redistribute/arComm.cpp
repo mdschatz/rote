@@ -19,65 +19,61 @@ bool DistTensor<T>::CheckAllReduceCommRedist(const DistTensor<T>& A){
 
 template <typename T>
 void DistTensor<T>::AllReduceUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& commModes){
-    if(!CheckAllReduceCommRedist(A))
-      LogicError("AllReduceRedist: Invalid redistribution request");
-    const rote::Grid& g = A.Grid();
+  if(!CheckAllReduceCommRedist(A))
+    LogicError("AllReduceRedist: Invalid redistribution request");
+  const rote::Grid& g = A.Grid();
 
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
+  const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
 
-    if(!A.Participating())
-        return;
+  if(!A.Participating())
+      return;
 
-    //Determine buffer sizes for communication
-    const ObjShape commDataShape = this->MaxLocalShape();
-    const Unsigned sendSize = prod(commDataShape);
-    const Unsigned recvSize = sendSize;
+  //Determine buffer sizes for communication
+  const ObjShape commDataShape = this->MaxLocalShape();
+  const Unsigned sendSize = prod(commDataShape);
+  const Unsigned recvSize = sendSize;
 
-    T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
+  T* auxBuf = this->auxMemory_.Require(sendSize + recvSize);
 	MemZero(&(auxBuf[0]), sendSize + recvSize);
 
-    T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
+  T* sendBuf = &(auxBuf[0]);
+  T* recvBuf = &(auxBuf[sendSize]);
 
-//    const T* dataBuf = A.LockedBuffer();
-//    PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+ // PrintArray(A.LockedBuffer(), A.LocalShape(), A.LocalStrides(), "srcBuf");
+ // PrintVector(commDataShape, "AR commDataShape");
 
-    //Pack the data
-    PROFILE_SECTION("ARPack");
-    PackAGCommSendBuf(A, sendBuf);
-    PROFILE_STOP;
+  //Pack the data
+  PROFILE_SECTION("ARPack");
+  PackAGCommSendBuf(A, sendBuf);
+  PROFILE_STOP;
 
-//    ObjShape sendShape = commDataShape;
-//    sendShape.insert(sendShape.end(), nRedistProcs);
-//    PrintArray(sendBuf, sendShape, "sendBuf");
+  // PrintArray(sendBuf, commDataShape, "sendBuf");
 
-    //Communicate the data
-    PROFILE_SECTION("ARComm");
-    //Realignment
-    T* alignSendBuf = &(sendBuf[0]);
-    T* alignRecvBuf = &(recvBuf[0]);
+  //Communicate the data
+  PROFILE_SECTION("ARComm");
+  //Realignment
+  T* alignSendBuf = &(sendBuf[0]);
+  T* alignRecvBuf = &(recvBuf[0]);
 
-    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
-    if(didAlign){
+  bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+  if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
 		recvBuf = &(alignSendBuf[0]);
-    }
+  }
 
-    mpi::AllReduce(sendBuf, recvBuf, recvSize, comm);
-    PROFILE_STOP;
+  mpi::AllReduce(sendBuf, recvBuf, recvSize, comm);
+  PROFILE_STOP;
 
-//    ObjShape recvShape = commDataShape;
-//    PrintArray(recvBuf, recvShape, "recvBuf");
+  // PrintArray(recvBuf, commDataShape, "recvBuf");
 
-    //Unpack the data (if participating)
-    PROFILE_SECTION("ARUnpack");
-    UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
-    PROFILE_STOP;
+  //Unpack the data (if participating)
+  PROFILE_SECTION("ARUnpack");
+  UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
+  PROFILE_STOP;
 
-//    const T* myBuf = LockedBuffer();
-//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+  // PrintArray(this->LockedBuffer(), this->LocalShape(), this->LocalStrides(), "myBuf");
 
-    this->auxMemory_.Release();
+  this->auxMemory_.Release();
 }
 
 #define FULL(T) \

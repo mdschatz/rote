@@ -21,71 +21,76 @@ bool DistTensor<T>::CheckReduceScatterCommRedist(const DistTensor<T>& A){
 
 template <typename T>
 void DistTensor<T>::ReduceScatterUpdateCommRedist(const T alpha, const DistTensor<T>& A, const T beta, const ModeArray& reduceModes, const ModeArray& commModes){
-    if(!CheckReduceScatterCommRedist(A))
-      LogicError("ReduceScatterRedist: Invalid redistribution request");
-    const rote::Grid& g = A.Grid();
+  if(!CheckReduceScatterCommRedist(A))
+    LogicError("ReduceScatterRedist: Invalid redistribution request");
 
-    const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
-    const rote::GridView gvA = A.GetGridView();
-    const rote::GridView gvB = this->GetGridView();
+	if (commModes.size() == 0) {
+		LocalReduce(alpha, A, *this, reduceModes);
+		return;
+	}
 
-    if(!A.Participating())
-        return;
+  const rote::Grid& g = A.Grid();
 
-    //Determine buffer sizes for communication
-    const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
-    const ObjShape commDataShape = this->MaxLocalShape();
+  const mpi::Comm comm = this->GetCommunicatorForModes(commModes, g);
+  const rote::GridView gvA = A.GetGridView();
+  const rote::GridView gvB = this->GetGridView();
 
-    const Unsigned recvSize = prod(commDataShape);
-    const Unsigned sendSize = recvSize * nRedistProcs;
+  if(!A.Participating())
+    return;
+
+  //Determine buffer sizes for communication
+  const Unsigned nRedistProcs = Max(1, prod(FilterVector(g.Shape(), commModes)));
+  const ObjShape commDataShape = this->MaxLocalShape();
+
+  const Unsigned recvSize = prod(commDataShape);
+  const Unsigned sendSize = recvSize * nRedistProcs;
 
     //NOTE: requiring 2*sendSize in case we realign
 	T* auxBuf = this->auxMemory_.Require(sendSize + sendSize);
 	MemZero(&(auxBuf[0]), sendSize + sendSize);
 
 	T* sendBuf = &(auxBuf[0]);
-    T* recvBuf = &(auxBuf[sendSize]);
+  T* recvBuf = &(auxBuf[sendSize]);
 
-   // const T* dataBuf = A.LockedBuffer();
-   // PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
-	 // PrintVector(commModes, "commModes");
+  // const T* dataBuf = A.LockedBuffer();
+  // PrintArray(dataBuf, A.LocalShape(), A.LocalStrides(), "srcBuf");
+	// PrintVector(commModes, "commModes");
 
-    //Pack the data
-    PROFILE_SECTION("RSPack");
-    PackRSCommSendBuf(A, reduceModes, commModes, sendBuf);
-    PROFILE_STOP;
+  //Pack the data
+  PROFILE_SECTION("RSPack");
+  PackRSCommSendBuf(A, reduceModes, commModes, sendBuf);
+  PROFILE_STOP;
 
-   // ObjShape sendShape = commDataShape;
-   // sendShape.insert(sendShape.end(), nRedistProcs);
-   // PrintArray(sendBuf, sendShape, "sendBuf");
+  // ObjShape sendShape = commDataShape;
+  // sendShape.insert(sendShape.end(), nRedistProcs);
+  // PrintArray(sendBuf, sendShape, "sendBuf");
 
-    //Communicate the data
-    PROFILE_SECTION("RSComm");
+  //Communicate the data
+  PROFILE_SECTION("RSComm");
 
-    T* alignSendBuf = &(sendBuf[0]);
-    T* alignRecvBuf = &(recvBuf[0]);
+  T* alignSendBuf = &(sendBuf[0]);
+  T* alignRecvBuf = &(recvBuf[0]);
 
-    bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
-    if(didAlign){
+  bool didAlign = AlignCommBufRedist(A, alignSendBuf, sendSize, alignRecvBuf, sendSize);
+  if(didAlign){
 		sendBuf = &(alignRecvBuf[0]);
 		recvBuf = &(alignSendBuf[0]);
-    }
+  }
 
-    mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
-    PROFILE_STOP;
+  mpi::ReduceScatter(sendBuf, recvBuf, recvSize, comm);
+  PROFILE_STOP;
 
-   // ObjShape recvShape = commDataShape;
-   // PrintArray(recvBuf, recvShape, "recvBuf");
+  // PrintArray(recvBuf, commDataShape, "recvBuf");
 
-    //Unpack the data (if participating)
-    PROFILE_SECTION("RSUnpack");
-    UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
-    PROFILE_STOP;
+  //Unpack the data (if participating)
+  PROFILE_SECTION("RSUnpack");
+  UnpackRSUCommRecvBuf(recvBuf, alpha, beta);
+  PROFILE_STOP;
 
-//    const T* myBuf = LockedBuffer();
-//    PrintArray(myBuf, LocalShape(), LocalStrides(), "myBuf");
+  // const T* myBuf = this->LockedBuffer();
+  // PrintArray(myBuf, this->LocalShape(), this->LocalStrides(), "myBuf");
 
-    this->auxMemory_.Release();
+  this->auxMemory_.Release();
 }
 
 template <typename T>

@@ -109,39 +109,87 @@ void PrintObjShape(const char* msg, const ObjShape& o) {
   std::cout << "]\n";
 }
 
+ModeArray InsertUnitModes(const ModeArray& ma, const ModeArray& modes) {
+  ModeArray ret = ma;
+  ModeArray sorted = modes;
+  SortVector(sorted);
+
+  for(int i = 0; i < sorted.size(); i++) {
+    ret.insert(ret.begin() + sorted[i], 0);
+  }
+
+  return ret;
+}
+
+template<typename T>
+T Sum(const DistTensor<T>& A, const Location& lA, const ModeArray& modes) {
+  T sum = 0;
+
+  Unsigned o = modes.size();
+  Location l = lA;
+  ObjShape sA = A.Shape();
+
+  int p = 0;
+  while(p != o) {
+    sum += A.Get(l);
+
+    // Update
+    l[modes[p]]++;
+    while(l[modes[p]] >= sA[modes[p]]) {
+      l[modes[p]] = 0;
+      p++;
+      if (p == o) {
+        break;
+      }
+      l[modes[p]]++;
+    }
+
+    if (p == o) {
+      break;
+    }
+    p = 0;
+  }
+
+  // std::cout << "sum: " << sum << std::endl;
+  return sum;
+}
+
 template<typename T>
 bool Test(const DistTensor<T>& B, const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha, const T beta) {
   bool test = true;
 
-  Unsigned oA = A.Order();
-  const ObjShape sA = A.Shape();
-  int mA = 0;
-  Location lA(oA, 0);
+  Unsigned oB = B.Order();
+  const ObjShape sB = B.Shape();
 
-  while(mA != oA && ElemwiseLessThan(lA, sA)) {
-    Location lB = NegFilterVector(lA, reduceModes);
 
+  Location lB(oB, 0);
+  int mB = 0;
+
+  while(mB != oB) {
+    Location lA = InsertUnitModes(lB, reduceModes);
+
+    T check = alpha * (reduceModes.empty() ? A.Get(lA) : Sum(A, lA, reduceModes));
     T vB = B.Get(lB);
-    T vA = A.Get(lA);
+    // std::cout << "check: " << check << " vB: " << vB << std::endl;
     double epsilon = 1E-6;
-    if (((reduceModes.size() > 0) && (vB - alpha * vA > epsilon)) || vA != vB) {
+    if (vB - check > epsilon) {
       test = false;
       break;
     }
 
     // Update
-    lA[mA]++;
-    while(lA[mA] >= sA[mA]) {
-      lA[mA] = 0;
-      mA++;
-      if (mA == oA) {
+    lB[mB]++;
+    while(lB[mB] >= sB[mB]) {
+      lB[mB] = 0;
+      mB++;
+      if (mB == oB) {
         break;
       }
-      lA[mA]++;
+      lB[mB]++;
     }
 
-    if (mA != oA) {
-      mA = 0;
+    if (mB != oB) {
+      mB = 0;
     }
   }
 
@@ -169,7 +217,7 @@ bool TestRedist(const Grid& g, const Params& params) {
   T alpha = T(2);
   T beta = T(0);
   B.RedistFrom(A, params.reduceModes, alpha, beta);
-  return params.reduceModes.size() > 0 || Test<T>(B, A, params.reduceModes, alpha, beta);
+  return Test<T>(B, A, params.reduceModes, alpha, beta);
 }
 
 std::vector<std::string> SplitLine(const std::string& s, char delim='\t') {
