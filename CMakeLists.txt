@@ -405,8 +405,9 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 # Build the test drivers if necessary
 if(ROTE_TESTS)
   set(TEST_DIR ${PROJECT_SOURCE_DIR}/tests)
-  set(TEST_TYPES core gunnels)
+  set(TEST_TYPES core gunnels btas)
   set(core_TESTS RedistTest)
+  set(btas_TESTS Conv2d)
   set(gunnels_TESTS example)
 
   foreach(TYPE ${TEST_TYPES})

@@ -208,12 +208,6 @@ void LockedViewAsMatrix
   const Tensor<T>& B,
   const Unsigned& nModesMergeCol );
 
-// template<typename T>
-// Tensor<T> LockedViewAsMatrix
-// ( const Tensor<T>& B,
-//   const Unsigned& nModesMergeCol );
-
-
 } // namespace rote
 
 #endif // ifndef ROTE_CORE_VIEW_DECL_HPP

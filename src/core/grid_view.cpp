@@ -39,7 +39,9 @@ namespace rote {
   		shape_(distribution.size()),
       loc_(distribution.size()),
       grid_(grid)
-  { SetupGridView(distribution.UnusedModes()); }
+  {
+    SetupGridView(distribution.UnusedModes());
+  }
 
   void GridView::SetupGridView(const ModeDistribution &unusedModes) {
     Unsigned i;

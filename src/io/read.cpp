@@ -53,8 +53,6 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
 
         Unsigned whichProc = A.GetGridView().ToParticipatingLinearLoc(procGVLoc);
         sendBuf[whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]] = value;
-//        PrintVector(gblDataLoc, "packing gblDataLoc");
-//        printf("packing to loc: %d\n", whichProc*nElemsPerProc + nElemsPackedPerProc[whichProc]);
 
 
         //Update
@@ -77,8 +75,7 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
                 packedShape[packedPtr]++;
             }
         }
-//        PrintVector(packedShape, "packedShape after update");
-//        PrintVector(packShape, "Pack packShape after update");
+
         if (done)
             break;
 
@@ -94,8 +91,6 @@ ReadBinarySeqPack(const DistTensor<T>& A, const ObjShape& packShape, const ObjSh
                 gblDataLoc[gblDataPtr]++;
             }
         }
-//        PrintVector(gblDataLoc, "gblDataLoc after update");
-//        PrintVector(gblDataShape, "gblDataShape");
 
         if (done)
             break;
@@ -371,15 +366,7 @@ ReadSeq(DistTensor<T>& A, const std::string filename, FileFormat format)
         }
 
         //Communicate the data
-//        ObjShape sendBufShape = sendShape;
-//        sendBufShape.push_back(nCommProcs);
-//        PrintArray(sendBuf, sendBufShape, "sendBuf");
-
-//        if(gvA.LinearRank() == 0)
-//            printf("scattering on read\n");
         mpi::Scatter(sendBuf, prod(sendShape), recvBuf, prod(sendShape), 0, comm);
-
-//        PrintArray(recvBuf, sendShape, "recvBuf");
 
         //Unpack it
         Location packLastLoc = dataLoc;
@@ -491,12 +478,6 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
 
     bool done = !ElemwiseLessThan(curLoc, A.Shape());
 
-//    printf("order: %d\n", order);
-//    PrintVector(myLoc, "myLoc");
-//    PrintVector(readInc, "readInc");
-//    PrintVector(loopIters, "loopIters");
-//    PrintVector(srcBufStrides, "srcBufStrides"); 
-//    PrintVector(dstBufStrides, "dstBufStrides");
     while(!done){
         T value;
         if(format == ASCII_MATLAB || format == ASCII){
@@ -504,8 +485,7 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
         }else{
             file.read((char*)&value, sizeof(T));
         }
-//        PrintVector(curLoc, "curLoc");
-//        printf("read val: %.3f\n", value);
+
         dstBuf[dstBufPtr] = value;
 
         //Update
@@ -515,12 +495,8 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
         newSrcBufPtr += srcBufStrides[ptr] * readInc[ptr];
 
         while (ptr < order && curLoc[ptr] >= shapeA[ptr]) {
-//            PrintVector(curLoc, "curLoc before reset");
             curLoc[ptr] = myLoc[ptr];
-//            PrintVector(curLoc, "curLoc after reset");
-//            printf("newSrcBufPtr before reset: %d\n", newSrcBufPtr);
             newSrcBufPtr -= srcBufStrides[ptr] * readInc[ptr] * loopIters[ptr];
-//            printf("newSrcBufPtr after reset: %d\n", newSrcBufPtr);
             ptr++;
 
             if (ptr >= order) {
@@ -528,9 +504,7 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
                 break;
             } else {
                 curLoc[ptr] += readInc[ptr];
-//                PrintVector(curLoc, "curLoc after inc");
                 newSrcBufPtr += srcBufStrides[ptr] * readInc[ptr];
-//                printf("newSrcBufPtr after inc: %d\n", newSrcBufPtr);
             }
         }
         if (done)
@@ -538,7 +512,6 @@ ReadNonSeq(DistTensor<T>& A, const std::string filename, FileFormat format){
         ptr = 0;
         //Adjust streams (we read in 1 value, so adjust by -1 )
         Unsigned adjustAmount = newSrcBufPtr - srcBufPtr - 1;
-//        printf("newSrcBufPtr: %d, oldSrcBufPtr: %d\n", newSrcBufPtr, srcBufPtr);
         if(format == ASCII_MATLAB || format == ASCII){
             T val;
             for(i = 0; i < adjustAmount; i++)

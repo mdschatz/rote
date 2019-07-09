@@ -12,7 +12,6 @@
 
 namespace rote {
 
-//NOTE: FIX PROBLEM WITH HIGHER/LOWER ORDER VIEWS ERASING DATA (A.memory_.Empty())
 //////////////////////////////////////
 // Helper routines for updating views
 //////////////////////////////////////
@@ -132,16 +131,6 @@ inline void ViewHelper
     {
         const std::vector<Unsigned> modeRanks = B.GridViewLoc();
         A.modeShifts_ = Shifts(modeRanks, A.Alignments(), modeWrapStrides);
-
-//        const std::vector<Unsigned> localShapeBehind = Lengths(loc, B.ModeShifts(), modeWrapStrides);
-//        const std::vector<Unsigned> localShape = Lengths(shape, A.ModeShifts(), modeWrapStrides);
-//
-//        ViewHelper(A.Tensor(), B.LockedTensor(), localShapeBehind, localShape, isLocked);
-//        if(isLocked){
-//            LockedView( A.Tensor(), B.LockedTensor(), localShapeBehind, localShape );
-//        }else{
-//            View( A.Tensor(), B.Tensor(), localShapeBehind, localShape );
-//        }
     }
     else
     {

@@ -9,12 +9,6 @@ CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 	Unsigned i, j, k;
 
 	if(modesToMove.size() == 0){
-//		printf("adding fullTest\n");
-//		for(i = 0; i < partialTests.size(); i++){
-//			PrintVector(partialTests[i].second, "commModes");
-//			std::cout << TensorDistToString(partialTests[i].first) << std::endl;
-//		}
-//		printf("done\n");
 		for(i = 0; i < partialTests.size(); i++){
 			RedistTest partialTest = partialTests[i];
 			bool exists = false;
@@ -28,7 +22,6 @@ CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 			if(!exists)
 				fullTests.push_back(partialTest);
 		}
-//		fullTests.insert(fullTests.end(), partialTests.begin(), partialTests.end());
 
 		return;
 	}
@@ -56,13 +49,6 @@ CreateA2ATestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 		}
 		CreateA2ATestsSinkHelper(newModesToMove, sinkModesGroup, distA, newPartialTests, fullTests);
 	}
-//	printf("newPartialTests\n");
-//	for(i = 0; i < partialTests.size(); i++){
-//		PrintVector(partialTests[i].second, "commModes");
-//		std::cout << TensorDistToString(partialTests[i].first) << std::endl;
-//	}
-//	printf("done\n");
-
 }
 
 void
@@ -71,13 +57,6 @@ CreateA2ATestsSrcHelper(const ModeArray& srcModesGroup, const ModeArray& sinkMod
 	Unsigned i, j, k;
 
 	if(srcModesGroup.size() == 0){
-//		printf("calling sink\n");
-//		PrintVector(sinkModesGroup, "sinkModesGroup");
-//		for(i = 0; i < partialTests.size(); i++){
-//			PrintVector(partialTests[i].second, "commModes");
-//			std::cout << TensorDistToString(partialTests[i].first) << std::endl;
-//		}
-//		printf("done\n");
 	    std::vector<ModeArray> sinkTenModesGroups;
 	    for(i = 1; i < order; i++){
 	    	std::vector<ModeArray> newTenModesGroups = AllCombinations(sinkModesGroup, i);

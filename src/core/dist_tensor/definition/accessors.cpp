@@ -49,8 +49,8 @@ template<typename T>
 TensorDistribution
 DistTensorBase<T>::TensorDist() const
 {
-    TensorDistribution dist = dist_;
-    return dist;
+    // TensorDistribution dist = dist_;
+    return dist_;
 }
 
 template<typename T>

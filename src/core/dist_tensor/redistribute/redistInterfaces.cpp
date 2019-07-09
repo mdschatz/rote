@@ -66,6 +66,31 @@ void DistTensor<T>::RedistFrom(const DistTensor<T>& A){
 	RedistFrom(A, reduceModes, T(1), T(0));
 }
 
+template <typename T>
+void DistTensor<T>::RedistributeFrom(const DistTensor<T>& A){
+	RedistFrom(A);
+}
+
+template <typename T>
+void DistTensor<T>::ReduceFrom(
+  const DistTensor<T>& A,
+  const ModeArray& reduceModes,
+  const T alpha, const T beta
+) {
+	RedistFrom(A, reduceModes, alpha, beta);
+}
+
+template <typename T>
+void DistTensor<T>::ReduceFrom(
+  const DistTensor<T>& A,
+  const Mode& reduceMode,
+  const T alpha, const T beta
+) {
+  ModeArray reduceModes(1);
+  reduceModes[0] = reduceMode;
+	RedistFrom(A, reduceModes, alpha, beta);
+}
+
 #define FULL(T) \
     template class DistTensor<T>;
 

@@ -12,6 +12,7 @@
 
 #include "levelT/Contract.hpp"
 #include "levelT/Contract-deprecate.hpp"
+#include "levelT/Conv2D.hpp"
 #include "levelT/Hadamard.hpp"
 #include "levelT/HadamardScal.hpp"
 

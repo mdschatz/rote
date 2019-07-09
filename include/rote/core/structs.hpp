@@ -14,7 +14,11 @@
 
 namespace rote {
 
-struct 	BlkContractStatCInfo
+struct Conv2DInfo {
+	std::vector<Unsigned> blkSizes;
+};
+
+struct BlkContractStatCInfo
 {
 	// Stat A
 	ModeArray reduceTensorModes;

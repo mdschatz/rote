@@ -133,7 +133,6 @@ bool CheckResult(const DistTensor<T>& A){
     Unsigned res = 1;
 
     bool shouldbeParticipating = !AnyPositiveElem(FilterVector(myGridLoc, dist[order]));
-//    printf("shouldBeParticipating: %s\n", (shouldbeParticipating ? "true" : "false"));
     if(shouldbeParticipating && !A.Participating())
         res = 1;
 
@@ -154,17 +153,10 @@ bool CheckResult(const DistTensor<T>& A){
             res = 0;
         }
 
-//        Print(actual, "actual");
-//        printf("dist: %s\n", rote::TensorDistToString(A.TensorDist()).c_str());
-//        PrintVector(strides, "strides");
-//        PrintVector(myGridLoc, "myGridLoc");
-//        PrintVector(myFirstElem, "myFirstLoc");
         while(!stop){
-//            PrintVector(checkLoc, "checking Loc");
             Location locA = permCheckToA.applyTo(checkLoc);
 
             if(A.Get(locA) != check.Get(checkLoc)){
-                printf("val: %d checkVal: %d\n", A.Get(locA), check.Get(checkLoc));
                 res = 0;
                 break;
             }
@@ -234,7 +226,6 @@ bool CheckReduceResult(const DistTensor<T>& A, const DistTensor<T>& orig, const 
     Unsigned res = 1;
 
     bool shouldbeParticipating = !AnyPositiveElem(FilterVector(myGridLoc, dist[order]));
-//    printf("shouldBeParticipating: %s\n", (shouldbeParticipating ? "true" : "false"));
     if(shouldbeParticipating && !A.Participating())
         res = 1;
 
@@ -255,17 +246,10 @@ bool CheckReduceResult(const DistTensor<T>& A, const DistTensor<T>& orig, const 
             res = 0;
         }
 
-//        Print(actual, "actual");
-//        printf("dist: %s\n", rote::TensorDistToString(A.TensorDist()).c_str());
-//        PrintVector(strides, "strides");
-//        PrintVector(myGridLoc, "myGridLoc");
-//        PrintVector(myFirstElem, "myFirstLoc");
         while(!stop){
-//            PrintVector(checkLoc, "checking Loc");
             Location locA = permCheckToA.applyTo(checkLoc);
 
             if(A.Get(locA) != check.Get(checkLoc)){
-                printf("val: %d checkVal: %d\n", A.Get(locA), check.Get(checkLoc));
                 res = 0;
                 break;
             }

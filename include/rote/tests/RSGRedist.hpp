@@ -9,12 +9,6 @@ CreateRSGTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 	Unsigned i, j, k;
 
 	if(modesToMove.size() == 0){
-//		printf("adding fullTest\n");
-//		for(i = 0; i < partialTests.size(); i++){
-//			PrintVector(partialTests[i].second, "commModes");
-//			std::cout << TensorDistToString(partialTests[i].first) << std::endl;
-//		}
-//		printf("done\n");
 		for(i = 0; i < partialTests.size(); i++){
 			RedistTest partialTest = partialTests[i];
 			TensorDistribution resDist = partialTest.first;
@@ -65,12 +59,6 @@ CreateRSGTestsSinkHelper(const ModeArray& modesToMove, const ModeArray& sinkMode
 				newPartialTests.push_back(newTest);
 			}
 		}
-	//	printf("newPartialTests\n");
-	//	for(i = 0; i < partialTests.size(); i++){
-	//		PrintVector(partialTests[i].second, "commModes");
-	//		std::cout << TensorDistToString(partialTests[i].first) << std::endl;
-	//	}
-	//	printf("done\n");
 		CreateRSGTestsSinkHelper(newModesToMove, sinkModesGroup, reduceModes, distA, newPartialTests, fullTests);
 	}
 }

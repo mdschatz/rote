@@ -96,6 +96,9 @@ public:
     //
     void RedistFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha=T(1), const T beta=T(0));
     void RedistFrom(const DistTensor<T>& A);
+    void RedistributeFrom(const DistTensor<T>& A);
+    void ReduceFrom(const DistTensor<T>& A, const ModeArray& reduceModes, const T alpha=T(1), const T beta=T(0));
+    void ReduceFrom(const DistTensor<T>& A, const Mode& reduceMode, const T alpha=T(1), const T beta=T(0));
 
     //
     // All-to-all interface routines

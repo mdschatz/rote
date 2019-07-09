@@ -29,7 +29,8 @@ DistTensorBase<T>::DistTensorBase( const rote::Grid& grid )
 
   viewType_(OWNER),
   auxMemory_()
-{ SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
+{
+  SetShifts(); SetParticipatingComm(); SetDefaultPermutation();}
 
 template<typename T>
 DistTensorBase<T>::DistTensorBase( const Unsigned order, const rote::Grid& grid )

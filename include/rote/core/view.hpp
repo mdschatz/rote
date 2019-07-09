@@ -17,6 +17,7 @@
 #include "util.hpp"
 
 // New
+// #include "view/macros.hpp"
 #include "view/view_decl.hpp"
 #include "view/view_impl.hpp"
 #include "view/slide_partition_decl.hpp"
