@@ -126,10 +126,20 @@ void Conv2D<T>::runStatInputActivations(
 
         /*************************************/
         DistTensor<T> weights_update("[();();();(1)]", g);
-        DistTensor<T> out_act_temp("[(0);();();();(1)]", g);
-
         weights_update.RedistributeFrom(weights_1_1_1);
 
+        ObjShape temp_shape = {
+          output_activations_1.Dimension(0),
+          output_activations_1.Dimension(1),
+          output_activations_1.Dimension(2),
+          output_activations_1.Dimension(3),
+          weights.GetGridView().Dimension(3)
+        };
+        DistTensor<T> out_act_temp(temp_shape, "[(0);();();();(1)]", g);
+
+        out_act_temp.ResizeTo(temp_shape);
+
+        out_act_temp.Tensor().PopUnitMode();
         Conv2D<T>::run(
           T(1),
           weights_update.LockedTensor(),
@@ -137,6 +147,8 @@ void Conv2D<T>::runStatInputActivations(
           T(0),
           out_act_temp.Tensor()
         );
+        out_act_temp.Tensor().PushUnitMode();
+
         output_activations_1.ReduceFrom(out_act_temp, 4);
         /*************************************/
 
@@ -185,10 +197,18 @@ void Conv2D<T>::runStatWeights(
 
         /*************************************/
         DistTensor<T> in_act_update("[();(1);();()]", g);
-        DistTensor<T> out_act_temp("[();(0);();();(1)]", g);
-
         in_act_update.RedistributeFrom(input_activations_1_1_1);
 
+        ObjShape temp_shape = {
+          output_activations_1.Dimension(0),
+          output_activations_1.Dimension(1),
+          output_activations_1.Dimension(2),
+          output_activations_1.Dimension(3),
+          weights.GetGridView().Dimension(3)
+        };
+        DistTensor<T> out_act_temp(temp_shape, "[();(0);();();(1)]", g);
+
+        out_act_temp.Tensor().PopUnitMode();
         Conv2D<T>::run(
           T(1),
           weights.LockedTensor(),
@@ -196,6 +216,8 @@ void Conv2D<T>::runStatWeights(
           T(0),
           out_act_temp.Tensor()
         );
+        out_act_temp.Tensor().PushUnitMode();
+
         output_activations_1_1_1.ReduceFrom(out_act_temp, 4);
         /*************************************/
       ); // W

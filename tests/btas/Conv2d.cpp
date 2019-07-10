@@ -4,7 +4,7 @@ using namespace rote;
 void Usage(){
     std::cout << "./Conv2d <variant> <N> <K> <H> <W> <C> <Fh> <Fw> <gridDim0> <gridDim1>\n";
     std::cout << "   Computes a basic convolution operation on a set of images\n";
-    std::cout << "<variant>   : Algorithmic stationary variant to test (weight,output)\n";
+    std::cout << "<variant>   : Algorithmic stationary variant to test (weights,input,output)\n";
     std::cout << "<N>         : Number of batches\n";
     std::cout << "<K>         : Output channel dimension\n";
     std::cout << "<H>         : Image height\n";
@@ -42,10 +42,12 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
   }
 
   std::string variant = argv[1];
-  if (variant.compare("weight") == 0) {
+  if (variant.compare("weights") == 0) {
     args.variant = 0;
-  } else if (variant.compare("output") == 0) {
+  } else if (variant.compare("input") == 0) {
     args.variant = 1;
+  } else if (variant.compare("output") == 0) {
+    args.variant = 2;
   } else {
     InvalidArgs("Variant argument must be weight or output");
   }
@@ -101,24 +103,47 @@ void ProcessInput(Unsigned argc,  char** const argv, Params& args){
 
 template<typename T>
 void Conv2dTest( const mpi::Comm& comm, const Params& args) {
+  const Grid g(comm, args.gridShape);
   ObjShape weightsShape = {args.K, args.Fh, args.Fw, args.C};
   ObjShape inActShape = {args.N, args.C, args.H + args.Fh - 1, args.W + args.Fw - 1};
   ObjShape outActShape = {args.N, args.K, args.H, args.W};
 
-  const Grid g(comm, args.gridShape);
-  if (args.variant == 1) {
+  if (args.variant == 0) {
+    // Stationary-weights variant
+    DistTensor<T> weights(weightsShape, "[(0);();();(1)]", g);
+    DistTensor<T> inAct(inActShape, "[();(1);();()]", g);
+    DistTensor<T> outAct(outActShape, "[();(0);();()]", g);
+
+    MakeUniform(weights);
+    MakeUniform(inAct);
+    MakeUniform(outAct);
+
+    Conv2D<T>::runStatWeights(weights, inAct, outAct);
+    Print(outAct, "output_activations");
+  } else if (args.variant == 1) {
+    // Stationary-input variant
+    DistTensor<T> weights(weightsShape, "[();();();(1)]", g);
+    DistTensor<T> inAct(inActShape, "[(0);(1);();()]", g);
+    DistTensor<T> outAct(outActShape, "[(0);();();()]", g);
+
+    MakeUniform(weights);
+    MakeUniform(inAct);
+    MakeUniform(outAct);
+
+    Conv2D<T>::runStatInputActivations(weights, inAct, outAct);
+    Print(outAct, "output_activations");
+  } else if (args.variant == 2) {
     // Stationary-output variant
     DistTensor<T> weights(weightsShape, "[();();();(1)]", g);
     DistTensor<T> inAct(inActShape, "[(0);();();()]", g);
-    DistTensor<T> outAct(inActShape, "[(0);(1);();()]", g);
+    DistTensor<T> outAct(outActShape, "[(0);(1);();()]", g);
 
     MakeUniform(weights);
     MakeUniform(inAct);
     MakeUniform(outAct);
 
     Conv2D<T>::runStatOutputActivations(weights, inAct, outAct);
-  } else {
-    printf("NOT implmentated\n");
+    Print(outAct, "output_activations");
   }
 }
 

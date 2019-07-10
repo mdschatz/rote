@@ -20,6 +20,7 @@ void Conv2D<T>::run(
         T beta,
         Tensor<T>& output_activations
 ) {
+
   for(Unsigned n = 0; n < output_activations.Dimension(0); n++) {
     for(Unsigned k = 0; k < output_activations.Dimension(1); k++) {
       for(Unsigned h = 0; h < output_activations.Dimension(2); h++) {
@@ -32,6 +33,12 @@ void Conv2D<T>::run(
               for(Unsigned c = 0; c < weights.Dimension(3); c++) {
                 Location weightsLoc = {k, fh, fw, c};
                 Location inputActivationsLoc = {n, c, h + fh, w + fw};
+
+                // printf("(n,k,h,w,fh,fw,c)=(%u,%u,%u,%u,%u,%u,%u) %.3f + %.3f * %.3f * %.3f --> %.3f\n",
+                //   n,k,h,w,fh,fw,c,
+                //   val, alpha, weights.Get(weightsLoc), input_activations.Get(inputActivationsLoc),
+                //   val + alpha * weights.Get(weightsLoc) * input_activations.Get(inputActivationsLoc)
+                // );
                 val += alpha * weights.Get(weightsLoc) * input_activations.Get(inputActivationsLoc);
               }
             }

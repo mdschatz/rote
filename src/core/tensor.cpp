@@ -34,7 +34,7 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
     if(order != loc.size())
         LogicError("Index must be of same order as object");
 
-     if( !ElemwiseLessThan(loc, shape_) )
+    if( !ElemwiseLessThan(loc, shape_) )
     {
         Unsigned i;
         std::ostringstream msg;
@@ -49,7 +49,7 @@ Tensor<T>::AssertValidEntry( const Location& loc ) const
         for(i = 1; i < order; i++)
             msg << " x " << shape_[i];
         msg << "Tensor.";
-            LogicError( msg.str() );
+        LogicError( msg.str() );
     }
 }
 
@@ -331,6 +331,22 @@ Tensor<T>::IntroduceUnitModes(const ModeArray& modes){
         shape_.insert(shape_.begin() + sorted[i], 1);
     }
     ResizeTo(shape_);
+}
+
+template<typename T>
+void
+Tensor<T>::PushUnitMode() {
+  ObjShape shape = shape_;
+  shape.push_back(1);
+  ResizeTo(shape);
+}
+
+template<typename T>
+void
+Tensor<T>::PopUnitMode() {
+  ObjShape shape = shape_;
+  shape.pop_back();
+  ResizeTo(shape);
 }
 
 //
@@ -653,6 +669,7 @@ Tensor<T>::CopyBuffer(const Tensor<T>& A, const Permutation& srcPerm, const Perm
 
     PackCommHelper(packData, &(srcBuf[0]), &(thisBuf[0]));
 }
+
 
 template class Tensor<Int>;
 #ifndef DISABLE_FLOAT

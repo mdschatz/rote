@@ -82,6 +82,8 @@ public:
     void RemoveUnitMode(const Mode& mode);
     void IntroduceUnitModes(const ModeArray& modes);
     void IntroduceUnitMode(const Unsigned& modePosition);
+    void PushUnitMode();
+    void PopUnitMode();
 
     //
     // Entry manipulation

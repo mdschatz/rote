@@ -23,11 +23,11 @@
   const rote::Grid& A##_g = A.Grid();                                                 \
   TensorDistribution A_dist = A.TensorDist();                                         \
   DistTensor<T> A##_T(A_dist, A##_g), A##_B(A_dist, A##_g), A##_0(A_dist, A##_g), A##_1(A_dist, A##_g), A##_2(A_dist, A##_g); \
-  PartitionDown(A, A##_T, A##_B, partA, 0);                                           \
+  LockedPartitionDown(A, A##_T, A##_B, partA, 0);                                           \
   while (A##_T.Dimension(partA) < A.Dimension(partA)) {                               \
-    RepartitionDown(A##_T, A##_0, A##_1, A##_B, A##_2, partA, bs);                    \
+    LockedRepartitionDown(A##_T, A##_0, A##_1, A##_B, A##_2, partA, bs);                    \
     __VA_ARGS__                                                                       \
-    SlidePartitionDown(A##_T, A##_0, A##_1, A##_B, A##_2, partA);                     \
+    SlideLockedPartitionDown(A##_T, A##_0, A##_1, A##_B, A##_2, partA);                     \
   }
 
 #define PART2(A, partA, B, partB, bs, ...)                                            \
