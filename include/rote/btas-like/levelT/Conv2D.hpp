@@ -36,6 +36,11 @@ public:
 					DistTensor<T>& output_activations
 	);
 
+	static void run(
+    const Tensor<T>& weights,
+    const Tensor<T>& input_activations,
+          Tensor<T>& output_activations
+	);
 private:
 	//Struct interface
 	static void setConv2DInfo(

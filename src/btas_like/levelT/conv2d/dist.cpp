@@ -39,10 +39,6 @@ void Conv2D<T>::runStatOutputActivations(
   const int bs_Fh = 32;
   const int bs_Fw = 32;;
 
-  PrintData(weights, "weights", false);
-  PrintData(input_activations, "input_activations", false);
-  PrintData(output_activations, "output_activations", false);
-
   const Grid& g = weights.Grid();
   DistTensor<T> a(weights.TensorDist(), g);
 
@@ -100,10 +96,6 @@ void Conv2D<T>::runStatInputActivations(
   const int bs_K = 32;
   const int bs_Fh = 32;
   const int bs_Fw = 32;
-
-  PrintData(weights, "weights", false);
-  PrintData(input_activations, "input_activations", false);
-  PrintData(output_activations, "output_activations", false);
 
   const Grid& g = weights.Grid();
   DistTensor<T> a(weights.TensorDist(), g);
@@ -169,10 +161,6 @@ void Conv2D<T>::runStatWeights(
   const int bs_N = 32;
   const int bs_H = 32;
   const int bs_W = 32;
-
-  PrintData(weights, "weights", false);
-  PrintData(input_activations, "input_activations", false);
-  PrintData(output_activations, "output_activations", false);
 
   const Grid& g = weights.Grid();
   DistTensor<T> a(weights.TensorDist(), g);

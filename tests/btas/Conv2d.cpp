@@ -108,42 +108,63 @@ void Conv2dTest( const mpi::Comm& comm, const Params& args) {
   ObjShape inActShape = {args.N, args.C, args.H + args.Fh - 1, args.W + args.Fw - 1};
   ObjShape outActShape = {args.N, args.K, args.H, args.W};
 
+  std::string distWeights;
+  std::string distInAct;
+  std::string distOutAct;
+
+  if (args.variant == 0) {
+    distWeights = "[(0);();();(1)]";
+    distInAct = "[();(1);();()]";
+    distOutAct = "[();(0);();()]";
+  } else if (args.variant == 1) {
+    distWeights = "[(0);();();(1)]";
+    distInAct = "[(0);(1);();()]";
+    distOutAct = "[(0);();();()]";
+  } else if (args.variant == 2) {
+    distWeights = "[();();();(1)]";
+    distInAct = "[(0);();();()]";
+    distOutAct = "[(0);(1);();()]";
+  }
+
+  DistTensor<T> weights(weightsShape, distWeights, g);
+  DistTensor<T> inAct(inActShape, distInAct, g);
+  DistTensor<T> outAct(outActShape, distOutAct, g);
+
+  MakeUniform(weights);
+  MakeUniform(inAct);
+  MakeUniform(outAct);
+
   if (args.variant == 0) {
     // Stationary-weights variant
-    DistTensor<T> weights(weightsShape, "[(0);();();(1)]", g);
-    DistTensor<T> inAct(inActShape, "[();(1);();()]", g);
-    DistTensor<T> outAct(outActShape, "[();(0);();()]", g);
-
-    MakeUniform(weights);
-    MakeUniform(inAct);
-    MakeUniform(outAct);
-
     Conv2D<T>::runStatWeights(weights, inAct, outAct);
-    Print(outAct, "output_activations");
   } else if (args.variant == 1) {
     // Stationary-input variant
-    DistTensor<T> weights(weightsShape, "[();();();(1)]", g);
-    DistTensor<T> inAct(inActShape, "[(0);(1);();()]", g);
-    DistTensor<T> outAct(outActShape, "[(0);();();()]", g);
-
-    MakeUniform(weights);
-    MakeUniform(inAct);
-    MakeUniform(outAct);
-
     Conv2D<T>::runStatInputActivations(weights, inAct, outAct);
-    Print(outAct, "output_activations");
   } else if (args.variant == 2) {
     // Stationary-output variant
-    DistTensor<T> weights(weightsShape, "[();();();(1)]", g);
-    DistTensor<T> inAct(inActShape, "[(0);();();()]", g);
-    DistTensor<T> outAct(outActShape, "[(0);(1);();()]", g);
-
-    MakeUniform(weights);
-    MakeUniform(inAct);
-    MakeUniform(outAct);
-
     Conv2D<T>::runStatOutputActivations(weights, inAct, outAct);
-    Print(outAct, "output_activations");
+  }
+
+  std::string distCheck = "[();();();()]";
+  DistTensor<T> checkWeights(distCheck, g);
+  DistTensor<T> checkInAct(distCheck, g);
+
+  checkWeights.RedistributeFrom(weights);
+  checkInAct.RedistributeFrom(inAct);
+
+  DistTensor<T> checkOutAct(distCheck, g);
+  Conv2D<T>::run(checkWeights.LockedTensor(), checkInAct.LockedTensor(), checkOutAct.Tensor());
+
+  DistTensor<T> finalCheckOutAct(distOutAct, g);
+  finalCheckOutAct.RedistributeFrom(checkOutAct);
+
+  DistTensor<T> diff(distOutAct, g);
+  Diff(finalCheckOutAct, outAct, diff);
+  double norm;
+
+  norm = Norm(diff);
+  if (mpi::CommRank(mpi::COMM_WORLD) == 0) {
+    std::cout << "Norm: " << norm << "\n";  
   }
 }
 
